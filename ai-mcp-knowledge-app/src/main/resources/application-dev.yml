@@ -1,0 +1,39 @@
+server:
+  port: 8090
+
+spring:
+  main:
+    web-application-type: none
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    username: root
+    password: XSJroot123456
+    url: jdbc:postgresql://113.44.95.208:5432/ai-rag-knowledge
+    type: com.zaxxer.hikari.HikariDataSource
+  ai:
+    openai:
+      base-url: https://pro-share-aws-api.zcyai.com/
+      api-key: sk-b1dNTAXqTai1n9kP19517d7820C2427*****可私聊小傅哥申请openai apikey
+      embedding-model: text-embedding-ada-002
+      embedding:
+        options:
+          num-batch: 1536
+    ollama:
+      base-url: http://1b349d2280564f15a7ef-deepseek-r1-llm-api.gcs-xy1a.jdcloud.com/
+      embedding-model: nomic-embed-text
+      embedding:
+        options:
+          num-batch: 768
+
+# 向量存储表名配置
+vector:
+  store:
+    openai:
+      table-name: vector_store_openai
+    ollama:
+      table-name: vector_store_ollama_deepseek
+
+logging:
+  level:
+    root: info
+  config: classpath:logback-spring.xml
