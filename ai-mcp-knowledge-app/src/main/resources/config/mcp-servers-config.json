@@ -5,8 +5,8 @@
       "args": [
         "-y",
         "@modelcontextprotocol/server-filesystem@2025.3.28",
-        "/Users/fuzhengwei/Desktop",
-        "/Users/fuzhengwei/Desktop"
+        "/Users/xiexu/Desktop",
+        "/Users/xiexu/Desktop"
       ]
     },
     "mcp-server-computer": {
@@ -15,7 +15,7 @@
         "-Dfile.encoding=utf-8",
         "-Dspring.ai.mcp.server.stdio=true",
         "-jar",
-        "/Users/fuzhengwei/Applications/apache-maven-3.8.4/repository/cn/bugstack/mcp/mcp-server-computer/1.0.0/mcp-server-computer-1.0.0.jar"
+        "/Users/xiexu/maven/repository/com/xbk/mcp-server-computer-study/1.0.0/mcp-server-computer-study-1.0.0.jar"
       ]
     }
   }

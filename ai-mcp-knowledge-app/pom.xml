@@ -12,62 +12,142 @@
     <artifactId>ai-mcp-knowledge-app</artifactId>
 
     <dependencies>
+        <!--
+            Spring Boot Web Starter
+            提供 Web 应用核心功能：内嵌 Tomcat、Spring MVC、RESTful 支持
+            是构建 Web 服务的基础依赖
+        -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!--
+            Spring Boot Test Starter
+            提供测试支持：JUnit 5、Mockito、Spring Test、AssertJ 等
+            仅在测试阶段使用，不会打包到生产环境
+        -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
 
+        <!--
+            Spring AI OpenAI Starter
+            集成 OpenAI API（GPT-3.5/GPT-4/GPT-4o 等模型）
+            提供：ChatClient、Embedding、Image Generation 等功能
+            支持 OpenAI 兼容的第三方 API（如 DeepSeek、智谱等）
+        -->
         <dependency>
             <groupId>org.springframework.ai</groupId>
-            <artifactId>spring-ai-openai-spring-boot-starter</artifactId>
+            <artifactId>spring-ai-starter-model-openai</artifactId>
         </dependency>
 
+        <!--
+            Spring AI Ollama Starter
+            集成本地 Ollama 服务，支持运行开源大模型
+            如：Llama、Mistral、Qwen、DeepSeek 等
+            适用于私有化部署、离线场景、降低 API 成本
+        -->
         <dependency>
             <groupId>org.springframework.ai</groupId>
-            <artifactId>spring-ai-ollama-spring-boot-starter</artifactId>
+            <artifactId>spring-ai-starter-model-ollama</artifactId>
         </dependency>
 
+        <!--
+            Spring AI Google Gemini 核心依赖（非 Starter）
+            通过自定义配置类管理 Google GenAI Client
+            支持：gemini-2.0-flash、gemini-1.5-pro、gemini-3-pro-high 等
+            支持 Function Calling（工具调用）功能
+        -->
         <dependency>
             <groupId>org.springframework.ai</groupId>
-            <artifactId>spring-ai-mcp-server-spring-boot-starter</artifactId>
+            <artifactId>spring-ai-google-genai</artifactId>
         </dependency>
 
+        <!--
+            Spring AI MCP Server Starter
+            MCP (Model Context Protocol) 服务端实现
+            将本应用作为 MCP Server，对外暴露 Tools/Resources/Prompts
+            供 Claude Desktop、Cursor 等 MCP Client 调用
+        -->
         <dependency>
             <groupId>org.springframework.ai</groupId>
-            <artifactId>spring-ai-mcp-client-webflux-spring-boot-starter</artifactId>
+            <artifactId>spring-ai-starter-mcp-server</artifactId>
         </dependency>
 
+        <!--
+            Spring AI MCP Client (WebFlux) Starter
+            MCP 客户端实现，基于 WebFlux 响应式编程
+            用于连接外部 MCP Server，调用其暴露的 Tools
+            支持 SSE (Server-Sent Events) 传输协议
+        -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-mcp-client-webflux</artifactId>
+        </dependency>
+
+        <!--
+            Spring AI Tika Document Reader
+            基于 Apache Tika 的文档解析器
+            支持读取：PDF、Word、Excel、PPT、HTML、TXT 等多种格式
+            将文档内容转换为可供 AI 处理的文本/Document 对象
+        -->
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-tika-document-reader</artifactId>
         </dependency>
+
+        <!--
+            结巴中文分词 (Jieba Analysis)
+            高性能中文分词库，支持精确模式/全模式/搜索引擎模式
+            用于中文文本的分词处理，提升中文 RAG 检索效果
+        -->
         <dependency>
             <groupId>com.huaban</groupId>
             <artifactId>jieba-analysis</artifactId>
             <version>1.0.2</version>
         </dependency>
 
+        <!--
+            Spring AI PGVector Store
+            基于 PostgreSQL + pgvector 扩展的向量数据库集成
+            用于存储和检索文档 Embedding 向量
+            是 RAG (检索增强生成) 应用的核心组件
+        -->
         <dependency>
             <groupId>org.springframework.ai</groupId>
-            <artifactId>spring-ai-pgvector-store</artifactId>
+            <artifactId>spring-ai-starter-vector-store-pgvector</artifactId>
         </dependency>
 
+        <!--
+            Lombok
+            Java 代码简化工具，通过注解自动生成样板代码
+            提供：@Data、@Getter、@Setter、@Slf4j、@Builder 等
+            编译时生成代码，不增加运行时开销
+        -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
 
+        <!--
+            Alibaba FastJSON
+            高性能 JSON 处理库
+            用于：API 响应序列化、配置文件解析、数据转换等
+        -->
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
         </dependency>
 
+        <!--
+            JUnit 4
+            经典 Java 单元测试框架
+            提供基础的测试注解和断言功能
+            注：新项目建议使用 JUnit 5 (spring-boot-starter-test 已包含)
+        -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

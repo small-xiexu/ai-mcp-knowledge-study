@@ -6,14 +6,30 @@ spring:
     web-application-type: none
   datasource:
     driver-class-name: org.postgresql.Driver
-    username: root
-    password: XSJroot123456
-    url: jdbc:postgresql://113.44.95.208:5432/ai-rag-knowledge
+    username: postgres
+    password: postgres
+    url: jdbc:postgresql://localhost:5432/ai-rag-knowledge
     type: com.zaxxer.hikari.HikariDataSource
   ai:
+    mcp:
+      client:
+        request-timeout: 360s
+        stdio:
+          servers-configuration: classpath:/config/mcp-servers-config.json
+    google:
+      genai:
+        # Google GenAI SDK 模式的代理服务
+        base-url: http://127.0.0.1:8045
+        api-key: sk-c683771ae7f7419e9b29901d627e099d
+        chat:
+          options:
+            model: gemini-3-flash
     openai:
-      base-url: https://pro-share-aws-api.zcyai.com/
-      api-key: sk-b1dNTAXqTai1n9kP19517d7820C2427*****可私聊小傅哥申请openai apikey
+      base-url: https://api.siliconflow.cn
+      api-key: sk-kgzlksqhrlxzgecfajnlaaizyodvitnimeclvggubeyhxjcv
+      chat:
+        options:
+          model: deepseek-ai/DeepSeek-R1-Distill-Qwen-7B
       embedding-model: text-embedding-ada-002
       embedding:
         options:
