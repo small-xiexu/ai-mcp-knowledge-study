@@ -17,7 +17,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spring-ai.version>1.0.0-M6</spring-ai.version>
+        <spring-ai.version>1.1.2</spring-ai.version>
     </properties>
 
     <parent>
@@ -29,6 +29,11 @@
 
     <dependencyManagement>
         <dependencies>
+            <!--
+                Spring AI BOM (Bill of Materials)
+                统一管理所有 Spring AI 相关依赖的版本号，避免版本冲突
+                包含：OpenAI、Ollama、MCP、向量存储等所有 Spring AI 模块
+            -->
             <dependency>
                 <groupId>org.springframework.ai</groupId>
                 <artifactId>spring-ai-bom</artifactId>
@@ -36,6 +41,12 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+
+            <!--
+                Alibaba FastJSON 2.x
+                高性能 JSON 序列化/反序列化库
+                用于 API 响应处理、配置解析等场景
+            -->
             <dependency>
                 <groupId>com.alibaba</groupId>
                 <artifactId>fastjson</artifactId>
