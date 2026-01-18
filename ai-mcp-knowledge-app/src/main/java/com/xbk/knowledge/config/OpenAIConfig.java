@@ -1,5 +1,7 @@
 package com.xbk.knowledge.config;
 
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiEmbeddingModel;
 import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
@@ -19,20 +21,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 @Configuration
 public class OpenAIConfig {
 
-    /**
-     * 文本分割器
-     * 用于将长文本按 Token 数量切分为适合嵌入模型处理的小块
-     */
     @Bean
     public TokenTextSplitter tokenTextSplitter() {
         return new TokenTextSplitter();
     }
 
-
-    /**
-     * OpenAI API 客户端
-     * 从配置文件读取 baseUrl 和 apiKey，支持自定义代理地址
-     */
     @Bean
     public OpenAiApi openAiApi(@Value("${spring.ai.openai.base-url}") String baseUrl, @Value("${spring.ai.openai.api-key}") String apikey) {
         return OpenAiApi.builder()
@@ -41,10 +34,6 @@ public class OpenAIConfig {
                 .build();
     }
 
-    /**
-     * 基于内存的简单向量存储
-     * 适用于开发测试环境，数据不持久化
-     */
     @Bean("openAiSimpleVectorStore")
     public SimpleVectorStore vectorStore(OpenAiApi openAiApi) {
         OpenAiEmbeddingModel embeddingModel = new OpenAiEmbeddingModel(openAiApi);
@@ -52,27 +41,30 @@ public class OpenAIConfig {
     }
 
     /**
-     * 基于 PostgreSQL 的向量存储（生产环境推荐）
-     * 使用 pgvector 扩展实现向量相似度检索，向量维度为 1536（OpenAI text-embedding-ada-002）
+     * -- 删除旧的表（如果存在）
+     * DROP TABLE IF EXISTS public.vector_store_openai;
      *
-     * <pre>
-     * -- 建表 SQL：
+     * -- 创建新的表，使用UUID作为主键
      * CREATE TABLE public.vector_store_openai (
      *     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
      *     content TEXT NOT NULL,
      *     metadata JSONB,
      *     embedding VECTOR(1536)
      * );
-     * </pre>
+     *
+     * SELECT * FROM vector_store_openai
      */
     @Bean("openAiPgVectorStore")
-    public PgVectorStore pgVectorStore(OpenAiApi openAiApi,
-                                       JdbcTemplate jdbcTemplate,
-                                       @Value("${vector.store.openai.table-name}") String tableName) {
+    public PgVectorStore pgVectorStore(OpenAiApi openAiApi, JdbcTemplate jdbcTemplate) {
         OpenAiEmbeddingModel embeddingModel = new OpenAiEmbeddingModel(openAiApi);
         return PgVectorStore.builder(jdbcTemplate, embeddingModel)
-                .vectorTableName(tableName)
+                .vectorTableName("vector_store_openai")
                 .build();
+    }
+
+    @Bean
+    public ChatClient.Builder chatClientBuilder(OpenAiChatModel openAiChatModel) {
+        return ChatClient.builder(openAiChatModel);
     }
 
 }

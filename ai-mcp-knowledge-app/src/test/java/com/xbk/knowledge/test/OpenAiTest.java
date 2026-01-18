@@ -11,7 +11,7 @@ import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.ai.document.Document;
-import org.springframework.ai.model.Media;
+import org.springframework.ai.content.Media;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.openai.api.OpenAiApi;
@@ -92,7 +92,7 @@ public class OpenAiTest {
         ChatResponse response = openAiChatModel.call(new Prompt(
                 "1+1",
                 OpenAiChatOptions.builder()
-                        .model("gpt-4o")
+                        .model("deepseek-ai/DeepSeek-R1-Distill-Qwen-7B")
                         .build()));
 
         log.info("测试结果(call):{}", JSON.toJSONString(response));
@@ -105,10 +105,11 @@ public class OpenAiTest {
      */
     @Test
     public void test_call_images() {
-        // 构建包含图片的用户消息
-        UserMessage userMessage = new UserMessage("请描述这张图片的主要内容，并说明图中物品的可能用途。",
-                new Media(MimeType.valueOf(MimeTypeUtils.IMAGE_PNG_VALUE),
-                        imageResource));
+        // 构建包含图片的用户消息（使用 Builder 模式）
+        UserMessage userMessage = UserMessage.builder()
+                .text("请描述这张图片的主要内容，并说明图中物品的可能用途。")
+                .media(new Media(MimeType.valueOf(MimeTypeUtils.IMAGE_PNG_VALUE), imageResource))
+                .build();
 
         ChatResponse response = openAiChatModel.call(new Prompt(
                 userMessage,

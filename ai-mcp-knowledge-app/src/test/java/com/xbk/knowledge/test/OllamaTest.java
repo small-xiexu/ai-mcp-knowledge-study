@@ -14,9 +14,9 @@ import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.ai.document.Document;
-import org.springframework.ai.model.Media;
+import org.springframework.ai.content.Media;
 import org.springframework.ai.ollama.OllamaChatModel;
-import org.springframework.ai.ollama.api.OllamaOptions;
+import org.springframework.ai.ollama.api.OllamaChatOptions;
 import org.springframework.ai.reader.tika.TikaDocumentReader;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.SearchRequest;
@@ -97,7 +97,7 @@ public class OllamaTest {
     public void test_call() {
         ChatResponse response = ollamaChatModel.call(new Prompt(
                 "1+1",
-                OllamaOptions.builder().model("deepseek-r1:1.5b").build()));
+                OllamaChatOptions.builder().model("deepseek-r1:1.5b").build()));
 
         log.info("测试结果(call):{}", JSON.toJSONString(response));
     }
@@ -108,14 +108,15 @@ public class OllamaTest {
      */
     @Test
     public void test_call_images() {
-        // 构建包含图片的用户消息
-        UserMessage userMessage = new UserMessage("请描述这张图片的主要内容，并说明图中物品的可能用途。",
-                new Media(MimeType.valueOf(MimeTypeUtils.IMAGE_PNG_VALUE),
-                        imageResource));
+        // 构建包含图片的用户消息（使用 Builder 模式）
+        UserMessage userMessage = UserMessage.builder()
+                .text("请描述这张图片的主要内容，并说明图中物品的可能用途。")
+                .media(new Media(MimeType.valueOf(MimeTypeUtils.IMAGE_PNG_VALUE), imageResource))
+                .build();
 
         ChatResponse response = ollamaChatModel.call(new Prompt(
                 userMessage,
-                OllamaOptions.builder()
+                OllamaChatOptions.builder()
                         .model("deepseek-r1:1.5b")
                         .build()));
 
@@ -134,7 +135,7 @@ public class OllamaTest {
         // 发起流式请求，返回 Flux 响应流
         Flux<ChatResponse> stream = ollamaChatModel.stream(new Prompt(
                 "1+1",
-                OllamaOptions.builder().model("deepseek-r1:1.5b").build()));
+                OllamaChatOptions.builder().model("deepseek-r1:1.5b").build()));
 
         // 订阅响应流：逐块处理、错误处理、完成回调
         stream.subscribe(
@@ -222,7 +223,7 @@ public class OllamaTest {
         // 6. 调用模型生成最终答案
         ChatResponse chatResponse = ollamaChatModel.call(new Prompt(
                 messages,
-                OllamaOptions.builder()
+                OllamaChatOptions.builder()
                         .model("deepseek-r1:1.5b")
                         .build()));
 
