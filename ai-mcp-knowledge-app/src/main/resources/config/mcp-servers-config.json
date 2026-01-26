@@ -1,24 +1,26 @@
 {
   "mcpServers": {
-    "filesystem": {
-      "command": "npx",
+    "mcp-tool-weixin": {
+      "command": "/Users/sxie/Library/Java/JavaVirtualMachines/azul-17.0.18/Contents/Home/bin/java",
       "args": [
-        "-y",
-        "@modelcontextprotocol/server-filesystem@2025.3.28",
-        "/Users/xiexu/Desktop",
-        "/tmp",
-        "/Users/xiexu/xiaofu"
+        "-Dspring.ai.mcp.server.stdio=true",
+        "-Dspring.config.location=classpath:/",
+        "-Dweixin.api.original_id=gh_c4e43eedb169",
+        "-Dweixin.api.app-id=wx8753465574122704",
+        "-Dweixin.api.app-secret=543f155cc043bd86366de1300ad035eb",
+        "-Dweixin.api.template_id=hECodOKR74-8xxKokA2NPfL_hrQXpzmkYMfFx7t0U0c",
+        "-Dweixin.api.to-user=oZt_U15drPN8WX1UMnF4TXHW3Jvk",
+        "-jar",
+        "/Users/sxie/xbk/mcp-server-study/mcp-tool-weixin/target/mcp-tool-weixin-1.0.0.jar"
       ]
     },
-    "mcp-server-computer": {
-      "command": "java",
+    "mcp-tool-csdn": {
+      "command": "/Users/sxie/Library/Java/JavaVirtualMachines/azul-17.0.18/Contents/Home/bin/java",
       "args": [
-        "-Dfile.encoding=utf-8",
         "-Dspring.ai.mcp.server.stdio=true",
         "-jar",
-        "/Users/xiexu/xiaofu/mcp-server-study/target/mcp-server-study-1.0.0.jar"
+        "/Users/sxie/xbk/mcp-server-study/mcp-tool-csdn/target/mcp-tool-csdn-1.0.0.jar"
       ]
     }
   }
 }
-

@@ -20,7 +20,7 @@ spring:
       genai:
         # Google GenAI SDK 模式的代理服务
         base-url: http://127.0.0.1:8045
-        api-key: sk-c683771ae7f7419e9b29901d627e099d
+        api-key: sk-1256419209eb47ccbabaa98abccfe4c8
         chat:
           options:
             model: gemini-3-flash
