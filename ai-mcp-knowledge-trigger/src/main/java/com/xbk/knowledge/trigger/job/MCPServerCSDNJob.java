@@ -1,20 +1,19 @@
 package com.xbk.knowledge.trigger.job;
 
+import com.xbk.knowledge.types.trace.TraceIdUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.MDC;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.PromptChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.api.CallAdvisor;
 import org.springframework.ai.chat.memory.InMemoryChatMemoryRepository;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
-import org.springframework.ai.google.genai.GoogleGenAiChatModel;
+import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
  * CSDN 文章自动发布定时任务
@@ -43,10 +42,8 @@ import java.util.UUID;
 @Service
 public class MCPServerCSDNJob {
 
-    private static final String TRACE_ID_KEY = "traceId";
-
     @Autowired
-    private GoogleGenAiChatModel geminiChatModel;
+    private OpenAiChatModel openAiChatModel;
 
     @Autowired
     private ToolCallbackProvider tools;
@@ -71,7 +68,9 @@ public class MCPServerCSDNJob {
      */
     @Scheduled(cron = "0 0 10,11,15,16 * * ?")
     public void exec() {
-        String traceId = getCurrentTraceId();
+        var traceIdContext = TraceIdUtils.ensureTraceId();
+        var traceId = traceIdContext.traceId();
+        var generated = traceIdContext.generated();
         log.info("[{}] CSDN 定时任务开始执行", traceId);
 
         try {
@@ -81,7 +80,7 @@ public class MCPServerCSDNJob {
                     .maxMessages(100)
                     .build();
 
-            var builder = ChatClient.builder(geminiChatModel)
+            var builder = ChatClient.builder(openAiChatModel)
                     .defaultToolCallbacks(tools)
                     .defaultAdvisors(PromptChatMemoryAdvisor.builder(chatMemory).build());
 
@@ -90,7 +89,7 @@ public class MCPServerCSDNJob {
             }
 
             var chatClient = builder.build();
-            String conversationId = "csdn-job-" + traceId;
+            var conversationId = "csdn-job-" + traceId;
 
             // 第一轮：生成文章并发布到 CSDN
             var publishPrompt = """
@@ -107,7 +106,7 @@ public class MCPServerCSDNJob {
                     """;
 
             log.info("[{}] 开始生成并发布 CSDN 文章", traceId);
-            String publishResult = chatClient.prompt()
+            var publishResult = chatClient.prompt()
                     .system(String.format(TRACE_ID_SYSTEM_PROMPT, traceId))
                     .user(publishPrompt)
                     .advisors(advisor -> advisor.param("chat_memory_conversation_id", conversationId))
@@ -127,7 +126,7 @@ public class MCPServerCSDNJob {
                     """;
 
             log.info("[{}] 开始发送微信通知", traceId);
-            String noticeResult = chatClient.prompt()
+            var noticeResult = chatClient.prompt()
                     .system(String.format(TRACE_ID_SYSTEM_PROMPT, traceId))
                     .user(noticePrompt)
                     .advisors(advisor -> advisor.param("chat_memory_conversation_id", conversationId))
@@ -138,18 +137,9 @@ public class MCPServerCSDNJob {
             log.info("[{}] CSDN 定时任务执行完成", traceId);
         } catch (Exception e) {
             log.error("[{}] CSDN 定时任务执行失败", traceId, e);
+        } finally {
+            TraceIdUtils.clearIfGenerated(generated);
         }
-    }
-
-    /**
-     * 获取当前 traceId，优先从 MDC 获取，不存在则生成新的
-     */
-    private String getCurrentTraceId() {
-        String traceId = MDC.get(TRACE_ID_KEY);
-        if (traceId == null || traceId.isEmpty()) {
-            traceId = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
-        }
-        return traceId;
     }
 
 }

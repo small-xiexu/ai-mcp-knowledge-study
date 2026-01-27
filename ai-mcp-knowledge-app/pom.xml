@@ -156,6 +156,12 @@
 
         <dependency>
             <groupId>com.xbk</groupId>
+            <artifactId>ai-mcp-knowledge-types</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.xbk</groupId>
             <artifactId>ai-mcp-knowledge-trigger</artifactId>
             <version>${project.version}</version>
         </dependency>

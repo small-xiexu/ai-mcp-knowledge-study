@@ -25,11 +25,11 @@ spring:
           options:
             model: gemini-3-flash
     openai:
-      base-url: https://api.siliconflow.cn
-      api-key: sk-kgzlksqhrlxzgecfajnlaaizyodvitnimeclvggubeyhxjcv
+      base-url: http://127.0.0.1:8045
+      api-key: sk-1256419209eb47ccbabaa98abccfe4c8
       chat:
         options:
-          model: deepseek-ai/DeepSeek-R1-Distill-Qwen-7B
+          model: gemini-3-flash
       embedding-model: text-embedding-ada-002
       embedding:
         options:

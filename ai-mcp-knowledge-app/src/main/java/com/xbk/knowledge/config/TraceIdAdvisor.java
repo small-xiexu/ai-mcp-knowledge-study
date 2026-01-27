@@ -1,15 +1,13 @@
 package com.xbk.knowledge.config;
 
+import com.xbk.knowledge.types.trace.TraceIdUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.MDC;
 import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.client.advisor.api.CallAdvisor;
 import org.springframework.ai.chat.client.advisor.api.CallAdvisorChain;
 import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
-
-import java.util.UUID;
 
 /**
  * TraceId 链路追踪 Advisor
@@ -33,8 +31,6 @@ import java.util.UUID;
 @Component
 public class TraceIdAdvisor implements CallAdvisor {
 
-    private static final String TRACE_ID_KEY = "traceId";
-
     @Override
     public String getName() {
         return "TraceIdAdvisor";
@@ -49,34 +45,27 @@ public class TraceIdAdvisor implements CallAdvisor {
     @Override
     public ChatClientResponse adviseCall(ChatClientRequest request, CallAdvisorChain chain) {
         // 生成或获取 traceId
-        String traceId = MDC.get(TRACE_ID_KEY);
-        boolean generated = false;
+        var traceIdContext = TraceIdUtils.ensureTraceId();
+        var traceId = traceIdContext.traceId();
+        var generated = traceIdContext.generated();
 
-        if (traceId == null || traceId.isEmpty()) {
-            traceId = generateTraceId();
-            MDC.put(TRACE_ID_KEY, traceId);
-            generated = true;
-        }
-
-        long startTime = System.currentTimeMillis();
-        String userPrompt = truncatePrompt(getUserText(request), 100);
+        var startTime = System.currentTimeMillis();
+        var userPrompt = truncatePrompt(getUserText(request), 100);
         log.info("[{}] MCP 请求开始, prompt: {}", traceId, userPrompt);
 
         try {
-            ChatClientResponse response = chain.nextCall(request);
+            var response = chain.nextCall(request);
 
-            long cost = System.currentTimeMillis() - startTime;
+            var cost = System.currentTimeMillis() - startTime;
             log.info("[{}] MCP 请求完成, 耗时: {}ms", traceId, cost);
 
             return response;
         } catch (Exception e) {
-            long cost = System.currentTimeMillis() - startTime;
+            var cost = System.currentTimeMillis() - startTime;
             log.error("[{}] MCP 请求失败, 耗时: {}ms, 错误: {}", traceId, cost, e.getMessage());
             throw e;
         } finally {
-            if (generated) {
-                MDC.remove(TRACE_ID_KEY);
-            }
+            TraceIdUtils.clearIfGenerated(generated);
         }
     }
 
@@ -91,15 +80,6 @@ public class TraceIdAdvisor implements CallAdvisor {
             return request.prompt().getContents();
         }
         return "";
-    }
-
-    /**
-     * 生成 16 位 traceId
-     *
-     * @return traceId
-     */
-    private String generateTraceId() {
-        return UUID.randomUUID().toString().replace("-", "").substring(0, 16);
     }
 
     /**
@@ -125,11 +105,6 @@ public class TraceIdAdvisor implements CallAdvisor {
      * @return 当前 traceId，如果不存在则生成新的
      */
     public static String getCurrentTraceId() {
-        String traceId = MDC.get(TRACE_ID_KEY);
-        if (traceId == null || traceId.isEmpty()) {
-            traceId = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
-            MDC.put(TRACE_ID_KEY, traceId);
-        }
-        return traceId;
+        return TraceIdUtils.getOrCreateTraceId();
     }
 }

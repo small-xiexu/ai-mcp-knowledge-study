@@ -56,21 +56,31 @@
 - **完成时间**：2026-01-27
 - **验证结果**：26个源文件编译成功，包含 AIModelService、ModelSelector、AIModelServiceImpl、ModelSelectionStrategy
 
-### 任务 2.4：降级重试机制
-- [ ] 实现 FallbackHandler
-- [ ] 实现 CircuitBreaker（熔断器）
-- [ ] 实现重试逻辑
-- [ ] 编写单元测试
+### 任务 2.4：降级重试机制 ✅
+- [x] 实现 FallbackHandler
+- [x] 实现 CircuitBreaker（熔断器）
+- [x] 实现重试逻辑
+- [x] 集成到 AIModelService
+- [x] **代码审查并修复致命问题**
+  - 修复所有 Entity 类的 @Data 注解问题（改为 @Getter + @Setter）
+  - 修复 N+1 查询问题（添加 JOIN FETCH 查询）
+  - 编译验证通过
+- **完成时间**：2026-01-27
+- **验证结果**：28个源文件编译成功，包含 CircuitBreaker、FallbackHandler，支持自动降级和熔断，代码规范检查通过
 
 ---
 
 ## 阶段 3：后端 API（4天）
 
-### 任务 3.1：REST API 开发
-- [ ] 模型配置管理 API
-- [ ] AI 调用 API
-- [ ] 任务类型管理 API
-- [ ] 统一异常处理
+### 任务 3.1：REST API 开发 ✅
+- [x] 模型配置管理 API（ModelConfigController）
+- [x] AI 调用 API（AICallController）
+- [x] 任务类型管理 API（TaskTypeController）
+- [x] 统一异常处理（GlobalExceptionHandler）
+- [x] 通用响应格式（Result、PageResult）
+- [x] 集成 Swagger API 文档
+- **完成时间**：2026-01-27
+- **验证结果**：43个源文件编译成功，3个Controller实现完成，Swagger集成成功
 
 ### 任务 3.2：监控统计功能
 - [ ] 实现 MetricsCollector

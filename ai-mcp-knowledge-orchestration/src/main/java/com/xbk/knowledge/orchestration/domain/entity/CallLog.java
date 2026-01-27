@@ -4,8 +4,9 @@ import com.xbk.knowledge.orchestration.model.enums.CallStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
@@ -17,7 +18,8 @@ import java.time.LocalDateTime;
  */
 @Entity
 @Table(name = "ai_call_log")
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

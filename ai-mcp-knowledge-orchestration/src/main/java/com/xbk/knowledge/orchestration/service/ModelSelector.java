@@ -81,15 +81,14 @@ public class ModelSelector {
     public ModelConfig selectByQualityPriority() {
         log.info("使用质量优先策略选择模型");
 
-        // 获取所有启用的模型
-        List<ModelConfig> enabledModels = modelConfigRepository.findByEnabledTrue();
+        // 使用 JOIN FETCH 一次性加载所有数据，避免 N+1 查询
+        List<ModelConfig> enabledModels = modelConfigRepository.findByEnabledTrueWithCapability();
 
         if (enabledModels.isEmpty()) {
             throw new RuntimeException("没有可用的模型配置");
         }
 
         // 按质量评分降序排序，选择第一个
-        // 注意：这里需要加载 capability 关联，使用 fetch join 或者二次查询
         ModelConfig bestModel = enabledModels.stream()
                 .filter(model -> model.getCapability() != null)
                 .max((m1, m2) -> {
@@ -127,10 +126,8 @@ public class ModelSelector {
                     .distinct() // 去重
                     .collect(Collectors.toList());
 
-            // 批量查询并过滤启用的模型
-            return modelConfigRepository.findAllById(modelIds).stream()
-                    .filter(model -> model.getEnabled())
-                    .collect(Collectors.toList());
+            // 批量查询并过滤启用的模型（在 SQL 中直接过滤，提高性能）
+            return modelConfigRepository.findEnabledByIds(modelIds);
 
         } catch (NumberFormatException e) {
             log.error("解析备用模型ID失败，fallbackModelIds: {}", fallbackModelIds, e);

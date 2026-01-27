@@ -1,0 +1,38 @@
+package com.xbk.knowledge.orchestration.config;
+
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Contact;
+import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.info.License;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+/**
+ * Swagger API 文档配置
+ * 访问地址：http://localhost:8080/swagger-ui.html
+ *
+ * @author xiexu
+ */
+@Configuration
+public class SwaggerConfig {
+
+    /**
+     * 配置 OpenAPI 文档信息
+     *
+     * @return OpenAPI 配置
+     */
+    @Bean
+    public OpenAPI customOpenAPI() {
+        return new OpenAPI()
+                .info(new Info()
+                        .title("AI 多模型编排系统 API")
+                        .description("统一管理 OpenAI、Anthropic、Gemini 等多种 AI 模型的编排系统")
+                        .version("1.0.0")
+                        .contact(new Contact()
+                                .name("xiexu")
+                                .email("xiexu@example.com"))
+                        .license(new License()
+                                .name("Apache 2.0")
+                                .url("https://www.apache.org/licenses/LICENSE-2.0.html")));
+    }
+}

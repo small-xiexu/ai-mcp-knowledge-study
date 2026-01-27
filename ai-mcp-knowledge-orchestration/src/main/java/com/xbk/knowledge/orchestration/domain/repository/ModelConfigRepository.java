@@ -3,6 +3,8 @@ package com.xbk.knowledge.orchestration.domain.repository;
 import com.xbk.knowledge.orchestration.domain.entity.ModelConfig;
 import com.xbk.knowledge.orchestration.model.enums.ModelType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -56,4 +58,23 @@ public interface ModelConfigRepository extends JpaRepository<ModelConfig, Long> 
      * @return 模型配置
      */
     Optional<ModelConfig> findByModelName(String modelName);
+
+    /**
+     * 查询所有启用的模型配置，并通过 JOIN FETCH 加载关联的 capability
+     * 避免 N+1 查询问题
+     *
+     * @return 模型配置列表（包含 capability）
+     */
+    @Query("SELECT m FROM ModelConfig m LEFT JOIN FETCH m.capability WHERE m.enabled = true")
+    List<ModelConfig> findByEnabledTrueWithCapability();
+
+    /**
+     * 根据 ID 列表查询启用的模型配置
+     * 在 SQL 中直接过滤启用状态，提高性能
+     *
+     * @param ids 模型 ID 列表
+     * @return 启用的模型配置列表
+     */
+    @Query("SELECT m FROM ModelConfig m WHERE m.id IN :ids AND m.enabled = true")
+    List<ModelConfig> findEnabledByIds(@Param("ids") List<Long> ids);
 }

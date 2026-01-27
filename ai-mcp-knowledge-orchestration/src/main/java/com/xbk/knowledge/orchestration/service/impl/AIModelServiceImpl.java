@@ -4,6 +4,7 @@ import com.xbk.knowledge.orchestration.domain.entity.CallLog;
 import com.xbk.knowledge.orchestration.domain.entity.ModelConfig;
 import com.xbk.knowledge.orchestration.domain.repository.CallLogRepository;
 import com.xbk.knowledge.orchestration.domain.repository.ModelConfigRepository;
+import com.xbk.knowledge.orchestration.fallback.FallbackHandler;
 import com.xbk.knowledge.orchestration.model.dto.AIRequest;
 import com.xbk.knowledge.orchestration.model.dto.AIResponse;
 import com.xbk.knowledge.orchestration.model.dto.ModelInfo;
@@ -37,6 +38,7 @@ public class AIModelServiceImpl implements AIModelService {
     private final ModelProviderFactory providerFactory;
     private final CallLogRepository callLogRepository;
     private final ModelConfigRepository modelConfigRepository;
+    private final FallbackHandler fallbackHandler;
 
     @Override
     public AIResponse chat(AIRequest request) {
@@ -67,35 +69,13 @@ public class AIModelServiceImpl implements AIModelService {
         ModelConfig primaryModel = selectionResult.getPrimaryModel();
         List<ModelConfig> fallbackModels = selectionResult.getFallbackModels();
 
-        // 尝试使用首选模型
-        try {
-            AIResponse response = executeCall(primaryModel, request, false);
-            if (response.getSuccess()) {
-                return response;
-            }
-        } catch (Exception e) {
-            log.error("首选模型调用失败，modelId: {}, error: {}", primaryModel.getId(), e.getMessage());
-        }
+        // 使用 FallbackHandler 执行带降级的调用
+        AIResponse response = fallbackHandler.executeWithFallback(primaryModel, fallbackModels, request);
 
-        // 首选模型失败，尝试备用模型
-        for (ModelConfig fallbackModel : fallbackModels) {
-            try {
-                log.info("尝试使用备用模型，modelId: {}", fallbackModel.getId());
-                AIResponse response = executeCall(fallbackModel, request, true);
-                if (response.getSuccess()) {
-                    return response;
-                }
-            } catch (Exception e) {
-                log.error("备用模型调用失败，modelId: {}, error: {}", fallbackModel.getId(), e.getMessage());
-            }
-        }
+        // 记录调用日志
+        recordCallLog(primaryModel, request, response);
 
-        // 所有模型都失败
-        return AIResponse.builder()
-                .success(false)
-                .errorMessage("所有模型调用均失败")
-                .fallback(true)
-                .build();
+        return response;
     }
 
     @Override
@@ -235,5 +215,30 @@ public class AIModelServiceImpl implements AIModelService {
             return content;
         }
         return content.substring(0, maxLength) + "...";
+    }
+
+    /**
+     * 记录调用日志
+     *
+     * @param modelConfig 模型配置
+     * @param request     请求对象
+     * @param response    响应对象
+     */
+    private void recordCallLog(ModelConfig modelConfig, AIRequest request, AIResponse response) {
+        CallLog callLog = CallLog.builder()
+                .modelId(modelConfig.getId())
+                .taskType(request.getTaskType())
+                .requestContent(truncateContent(request.getContent(), 5000))
+                .responseContent(truncateContent(response.getContent(), 5000))
+                .tokensUsed(response.getTokensUsed() != null ? response.getTokensUsed() : 0)
+                .responseTime(response.getResponseTime() != null ? response.getResponseTime() : 0L)
+                .status(response.getSuccess() ?
+                        (response.getFallback() ? CallStatus.FALLBACK : CallStatus.SUCCESS)
+                        : CallStatus.FAILED)
+                .errorMessage(response.getErrorMessage())
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        callLogRepository.save(callLog);
     }
 }

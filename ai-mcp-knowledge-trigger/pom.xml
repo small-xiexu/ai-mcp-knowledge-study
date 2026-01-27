@@ -21,6 +21,11 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.xbk</groupId>
+            <artifactId>ai-mcp-knowledge-types</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!--
             Spring AI Model 核心模块
             包含 ChatModel、ToolCallbackProvider 等核心接口
@@ -40,7 +45,7 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.ai</groupId>
-            <artifactId>spring-ai-google-genai</artifactId>
+            <artifactId>spring-ai-openai</artifactId>
         </dependency>
     </dependencies>
 

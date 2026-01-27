@@ -10,8 +10,7 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.PromptChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.InMemoryChatMemoryRepository;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
-import org.springframework.ai.google.genai.GoogleGenAiChatModel;
-import org.springframework.ai.openai.OpenAiChatOptions;
+import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -35,10 +34,10 @@ public class MCPTest {
     private ToolCallbackProvider tools;
 
     /**
-     * Gemini 模型（通过 Google GenAI SDK 调用）
+     * Gemini 模型（通过 OpenAI 兼容协议调用）
      */
     @Autowired
-    private GoogleGenAiChatModel geminiChatModel;
+    private OpenAiChatModel openAiChatModel;
 
     /**
      * CSDN 定时任务 Job
@@ -73,7 +72,7 @@ public class MCPTest {
         String traceId = TraceIdAdvisor.getCurrentTraceId();
 
         // 使用 Gemini 模型创建 ChatClient，注入 TraceIdAdvisor
-        var chatClient = ChatClient.builder(geminiChatModel)
+        var chatClient = ChatClient.builder(openAiChatModel)
                 .defaultToolCallbacks(tools)
                 .defaultAdvisors(traceIdAdvisor)
                 .build();
@@ -97,7 +96,7 @@ public class MCPTest {
                 """;
         String traceId = TraceIdAdvisor.getCurrentTraceId();
 
-        var chatClient = ChatClient.builder(geminiChatModel)
+        var chatClient = ChatClient.builder(openAiChatModel)
                 .defaultToolCallbacks(tools)
                 .defaultAdvisors(traceIdAdvisor)
                 .build();
@@ -124,7 +123,7 @@ public class MCPTest {
                 """;
         String traceId = TraceIdAdvisor.getCurrentTraceId();
 
-        var chatClient = ChatClient.builder(geminiChatModel)
+        var chatClient = ChatClient.builder(openAiChatModel)
                 .defaultToolCallbacks(tools)
                 .defaultAdvisors(traceIdAdvisor)
                 .build();
@@ -148,11 +147,12 @@ public class MCPTest {
                 5. 结尾给出学习路线与实践建议，便于新手跟学
                 根据以上内容，不要阐述其他信息，请直接提供：文章标题、文章内容、文章标签（最多7个，用英文逗号隔开）、文章简述（100字）
                 将以上内容发布文章到CSDN。
+                
                 之后进行微信公众号消息通知，平台：CSDN、主题：为文章标题、描述：为文章简述、跳转地址：从发布文章到CSDN获取 url
                 """;
         String traceId = TraceIdAdvisor.getCurrentTraceId();
 
-        var chatClient = ChatClient.builder(geminiChatModel)
+        var chatClient = ChatClient.builder(openAiChatModel)
                 .defaultToolCallbacks(tools)
                 .defaultAdvisors(traceIdAdvisor)
                 .build();
@@ -183,7 +183,7 @@ public class MCPTest {
                 .chatMemoryRepository(new InMemoryChatMemoryRepository())
                 .maxMessages(100)
                 .build();
-        var chatClient = ChatClient.builder(geminiChatModel)
+        var chatClient = ChatClient.builder(openAiChatModel)
                 .defaultToolCallbacks(tools)
                 .defaultAdvisors(traceIdAdvisor, PromptChatMemoryAdvisor.builder(chatMemory).build())
                 .build();
