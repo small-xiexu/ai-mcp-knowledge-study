@@ -5,7 +5,6 @@ import com.google.genai.types.HttpOptions;
 import com.xbk.knowledge.orchestration.domain.entity.ModelConfig;
 import com.xbk.knowledge.orchestration.model.enums.ModelType;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.google.genai.GoogleGenAiChatModel;
 import org.springframework.ai.google.genai.GoogleGenAiChatOptions;
@@ -46,12 +45,6 @@ public class GeminiModelProvider implements ModelProvider {
             log.error("创建 Gemini 模型失败: {}", e.getMessage(), e);
             throw new RuntimeException("创建 Gemini 模型失败", e);
         }
-    }
-
-    @Override
-    public ChatClient createChatClient(ModelConfig config) {
-        ChatModel chatModel = createChatModel(config);
-        return ChatClient.builder(chatModel).build();
     }
 
     @Override

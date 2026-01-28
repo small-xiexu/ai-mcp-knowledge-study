@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.anthropic.AnthropicChatModel;
 import org.springframework.ai.anthropic.AnthropicChatOptions;
 import org.springframework.ai.anthropic.api.AnthropicApi;
-import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.stereotype.Component;
 
@@ -43,12 +42,6 @@ public class AnthropicModelProvider implements ModelProvider {
             log.error("创建 Anthropic 模型失败: {}", e.getMessage(), e);
             throw new RuntimeException("创建 Anthropic 模型失败", e);
         }
-    }
-
-    @Override
-    public ChatClient createChatClient(ModelConfig config) {
-        ChatModel chatModel = createChatModel(config);
-        return ChatClient.builder(chatModel).build();
     }
 
     @Override

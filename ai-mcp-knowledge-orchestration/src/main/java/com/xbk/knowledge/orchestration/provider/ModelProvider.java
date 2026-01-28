@@ -23,11 +23,17 @@ public interface ModelProvider {
 
     /**
      * 创建聊天客户端
+     * 为保持向后兼容保留该方法，但不包含统一增强逻辑
+     * 推荐通过 ModelProviderFactory#createChatClient 获取增强后的客户端
      *
      * @param config 模型配置
      * @return ChatClient 实例
      */
-    ChatClient createChatClient(ModelConfig config);
+    @Deprecated(since = "2026-01-28", forRemoval = false)
+    default ChatClient createChatClient(ModelConfig config) {
+        var chatModel = createChatModel(config);
+        return ChatClient.builder(chatModel).build();
+    }
 
     /**
      * 获取模型类型
