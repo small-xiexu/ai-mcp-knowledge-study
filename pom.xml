@@ -11,8 +11,11 @@
 
     <modules>
         <module>ai-mcp-knowledge-types</module>
-        <module>ai-mcp-knowledge-app</module>
+        <module>ai-mcp-knowledge-api</module>
+        <module>ai-mcp-knowledge-domain</module>
+        <module>ai-mcp-knowledge-infrastructure</module>
         <module>ai-mcp-knowledge-trigger</module>
+        <module>ai-mcp-knowledge-app</module>
         <module>ai-mcp-knowledge-orchestration</module>
     </modules>
 

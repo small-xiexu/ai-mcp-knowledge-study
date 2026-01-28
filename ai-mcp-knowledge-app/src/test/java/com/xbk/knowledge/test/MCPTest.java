@@ -20,15 +20,19 @@ import org.springframework.test.context.junit4.SpringRunner;
  * MCP 工具调用测试类
  * 演示使用不同大模型进行 Function Calling
  *
+ * 注意：本测试类直接使用底层 ChatModel 手动注入工具和 Advisors
+ * 这种方式绕过了编排层，无法享受模型选择、降级、重试等能力
+ *
+ * 推荐方式：使用 ai-mcp-knowledge-orchestration 模块的 ModelProviderFactory
+ * 通过编排层创建的 ChatClient 会自动注入 MCP 工具和 Advisors
+ * 参考：OrchestrationMCPTest.java
+ *
  * @author xiexu
  */
 @Slf4j
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class MCPTest {
-
-    @Resource
-    private ChatClient.Builder chatClientBuilder;
 
     @Autowired
     private ToolCallbackProvider tools;
