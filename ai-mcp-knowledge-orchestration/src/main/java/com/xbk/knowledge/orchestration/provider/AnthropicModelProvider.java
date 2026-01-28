@@ -1,7 +1,7 @@
 package com.xbk.knowledge.orchestration.provider;
 
 import com.xbk.knowledge.orchestration.domain.entity.ModelConfig;
-import com.xbk.knowledge.orchestration.model.enums.ModelType;
+import com.xbk.knowledge.orchestration.model.enums.ProviderType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.anthropic.AnthropicChatModel;
 import org.springframework.ai.anthropic.AnthropicChatOptions;
@@ -45,8 +45,8 @@ public class AnthropicModelProvider implements ModelProvider {
     }
 
     @Override
-    public ModelType getModelType() {
-        return ModelType.ANTHROPIC;
+    public ProviderType getProviderType() {
+        return ProviderType.ANTHROPIC;
     }
 
     @Override

@@ -1,163 +1,251 @@
-# AI 多模型编排系统 - 实施计划
+# AI 多模型编排系统 - 开发计划
 
-> **开始时间**：2026-01-27
-> **项目名称**：AI Model Orchestration System
+> **最后更新**：2026-01-28
 > **状态**：进行中
 
 ---
 
-## 阶段 1：基础设施（3天）
+## 任务 2：ModelType → ProviderType 重命名重构
 
-### 任务 1.1：数据库设计与初始化 ✅
-- [x] 创建 MySQL 数据库
-- [x] 执行初始化脚本
-- [x] 验证表结构和初始数据
-- **完成时间**：2026-01-27
-- **验证结果**：5张表创建成功，3条模型配置数据插入成功
+> **开始时间**：2026-01-28 11:00
+> **完成时间**：2026-01-28 11:16
+> **状态**：✅ 已完成
 
-### 任务 1.2：Maven 模块创建 ✅
-- [x] 创建 `ai-mcp-knowledge-orchestration` 模块
-- [x] 配置 pom.xml 依赖
-- **完成时间**：2026-01-27
-- **验证结果**：模块创建成功，编译通过
+### 背景
 
-### 任务 1.3：Spring AI 依赖集成 ✅
-- [x] 添加 Spring AI Anthropic 依赖
-- [x] 配置 MySQL 数据源
-- [x] 验证 Spring AI 集成
-- **完成时间**：2026-01-27
-- **验证结果**：所有依赖配置正确，编译成功
+`ModelType` 枚举命名不准确，容易让人误解为具体的模型类型（如 GPT-4、Claude-3.5），实际上它表示的是 API 提供商/协议类型（如 OpenAI API、Anthropic API）。
 
----
+### 目标
 
-## 阶段 2：后端核心（6天）
+将 `ModelType` 重命名为 `ProviderType`，并添加详细注释说明：
+- 这是 API 协议类型，而非具体模型名称
+- OPENAI 类型可以对接多个模型（GPT-4、DeepSeek、智谱等）
+- 通过 baseUrl 和 modelName 配置灵活对接不同服务
 
-### 任务 2.1：实体类与 Repository ✅
-- [x] 创建实体类（ModelConfig, ModelCapability, TaskType, CallLog, ConfigAudit）
-- [x] 创建 Repository 接口
-- [x] 编写基础 CRUD 方法
-- **完成时间**：2026-01-27
-- **验证结果**：13个源文件编译成功
+### 实施步骤
 
-### 任务 2.2：ModelProvider 实现 ✅
-- [x] 创建 ModelProvider 接口
-- [x] 实现 OpenAIProvider
-- [x] 实现 AnthropicProvider
-- [x] 实现 GeminiProvider
-- [x] 创建 ModelProviderFactory
-- **完成时间**：2026-01-27
-- **验证结果**：5个Provider文件创建成功，编译通过
+- [x] 创建新的 ProviderType.java，包含详细文档注释
+- [x] 更新 ModelConfig 实体的字段名和注释
+- [x] 批量替换所有文件中的 import 语句
+- [x] 修复 ModelProviderFactory 的 Map 声明
+- [x] 修复 Provider 实现类的返回语句
+- [x] 更新 ModelConfigRequest DTO
+- [x] 更新 ModelConfigResponse DTO
+- [x] 更新 ModelInfo DTO
+- [x] 修复 ModelConfigController 的 builder 调用
+- [x] 修复 AIModelServiceImpl 的 builder 调用
+- [x] 编译验证通过
 
-### 任务 2.3：AIModelService 实现 ✅
-- [x] 创建 AIModelService 接口
-- [x] 实现 AIModelServiceImpl
-- [x] 实现 ModelSelector（模型选择器）
-- [x] 实现质量优先策略
-- **完成时间**：2026-01-27
-- **验证结果**：26个源文件编译成功，包含 AIModelService、ModelSelector、AIModelServiceImpl、ModelSelectionStrategy
+### 验收标准
 
-### 任务 2.4：降级重试机制 ✅
-- [x] 实现 FallbackHandler
-- [x] 实现 CircuitBreaker（熔断器）
-- [x] 实现重试逻辑
-- [x] 集成到 AIModelService
-- [x] **代码审查并修复致命问题**
-  - 修复所有 Entity 类的 @Data 注解问题（改为 @Getter + @Setter）
-  - 修复 N+1 查询问题（添加 JOIN FETCH 查询）
-  - 编译验证通过
-- **完成时间**：2026-01-27
-- **验证结果**：28个源文件编译成功，包含 CircuitBreaker、FallbackHandler，支持自动降级和熔断，代码规范检查通过
+- ✅ 所有文件使用 ProviderType 替代 ModelType
+- ✅ 添加了详细的文档注释说明 API 协议类型的概念
+- ✅ 编译通过，无错误
+- ✅ 所有 DTO 和实体类字段名统一为 providerType
+
+### 影响范围
+
+**修改的文件**：
+- `ModelConfig.java` - 实体类字段重命名
+- `ModelConfigRequest.java` - DTO 字段重命名
+- `ModelConfigResponse.java` - DTO 字段重命名
+- `ModelInfo.java` - DTO 字段重命名
+- `ModelProvider.java` - 接口方法重命名
+- `ModelProviderFactory.java` - Map 类型更新
+- `OpenAIModelProvider.java` - 返回类型更新
+- `AnthropicModelProvider.java` - 返回类型更新
+- `GeminiModelProvider.java` - 返回类型更新
+- `ModelConfigController.java` - Builder 方法调用更新
+- `AIModelServiceImpl.java` - Builder 方法调用更新
+- `ModelConfigRepository.java` - 查询方法参数类型更新
+
+**新增的文件**：
+- `ProviderType.java` - 新的枚举类，包含详细文档
+
+**删除的文件**：
+- `ModelType.java` - 旧的枚举类
 
 ---
 
-## 阶段 3：后端 API（4天）
+## 任务 1：MCP 工具集成重构计划
 
-### 任务 3.1：REST API 开发 ✅
-- [x] 模型配置管理 API（ModelConfigController）
-- [x] AI 调用 API（AICallController）
-- [x] 任务类型管理 API（TaskTypeController）
-- [x] 统一异常处理（GlobalExceptionHandler）
-- [x] 通用响应格式（Result、PageResult）
-- [x] 集成 Swagger API 文档
-- **完成时间**：2026-01-27
-- **验证结果**：43个源文件编译成功，3个Controller实现完成，Swagger集成成功
-
-### 任务 3.2：监控统计功能 ✅
-- [x] 实现 MetricsCollector
-- [x] 调用次数统计 API
-- [x] 成功率监控 API
-- [x] 响应时间统计 API
-- [x] 模型使用分布 API
-- **完成时间**：2026-01-27
-- **验证结果**：49个源文件编译成功，新增 4个DTO + 1个Service + 1个Controller，扩展 CallLogRepository 添加聚合查询
-
-### 任务 3.3：审计日志功能 ✅
-- [x] 实现 AOP 拦截器
-- [x] 自动记录配置变更
-- [x] 审计日志查询 API
-- **完成时间**：2026-01-27
-- **验证结果**：54个源文件编译成功，新增 2个DTO + 1个Service + 1个Aspect + 1个Controller，扩展 ConfigAuditRepository 添加分页查询
+> **开始时间**：2026-01-28
+> **任务名称**：集成 MCP 工具到编排层
+> **状态**：进行中
 
 ---
 
-## 阶段 4：前端开发（6天）
+## 背景
 
-### 任务 4.1：Vue 项目初始化
-- [ ] 创建 Vue 3 项目
-- [ ] 集成 Element Plus
-- [ ] 配置路由和状态管理
-- [ ] 封装 Axios 请求
+当前架构存在问题：
+- 编排层（orchestration）和 MCP 工具层是分离的
+- 测试代码为了使用 MCP 工具，不得不绕过编排层直接使用底层 ChatModel
+- 无法同时享受模型编排能力（选择、降级、重试）和 MCP 工具调用能力
 
-### 任务 4.2：模型配置管理页面
-- [ ] 模型列表页面
-- [ ] 新增/编辑模型对话框
-- [ ] 模型能力配置表单
-- [ ] 启用/禁用功能
+## 目标
 
-### 任务 4.3：任务类型配置页面
-- [ ] 任务类型列表
-- [ ] 任务类型编辑
-- [ ] 首选模型选择
-- [ ] 备用模型配置
+将 MCP 工具集成到编排层，使得通过 `AIModelService` 创建的 `ChatClient` 自动支持：
+- ✅ 模型选择和降级
+- ✅ MCP 工具调用
+- ✅ 链路追踪（TraceIdAdvisor）
+- ✅ 其他 Advisors
 
-### 任务 4.4：监控统计面板
-- [ ] 集成 ECharts
-- [ ] 调用次数折线图
-- [ ] 成功率仪表盘
-- [ ] 响应时间柱状图
-- [ ] 模型使用饼图
+## 实施方案：方案 A - 统一注入
+
+### 架构设计
+
+```
+业务代码
+   ↓
+AIModelService (编排层)
+   ↓
+ModelProvider (创建 ChatClient)
+   ↓
+ChatClientEnhancer (统一增强器)
+   ↓
+自动注入: ToolCallbackProvider + Advisors
+   ↓
+ChatClient (完整能力)
+```
 
 ---
 
-## 阶段 5：测试与优化（6天）
+## 实施步骤
 
-### 任务 5.1：单元测试
-- [ ] Service 层单元测试
-- [ ] Repository 层单元测试
-- [ ] 工具类单元测试
-- [ ] 测试覆盖率 > 80%
+### 步骤 1：创建 ChatClientEnhancer 工具类
+- [ ] 创建 `ai-mcp-knowledge-orchestration/src/main/java/com/xbk/knowledge/orchestration/config/ChatClientEnhancer.java`
+- [ ] 实现统一的 ChatClient 增强逻辑
+- [ ] 通过构造器注入 `ToolCallbackProvider` 和 `List<CallAdvisor>`
+- [ ] 提供 `enhance(ChatModel)` 方法
 
-### 任务 5.2：集成测试
-- [ ] API 集成测试
-- [ ] 降级重试测试
-- [ ] 熔断机制测试
-- [ ] 端到端测试
+**关键代码**：
+```java
+@Component
+@RequiredArgsConstructor
+public class ChatClientEnhancer {
+    private final ToolCallbackProvider tools;
+    private final List<CallAdvisor> advisors;
 
-### 任务 5.3：性能优化
-- [ ] 数据库查询优化
-- [ ] 缓存策略优化
-- [ ] 并发性能测试
+    public ChatClient enhance(ChatModel chatModel) {
+        var builder = ChatClient.builder(chatModel)
+            .defaultToolCallbacks(tools);
 
-### 任务 5.4：文档编写
-- [ ] API 文档（Swagger）
-- [ ] 部署文档
-- [ ] 用户手册
+        if (advisors != null && !advisors.isEmpty()) {
+            builder.defaultAdvisors(advisors.toArray(new CallAdvisor[0]));
+        }
+
+        return builder.build();
+    }
+}
+```
+
+### 步骤 2：修改 OpenAIModelProvider
+- [ ] 修改 `ai-mcp-knowledge-orchestration/src/main/java/com/xbk/knowledge/orchestration/provider/OpenAIModelProvider.java`
+- [ ] 改为使用 `@RequiredArgsConstructor` 构造器注入
+- [ ] 注入 `ChatClientEnhancer`
+- [ ] 修改 `createChatClient` 方法使用增强器
+
+**修改点**：
+```java
+@Component
+@Slf4j
+@RequiredArgsConstructor  // 改为构造器注入
+public class OpenAIModelProvider implements ModelProvider {
+
+    private final ChatClientEnhancer enhancer;  // 注入增强器
+
+    @Override
+    public ChatClient createChatClient(ModelConfig config) {
+        ChatModel chatModel = createChatModel(config);
+        return enhancer.enhance(chatModel);  // 使用增强器
+    }
+}
+```
+
+### 步骤 3：修改 AnthropicModelProvider
+- [ ] 修改 `ai-mcp-knowledge-orchestration/src/main/java/com/xbk/knowledge/orchestration/provider/AnthropicModelProvider.java`
+- [ ] 改为使用 `@RequiredArgsConstructor` 构造器注入
+- [ ] 注入 `ChatClientEnhancer`
+- [ ] 修改 `createChatClient` 方法使用增强器
+
+### 步骤 4：修改 GeminiModelProvider
+- [ ] 修改 `ai-mcp-knowledge-orchestration/src/main/java/com/xbk/knowledge/orchestration/provider/GeminiModelProvider.java`
+- [ ] 改为使用 `@RequiredArgsConstructor` 构造器注入
+- [ ] 注入 `ChatClientEnhancer`
+- [ ] 修改 `createChatClient` 方法使用增强器
+
+### 步骤 5：更新 AIModelServiceImpl（如果需要）
+- [ ] 检查 `AIModelServiceImpl` 是否需要修改
+- [ ] 确保使用 `createChatClient` 而非直接使用 `ChatModel`
+
+### 步骤 6：更新测试代码
+- [ ] 修改 `MCPTest.java`，添加使用 `AIModelService` 的测试方法
+- [ ] 验证通过编排层调用时，MCP 工具和模型选择同时生效
+- [ ] 保留原有的直接调用测试作为对比
+
+### 步骤 7：编译验证
+- [ ] 执行 `mvn clean compile -DskipTests`
+- [ ] 确保所有模块编译通过
+- [ ] 修复任何编译错误
+
+---
+
+## 验收标准
+
+1. ✅ 所有 ModelProvider 实现类都使用 ChatClientEnhancer
+2. ✅ 通过 AIModelService 创建的 ChatClient 自动支持 MCP 工具
+3. ✅ 通过 AIModelService 创建的 ChatClient 自动支持 Advisors
+4. ✅ 编译通过，无错误
+5. ✅ 测试代码验证功能正常
+
+---
+
+## 技术要点
+
+### 依赖注入
+- 使用 `@RequiredArgsConstructor` 实现构造器注入
+- Spring 自动装配 `ToolCallbackProvider` 和 `List<CallAdvisor>`
+
+### 可选依赖处理
+- `ToolCallbackProvider` 可能不存在（如果没有配置 MCP）
+- `List<CallAdvisor>` 可能为空
+- 需要在 `ChatClientEnhancer` 中做空值检查
+
+### 向后兼容
+- 不修改 `ModelProvider` 接口
+- 不修改 `AIModelService` 接口
+- 对现有代码影响最小
+
+---
+
+## 风险与注意事项
+
+1. **依赖注入失败**：如果 `ToolCallbackProvider` 不存在，Spring 启动会失败
+   - 解决：使用 `@Autowired(required = false)` 或 `Optional<ToolCallbackProvider>`
+
+2. **循环依赖**：如果 Provider 和 Enhancer 之间存在循环依赖
+   - 解决：确保依赖方向单向（Provider → Enhancer → Tools）
+
+3. **性能影响**：每次创建 ChatClient 都会注入工具
+   - 影响：可忽略，工具注入是轻量级操作
 
 ---
 
 ## 进度记录
 
-| 日期 | 完成任务 | 备注 |
-|------|---------|------|
-| 2026-01-27 | 创建实施计划 | 开始实施 |
+| 时间 | 步骤 | 状态 | 备注 |
+|------|------|------|------|
+| 2026-01-28 02:04 | 创建计划 | ✅ 完成 | 方案 A 设计完成 |
+| | 步骤 1 | ⏳ 待执行 | 创建 ChatClientEnhancer |
+| | 步骤 2 | ⏳ 待执行 | 修改 OpenAIModelProvider |
+| | 步骤 3 | ⏳ 待执行 | 修改 AnthropicModelProvider |
+| | 步骤 4 | ⏳ 待执行 | 修改 GeminiModelProvider |
+| | 步骤 5 | ⏳ 待执行 | 检查 AIModelServiceImpl |
+| | 步骤 6 | ⏳ 待执行 | 更新测试代码 |
+| | 步骤 7 | ⏳ 待执行 | 编译验证 |
 
+---
+
+## 下一步
+
+执行步骤 1-7，使用 CCG 工具完成代码实现。

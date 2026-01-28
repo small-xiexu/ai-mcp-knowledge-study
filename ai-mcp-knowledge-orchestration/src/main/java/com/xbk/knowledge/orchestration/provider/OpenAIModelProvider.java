@@ -1,7 +1,7 @@
 package com.xbk.knowledge.orchestration.provider;
 
 import com.xbk.knowledge.orchestration.domain.entity.ModelConfig;
-import com.xbk.knowledge.orchestration.model.enums.ModelType;
+import com.xbk.knowledge.orchestration.model.enums.ProviderType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.openai.OpenAiChatModel;
@@ -45,8 +45,8 @@ public class OpenAIModelProvider implements ModelProvider {
     }
 
     @Override
-    public ModelType getModelType() {
-        return ModelType.OPENAI;
+    public ProviderType getProviderType() {
+        return ProviderType.OPENAI;
     }
 
     @Override

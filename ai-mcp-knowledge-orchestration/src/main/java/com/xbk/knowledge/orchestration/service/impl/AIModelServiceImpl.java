@@ -190,7 +190,7 @@ public class AIModelServiceImpl implements AIModelService {
         return ModelInfo.builder()
                 .modelId(modelConfig.getId())
                 .modelName(modelConfig.getModelName())
-                .modelType(modelConfig.getModelType())
+                .providerType(modelConfig.getProviderType())
                 .enabled(modelConfig.getEnabled())
                 .qualityScore(modelConfig.getCapability() != null
                         ? modelConfig.getCapability().getQualityScore()

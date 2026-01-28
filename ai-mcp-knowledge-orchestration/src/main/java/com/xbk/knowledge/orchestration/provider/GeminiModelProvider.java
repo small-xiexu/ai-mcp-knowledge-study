@@ -3,7 +3,7 @@ package com.xbk.knowledge.orchestration.provider;
 import com.google.genai.Client;
 import com.google.genai.types.HttpOptions;
 import com.xbk.knowledge.orchestration.domain.entity.ModelConfig;
-import com.xbk.knowledge.orchestration.model.enums.ModelType;
+import com.xbk.knowledge.orchestration.model.enums.ProviderType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.google.genai.GoogleGenAiChatModel;
@@ -48,8 +48,8 @@ public class GeminiModelProvider implements ModelProvider {
     }
 
     @Override
-    public ModelType getModelType() {
-        return ModelType.GEMINI;
+    public ProviderType getProviderType() {
+        return ProviderType.GEMINI;
     }
 
     @Override

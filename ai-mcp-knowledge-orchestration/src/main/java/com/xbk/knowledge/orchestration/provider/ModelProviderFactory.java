@@ -2,7 +2,7 @@ package com.xbk.knowledge.orchestration.provider;
 
 import com.xbk.knowledge.orchestration.config.ChatClientEnhancer;
 import com.xbk.knowledge.orchestration.domain.entity.ModelConfig;
-import com.xbk.knowledge.orchestration.model.enums.ModelType;
+import com.xbk.knowledge.orchestration.model.enums.ProviderType;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,9 +38,9 @@ public class ModelProviderFactory {
 
     /**
      * 所有模型提供者的映射
-     * Key: ModelType, Value: ModelProvider
+     * Key: ProviderType, Value: ModelProvider
      */
-    private final Map<ModelType, ModelProvider> providerMap = new EnumMap<>(ModelType.class);
+    private final Map<ProviderType, ModelProvider> providerMap = new EnumMap<>(ProviderType.class);
 
     /**
      * 初始化 Provider 映射
@@ -49,7 +49,7 @@ public class ModelProviderFactory {
     @PostConstruct
     private void initProviderMap() {
         for (var provider : providers) {
-            providerMap.put(provider.getModelType(), provider);
+            providerMap.put(provider.getProviderType(), provider);
         }
         log.info("初始化 ModelProviderFactory，已注册 {} 个模型提供者", providerMap.size());
     }
@@ -61,7 +61,7 @@ public class ModelProviderFactory {
      * @return ModelProvider 实例
      * @throws IllegalArgumentException 如果模型类型不支持
      */
-    public ModelProvider getProvider(ModelType modelType) {
+    public ModelProvider getProvider(ProviderType modelType) {
         ModelProvider provider = providerMap.get(modelType);
         if (provider == null) {
             throw new IllegalArgumentException("不支持的模型类型: " + modelType);
@@ -76,7 +76,7 @@ public class ModelProviderFactory {
      * @return ChatClient 实例
      */
     public ChatClient createChatClient(ModelConfig config) {
-        var provider = getProvider(config.getModelType());
+        var provider = getProvider(config.getProviderType());
         var chatModel = provider.createChatModel(config);
         return chatClientEnhancer.enhance(chatModel);
     }
@@ -87,7 +87,7 @@ public class ModelProviderFactory {
      * @param modelType 模型类型
      * @return 是否支持
      */
-    public boolean isSupported(ModelType modelType) {
+    public boolean isSupported(ProviderType modelType) {
         return providerMap.containsKey(modelType);
     }
 }

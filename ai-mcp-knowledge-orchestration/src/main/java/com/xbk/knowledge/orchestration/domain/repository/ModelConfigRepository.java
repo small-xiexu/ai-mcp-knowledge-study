@@ -1,7 +1,7 @@
 package com.xbk.knowledge.orchestration.domain.repository;
 
 import com.xbk.knowledge.orchestration.domain.entity.ModelConfig;
-import com.xbk.knowledge.orchestration.model.enums.ModelType;
+import com.xbk.knowledge.orchestration.model.enums.ProviderType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -25,7 +25,7 @@ public interface ModelConfigRepository extends JpaRepository<ModelConfig, Long> 
      * @param enabled   是否启用
      * @return 模型配置列表
      */
-    List<ModelConfig> findByModelTypeAndEnabled(ModelType modelType, Boolean enabled);
+    List<ModelConfig> findByModelTypeAndEnabled(ProviderType modelType, Boolean enabled);
 
     /**
      * 查询所有启用的模型配置，按优先级降序排序

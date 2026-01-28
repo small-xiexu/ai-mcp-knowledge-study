@@ -1,6 +1,6 @@
 package com.xbk.knowledge.orchestration.domain.entity;
 
-import com.xbk.knowledge.orchestration.model.enums.ModelType;
+import com.xbk.knowledge.orchestration.model.enums.ProviderType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -39,11 +39,19 @@ public class ModelConfig {
     private String modelName;
 
     /**
-     * 模型类型（OPENAI/ANTHROPIC/GEMINI）
+     * API 提供商类型
+     * 标识使用哪个提供商的 API 协议（OPENAI/ANTHROPIC/GEMINI）
+     *
+     * <p>注意：这里表示的是 API 协议类型，而非具体的模型名称
+     * <ul>
+     *   <li>OPENAI：使用 OpenAI 兼容协议，可对接 GPT-4、DeepSeek、智谱等</li>
+     *   <li>ANTHROPIC：使用 Anthropic 协议，对接 Claude 系列</li>
+     *   <li>GEMINI：使用 Google Gemini 协议</li>
+     * </ul>
      */
     @Enumerated(EnumType.STRING)
     @Column(name = "model_type", nullable = false, length = 50)
-    private ModelType modelType;
+    private ProviderType providerType;
 
     /**
      * API密钥

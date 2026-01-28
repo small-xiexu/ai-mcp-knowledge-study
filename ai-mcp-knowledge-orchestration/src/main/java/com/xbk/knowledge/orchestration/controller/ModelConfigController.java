@@ -97,7 +97,7 @@ public class ModelConfigController {
      */
     @PostMapping
     public Result<ModelConfigResponse> createModel(@Valid @RequestBody ModelConfigRequest request) {
-        log.info("创建模型配置，modelName: {}, modelType: {}", request.getModelName(), request.getModelType());
+        log.info("创建模型配置，modelName: {}, modelType: {}", request.getModelName(), request.getProviderType());
 
         // 检查模型名称是否已存在
         if (modelConfigRepository.findByModelName(request.getModelName()).isPresent()) {
@@ -107,7 +107,7 @@ public class ModelConfigController {
         // 构建模型配置实体
         ModelConfig modelConfig = ModelConfig.builder()
                 .modelName(request.getModelName())
-                .modelType(request.getModelType())
+                .providerType(request.getProviderType())
                 .apiKey(request.getApiKey())
                 .baseUrl(request.getBaseUrl())
                 .enabled(request.getEnabled())
@@ -165,7 +165,7 @@ public class ModelConfigController {
 
         // 更新字段
         modelConfig.setModelName(request.getModelName());
-        modelConfig.setModelType(request.getModelType());
+        modelConfig.setProviderType(request.getProviderType());
         modelConfig.setApiKey(request.getApiKey());
         modelConfig.setBaseUrl(request.getBaseUrl());
         modelConfig.setEnabled(request.getEnabled());
@@ -268,7 +268,7 @@ public class ModelConfigController {
         return ModelConfigResponse.builder()
                 .id(modelConfig.getId())
                 .modelName(modelConfig.getModelName())
-                .modelType(modelConfig.getModelType())
+                .providerType(modelConfig.getProviderType())
                 .baseUrl(modelConfig.getBaseUrl())
                 .enabled(modelConfig.getEnabled())
                 .priority(modelConfig.getPriority())

@@ -1,7 +1,7 @@
 package com.xbk.knowledge.orchestration.provider;
 
 import com.xbk.knowledge.orchestration.domain.entity.ModelConfig;
-import com.xbk.knowledge.orchestration.model.enums.ModelType;
+import com.xbk.knowledge.orchestration.model.enums.ProviderType;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 
@@ -36,11 +36,12 @@ public interface ModelProvider {
     }
 
     /**
-     * 获取模型类型
+     * 获取提供商类型
+     * 返回当前 Provider 对应的 API 提供商类型
      *
-     * @return 模型类型
+     * @return 提供商类型（OPENAI/ANTHROPIC/GEMINI）
      */
-    ModelType getModelType();
+    ProviderType getProviderType();
 
     /**
      * 检查模型健康状态

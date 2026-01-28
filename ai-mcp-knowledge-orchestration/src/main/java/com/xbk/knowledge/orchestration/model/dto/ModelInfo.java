@@ -1,7 +1,7 @@
 package com.xbk.knowledge.orchestration.model.dto;
 
 import com.xbk.knowledge.orchestration.domain.entity.ModelCapability;
-import com.xbk.knowledge.orchestration.model.enums.ModelType;
+import com.xbk.knowledge.orchestration.model.enums.ProviderType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -30,9 +30,10 @@ public class ModelInfo {
     private String modelName;
 
     /**
-     * 模型类型
+     * API 提供商类型
+     * 标识使用哪个提供商的 API 协议（OPENAI/ANTHROPIC/GEMINI）
      */
-    private ModelType modelType;
+    private ProviderType providerType;
 
     /**
      * 质量评分
