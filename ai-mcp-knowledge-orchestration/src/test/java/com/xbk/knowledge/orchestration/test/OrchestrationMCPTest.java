@@ -1,5 +1,6 @@
 package com.xbk.knowledge.orchestration.test;
 
+import com.xbk.knowledge.Application;
 import com.xbk.knowledge.orchestration.domain.entity.ModelConfig;
 import com.xbk.knowledge.orchestration.model.enums.ProviderType;
 import com.xbk.knowledge.orchestration.provider.ModelProviderFactory;
@@ -16,7 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
  * @author xiexu
  */
 @Slf4j
-@SpringBootTest
+@SpringBootTest(classes = Application.class)
 public class OrchestrationMCPTest {
 
     @Autowired

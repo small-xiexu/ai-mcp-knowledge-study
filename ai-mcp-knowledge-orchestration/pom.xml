@@ -101,6 +101,14 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- AI MCP Knowledge App (测试依赖，用于访问主应用类) -->
+        <dependency>
+            <groupId>com.xbk</groupId>
+            <artifactId>ai-mcp-knowledge-app</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
