@@ -13,25 +13,46 @@ import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 /**
- * MCP 工具调用测试类
+ * MCP 工具调用测试类（遗留代码 - 仅供参考）
  * 演示使用不同大模型进行 Function Calling
  *
- * 注意：本测试类直接使用底层 ChatModel 手动注入工具和 Advisors
- * 这种方式绕过了编排层，无法享受模型选择、降级、重试等能力
+ * ⚠️ 警告：本测试类使用的是过时的实现方式！
  *
- * 推荐方式：使用 ai-mcp-knowledge-orchestration 模块的 ModelProviderFactory
- * 通过编排层创建的 ChatClient 会自动注入 MCP 工具和 Advisors
- * 参考：OrchestrationMCPTest.java
+ * 问题：
+ * 1. 直接使用底层 ChatModel，手动注入工具和 Advisors
+ * 2. 绕过了编排层，无法享受以下能力：
+ *    - 模型自动选择（根据任务类型）
+ *    - 模型降级和故障转移
+ *    - 自动重试机制
+ *    - 统一的监控和日志
+ * 3. 依赖已删除的配置类（OpenAIConfig、GeminiConfig 等）
+ * 4. 代码重复，每个测试都要手动构建 ChatClient
+ *
+ * ✅ 推荐方式：使用编排层
+ * - 测试类：OrchestrationMCPTest.java
+ * - 核心类：ModelProviderFactory（ai-mcp-knowledge-application 模块）
+ * - 优势：自动注入 MCP 工具和 Advisors，享受完整的编排能力
+ *
+ * 📝 保留原因：
+ * - 作为"如何不应该做"的反面教材
+ * - 展示底层 Spring AI API 的使用方式
+ * - 帮助理解编排层的价值
  *
  * @author xiexu
+ * @deprecated 请使用 OrchestrationMCPTest.java 代替
  */
+@Deprecated
 @Slf4j
 @RunWith(SpringRunner.class)
 @SpringBootTest
+@EnableAutoConfiguration(exclude = {
+        org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreAutoConfiguration.class
+})
 public class MCPTest {
 
     @Autowired
@@ -69,14 +90,17 @@ public class MCPTest {
     /**
      * 测试 Gemini 模型的工具调用能力
      * 使用 Google AI Gemini 2.0 Flash 模型
+     *
+     * @deprecated 请使用 OrchestrationMCPTest.test_orchestration_with_mcp_tools() 代替
      */
     @Test
+    @Deprecated
     public void test_gemini_tool() {
         String userInput = "有哪些工具可以使用";
         String traceId = TraceIdAdvisor.getCurrentTraceId();
 
         // 使用 Gemini 模型创建 ChatClient，注入 TraceIdAdvisor
-        var chatClient = ChatClient.builder(openAiChatModel)
+        ChatClient chatClient = ChatClient.builder(openAiChatModel)
                 .defaultToolCallbacks(tools)
                 .defaultAdvisors(traceIdAdvisor)
                 .build();
@@ -89,7 +113,13 @@ public class MCPTest {
                 .content());
     }
 
+    /**
+     * 测试微信通知工具
+     *
+     * @deprecated 请使用 OrchestrationMCPTest.test_orchestration_weixin_notice_tool() 代替
+     */
     @Test
+    @Deprecated
     public void test_weixin_notice_tool() {
         String userInput = """
                 请调用工具发送微信公众号模板消息，参数如下：
@@ -100,7 +130,7 @@ public class MCPTest {
                 """;
         String traceId = TraceIdAdvisor.getCurrentTraceId();
 
-        var chatClient = ChatClient.builder(openAiChatModel)
+        ChatClient chatClient = ChatClient.builder(openAiChatModel)
                 .defaultToolCallbacks(tools)
                 .defaultAdvisors(traceIdAdvisor)
                 .build();
@@ -113,9 +143,15 @@ public class MCPTest {
                 .content());
     }
 
+    /**
+     * 测试 CSDN 文章发布工具
+     *
+     * @deprecated 此测试方法使用过时的实现方式，仅供参考
+     */
     @Test
+    @Deprecated
     public void test_csdn_publish_tool() {
-        var userInput = """
+        String userInput = """
                 我需要你帮我生成一篇文章，要求如下：
                 1. 场景为 AI 学习与实战系列文章
                 2. 主题从以下列表中任选其一深入讲解，不要全部覆盖：Spring AI + MCP 实战、RAG 入门、向量数据库实践、Skills 实战、Prompt Engineering、Embedding、微调与对齐（SFT/RLHF）、评测与安全、MLOps/上线、GPU/推理优化
@@ -127,7 +163,7 @@ public class MCPTest {
                 """;
         String traceId = TraceIdAdvisor.getCurrentTraceId();
 
-        var chatClient = ChatClient.builder(openAiChatModel)
+        ChatClient chatClient = ChatClient.builder(openAiChatModel)
                 .defaultToolCallbacks(tools)
                 .defaultAdvisors(traceIdAdvisor)
                 .build();
@@ -140,9 +176,15 @@ public class MCPTest {
                 .content());
     }
 
+    /**
+     * 测试 CSDN 发布 + 微信通知（单次调用）
+     *
+     * @deprecated 此测试方法使用过时的实现方式，仅供参考
+     */
     @Test
+    @Deprecated
     public void test_csdn_weixin_notice_tool() {
-        var userInput = """
+        String userInput = """
                 我需要你帮我生成一篇文章，要求如下：
                 1. 场景为 AI 学习与实战系列文章
                 2. 主题从以下列表中任选其一深入讲解，不要全部覆盖：Spring AI + MCP 实战、RAG 入门、向量数据库实践、Skills 实战、Prompt Engineering、Embedding、微调与对齐（SFT/RLHF）、评测与安全、MLOps/上线、GPU/推理优化
@@ -156,7 +198,7 @@ public class MCPTest {
                 """;
         String traceId = TraceIdAdvisor.getCurrentTraceId();
 
-        var chatClient = ChatClient.builder(openAiChatModel)
+        ChatClient chatClient = ChatClient.builder(openAiChatModel)
                 .defaultToolCallbacks(tools)
                 .defaultAdvisors(traceIdAdvisor)
                 .build();
@@ -169,9 +211,16 @@ public class MCPTest {
                 .content());
     }
 
+    /**
+     * 测试 CSDN 发布 + 微信通知（带聊天记忆）
+     * 演示多轮对话中的上下文保持
+     *
+     * @deprecated 此测试方法使用过时的实现方式，仅供参考
+     */
     @Test
+    @Deprecated
     public void test_csdn_weixin_notice_with_memory_tool() {
-        var userInput = """
+        String userInput = """
                 我需要你帮我生成一篇文章，要求如下：
                 1. 场景为 AI 学习与实战系列文章
                 2. 主题从以下列表中任选其一深入讲解，不要全部覆盖：Spring AI + MCP 实战、RAG 入门、向量数据库实践、Skills 实战、Prompt Engineering、Embedding、微调与对齐（SFT/RLHF）、评测与安全、MLOps/上线、GPU/推理优化
@@ -183,11 +232,11 @@ public class MCPTest {
                 """;
         String traceId = TraceIdAdvisor.getCurrentTraceId();
 
-        var chatMemory = MessageWindowChatMemory.builder()
+        MessageWindowChatMemory chatMemory = MessageWindowChatMemory.builder()
                 .chatMemoryRepository(new InMemoryChatMemoryRepository())
                 .maxMessages(100)
                 .build();
-        var chatClient = ChatClient.builder(openAiChatModel)
+        ChatClient chatClient = ChatClient.builder(openAiChatModel)
                 .defaultToolCallbacks(tools)
                 .defaultAdvisors(traceIdAdvisor, PromptChatMemoryAdvisor.builder(chatMemory).build())
                 .build();
@@ -202,7 +251,7 @@ public class MCPTest {
                 .call()
                 .content());
 
-        var noticeInput = """
+        String noticeInput = """
                 根据上一轮对话中已发布的文章信息，进行微信公众号消息通知：
                 - 平台：CSDN
                 - 主题：使用已发布的文章标题
@@ -225,6 +274,8 @@ public class MCPTest {
     /**
      * 手动触发 CSDN 定时任务
      * 用于验证定时任务逻辑是否正常工作
+     *
+     * 注意：此方法仍然有效，不是过时的实现
      */
     @Test
     public void test_trigger_csdn_job() {

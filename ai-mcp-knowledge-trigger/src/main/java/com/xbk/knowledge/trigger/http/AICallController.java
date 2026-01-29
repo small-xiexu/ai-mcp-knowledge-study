@@ -2,13 +2,14 @@ package com.xbk.knowledge.trigger.http;
 
 import com.xbk.knowledge.types.common.Result;
 import com.xbk.knowledge.api.IAICallService;
-import com.xbk.knowledge.api.dto.AIRequest;
-import com.xbk.knowledge.api.dto.AIResponse;
-import com.xbk.knowledge.api.dto.ModelInfo;
-import com.xbk.knowledge.domain.model.dto.DomainAIRequest;
-import com.xbk.knowledge.domain.model.dto.DomainAIResponse;
-import com.xbk.knowledge.domain.model.dto.DomainModelInfo;
-import com.xbk.knowledge.domain.service.AIModelService;
+import com.xbk.knowledge.api.dto.ai.AIRequest;
+import com.xbk.knowledge.api.dto.ai.AIResponse;
+import com.xbk.knowledge.api.dto.ai.ModelInfo;
+import com.xbk.knowledge.application.model.dto.AICallCommand;
+import com.xbk.knowledge.application.model.dto.AICallResult;
+import com.xbk.knowledge.application.service.AIModelService;
+import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.service.IModelConfigService;
 import com.xbk.knowledge.trigger.converter.DTOConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,11 +17,13 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * AI 调用 Controller
- * 提供统一的 AI 模型调用接口
+ * 负责接收 HTTP 请求，调用领域服务，转换响应
  *
+ * 职责：HTTP 接口适配，用于转发应用层能力
  * @author xiexu
  */
 @Slf4j
@@ -30,6 +33,7 @@ import java.util.List;
 public class AICallController implements IAICallService {
 
     private final AIModelService aiModelService;
+    private final IModelConfigService modelConfigService;
 
     /**
      * 通用 AI 调用接口
@@ -41,27 +45,21 @@ public class AICallController implements IAICallService {
     @Override
     @PostMapping("/chat")
     public Result<AIResponse> chat(@Valid @RequestBody AIRequest request) {
-        log.info("收到 AI 调用请求，content length: {}, strategy: {}",
-                request.getContent() != null ? request.getContent().length() : 0,
-                request.getStrategy());
+        try {
+            AICallCommand command = DTOConverter.toAppAICallCommand(request);
+            AICallResult result = aiModelService.chat(command);
+            AIResponse response = DTOConverter.toApiAIResponse(result);
 
-        // API DTO → Domain DTO
-        DomainAIRequest domainRequest = DTOConverter.toDomainAIRequest(request);
-
-        // 调用 AI 服务
-        DomainAIResponse domainResponse = aiModelService.chat(domainRequest);
-
-        // Domain DTO → API DTO
-        AIResponse response = DTOConverter.toApiAIResponse(domainResponse);
-
-        // 返回结果
-        if (response.getSuccess()) {
-            log.info("AI 调用成功，modelUsed: {}, responseTime: {}ms",
-                    response.getModelUsed(), response.getResponseTime());
             return Result.success(response);
-        } else {
-            log.error("AI 调用失败，error: {}", response.getErrorMessage());
-            return Result.error(500, "AI 调用失败：" + response.getErrorMessage(), response);
+        } catch (Exception e) {
+            log.error("AI 调用失败", e);
+
+            // 统一返回业务错误结构，避免将异常栈暴露给前端
+            AIResponse response = new AIResponse();
+            response.setSuccess(false);
+            response.setErrorMessage(e.getMessage());
+
+            return Result.error(500, "AI 调用失败：" + e.getMessage(), response);
         }
     }
 
@@ -69,35 +67,32 @@ public class AICallController implements IAICallService {
      * 按任务类型调用 AI
      * 根据任务类型选择对应的模型
      *
-     * @param taskType 任务类型编码
+     * @param taskType 任务类型
      * @param request  AI 请求
      * @return AI 响应
      */
     @Override
-    @PostMapping("/chat/by-task/{taskType}")
-    public Result<AIResponse> chatByTaskType(@PathVariable String taskType,
-                                               @Valid @RequestBody AIRequest request) {
-        log.info("收到按任务类型调用请求，taskType: {}, content length: {}",
-                taskType, request.getContent() != null ? request.getContent().length() : 0);
+    @PostMapping("/chat/{taskType}")
+    public Result<AIResponse> chatByTaskType(
+            @PathVariable String taskType,
+            @Valid @RequestBody AIRequest request) {
+        try {
+            AICallCommand command = DTOConverter.toAppAICallCommand(request);
+            command.setTaskType(taskType);
 
-        // 设置任务类型并转换为 Domain DTO
-        request.setTaskType(taskType);
-        DomainAIRequest domainRequest = DTOConverter.toDomainAIRequest(request);
+            AICallResult result = aiModelService.chatByTaskType(taskType, command);
+            AIResponse response = DTOConverter.toApiAIResponse(result);
 
-        // 调用 AI 服务
-        DomainAIResponse domainResponse = aiModelService.chatByTaskType(taskType, domainRequest);
-
-        // Domain DTO → API DTO
-        AIResponse response = DTOConverter.toApiAIResponse(domainResponse);
-
-        // 返回结果
-        if (response.getSuccess()) {
-            log.info("AI 调用成功，taskType: {}, modelUsed: {}, responseTime: {}ms, fallback: {}",
-                    taskType, response.getModelUsed(), response.getResponseTime(), response.getFallback());
             return Result.success(response);
-        } else {
-            log.error("AI 调用失败，taskType: {}, error: {}", taskType, response.getErrorMessage());
-            return Result.error(500, "AI 调用失败：" + response.getErrorMessage(), response);
+        } catch (Exception e) {
+            log.error("AI 调用失败", e);
+
+            // 统一错误响应格式，便于前端处理
+            AIResponse response = new AIResponse();
+            response.setSuccess(false);
+            response.setErrorMessage(e.getMessage());
+
+            return Result.error(500, "AI 调用失败：" + e.getMessage(), response);
         }
     }
 
@@ -107,39 +102,48 @@ public class AICallController implements IAICallService {
      * @return 模型列表
      */
     @Override
-    @GetMapping("/models/available")
+    @GetMapping("/models")
     public Result<List<ModelInfo>> getAvailableModels() {
-        log.info("查询可用模型列表");
+        // 调用领域服务查询模型配置
+        List<ModelConfig> models = modelConfigService.queryEnabledModels();
 
-        // 调用 Domain 服务，返回 Domain DTO List
-        List<DomainModelInfo> domainModels = aiModelService.getAvailableModels();
+        // 转换为 API DTO
+        List<ModelInfo> modelInfos = models.stream()
+                .map(model -> {
+                    ModelInfo info = new ModelInfo();
+                    info.setModelId(model.getId());
+                    info.setModelName(model.getModelName());
+                    info.setModelType(model.getModelType());
+                    return info;
+                })
+                .collect(Collectors.toList());
 
-        // Domain DTO List → API DTO List
-        List<ModelInfo> models = DTOConverter.toApiModelInfoList(domainModels);
-
-        log.info("查询到 {} 个可用模型", models.size());
-        return Result.success(models);
+        return Result.success(modelInfos);
     }
 
     /**
      * 获取推荐模型
-     * 根据任务类型返回推荐的模型
+     * 根据任务类型推荐最合适的模型
      *
-     * @param taskType 任务类型编码（可选）
-     * @return 推荐模型
+     * @param taskType 任务类型
+     * @return 推荐的模型信息
      */
     @Override
-    @GetMapping("/models/recommended")
-    public Result<ModelInfo> getRecommendedModel(@RequestParam(required = false) String taskType) {
-        log.info("查询推荐模型，taskType: {}", taskType);
+    @GetMapping("/models/recommend")
+    public Result<ModelInfo> getRecommendedModel(@RequestParam String taskType) {
+        // 调用领域服务获取推荐模型
+        ModelConfig model = modelConfigService.getRecommendedModel(taskType);
 
-        // 调用 Domain 服务，返回 Domain DTO
-        DomainModelInfo domainModel = aiModelService.getRecommendedModel(taskType);
+        if (model == null) {
+            return Result.error(404, "未找到推荐模型");
+        }
 
-        // Domain DTO → API DTO
-        ModelInfo model = DTOConverter.toApiModelInfo(domainModel);
+        // 转换为 API DTO
+        ModelInfo modelInfo = new ModelInfo();
+        modelInfo.setModelId(model.getId());
+        modelInfo.setModelName(model.getModelName());
+        modelInfo.setModelType(model.getModelType());
 
-        log.info("推荐模型：{}", model.getModelName());
-        return Result.success(model);
+        return Result.success(modelInfo);
     }
 }

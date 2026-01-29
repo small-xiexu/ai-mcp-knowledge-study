@@ -1,6 +1,6 @@
 package com.xbk.knowledge.infrastructure.provider;
-import com.xbk.knowledge.domain.provider.ModelProvider;
 
+import com.xbk.knowledge.application.provider.ModelProvider;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.types.enums.ModelType;
 import lombok.extern.slf4j.Slf4j;
@@ -15,14 +15,14 @@ import org.springframework.stereotype.Component;
  * Anthropic 模型提供者
  * 封装 Anthropic Claude 模型的创建和调用
  *
+ * 职责：模型调用实现，用于适配具体厂商 SDK
  * @author xiexu
  */
-@Component
 @Slf4j
+@Component
 public class AnthropicModelProvider implements ModelProvider {
 
-    @Override
-    public ChatModel createChatModel(ModelConfig config) {
+    private ChatModel createChatModel(ModelConfig config) {
         try {
             // 创建 Anthropic API 客户端
             AnthropicApi anthropicApi = AnthropicApi.builder()

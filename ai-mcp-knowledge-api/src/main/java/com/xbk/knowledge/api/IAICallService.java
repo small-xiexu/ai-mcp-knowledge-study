@@ -1,9 +1,9 @@
 package com.xbk.knowledge.api;
 
 import com.xbk.knowledge.types.common.Result;
-import com.xbk.knowledge.api.dto.AIRequest;
-import com.xbk.knowledge.api.dto.AIResponse;
-import com.xbk.knowledge.api.dto.ModelInfo;
+import com.xbk.knowledge.api.dto.ai.AIRequest;
+import com.xbk.knowledge.api.dto.ai.AIResponse;
+import com.xbk.knowledge.api.dto.ai.ModelInfo;
 
 import java.util.List;
 
@@ -11,6 +11,7 @@ import java.util.List;
  * AI 调用服务接口
  * 定义 AI 模型调用的 API 契约
  *
+ * 职责：接口契约，用于规范 Trigger 层对外服务
  * @author xiexu
  */
 public interface IAICallService {

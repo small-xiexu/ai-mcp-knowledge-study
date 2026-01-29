@@ -20,6 +20,10 @@
               <div class="stat-label">失败次数</div>
               <div class="stat-value danger">{{ metrics.failedCalls }}</div>
             </div>
+            <div class="stat-item">
+              <div class="stat-label">降级次数</div>
+              <div class="stat-value warning">{{ metrics.fallbackCalls }}</div>
+            </div>
           </div>
         </el-card>
       </el-col>
@@ -65,6 +69,7 @@ import { ElMessage } from 'element-plus'
 import * as echarts from 'echarts'
 import type { ECharts } from 'echarts'
 import { getCallMetrics, getSuccessRate, getResponseTime, getModelUsage } from '@/api/metrics'
+import { getAvailableModels } from '@/api/ai'
 
 const loading = reactive({
   metrics: false,
@@ -76,7 +81,8 @@ const loading = reactive({
 const metrics = reactive({
   totalCalls: 0,
   successCalls: 0,
-  failedCalls: 0
+  failedCalls: 0,
+  fallbackCalls: 0
 })
 
 const successRateChartRef = ref<HTMLElement>()
@@ -96,6 +102,7 @@ const fetchCallMetrics = async () => {
     metrics.totalCalls = data.totalCalls
     metrics.successCalls = data.successCalls
     metrics.failedCalls = data.failedCalls
+    metrics.fallbackCalls = data.fallbackCalls
   } catch (error: any) {
     ElMessage.error(error.message || '获取调用统计失败')
   } finally {
@@ -122,7 +129,7 @@ const initSuccessRateChart = async () => {
       },
       xAxis: {
         type: 'category',
-        data: data.map(item => item.modelName)
+        data: ['总体']
       },
       yAxis: {
         type: 'value',
@@ -135,7 +142,7 @@ const initSuccessRateChart = async () => {
         {
           name: '成功率',
           type: 'bar',
-          data: data.map(item => item.successRate),
+          data: [data?.successRate ?? 0],
           itemStyle: {
             color: '#67C23A'
           }
@@ -165,7 +172,7 @@ const initResponseTimeChart = async () => {
       },
       xAxis: {
         type: 'category',
-        data: data.map(item => item.modelName)
+        data: ['平均', '最大', '最小']
       },
       yAxis: {
         type: 'value',
@@ -176,9 +183,12 @@ const initResponseTimeChart = async () => {
       series: [
         {
           name: '平均响应时间',
-          type: 'line',
-          data: data.map(item => item.avgResponseTime),
-          smooth: true,
+          type: 'bar',
+          data: [
+            data?.avgResponseTime ?? 0,
+            data?.maxResponseTime ?? 0,
+            data?.minResponseTime ?? 0
+          ],
           itemStyle: {
             color: '#409EFF'
           }
@@ -201,6 +211,9 @@ const initModelUsageChart = async () => {
   try {
     const res = await getModelUsage()
     const data = res.data.data
+    const modelRes = await getAvailableModels()
+    const modelList = modelRes.data.data || []
+    const modelNameMap = new Map(modelList.map(item => [item.modelId, item.modelName]))
 
     const option = {
       tooltip: {
@@ -213,7 +226,7 @@ const initModelUsageChart = async () => {
           type: 'pie',
           radius: '60%',
           data: data.map(item => ({
-            name: item.modelName,
+            name: modelNameMap.get(item.modelId) || `ID-${item.modelId}`,
             value: item.callCount
           })),
           emphasis: {
@@ -290,5 +303,9 @@ onUnmounted(() => {
 
 .stat-value.danger {
   color: #F56C6C;
+}
+
+.stat-value.warning {
+  color: #E6A23C;
 }
 </style>

@@ -4,6 +4,7 @@ package com.xbk.knowledge.types.exception;
  * 资源未找到异常
  * 用于表示请求的资源不存在
  *
+ * 职责：通用异常定义，用于统一错误语义
  * @author xiexu
  */
 public class NotFoundException extends BusinessException {

@@ -1,7 +1,9 @@
 server:
+  # 测试环境端口
   port: 8090
 
 logging:
   level:
+    # 测试环境日志级别
     root: info
   config: classpath:logback-spring.xml

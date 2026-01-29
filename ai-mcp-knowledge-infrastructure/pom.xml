@@ -26,6 +26,13 @@
             <version>1.0-SNAPSHOT</version>
         </dependency>
 
+        <!-- 依赖 application 模块 -->
+        <dependency>
+            <groupId>com.xbk</groupId>
+            <artifactId>ai-mcp-knowledge-application</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
         <!-- 依赖 types 模块 -->
         <dependency>
             <groupId>com.xbk</groupId>
@@ -40,10 +47,24 @@
             <version>1.0-SNAPSHOT</version>
         </dependency>
 
-        <!-- Spring Boot Starter Data JPA -->
+        <!-- MyBatis-Plus Extension (Spring 集成支持) -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-extension</artifactId>
+            <version>${mybatis-plus.version}</version>
+        </dependency>
+
+        <!-- MyBatis-Spring (兼容 Spring Boot 3.x) -->
+        <dependency>
+            <groupId>org.mybatis</groupId>
+            <artifactId>mybatis-spring</artifactId>
+            <version>${mybatis-spring.version}</version>
+        </dependency>
+
+        <!-- Spring Boot Starter JDBC (DataSource 自动配置) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
         </dependency>
 
         <!-- Spring Boot Starter AOP -->

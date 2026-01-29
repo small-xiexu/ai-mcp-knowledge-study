@@ -1,67 +1,43 @@
 import request from '@/utils/request'
+import type {
+  CallMetricsDTO,
+  ModelUsageDTO,
+  ResponseTimeDTO,
+  SuccessRateDTO
+} from '@/types/entity'
 
-/**
- * 调用次数统计 DTO
- */
-export interface CallMetricsDTO {
-  totalCalls: number
-  successCalls: number
-  failedCalls: number
-  timeRange: string
+export interface MetricsQueryRequest {
+  modelId?: number
+  taskType?: string
+  startTime?: string
+  endTime?: string
 }
 
-/**
- * 成功率统计 DTO
- */
-export interface SuccessRateDTO {
-  modelId: number
-  modelName: string
-  totalCalls: number
-  successCalls: number
-  successRate: number
-}
-
-/**
- * 响应时间统计 DTO
- */
-export interface ResponseTimeDTO {
-  modelId: number
-  modelName: string
-  avgResponseTime: number
-  minResponseTime: number
-  maxResponseTime: number
-}
-
-/**
- * 模型使用分布 DTO
- */
-export interface ModelUsageDTO {
-  modelId: number
-  modelName: string
-  callCount: number
-  percentage: number
+export interface ModelUsageQueryRequest {
+  startTime?: string
+  endTime?: string
 }
 
 /**
  * 获取调用次数统计
  */
-export const getCallMetrics = (params?: { modelId?: number; startTime?: string; endTime?: string }) =>
-  request.get<CallMetricsDTO>('/metrics/calls', { params })
+export const getCallMetrics = (data: MetricsQueryRequest = {}) =>
+  request.post<CallMetricsDTO>('/metrics/calls', data)
 
 /**
  * 获取成功率统计
  */
-export const getSuccessRate = (params?: { startTime?: string; endTime?: string }) =>
-  request.get<SuccessRateDTO[]>('/metrics/success-rate', { params })
+export const getSuccessRate = (data: MetricsQueryRequest = {}) =>
+  request.post<SuccessRateDTO>('/metrics/success-rate', data)
 
 /**
  * 获取响应时间统计
  */
-export const getResponseTime = (params?: { startTime?: string; endTime?: string }) =>
-  request.get<ResponseTimeDTO[]>('/metrics/response-time', { params })
+export const getResponseTime = (data: MetricsQueryRequest = {}) =>
+  request.post<ResponseTimeDTO>('/metrics/response-time', data)
 
 /**
  * 获取模型使用分布
  */
-export const getModelUsage = (params?: { startTime?: string; endTime?: string }) =>
-  request.get<ModelUsageDTO[]>('/metrics/model-usage', { params })
+export const getModelUsage = (data: ModelUsageQueryRequest = {}) =>
+  request.post<ModelUsageDTO[]>('/metrics/model-usage', data)

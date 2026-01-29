@@ -1,18 +1,20 @@
 package com.xbk.knowledge.api;
 
 import com.xbk.knowledge.types.common.Result;
-import com.xbk.knowledge.api.dto.CallMetricsDTO;
-import com.xbk.knowledge.api.dto.ModelUsageDTO;
-import com.xbk.knowledge.api.dto.ResponseTimeDTO;
-import com.xbk.knowledge.api.dto.SuccessRateDTO;
+import com.xbk.knowledge.api.dto.metrics.CallMetricsDTO;
+import com.xbk.knowledge.api.dto.metrics.MetricsQueryRequest;
+import com.xbk.knowledge.api.dto.metrics.ModelUsageDTO;
+import com.xbk.knowledge.api.dto.metrics.ModelUsageQueryRequest;
+import com.xbk.knowledge.api.dto.metrics.ResponseTimeDTO;
+import com.xbk.knowledge.api.dto.metrics.SuccessRateDTO;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
  * 监控统计服务接口
  * 定义监控统计的 API 契约
  *
+ * 职责：接口契约，用于规范 Trigger 层对外服务
  * @author xiexu
  */
 public interface IMetricsService {
@@ -20,45 +22,32 @@ public interface IMetricsService {
     /**
      * 调用次数统计
      *
-     * @param modelId   模型ID（可选）
-     * @param taskType  任务类型（可选）
-     * @param startTime 开始时间（可选）
-     * @param endTime   结束时间（可选）
+     * @param request 监控统计查询请求
      * @return 调用次数统计
      */
-    Result<CallMetricsDTO> getCallMetrics(Long modelId, String taskType,
-                                          LocalDateTime startTime, LocalDateTime endTime);
+    Result<CallMetricsDTO> getCallMetrics(MetricsQueryRequest request);
 
     /**
      * 成功率统计
      *
-     * @param modelId   模型ID（可选）
-     * @param taskType  任务类型（可选）
-     * @param startTime 开始时间（可选）
-     * @param endTime   结束时间（可选）
+     * @param request 监控统计查询请求
      * @return 成功率统计
      */
-    Result<SuccessRateDTO> getSuccessRate(Long modelId, String taskType,
-                                          LocalDateTime startTime, LocalDateTime endTime);
+    Result<SuccessRateDTO> getSuccessRate(MetricsQueryRequest request);
 
     /**
      * 响应时间统计
      *
-     * @param modelId   模型ID（可选）
-     * @param taskType  任务类型（可选）
-     * @param startTime 开始时间（可选）
-     * @param endTime   结束时间（可选）
+     * @param request 监控统计查询请求
      * @return 响应时间统计
      */
-    Result<ResponseTimeDTO> getResponseTime(Long modelId, String taskType,
-                                            LocalDateTime startTime, LocalDateTime endTime);
+    Result<ResponseTimeDTO> getResponseTime(MetricsQueryRequest request);
 
     /**
      * 模型使用分布
      *
-     * @param startTime 开始时间（可选）
-     * @param endTime   结束时间（可选）
+     * @param request 模型使用情况查询请求
      * @return 模型使用分布
      */
-    Result<List<ModelUsageDTO>> getModelUsage(LocalDateTime startTime, LocalDateTime endTime);
+    Result<List<ModelUsageDTO>> getModelUsage(ModelUsageQueryRequest request);
 }

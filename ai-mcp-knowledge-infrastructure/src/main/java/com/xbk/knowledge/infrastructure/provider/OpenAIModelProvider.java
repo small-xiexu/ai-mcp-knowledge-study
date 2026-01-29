@@ -1,6 +1,5 @@
 package com.xbk.knowledge.infrastructure.provider;
-import com.xbk.knowledge.domain.provider.ModelProvider;
-
+import com.xbk.knowledge.application.provider.ModelProvider;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.types.enums.ModelType;
 import lombok.extern.slf4j.Slf4j;
@@ -15,18 +14,23 @@ import org.springframework.stereotype.Component;
  * OpenAI 模型提供者
  * 封装 OpenAI 模型的创建和调用
  *
+ * 职责：模型调用实现，用于适配具体厂商 SDK
  * @author xiexu
  */
-@Component
 @Slf4j
+@Component
 public class OpenAIModelProvider implements ModelProvider {
 
-    @Override
-    public ChatModel createChatModel(ModelConfig config) {
+    private ChatModel createChatModel(ModelConfig config) {
         try {
+            // 规范化 baseUrl，去掉可能存在的 /v1/chat/completions 后缀
+            String normalizedBaseUrl = normalizeBaseUrl(config.getBaseUrl());
+
+            log.info("创建 OpenAI 模型 - 原始 baseUrl: {}, 规范化后: {}", config.getBaseUrl(), normalizedBaseUrl);
+
             // 创建 OpenAI API 客户端
             OpenAiApi openAiApi = OpenAiApi.builder()
-                    .baseUrl(config.getBaseUrl())
+                    .baseUrl(normalizedBaseUrl)
                     .apiKey(config.getApiKey())
                     .build();
 
@@ -55,6 +59,46 @@ public class OpenAIModelProvider implements ModelProvider {
     @Override
     public ModelType getModelType() {
         return ModelType.OPENAI;
+    }
+
+    /**
+     * 规范化 baseUrl
+     * 自动去除可能导致路径重复的后缀，确保与 Spring AI 的 OpenAiApi 兼容
+     *
+     * Spring AI 的 OpenAiApi 会自动在 baseUrl 后拼接 /v1/chat/completions
+     * 因此需要去除用户可能传入的以下后缀：
+     * - /v1/chat/completions
+     * - /v1
+     * - 末尾的斜杠
+     *
+     * @param baseUrl 原始 baseUrl
+     * @return 规范化后的 baseUrl
+     */
+    private String normalizeBaseUrl(String baseUrl) {
+        if (baseUrl == null || baseUrl.isEmpty()) {
+            return baseUrl;
+        }
+
+        // 去掉首尾空格
+        String normalized = baseUrl.trim();
+
+        // 去掉末尾的斜杠
+        while (normalized.endsWith("/")) {
+            normalized = normalized.substring(0, normalized.length() - 1);
+        }
+
+        // 检查并去除 /v1/chat/completions 后缀
+        if (normalized.endsWith("/v1/chat/completions")) {
+            normalized = normalized.substring(0, normalized.length() - "/v1/chat/completions".length());
+            log.info("检测到 baseUrl 包含 /v1/chat/completions 后缀，已自动去除。原始: {}, 规范化后: {}", baseUrl, normalized);
+        }
+        // 检查并去除 /v1 后缀（避免路径重复）
+        else if (normalized.endsWith("/v1")) {
+            normalized = normalized.substring(0, normalized.length() - "/v1".length());
+            log.info("检测到 baseUrl 包含 /v1 后缀，已自动去除。原始: {}, 规范化后: {}", baseUrl, normalized);
+        }
+
+        return normalized;
     }
 
     @Override

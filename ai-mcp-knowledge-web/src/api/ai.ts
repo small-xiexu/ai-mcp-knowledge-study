@@ -11,16 +11,16 @@ export const chat = (data: AIRequest) =>
  * 按任务类型调用 AI
  */
 export const chatByTaskType = (taskType: string, data: AIRequest) =>
-  request.post<AIResponse>(`/ai/chat/by-task/${taskType}`, data)
+  request.post<AIResponse>(`/ai/chat/${taskType}`, data)
 
 /**
  * 获取可用模型列表
  */
 export const getAvailableModels = () =>
-  request.get<ModelInfo[]>('/ai/models/available')
+  request.get<ModelInfo[]>('/ai/models')
 
 /**
  * 获取推荐模型
  */
 export const getRecommendedModel = (taskType?: string) =>
-  request.get<ModelInfo>('/ai/models/recommended', { params: { taskType } })
+  request.get<ModelInfo>('/ai/models/recommend', { params: { taskType } })

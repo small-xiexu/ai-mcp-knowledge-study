@@ -26,16 +26,17 @@
             <version>1.0-SNAPSHOT</version>
         </dependency>
 
-        <!-- Spring Data JPA (仓储接口需要) -->
+        <!-- MyBatis-Plus Core（提供 JdbcType 等基础类型定义） -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-core</artifactId>
+            <version>${mybatis-plus.version}</version>
         </dependency>
 
-        <!-- Spring AI (领域服务需要) -->
+        <!-- Spring Context (领域服务注解支持) -->
         <dependency>
-            <groupId>org.springframework.ai</groupId>
-            <artifactId>spring-ai-client-chat</artifactId>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
         </dependency>
 
         <!-- Lombok -->

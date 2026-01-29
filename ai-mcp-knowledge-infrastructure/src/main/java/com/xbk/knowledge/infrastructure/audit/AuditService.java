@@ -4,11 +4,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xbk.knowledge.domain.model.entity.ConfigAudit;
 import com.xbk.knowledge.domain.repository.ConfigAuditRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -16,6 +18,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
  * 配置审计服务
  * 集中处理审计持久化与序列化，避免切面承担转换细节
  *
+ * 职责：基础设施审计能力，用于持久化变更记录
  * @author xiexu
  */
 @Service
@@ -46,11 +49,11 @@ public class AuditService {
             return;
         }
 
-        var operator = resolveOperator();
-        var oldValueJson = toJson(oldValue);
-        var newValueJson = toJson(newValue);
+        String operator = resolveOperator();
+        String oldValueJson = toJson(oldValue);
+        String newValueJson = toJson(newValue);
 
-        var audit = ConfigAudit.builder()
+        ConfigAudit audit = ConfigAudit.builder()
                 .tableName(tableName)
                 .recordId(recordId)
                 .operation(operation)
@@ -64,10 +67,10 @@ public class AuditService {
     }
 
     private String resolveOperator() {
-        var attributes = RequestContextHolder.getRequestAttributes();
+        RequestAttributes attributes = RequestContextHolder.getRequestAttributes();
         if (attributes instanceof ServletRequestAttributes servletRequestAttributes) {
-            var request = servletRequestAttributes.getRequest();
-            var headerValue = request.getHeader(OPERATOR_HEADER);
+            HttpServletRequest request = servletRequestAttributes.getRequest();
+            String headerValue = request.getHeader(OPERATOR_HEADER);
             if (StringUtils.hasText(headerValue)) {
                 return headerValue;
             }

@@ -1,5 +1,14 @@
 spring:
   application:
+    # 应用名称（日志/注册中心等会使用）
     name: ai-rag-knowledge
   profiles:
+    # 默认激活的运行环境
     active: dev
+
+mybatis-plus:
+  # Mapper XML 路径
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    # 自动将下划线字段映射为驼峰属性
+    map-underscore-to-camel-case: true

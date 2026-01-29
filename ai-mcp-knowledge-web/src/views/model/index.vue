@@ -2,23 +2,11 @@
   <div class="model-management">
     <el-card>
       <!-- 搜索栏 -->
-      <el-form :inline="true" :model="searchForm" class="search-form">
-        <el-form-item label="模型名称">
-          <el-input
-            v-model="searchForm.modelName"
-            placeholder="请输入模型名称"
-            clearable
-            @clear="handleSearch"
-          />
-        </el-form-item>
+      <el-form :inline="true" class="search-form">
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">
-            <el-icon><Search /></el-icon>
-            搜索
-          </el-button>
-          <el-button @click="handleReset">
+          <el-button type="primary" @click="fetchData">
             <el-icon><Refresh /></el-icon>
-            重置
+            刷新
           </el-button>
           <el-button type="success" @click="handleAdd">
             <el-icon><Plus /></el-icon>
@@ -116,10 +104,6 @@ const tableData = ref<ModelConfig[]>([])
 const dialogVisible = ref(false)
 const currentModel = ref<ModelConfig | null>(null)
 
-const searchForm = reactive({
-  modelName: ''
-})
-
 const pagination = reactive({
   pageNum: 1,
   pageSize: 10,
@@ -132,29 +116,15 @@ const fetchData = async () => {
   try {
     const res = await getModelList({
       pageNum: pagination.pageNum,
-      pageSize: pagination.pageSize,
-      modelName: searchForm.modelName || undefined
+      pageSize: pagination.pageSize
     })
-    tableData.value = res.data.data.list
+    tableData.value = res.data.data.records
     pagination.total = res.data.data.total
   } catch (error: any) {
     ElMessage.error(error.message || '获取模型列表失败')
   } finally {
     loading.value = false
   }
-}
-
-// 搜索
-const handleSearch = () => {
-  pagination.pageNum = 1
-  fetchData()
-}
-
-// 重置
-const handleReset = () => {
-  searchForm.modelName = ''
-  pagination.pageNum = 1
-  fetchData()
 }
 
 // 新增

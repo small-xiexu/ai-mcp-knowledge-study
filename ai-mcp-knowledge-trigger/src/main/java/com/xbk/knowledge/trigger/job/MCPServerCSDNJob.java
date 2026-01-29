@@ -35,6 +35,7 @@ import java.util.List;
  *   <li>通过 System Prompt 传递 traceId 实现端到端链路追踪</li>
  * </ul>
  *
+ * 职责：定时任务入口，用于承载自动化流程
  * @author xiexu
  * @since 2026-01-26
  */
@@ -68,19 +69,19 @@ public class MCPServerCSDNJob {
      */
     @Scheduled(cron = "0 0 10,11,15,16 * * ?")
     public void exec() {
-        var traceIdContext = TraceIdUtils.ensureTraceId();
-        var traceId = traceIdContext.traceId();
-        var generated = traceIdContext.generated();
+        TraceIdUtils.TraceIdContext traceIdContext = TraceIdUtils.ensureTraceId();
+        String traceId = traceIdContext.getTraceId();
+        boolean generated = traceIdContext.isGenerated();
         log.info("[{}] CSDN 定时任务开始执行", traceId);
 
         try {
             // 构建带记忆功能的 ChatClient
-            var chatMemory = MessageWindowChatMemory.builder()
+            MessageWindowChatMemory chatMemory = MessageWindowChatMemory.builder()
                     .chatMemoryRepository(new InMemoryChatMemoryRepository())
                     .maxMessages(100)
                     .build();
 
-            var builder = ChatClient.builder(openAiChatModel)
+            ChatClient.Builder builder = ChatClient.builder(openAiChatModel)
                     .defaultToolCallbacks(tools)
                     .defaultAdvisors(PromptChatMemoryAdvisor.builder(chatMemory).build());
 
@@ -88,11 +89,11 @@ public class MCPServerCSDNJob {
                 builder.defaultAdvisors(advisors.toArray(new CallAdvisor[0]));
             }
 
-            var chatClient = builder.build();
-            var conversationId = "csdn-job-" + traceId;
+            ChatClient chatClient = builder.build();
+            String conversationId = "csdn-job-" + traceId;
 
             // 第一轮：生成文章并发布到 CSDN
-            var publishPrompt = """
+            String publishPrompt = """
                     我需要你帮我生成一篇文章，要求如下：
                     1. 场景为 AI 学习与实战系列文章
                     2. 主题从以下列表中任选其一深入讲解，不要全部覆盖：Spring AI + MCP 实战、RAG 入门、向量数据库实践、Skills 实战、Prompt Engineering、Embedding、微调与对齐（SFT/RLHF）、评测与安全、MLOps/上线、GPU/推理优化
@@ -106,7 +107,7 @@ public class MCPServerCSDNJob {
                     """;
 
             log.info("[{}] 开始生成并发布 CSDN 文章", traceId);
-            var publishResult = chatClient.prompt()
+            String publishResult = chatClient.prompt()
                     .system(String.format(TRACE_ID_SYSTEM_PROMPT, traceId))
                     .user(publishPrompt)
                     .advisors(advisor -> advisor.param("chat_memory_conversation_id", conversationId))
@@ -115,7 +116,7 @@ public class MCPServerCSDNJob {
             log.info("[{}] CSDN 文章发布结果: {}", traceId, publishResult);
 
             // 第二轮：发送微信公众号通知（使用上一轮的文章信息）
-            var noticePrompt = """
+            String noticePrompt = """
                     根据上一轮对话中已发布的文章信息，进行微信公众号消息通知：
                     - 平台：CSDN
                     - 主题：使用已发布的文章标题
@@ -126,7 +127,7 @@ public class MCPServerCSDNJob {
                     """;
 
             log.info("[{}] 开始发送微信通知", traceId);
-            var noticeResult = chatClient.prompt()
+            String noticeResult = chatClient.prompt()
                     .system(String.format(TRACE_ID_SYSTEM_PROMPT, traceId))
                     .user(noticePrompt)
                     .advisors(advisor -> advisor.param("chat_memory_conversation_id", conversationId))

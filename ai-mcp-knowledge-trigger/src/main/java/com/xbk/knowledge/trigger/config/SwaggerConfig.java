@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Configuration;
  * Swagger API 文档配置
  * 访问地址：http://localhost:8080/swagger-ui.html
  *
+ * 职责：接口层配置，用于提供文档与切面支持
  * @author xiexu
  */
 @Configuration

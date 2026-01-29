@@ -12,7 +12,7 @@ export const useModelStore = defineStore('model', {
       this.loading = true
       try {
         const res = await getModelList({ pageNum: 1, pageSize: 100 })
-        this.modelList = res.data.data.list
+        this.modelList = res.data.data.records
       } catch (error) {
         console.error('Failed to fetch model list:', error)
       } finally {

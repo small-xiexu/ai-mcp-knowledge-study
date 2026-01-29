@@ -13,6 +13,7 @@ import java.util.List;
  * 分页响应结果类
  * 用于封装分页查询的响应数据
  *
+ * 职责：通用基础结构，用于统一分页与响应结构
  * @author xiexu
  */
 @Getter

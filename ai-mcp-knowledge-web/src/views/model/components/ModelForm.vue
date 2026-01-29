@@ -33,7 +33,7 @@
       </el-form-item>
 
       <el-form-item label="Base URL" prop="baseUrl">
-        <el-input v-model="formData.baseUrl" placeholder="请输入 Base URL（选填）" />
+        <el-input v-model="formData.baseUrl" placeholder="请输入 Base URL" />
       </el-form-item>
 
       <el-form-item label="优先级" prop="priority">
@@ -74,7 +74,7 @@
 import { ref, reactive, watch } from 'vue'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { createModel, updateModel } from '@/api/model'
-import type { ModelConfig } from '@/types/entity'
+import type { ModelConfig, ModelConfigRequest } from '@/types/entity'
 
 interface Props {
   visible: boolean
@@ -101,6 +101,7 @@ const formData = reactive({
   apiKey: '',
   baseUrl: '',
   priority: 0,
+  enabled: true,
   capability: {
     maxTokens: 4096,
     qualityScore: 80
@@ -110,7 +111,8 @@ const formData = reactive({
 const rules: FormRules = {
   modelName: [{ required: true, message: '请输入模型名称', trigger: 'blur' }],
   modelType: [{ required: true, message: '请选择模型类型', trigger: 'change' }],
-  apiKey: [{ required: true, message: '请输入 API Key', trigger: 'blur' }]
+  apiKey: [{ required: true, message: '请输入 API Key', trigger: 'blur' }],
+  baseUrl: [{ required: true, message: '请输入 Base URL', trigger: 'blur' }]
 }
 
 // 监听 modelData 变化，填充表单
@@ -125,6 +127,7 @@ watch(
       formData.apiKey = ''  // 不回显 API Key
       formData.baseUrl = data.baseUrl || ''
       formData.priority = data.priority
+      formData.enabled = data.enabled
       if (data.capability) {
         formData.capability.maxTokens = data.capability.maxInputTokens || 4096
         formData.capability.qualityScore = data.capability.qualityScore || 80
@@ -144,6 +147,7 @@ const resetForm = () => {
   formData.apiKey = ''
   formData.baseUrl = ''
   formData.priority = 0
+  formData.enabled = true
   formData.capability.maxTokens = 4096
   formData.capability.qualityScore = 80
   formRef.value?.clearValidate()
@@ -162,24 +166,22 @@ const handleSubmit = async () => {
 
     loading.value = true
     try {
-      const data: Partial<ModelConfig> = {
+      const data: ModelConfigRequest = {
+        id: isEdit.value ? formData.id : undefined,
         modelName: formData.modelName,
         modelType: formData.modelType,
         apiKey: formData.apiKey,
         baseUrl: formData.baseUrl,
+        enabled: formData.enabled,
         priority: formData.priority,
         capability: {
-          maxInputTokens: formData.capability.maxTokens,
-          maxOutputTokens: formData.capability.maxTokens,
-          supportFunctionCalling: false,
-          supportVision: false,
-          supportStreaming: false,
+          maxTokens: formData.capability.maxTokens,
           qualityScore: formData.capability.qualityScore
         }
       }
 
       if (isEdit.value) {
-        await updateModel(formData.id, data)
+        await updateModel(data)
         ElMessage.success('模型更新成功')
       } else {
         await createModel(data)

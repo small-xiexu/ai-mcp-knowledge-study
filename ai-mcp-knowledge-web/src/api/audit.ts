@@ -1,9 +1,9 @@
 import request from '@/utils/request'
-import type { CallLog } from '@/types/entity'
+import type { ConfigAudit } from '@/types/entity'
 import type { PageResult, PageRequest } from '@/types/api'
 
 /**
  * 查询审计日志列表（分页）
  */
-export const getAuditLogList = (params: PageRequest & { traceId?: string; modelId?: number }) =>
-  request.get<PageResult<CallLog>>('/audit/logs', { params })
+export const getAuditLogList = (data: PageRequest & { tableName?: string; recordId?: number; operator?: string }) =>
+  request.post<PageResult<ConfigAudit>>('/audits/list', data)

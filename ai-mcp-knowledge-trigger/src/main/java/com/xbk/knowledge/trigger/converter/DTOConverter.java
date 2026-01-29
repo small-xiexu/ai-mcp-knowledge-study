@@ -1,60 +1,30 @@
 package com.xbk.knowledge.trigger.converter;
 
+import com.xbk.knowledge.api.dto.ai.AIRequest;
+import com.xbk.knowledge.api.dto.ai.AIResponse;
+import com.xbk.knowledge.api.dto.model.ModelCapabilityDTO;
+import com.xbk.knowledge.application.model.dto.AICallCommand;
+import com.xbk.knowledge.application.model.dto.AICallResult;
 import com.xbk.knowledge.domain.model.entity.ModelCapability;
-// API 层 DTO 导入
-import com.xbk.knowledge.api.dto.AIRequest;
-import com.xbk.knowledge.api.dto.AIResponse;
-import com.xbk.knowledge.api.dto.CallMetricsDTO;
-import com.xbk.knowledge.api.dto.ModelCapabilityDTO;
-import com.xbk.knowledge.api.dto.ModelInfo;
-import com.xbk.knowledge.api.dto.ModelUsageDTO;
-import com.xbk.knowledge.api.dto.ResponseTimeDTO;
-import com.xbk.knowledge.api.dto.SuccessRateDTO;
-// Domain 层 DTO 导入
-import com.xbk.knowledge.domain.model.dto.DomainAIRequest;
-import com.xbk.knowledge.domain.model.dto.DomainAIResponse;
-import com.xbk.knowledge.domain.model.dto.DomainCallMetricsDTO;
-import com.xbk.knowledge.domain.model.dto.DomainModelInfo;
-import com.xbk.knowledge.domain.model.dto.DomainModelUsageDTO;
-import com.xbk.knowledge.domain.model.dto.DomainResponseTimeDTO;
-import com.xbk.knowledge.domain.model.dto.DomainSuccessRateDTO;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * DTO 转换工具类
- * 负责 Domain DTO 与 API DTO 之间的转换（接口适配层职责）
+ * 负责应用层与 API DTO 的转换（接口适配层职责）
  *
+ * 职责：接口层 DTO 转换，用于隔离传输与领域模型
  * @author xiexu
  */
 public class DTOConverter {
 
     /**
-     * Domain AIRequest -> API AIRequest
+     * API AIRequest -> 应用层 AICallCommand
      */
-    public static AIRequest toApiAIRequest(DomainAIRequest domain) {
-        if (domain == null) {
-            return null;
-        }
-        return AIRequest.builder()
-                .content(domain.getContent())
-                .taskType(domain.getTaskType())
-                .systemPrompt(domain.getSystemPrompt())
-                .parameters(domain.getParameters())
-                .strategy(domain.getStrategy())
-                .streaming(domain.getStreaming())
-                .build();
-    }
-
-    /**
-     * API AIRequest -> Domain AIRequest
-     */
-    public static DomainAIRequest toDomainAIRequest(AIRequest api) {
+    public static AICallCommand toAppAICallCommand(AIRequest api) {
         if (api == null) {
             return null;
         }
-        return DomainAIRequest.builder()
+        // 只做字段映射，不引入业务逻辑，保持接口层与应用层解耦
+        return AICallCommand.builder()
                 .content(api.getContent())
                 .taskType(api.getTaskType())
                 .systemPrompt(api.getSystemPrompt())
@@ -65,153 +35,38 @@ public class DTOConverter {
     }
 
     /**
-     * Domain AIResponse -> API AIResponse
+     * 应用层 AICallResult -> API AIResponse
      */
-    public static AIResponse toApiAIResponse(DomainAIResponse domain) {
-        if (domain == null) {
+    public static AIResponse toApiAIResponse(AICallResult result) {
+        if (result == null) {
             return null;
         }
         return AIResponse.builder()
-                .content(domain.getContent())
-                .modelUsed(domain.getModelUsed())
-                .tokensUsed(domain.getTokensUsed())
-                .responseTime(domain.getResponseTime())
-                .success(domain.getSuccess())
-                .errorMessage(domain.getErrorMessage())
-                .fallback(domain.getFallback())
-                .retryCount(domain.getRetryCount())
+                .content(result.getContent())
+                .modelUsed(result.getModelUsed())
+                .tokensUsed(result.getTokensUsed())
+                .responseTime(result.getResponseTime())
+                .success(result.getSuccess())
+                .errorMessage(result.getErrorMessage())
+                .fallback(result.getFallback())
+                .retryCount(result.getRetryCount())
                 .build();
     }
 
     /**
-     * Domain ModelInfo -> API ModelInfo
+     * ModelCapability -> ModelCapabilityDTO
      */
-    public static ModelInfo toApiModelInfo(DomainModelInfo domain) {
-        if (domain == null) {
-            return null;
-        }
-        return ModelInfo.builder()
-                .modelId(domain.getModelId())
-                .modelName(domain.getModelName())
-                .modelType(domain.getModelType())
-                .qualityScore(domain.getQualityScore())
-                .enabled(domain.getEnabled())
-                .capability(toApiModelCapability(domain.getCapability()))
-                .build();
-    }
-
-    /**
-     * Domain ModelInfo List -> API ModelInfo List
-     */
-    public static List<ModelInfo> toApiModelInfoList(List<DomainModelInfo> domainList) {
-        if (domainList == null) {
-            return null;
-        }
-        return domainList.stream()
-                .map(DTOConverter::toApiModelInfo)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Domain ModelCapability -> API ModelCapabilityDTO
-     */
-    public static ModelCapabilityDTO toApiModelCapability(ModelCapability domain) {
-        if (domain == null) {
+    public static ModelCapabilityDTO toApiModelCapability(ModelCapability capability) {
+        if (capability == null) {
             return null;
         }
         return ModelCapabilityDTO.builder()
-                .maxInputTokens(domain.getMaxInputTokens())
-                .maxOutputTokens(domain.getMaxOutputTokens())
-                .supportFunctionCalling(domain.getSupportFunctionCalling())
-                .supportVision(domain.getSupportVision())
-                .supportStreaming(domain.getSupportStreaming())
-                .qualityScore(domain.getQualityScore())
+                .qualityScore(capability.getQualityScore())
+                .maxInputTokens(capability.getMaxInputTokens())
+                .maxOutputTokens(capability.getMaxOutputTokens())
+                .supportStreaming(capability.getSupportStreaming())
+                .supportFunctionCalling(capability.getSupportFunctionCalling())
+                .supportVision(capability.getSupportVision())
                 .build();
-    }
-
-    /**
-     * API ModelCapabilityDTO -> Domain ModelCapability Entity
-     */
-    public static ModelCapability toDomainModelCapability(ModelCapabilityDTO api) {
-        if (api == null) {
-            return null;
-        }
-        return ModelCapability.builder()
-                .maxInputTokens(api.getMaxInputTokens())
-                .maxOutputTokens(api.getMaxOutputTokens())
-                .supportFunctionCalling(api.getSupportFunctionCalling())
-                .supportVision(api.getSupportVision())
-                .supportStreaming(api.getSupportStreaming())
-                .qualityScore(api.getQualityScore())
-                .build();
-    }
-
-    /**
-     * Domain CallMetricsDTO -> API CallMetricsDTO
-     */
-    public static CallMetricsDTO toApiCallMetrics(DomainCallMetricsDTO domain) {
-        if (domain == null) {
-            return null;
-        }
-        return CallMetricsDTO.builder()
-                .totalCalls(domain.getTotalCalls())
-                .successCalls(domain.getSuccessCalls())
-                .failedCalls(domain.getFailedCalls())
-                .fallbackCalls(domain.getFallbackCalls())
-                .build();
-    }
-
-    /**
-     * Domain SuccessRateDTO -> API SuccessRateDTO
-     */
-    public static SuccessRateDTO toApiSuccessRate(DomainSuccessRateDTO domain) {
-        if (domain == null) {
-            return null;
-        }
-        return SuccessRateDTO.builder()
-                .totalCalls(domain.getTotalCalls())
-                .successCalls(domain.getSuccessCalls())
-                .successRate(domain.getSuccessRate())
-                .build();
-    }
-
-    /**
-     * Domain ResponseTimeDTO -> API ResponseTimeDTO
-     */
-    public static ResponseTimeDTO toApiResponseTime(DomainResponseTimeDTO domain) {
-        if (domain == null) {
-            return null;
-        }
-        return ResponseTimeDTO.builder()
-                .avgResponseTime(domain.getAvgResponseTime())
-                .maxResponseTime(domain.getMaxResponseTime())
-                .minResponseTime(domain.getMinResponseTime())
-                .build();
-    }
-
-    /**
-     * Domain ModelUsageDTO -> API ModelUsageDTO
-     */
-    public static ModelUsageDTO toApiModelUsage(DomainModelUsageDTO domain) {
-        if (domain == null) {
-            return null;
-        }
-        return ModelUsageDTO.builder()
-                .modelId(domain.getModelId())
-                .callCount(domain.getCallCount())
-                .usageRate(domain.getUsageRate())
-                .build();
-    }
-
-    /**
-     * Domain ModelUsageDTO List -> API ModelUsageDTO List
-     */
-    public static List<ModelUsageDTO> toApiModelUsageList(List<DomainModelUsageDTO> domainList) {
-        if (domainList == null) {
-            return null;
-        }
-        return domainList.stream()
-                .map(DTOConverter::toApiModelUsage)
-                .collect(Collectors.toList());
     }
 }

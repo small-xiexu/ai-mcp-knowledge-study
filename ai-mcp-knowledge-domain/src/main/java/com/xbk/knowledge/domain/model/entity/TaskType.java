@@ -1,6 +1,10 @@
 package com.xbk.knowledge.domain.model.entity;
 
-import jakarta.persistence.*;
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,10 +17,10 @@ import java.time.LocalDateTime;
  * 任务类型实体
  * 对应数据库表：ai_task_type
  *
+ * 职责：领域实体，用于承载核心业务状态与生命周期
  * @author xiexu
  */
-@Entity
-@Table(name = "ai_task_type")
+@TableName("ai_task_type")
 @Getter
 @Setter
 @Builder
@@ -27,66 +31,43 @@ public class TaskType {
     /**
      * 主键ID
      */
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
      * 任务名称
      */
-    @Column(name = "task_name", nullable = false, length = 100)
     private String taskName;
 
     /**
      * 任务编码（唯一）
      */
-    @Column(name = "task_code", nullable = false, unique = true, length = 50)
     private String taskCode;
 
     /**
      * 任务描述
      */
-    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     /**
      * 首选模型ID
      */
-    @Column(name = "preferred_model_id")
     private Long preferredModelId;
 
     /**
      * 备用模型ID列表（逗号分隔）
      */
-    @Column(name = "fallback_model_ids", length = 500)
     private String fallbackModelIds;
 
     /**
      * 创建时间
      */
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
     /**
      * 更新时间
      */
-    @Column(name = "updated_at", nullable = false)
+    @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedAt;
-
-    /**
-     * 创建时自动设置创建时间和更新时间
-     */
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    /**
-     * 更新时自动设置更新时间
-     */
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 }

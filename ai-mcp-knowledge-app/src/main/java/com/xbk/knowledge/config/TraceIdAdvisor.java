@@ -24,6 +24,7 @@ import org.springframework.stereotype.Component;
  * 注意：traceId 通过 System Prompt 传递给 AI，由 AI 在调用工具时传递给 MCP Server。
  * 需要在 ChatClient 构建时配置 system prompt 包含 traceId 指令。
  *
+ * 职责：应用装配配置，用于集中接入框架能力
  * @author xiexu
  * @since 2026-01-26
  */
@@ -45,24 +46,15 @@ public class TraceIdAdvisor implements CallAdvisor {
     @Override
     public ChatClientResponse adviseCall(ChatClientRequest request, CallAdvisorChain chain) {
         // 生成或获取 traceId
-        var traceIdContext = TraceIdUtils.ensureTraceId();
-        var traceId = traceIdContext.traceId();
-        var generated = traceIdContext.generated();
-
-        var startTime = System.currentTimeMillis();
-        var userPrompt = truncatePrompt(getUserText(request), 100);
-        log.info("[{}] MCP 请求开始, prompt: {}", traceId, userPrompt);
+        TraceIdUtils.TraceIdContext traceIdContext = TraceIdUtils.ensureTraceId();
+        String traceId = traceIdContext.getTraceId();
+        boolean generated = traceIdContext.isGenerated();
 
         try {
-            var response = chain.nextCall(request);
-
-            var cost = System.currentTimeMillis() - startTime;
-            log.info("[{}] MCP 请求完成, 耗时: {}ms", traceId, cost);
-
+            ChatClientResponse response = chain.nextCall(request);
             return response;
         } catch (Exception e) {
-            var cost = System.currentTimeMillis() - startTime;
-            log.error("[{}] MCP 请求失败, 耗时: {}ms, 错误: {}", traceId, cost, e.getMessage());
+            log.error("[{}] AI 请求失败, 错误: {}", traceId, e.getMessage());
             throw e;
         } finally {
             TraceIdUtils.clearIfGenerated(generated);
@@ -75,30 +67,6 @@ public class TraceIdAdvisor implements CallAdvisor {
      * @param request 请求
      * @return 用户输入文本
      */
-    private String getUserText(ChatClientRequest request) {
-        if (request.prompt().getContents() != null) {
-            return request.prompt().getContents();
-        }
-        return "";
-    }
-
-    /**
-     * 截断 prompt，避免日志过长
-     *
-     * @param prompt    原始 prompt
-     * @param maxLength 最大长度
-     * @return 截断后的 prompt
-     */
-    private String truncatePrompt(String prompt, int maxLength) {
-        if (prompt == null) {
-            return "";
-        }
-        if (prompt.length() <= maxLength) {
-            return prompt;
-        }
-        return prompt.substring(0, maxLength) + "...";
-    }
-
     /**
      * 获取当前 traceId（供外部使用）
      *

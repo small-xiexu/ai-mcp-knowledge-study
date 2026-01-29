@@ -11,7 +11,9 @@ import java.io.Serializable;
 /**
  * 分页请求参数类
  * 用于接收分页查询的请求参数
+ * 继承 BaseRequest，包含通用请求字段
  *
+ * 职责：通用基础结构，用于统一分页与响应结构
  * @author xiexu
  */
 @Getter
@@ -19,7 +21,7 @@ import java.io.Serializable;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PageRequest implements Serializable {
+public class PageRequest extends BaseRequest {
 
     private static final long serialVersionUID = 1L;
 

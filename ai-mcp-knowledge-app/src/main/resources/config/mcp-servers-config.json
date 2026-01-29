@@ -1,7 +1,16 @@
 {
   "mcpServers": {
+    "mcp-tool-computer": {
+      "command": "java",
+      "args": [
+        "-Dspring.ai.mcp.server.stdio=true",
+        "-Dlogging.file.name=/Users/sxie/xbk/ai-mcp-knowledge-study/logs/mcp-tool-computer.log",
+        "-jar",
+        "/Users/sxie/xbk/mcp-server-study/mcp-tool-computer/target/mcp-tool-computer-1.0.0.jar"
+      ]
+    },
     "mcp-tool-weixin": {
-      "command": "/Users/sxie/Library/Java/JavaVirtualMachines/azul-17.0.18/Contents/Home/bin/java",
+      "command": "java",
       "args": [
         "-Dspring.ai.mcp.server.stdio=true",
         "-Dspring.config.location=classpath:/",
@@ -10,14 +19,16 @@
         "-Dweixin.api.app-secret=543f155cc043bd86366de1300ad035eb",
         "-Dweixin.api.template_id=hECodOKR74-8xxKokA2NPfL_hrQXpzmkYMfFx7t0U0c",
         "-Dweixin.api.to-user=oZt_U15drPN8WX1UMnF4TXHW3Jvk",
+        "-Dlogging.file.name=/Users/sxie/xbk/ai-mcp-knowledge-study/logs/mcp-tool-weixin.log",
         "-jar",
         "/Users/sxie/xbk/mcp-server-study/mcp-tool-weixin/target/mcp-tool-weixin-1.0.0.jar"
       ]
     },
     "mcp-tool-csdn": {
-      "command": "/Users/sxie/Library/Java/JavaVirtualMachines/azul-17.0.18/Contents/Home/bin/java",
+      "command": "java",
       "args": [
         "-Dspring.ai.mcp.server.stdio=true",
+        "-Dlogging.file.name=/Users/sxie/xbk/ai-mcp-knowledge-study/logs/mcp-tool-csdn.log",
         "-jar",
         "/Users/sxie/xbk/mcp-server-study/mcp-tool-csdn/target/mcp-tool-csdn-1.0.0.jar"
       ]

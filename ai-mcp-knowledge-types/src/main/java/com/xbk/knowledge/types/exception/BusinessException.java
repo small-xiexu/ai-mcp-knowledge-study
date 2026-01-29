@@ -6,6 +6,7 @@ import lombok.Getter;
  * 业务异常类
  * 用于封装业务逻辑中的异常情况
  *
+ * 职责：通用异常定义，用于统一错误语义
  * @author xiexu
  */
 @Getter

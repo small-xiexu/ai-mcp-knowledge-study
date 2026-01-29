@@ -1,8 +1,8 @@
 package com.xbk.knowledge.infrastructure.provider;
 
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
-import com.xbk.knowledge.domain.provider.ModelProvider;
-import com.xbk.knowledge.domain.provider.ModelProviderFactory;
+import com.xbk.knowledge.application.provider.ModelProvider;
+import com.xbk.knowledge.application.provider.ModelProviderFactory;
 import com.xbk.knowledge.types.enums.ModelType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -18,10 +18,11 @@ import java.util.stream.Collectors;
  * 模型提供者工厂实现
  * 根据模型类型返回对应的 Provider
  *
+ * 职责：模型调用实现，用于适配具体厂商 SDK
  * @author xiexu
  */
-@Component
 @Slf4j
+@Component
 public class ModelProviderFactoryImpl implements ModelProviderFactory {
 
     /**
@@ -53,9 +54,11 @@ public class ModelProviderFactoryImpl implements ModelProviderFactory {
      * @return ModelProvider 实例
      * @throws IllegalArgumentException 如果模型类型不支持
      */
+    @Override
     public ModelProvider getProvider(ModelType modelType) {
         ModelProvider provider = providerMap.get(modelType);
         if (provider == null) {
+            // 直接抛错以便快速暴露配置问题，避免静默降级造成错误选择
             throw new IllegalArgumentException("不支持的模型类型: " + modelType);
         }
         return provider;
@@ -67,6 +70,7 @@ public class ModelProviderFactoryImpl implements ModelProviderFactory {
      * @param config 模型配置
      * @return ChatClient 实例
      */
+    @Override
     public ChatClient createChatClient(ModelConfig config) {
         ModelProvider provider = getProvider(config.getModelType());
         return provider.createChatClient(config);
@@ -78,6 +82,7 @@ public class ModelProviderFactoryImpl implements ModelProviderFactory {
      * @param modelType 模型类型
      * @return 是否支持
      */
+    @Override
     public boolean isSupported(ModelType modelType) {
         return providerMap.containsKey(modelType);
     }

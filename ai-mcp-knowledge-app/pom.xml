@@ -22,6 +22,20 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!-- MyBatis-Plus Extension (Spring 集成支持) -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-extension</artifactId>
+            <version>${mybatis-plus.version}</version>
+        </dependency>
+
+        <!-- MyBatis-Spring (兼容 Spring Boot 3.x) -->
+        <dependency>
+            <groupId>org.mybatis</groupId>
+            <artifactId>mybatis-spring</artifactId>
+            <version>${mybatis-spring.version}</version>
+        </dependency>
+
         <!--
             Spring Boot Test Starter
             提供测试支持：JUnit 5、Mockito、Spring Test、AssertJ 等
@@ -154,9 +168,28 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- H2 Database (测试用内存数据库) -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>com.xbk</groupId>
             <artifactId>ai-mcp-knowledge-types</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.xbk</groupId>
+            <artifactId>ai-mcp-knowledge-application</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.xbk</groupId>
+            <artifactId>ai-mcp-knowledge-infrastructure</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -192,9 +225,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.6</version>
+                <version>3.5.2</version>
                 <configuration>
-                    <skipTests>true</skipTests>
+                    <skipTests>false</skipTests>
                     <testFailureIgnore>false</testFailureIgnore>
                     <includes>
                         <include>**/*Test.java</include>

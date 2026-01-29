@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
+ * 职责：应用启动入口，用于统一装配并引导运行
  * @author xiexu
  * @date 2026/1/17 08:27
  */

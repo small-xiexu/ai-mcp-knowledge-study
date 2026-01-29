@@ -9,22 +9,6 @@
           </template>
 
           <el-form label-width="80px">
-            <el-form-item label="模型选择">
-              <el-select
-                v-model="config.modelName"
-                placeholder="请选择模型"
-                style="width: 100%"
-                @change="handleModelChange"
-              >
-                <el-option
-                  v-for="model in availableModels"
-                  :key="model.modelName"
-                  :label="model.modelName"
-                  :value="model.modelName"
-                />
-              </el-select>
-            </el-form-item>
-
             <el-form-item label="任务类型">
               <el-input
                 v-model="config.taskType"
@@ -38,9 +22,9 @@
                 placeholder="请选择策略"
                 style="width: 100%"
               >
-                <el-option label="质量优先" value="QUALITY_FIRST" />
-                <el-option label="速度优先" value="SPEED_FIRST" />
-                <el-option label="成本优先" value="COST_FIRST" />
+                <el-option label="质量优先" value="QUALITY_PRIORITY" />
+                <el-option label="速度优先" value="SPEED_PRIORITY" />
+                <el-option label="成本优先" value="COST_PRIORITY" />
               </el-select>
             </el-form-item>
 
@@ -126,10 +110,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, nextTick } from 'vue'
+import { ref, reactive, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
-import { chat, getAvailableModels } from '@/api/ai'
-import type { ModelInfo } from '@/types/entity'
+import { chat, chatByTaskType } from '@/api/ai'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -145,31 +128,10 @@ const loading = ref(false)
 const inputText = ref('')
 const messages = ref<Message[]>([])
 const messageListRef = ref<HTMLElement>()
-const availableModels = ref<ModelInfo[]>([])
-
 const config = reactive({
-  modelName: '',
   taskType: '',
-  strategy: 'QUALITY_FIRST'
+  strategy: 'QUALITY_PRIORITY'
 })
-
-// 获取可用模型列表
-const fetchAvailableModels = async () => {
-  try {
-    const res = await getAvailableModels()
-    availableModels.value = res.data.data
-    if (availableModels.value.length > 0) {
-      config.modelName = availableModels.value[0].modelName
-    }
-  } catch (error: any) {
-    ElMessage.error(error.message || '获取模型列表失败')
-  }
-}
-
-// 模型变化
-const handleModelChange = () => {
-  // 可以在这里添加模型切换的逻辑
-}
 
 // 发送消息
 const handleSend = async () => {
@@ -193,11 +155,17 @@ const handleSend = async () => {
 
   loading.value = true
   try {
-    const res = await chat({
+    const requestData = {
       content,
-      taskType: config.taskType || undefined,
       strategy: config.strategy
-    })
+    }
+
+    const res = config.taskType
+      ? await chatByTaskType(config.taskType, requestData)
+      : await chat({
+          ...requestData,
+          taskType: config.taskType || undefined
+        })
 
     const data = res.data.data
 
@@ -236,9 +204,6 @@ const scrollToBottom = () => {
   }
 }
 
-onMounted(() => {
-  fetchAvailableModels()
-})
 </script>
 
 <style scoped>

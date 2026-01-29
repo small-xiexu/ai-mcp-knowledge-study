@@ -13,10 +13,10 @@
     <artifactId>ai-mcp-knowledge-trigger</artifactId>
 
     <dependencies>
-        <!-- 依赖 domain 模块 -->
+        <!-- 依赖 application 模块 -->
         <dependency>
             <groupId>com.xbk</groupId>
-            <artifactId>ai-mcp-knowledge-domain</artifactId>
+            <artifactId>ai-mcp-knowledge-application</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -42,6 +42,12 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+        </dependency>
+
+        <!-- Spring Boot Starter AOP (WebLogAspect 需要) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
 
         <!-- Spring AI OpenAI (for MCPServerCSDNJob) -->

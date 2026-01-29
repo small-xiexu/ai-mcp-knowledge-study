@@ -2,10 +2,10 @@ package com.xbk.knowledge.test;
 
 import com.alibaba.fastjson.JSON;
 import com.xbk.knowledge.test.Utils.TokenTextSplitterWithContext;
-import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
@@ -27,7 +27,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.core.io.Resource;
 import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.client.RestTemplate;
@@ -47,39 +47,46 @@ import java.util.stream.Collectors;
  * @author xiexu
  */
 @Slf4j
-@RunWith(SpringRunner.class)
 @SpringBootTest
 public class OllamaTest {
 
     /**
      * Ollama 聊天模型，由 Spring AI 自动装配
      */
-    @Resource
-    private OllamaChatModel ollamaChatModel;
+    private final OllamaChatModel ollamaChatModel;
 
     /**
      * 图片资源，用于多模态测试
      */
-    @Value("classpath:data/dog.png")
-    private org.springframework.core.io.Resource imageResource;
+    private final Resource imageResource;
 
     /**
      * 基于内存的简单向量存储（开发测试用）
      */
-    @Resource(name = "ollamaSimpleVectorStore")
-    private SimpleVectorStore simpleVectorStore;
+    private final SimpleVectorStore simpleVectorStore;
 
     /**
      * 基于 PostgreSQL 的向量存储（生产环境推荐）
      */
-    @Resource(name = "ollamaPgVectorStore")
-    private PgVectorStore pgVectorStore;
+    private final PgVectorStore pgVectorStore;
 
     /**
      * 文本分割器，将长文本切分为适合嵌入的小块
      */
-    @Resource
-    private TokenTextSplitter tokenTextSplitter;
+    private final TokenTextSplitter tokenTextSplitter;
+
+    @Autowired
+    public OllamaTest(OllamaChatModel ollamaChatModel,
+                      @Value("classpath:data/dog.png") Resource imageResource,
+                      @Qualifier("ollamaSimpleVectorStore") SimpleVectorStore simpleVectorStore,
+                      @Qualifier("ollamaPgVectorStore") PgVectorStore pgVectorStore,
+                      TokenTextSplitter tokenTextSplitter) {
+        this.ollamaChatModel = ollamaChatModel;
+        this.imageResource = imageResource;
+        this.simpleVectorStore = simpleVectorStore;
+        this.pgVectorStore = pgVectorStore;
+        this.tokenTextSplitter = tokenTextSplitter;
+    }
 
     /**
      * 测试获取模型默认配置

@@ -1,5 +1,7 @@
 package com.xbk.knowledge.types.trace;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.slf4j.MDC;
 
 import java.util.UUID;
@@ -8,6 +10,7 @@ import java.util.UUID;
  * TraceId 工具类
  * 统一生成与管理 traceId，避免重复实现并保证写回 MDC。
  *
+ * 职责：链路追踪工具，用于统一 traceId 处理
  * @author xiexu
  * @since 2026-01-27
  */
@@ -25,9 +28,9 @@ public final class TraceIdUtils {
      * @return TraceIdContext
      */
     public static TraceIdContext ensureTraceId() {
-        var currentTraceId = MDC.get(TRACE_ID_KEY);
+        String currentTraceId = MDC.get(TRACE_ID_KEY);
         if (currentTraceId == null || currentTraceId.isEmpty()) {
-            var traceId = generateTraceId();
+            String traceId = generateTraceId();
             MDC.put(TRACE_ID_KEY, traceId);
             return new TraceIdContext(traceId, true);
         }
@@ -40,7 +43,7 @@ public final class TraceIdUtils {
      * @return traceId
      */
     public static String getOrCreateTraceId() {
-        return ensureTraceId().traceId();
+        return ensureTraceId().getTraceId();
     }
 
     /**
@@ -76,6 +79,18 @@ public final class TraceIdUtils {
      * @param traceId   traceId
      * @param generated 是否本次生成
      */
-    public record TraceIdContext(String traceId, boolean generated) {
+    @Getter
+    @AllArgsConstructor
+    public static class TraceIdContext {
+
+        /**
+         * traceId
+         */
+        private final String traceId;
+
+        /**
+         * 是否本次生成
+         */
+        private final boolean generated;
     }
 }

@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.CallLogMapper">
+
+    <resultMap id="CallLogMap" type="com.xbk.knowledge.domain.model.entity.CallLog">
+        <id column="id" property="id"/>
+        <result column="model_id" property="modelId"/>
+        <result column="task_type" property="taskType"/>
+        <result column="request_content" property="requestContent"/>
+        <result column="response_content" property="responseContent"/>
+        <result column="tokens_used" property="tokensUsed"/>
+        <result column="response_time" property="responseTime"/>
+        <result column="status" property="status"/>
+        <result column="error_message" property="errorMessage"/>
+        <result column="created_at" property="createdAt"/>
+    </resultMap>
+
+    <insert id="insertCallLog" parameterType="com.xbk.knowledge.domain.model.entity.CallLog" useGeneratedKeys="true"
+            keyProperty="id">
+        insert into ai_call_log (
+            model_id,
+            task_type,
+            request_content,
+            response_content,
+            tokens_used,
+            response_time,
+            status,
+            error_message,
+            created_at
+        ) values (
+            #{modelId},
+            #{taskType},
+            #{requestContent},
+            #{responseContent},
+            #{tokensUsed},
+            #{responseTime},
+            #{status},
+            #{errorMessage},
+            #{createdAt}
+        )
+    </insert>
+
+    <select id="selectByModelId" resultMap="CallLogMap">
+        select
+            id,
+            model_id,
+            task_type,
+            request_content,
+            response_content,
+            tokens_used,
+            response_time,
+            status,
+            error_message,
+            created_at
+        from ai_call_log
+        where model_id = #{modelId}
+    </select>
+
+    <select id="selectByStatus" resultMap="CallLogMap">
+        select
+            id,
+            model_id,
+            task_type,
+            request_content,
+            response_content,
+            tokens_used,
+            response_time,
+            status,
+            error_message,
+            created_at
+        from ai_call_log
+        where status = #{status}
+    </select>
+
+    <select id="selectByCreatedAtBetween" resultMap="CallLogMap">
+        select
+            id,
+            model_id,
+            task_type,
+            request_content,
+            response_content,
+            tokens_used,
+            response_time,
+            status,
+            error_message,
+            created_at
+        from ai_call_log
+        where created_at <![CDATA[>=]]> #{startTime}
+          and created_at <![CDATA[<=]]> #{endTime}
+    </select>
+
+    <select id="countByModelId" resultType="long">
+        select count(1)
+        from ai_call_log
+        where model_id = #{modelId}
+    </select>
+
+    <select id="countByModelIdAndStatus" resultType="long">
+        select count(1)
+        from ai_call_log
+        where model_id = #{modelId}
+          and status = #{status}
+    </select>
+
+    <select id="aggregateCallMetrics" resultType="com.xbk.knowledge.domain.model.vo.CallMetrics">
+        select
+            count(1) as totalCalls,
+            coalesce(sum(case when status = 'SUCCESS' then 1 else 0 end), 0) as successCalls,
+            coalesce(sum(case when status = 'FAILED' then 1 else 0 end), 0) as failedCalls,
+            0.0 as avgResponseTime,
+            0 as totalTokens
+        from ai_call_log
+        <where>
+            <if test="modelId != null">
+                and model_id = #{modelId}
+            </if>
+            <if test="taskType != null and taskType != ''">
+                and task_type = #{taskType}
+            </if>
+            <if test="startTime != null">
+                and created_at <![CDATA[>=]]> #{startTime}
+            </if>
+            <if test="endTime != null">
+                and created_at <![CDATA[<=]]> #{endTime}
+            </if>
+        </where>
+    </select>
+
+    <select id="aggregateSuccessRate" resultType="com.xbk.knowledge.domain.model.vo.SuccessRate">
+        select
+            null as modelId,
+            null as modelName,
+            count(1) as totalCalls,
+            coalesce(sum(case when status = 'SUCCESS' then 1 else 0 end), 0) as successCalls,
+            0.0 as successRate
+        from ai_call_log
+        <where>
+            <if test="modelId != null">
+                and model_id = #{modelId}
+            </if>
+            <if test="taskType != null and taskType != ''">
+                and task_type = #{taskType}
+            </if>
+            <if test="startTime != null">
+                and created_at <![CDATA[>=]]> #{startTime}
+            </if>
+            <if test="endTime != null">
+                and created_at <![CDATA[<=]]> #{endTime}
+            </if>
+        </where>
+    </select>
+
+    <select id="aggregateResponseTime" resultType="com.xbk.knowledge.domain.model.vo.ResponseTime">
+        select
+            null as modelId,
+            null as modelName,
+            coalesce(avg(response_time), 0) as avgResponseTime,
+            coalesce(min(response_time), 0) as minResponseTime,
+            coalesce(max(response_time), 0) as maxResponseTime
+        from ai_call_log
+        <where>
+            <if test="modelId != null">
+                and model_id = #{modelId}
+            </if>
+            <if test="taskType != null and taskType != ''">
+                and task_type = #{taskType}
+            </if>
+            <if test="startTime != null">
+                and created_at <![CDATA[>=]]> #{startTime}
+            </if>
+            <if test="endTime != null">
+                and created_at <![CDATA[<=]]> #{endTime}
+            </if>
+        </where>
+    </select>
+
+    <select id="aggregateModelUsage" resultType="com.xbk.knowledge.domain.model.vo.ModelUsage">
+        select
+            model_id as modelId,
+            null as modelName,
+            count(1) as callCount,
+            0 as totalTokens
+        from ai_call_log
+        <where>
+            <if test="startTime != null">
+                and created_at <![CDATA[>=]]> #{startTime}
+            </if>
+            <if test="endTime != null">
+                and created_at <![CDATA[<=]]> #{endTime}
+            </if>
+        </where>
+        group by model_id
+    </select>
+
+</mapper>

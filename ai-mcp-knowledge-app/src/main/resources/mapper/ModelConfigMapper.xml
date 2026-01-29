@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.ModelConfigMapper">
+
+    <resultMap id="ModelConfigMap" type="com.xbk.knowledge.domain.model.entity.ModelConfig">
+        <id column="id" property="id"/>
+        <result column="model_name" property="modelName"/>
+        <result column="model_type" property="modelType"/>
+        <result column="api_key" property="apiKey"/>
+        <result column="base_url" property="baseUrl"/>
+        <result column="enabled" property="enabled"/>
+        <result column="priority" property="priority"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <resultMap id="ModelCapabilityMap" type="com.xbk.knowledge.domain.model.entity.ModelCapability">
+        <id column="cap_id" property="id"/>
+        <result column="cap_model_id" property="modelId"/>
+        <result column="cap_max_input_tokens" property="maxInputTokens"/>
+        <result column="cap_max_output_tokens" property="maxOutputTokens"/>
+        <result column="cap_support_function_calling" property="supportFunctionCalling"/>
+        <result column="cap_support_vision" property="supportVision"/>
+        <result column="cap_support_streaming" property="supportStreaming"/>
+        <result column="cap_quality_score" property="qualityScore"/>
+        <result column="cap_created_at" property="createdAt"/>
+        <result column="cap_updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <resultMap id="ModelConfigWithCapabilityMap" type="com.xbk.knowledge.domain.model.entity.ModelConfig" extends="ModelConfigMap">
+        <association property="capability" javaType="com.xbk.knowledge.domain.model.entity.ModelCapability"
+                     resultMap="ModelCapabilityMap"/>
+    </resultMap>
+
+    <insert id="insertModelConfig" parameterType="com.xbk.knowledge.domain.model.entity.ModelConfig" useGeneratedKeys="true"
+            keyProperty="id">
+        insert into ai_model_config (
+            model_name,
+            model_type,
+            api_key,
+            base_url,
+            enabled,
+            priority,
+            created_at,
+            updated_at
+        ) values (
+            #{modelName},
+            #{modelType},
+            #{apiKey},
+            #{baseUrl},
+            #{enabled},
+            #{priority},
+            #{createdAt},
+            #{updatedAt}
+        )
+    </insert>
+
+    <update id="updateModelConfig" parameterType="com.xbk.knowledge.domain.model.entity.ModelConfig">
+        update ai_model_config
+        set model_name = #{modelName},
+            model_type = #{modelType},
+            api_key = #{apiKey},
+            base_url = #{baseUrl},
+            enabled = #{enabled},
+            priority = #{priority},
+            updated_at = #{updatedAt}
+        where id = #{id}
+    </update>
+
+    <delete id="deleteModelConfigById">
+        delete from ai_model_config
+        where id = #{id}
+    </delete>
+
+    <select id="findById" resultMap="ModelConfigMap">
+        select
+            id,
+            model_name,
+            model_type,
+            api_key,
+            base_url,
+            enabled,
+            priority,
+            created_at,
+            updated_at
+        from ai_model_config
+        where id = #{id}
+    </select>
+
+    <select id="findByIdWithCapability" resultMap="ModelConfigWithCapabilityMap">
+        select
+            mc.id,
+            mc.model_name,
+            mc.model_type,
+            mc.api_key,
+            mc.base_url,
+            mc.enabled,
+            mc.priority,
+            mc.created_at,
+            mc.updated_at,
+            cap.id as cap_id,
+            cap.model_id as cap_model_id,
+            cap.max_input_tokens as cap_max_input_tokens,
+            cap.max_output_tokens as cap_max_output_tokens,
+            cap.support_function_calling as cap_support_function_calling,
+            cap.support_vision as cap_support_vision,
+            cap.support_streaming as cap_support_streaming,
+            cap.quality_score as cap_quality_score,
+            cap.created_at as cap_created_at,
+            cap.updated_at as cap_updated_at
+        from ai_model_config mc
+        left join ai_model_capability cap on cap.model_id = mc.id
+        where mc.id = #{id}
+    </select>
+
+    <select id="findByModelName" resultMap="ModelConfigMap">
+        select
+            id,
+            model_name,
+            model_type,
+            api_key,
+            base_url,
+            enabled,
+            priority,
+            created_at,
+            updated_at
+        from ai_model_config
+        where model_name = #{modelName}
+    </select>
+
+    <select id="findByModelTypeAndEnabled" resultMap="ModelConfigMap">
+        select
+            id,
+            model_name,
+            model_type,
+            api_key,
+            base_url,
+            enabled,
+            priority,
+            created_at,
+            updated_at
+        from ai_model_config
+        where model_type = #{modelType}
+          and enabled = #{enabled}
+    </select>
+
+    <select id="findByEnabled" resultMap="ModelConfigMap">
+        select
+            id,
+            model_name,
+            model_type,
+            api_key,
+            base_url,
+            enabled,
+            priority,
+            created_at,
+            updated_at
+        from ai_model_config
+        where enabled = #{enabled}
+    </select>
+
+    <select id="findEnabledTrue" resultMap="ModelConfigMap">
+        select
+            id,
+            model_name,
+            model_type,
+            api_key,
+            base_url,
+            enabled,
+            priority,
+            created_at,
+            updated_at
+        from ai_model_config
+        where enabled = true
+    </select>
+
+    <select id="findByEnabledOrderByPriorityDesc" resultMap="ModelConfigMap">
+        select
+            id,
+            model_name,
+            model_type,
+            api_key,
+            base_url,
+            enabled,
+            priority,
+            created_at,
+            updated_at
+        from ai_model_config
+        where enabled = #{enabled}
+        order by priority desc
+    </select>
+
+    <select id="findEnabledTrueWithCapability" resultMap="ModelConfigWithCapabilityMap">
+        select
+            mc.id,
+            mc.model_name,
+            mc.model_type,
+            mc.api_key,
+            mc.base_url,
+            mc.enabled,
+            mc.priority,
+            mc.created_at,
+            mc.updated_at,
+            cap.id as cap_id,
+            cap.model_id as cap_model_id,
+            cap.max_input_tokens as cap_max_input_tokens,
+            cap.max_output_tokens as cap_max_output_tokens,
+            cap.support_function_calling as cap_support_function_calling,
+            cap.support_vision as cap_support_vision,
+            cap.support_streaming as cap_support_streaming,
+            cap.quality_score as cap_quality_score,
+            cap.created_at as cap_created_at,
+            cap.updated_at as cap_updated_at
+        from ai_model_config mc
+        left join ai_model_capability cap on cap.model_id = mc.id
+        where mc.enabled = true
+    </select>
+
+    <select id="findEnabledByIds" resultMap="ModelConfigMap">
+        select
+            id,
+            model_name,
+            model_type,
+            api_key,
+            base_url,
+            enabled,
+            priority,
+            created_at,
+            updated_at
+        from ai_model_config
+        <where>
+            enabled = true
+            <choose>
+                <when test="ids != null and ids.size() > 0">
+                    and id in
+                    <foreach collection="ids" item="id" open="(" close=")" separator=",">
+                        #{id}
+                    </foreach>
+                </when>
+                <otherwise>
+                    and 1 = 0
+                </otherwise>
+            </choose>
+        </where>
+    </select>
+
+    <select id="findPageWithCapability" resultMap="ModelConfigWithCapabilityMap">
+        select
+            mc.id,
+            mc.model_name,
+            mc.model_type,
+            mc.api_key,
+            mc.base_url,
+            mc.enabled,
+            mc.priority,
+            mc.created_at,
+            mc.updated_at,
+            cap.id as cap_id,
+            cap.model_id as cap_model_id,
+            cap.max_input_tokens as cap_max_input_tokens,
+            cap.max_output_tokens as cap_max_output_tokens,
+            cap.support_function_calling as cap_support_function_calling,
+            cap.support_vision as cap_support_vision,
+            cap.support_streaming as cap_support_streaming,
+            cap.quality_score as cap_quality_score,
+            cap.created_at as cap_created_at,
+            cap.updated_at as cap_updated_at
+        from ai_model_config mc
+        left join ai_model_capability cap on cap.model_id = mc.id
+        order by mc.priority desc, mc.created_at desc
+        limit #{pageSize} offset #{offset}
+    </select>
+
+    <select id="countAll" resultType="long">
+        select count(1)
+        from ai_model_config
+    </select>
+
+</mapper>

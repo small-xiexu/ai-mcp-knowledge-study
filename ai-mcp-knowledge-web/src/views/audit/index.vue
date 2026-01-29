@@ -3,12 +3,30 @@
     <el-card>
       <!-- 搜索栏 -->
       <el-form :inline="true" :model="searchForm" class="search-form">
-        <el-form-item label="Trace ID">
+        <el-form-item label="表名">
           <el-input
-            v-model="searchForm.traceId"
-            placeholder="请输入 Trace ID"
+            v-model="searchForm.tableName"
+            placeholder="请输入表名"
             clearable
             style="width: 300px"
+          />
+        </el-form-item>
+        <el-form-item label="记录ID">
+          <el-input-number
+            v-model="searchForm.recordId"
+            :min="1"
+            :step="1"
+            placeholder="请输入记录ID"
+            style="width: 200px"
+            controls-position="right"
+          />
+        </el-form-item>
+        <el-form-item label="操作人">
+          <el-input
+            v-model="searchForm.operator"
+            placeholder="请输入操作人"
+            clearable
+            style="width: 200px"
           />
         </el-form-item>
         <el-form-item>
@@ -31,24 +49,19 @@
         style="width: 100%"
       >
         <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="traceId" label="Trace ID" width="200" />
-        <el-table-column prop="modelId" label="模型ID" width="100" />
-        <el-table-column prop="taskType" label="任务类型" width="120" />
-        <el-table-column label="状态" width="100">
+        <el-table-column prop="tableName" label="表名" width="180" />
+        <el-table-column prop="recordId" label="记录ID" width="120" />
+        <el-table-column label="操作" width="120">
           <template #default="{ row }">
-            <el-tag :type="row.status === 'SUCCESS' ? 'success' : 'danger'">
-              {{ row.status }}
+            <el-tag :type="getOperationTagType(row.operation)">
+              {{ row.operation }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="Token 使用" width="150">
-          <template #default="{ row }">
-            <div>输入: {{ row.promptTokens }}</div>
-            <div>输出: {{ row.completionTokens }}</div>
-          </template>
-        </el-table-column>
-        <el-table-column prop="requestTime" label="请求时间" width="180" />
-        <el-table-column prop="responseTime" label="响应时间" width="180" />
+        <el-table-column prop="operator" label="操作人" width="120" />
+        <el-table-column prop="oldValue" label="变更前" min-width="200" show-overflow-tooltip />
+        <el-table-column prop="newValue" label="变更后" min-width="200" show-overflow-tooltip />
+        <el-table-column prop="createdAt" label="操作时间" width="180" />
         <el-table-column label="操作" width="120" fixed="right">
           <template #default="{ row }">
             <el-button
@@ -78,38 +91,32 @@
     <!-- 详情对话框 -->
     <el-dialog
       v-model="dialogVisible"
-      title="调用日志详情"
+      title="审计详情"
       width="800px"
     >
       <el-descriptions :column="2" border>
-        <el-descriptions-item label="Trace ID">
-          {{ currentLog?.traceId }}
+        <el-descriptions-item label="表名">
+          {{ currentLog?.tableName }}
         </el-descriptions-item>
-        <el-descriptions-item label="模型ID">
-          {{ currentLog?.modelId }}
+        <el-descriptions-item label="记录ID">
+          {{ currentLog?.recordId }}
         </el-descriptions-item>
-        <el-descriptions-item label="任务类型">
-          {{ currentLog?.taskType }}
-        </el-descriptions-item>
-        <el-descriptions-item label="状态">
-          <el-tag :type="currentLog?.status === 'SUCCESS' ? 'success' : 'danger'">
-            {{ currentLog?.status }}
+        <el-descriptions-item label="操作">
+          <el-tag :type="getOperationTagType(currentLog?.operation)">
+            {{ currentLog?.operation }}
           </el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="请求时间">
-          {{ currentLog?.requestTime }}
+        <el-descriptions-item label="操作人">
+          {{ currentLog?.operator }}
         </el-descriptions-item>
-        <el-descriptions-item label="响应时间">
-          {{ currentLog?.responseTime }}
+        <el-descriptions-item label="操作时间">
+          {{ currentLog?.createdAt }}
         </el-descriptions-item>
-        <el-descriptions-item label="输入 Tokens">
-          {{ currentLog?.promptTokens }}
+        <el-descriptions-item label="变更前" :span="2">
+          <el-text>{{ currentLog?.oldValue || '-' }}</el-text>
         </el-descriptions-item>
-        <el-descriptions-item label="输出 Tokens">
-          {{ currentLog?.completionTokens }}
-        </el-descriptions-item>
-        <el-descriptions-item label="错误信息" :span="2" v-if="currentLog?.errorMessage">
-          <el-text type="danger">{{ currentLog?.errorMessage }}</el-text>
+        <el-descriptions-item label="变更后" :span="2">
+          <el-text>{{ currentLog?.newValue || '-' }}</el-text>
         </el-descriptions-item>
       </el-descriptions>
     </el-dialog>
@@ -120,15 +127,17 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { getAuditLogList } from '@/api/audit'
-import type { CallLog } from '@/types/entity'
+import type { ConfigAudit } from '@/types/entity'
 
 const loading = ref(false)
-const tableData = ref<CallLog[]>([])
+const tableData = ref<ConfigAudit[]>([])
 const dialogVisible = ref(false)
-const currentLog = ref<CallLog | null>(null)
+const currentLog = ref<ConfigAudit | null>(null)
 
 const searchForm = reactive({
-  traceId: ''
+  tableName: '',
+  recordId: undefined as number | undefined,
+  operator: ''
 })
 
 const pagination = reactive({
@@ -144,9 +153,11 @@ const fetchData = async () => {
     const res = await getAuditLogList({
       pageNum: pagination.pageNum,
       pageSize: pagination.pageSize,
-      traceId: searchForm.traceId || undefined
+      tableName: searchForm.tableName || undefined,
+      recordId: searchForm.recordId || undefined,
+      operator: searchForm.operator || undefined
     })
-    tableData.value = res.data.data.list
+    tableData.value = res.data.data.records
     pagination.total = res.data.data.total
   } catch (error: any) {
     ElMessage.error(error.message || '获取审计日志失败')
@@ -163,15 +174,32 @@ const handleSearch = () => {
 
 // 重置
 const handleReset = () => {
-  searchForm.traceId = ''
+  searchForm.tableName = ''
+  searchForm.recordId = undefined
+  searchForm.operator = ''
   pagination.pageNum = 1
   fetchData()
 }
 
 // 查看详情
-const handleViewDetail = (row: CallLog) => {
+const handleViewDetail = (row: ConfigAudit) => {
   currentLog.value = row
   dialogVisible.value = true
+}
+
+const getOperationTagType = (operation?: string) => {
+  if (!operation) return 'info'
+  const normalized = operation.toUpperCase()
+  if (normalized.includes('CREATE') || normalized.includes('INSERT')) {
+    return 'success'
+  }
+  if (normalized.includes('UPDATE')) {
+    return 'warning'
+  }
+  if (normalized.includes('DELETE')) {
+    return 'danger'
+  }
+  return 'info'
 }
 
 // 分页大小变化

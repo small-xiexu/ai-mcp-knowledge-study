@@ -2,8 +2,9 @@ package com.xbk.knowledge.test;
 
 import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
@@ -20,11 +21,9 @@ import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.SimpleVectorStore;
 import org.springframework.ai.vectorstore.pgvector.PgVectorStore;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
 import reactor.core.publisher.Flux;
@@ -43,45 +42,53 @@ import java.util.stream.Collectors;
  * @author xiexu
  */
 @Slf4j
-@RunWith(SpringRunner.class)
 @SpringBootTest
 public class OpenAiTest {
 
     /**
      * 图片资源，用于多模态测试
      */
-    @Value("classpath:data/dog.png")
-    private Resource imageResource;
+    private final Resource imageResource;
 
     /**
      * OpenAI 聊天模型，由 Spring AI 自动装配
      */
-    @Autowired
-    private OpenAiChatModel openAiChatModel;
+    private final OpenAiChatModel openAiChatModel;
 
     /**
      * 基于内存的简单向量存储（开发测试用）
      */
-    @jakarta.annotation.Resource(name = "openAiSimpleVectorStore")
-    private SimpleVectorStore simpleVectorStore;
+    private final SimpleVectorStore simpleVectorStore;
 
     /**
      * 基于 PostgreSQL 的向量存储（生产环境推荐）
      */
-    @jakarta.annotation.Resource(name = "openAiPgVectorStore")
-    private PgVectorStore pgVectorStore;
+    private final PgVectorStore pgVectorStore;
 
     /**
      * 文本分割器，将长文本切分为适合嵌入的小块
      */
-    @jakarta.annotation.Resource
-    private TokenTextSplitter tokenTextSplitter;
+    private final TokenTextSplitter tokenTextSplitter;
 
     /**
      * OpenAI API 客户端
      */
-    @jakarta.annotation.Resource
-    private OpenAiApi openAiApi;
+    private final OpenAiApi openAiApi;
+
+    @Autowired
+    public OpenAiTest(OpenAiChatModel openAiChatModel,
+                      @Value("classpath:data/dog.png") Resource imageResource,
+                      @Qualifier("openAiSimpleVectorStore") SimpleVectorStore simpleVectorStore,
+                      @Qualifier("openAiPgVectorStore") PgVectorStore pgVectorStore,
+                      TokenTextSplitter tokenTextSplitter,
+                      OpenAiApi openAiApi) {
+        this.openAiChatModel = openAiChatModel;
+        this.imageResource = imageResource;
+        this.simpleVectorStore = simpleVectorStore;
+        this.pgVectorStore = pgVectorStore;
+        this.tokenTextSplitter = tokenTextSplitter;
+        this.openAiApi = openAiApi;
+    }
 
     /**
      * 测试同步调用模型

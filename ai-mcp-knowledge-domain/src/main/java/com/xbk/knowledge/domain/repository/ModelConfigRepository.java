@@ -2,24 +2,21 @@ package com.xbk.knowledge.domain.repository;
 
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.types.enums.ModelType;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
 /**
- * 模型配置 Repository
+ * 模型配置仓储接口
+ * 通过仓储抽象隔离数据访问实现
  *
+ * 职责：领域仓储接口，用于屏蔽存储细节
  * @author xiexu
  */
-@Repository
-public interface ModelConfigRepository extends JpaRepository<ModelConfig, Long> {
+public interface ModelConfigRepository {
 
     /**
-     * 根据模型类型查询所有启用的模型配置
+     * 根据模型类型查询启用的模型配置
      *
      * @param modelType 模型类型
      * @param enabled   是否启用
@@ -28,7 +25,7 @@ public interface ModelConfigRepository extends JpaRepository<ModelConfig, Long> 
     List<ModelConfig> findByModelTypeAndEnabled(ModelType modelType, Boolean enabled);
 
     /**
-     * 查询所有启用的模型配置，按优先级降序排序
+     * 查询启用模型配置并按优先级降序排序
      *
      * @param enabled 是否启用
      * @return 模型配置列表
@@ -36,8 +33,7 @@ public interface ModelConfigRepository extends JpaRepository<ModelConfig, Long> 
     List<ModelConfig> findByEnabledOrderByPriorityDesc(Boolean enabled);
 
     /**
-     * 查询所有启用的模型配置，按质量评分降序排序（通过关联查询）
-     * 注意：需要在 Service 层通过 JOIN 查询实现
+     * 查询指定启用状态的模型配置
      *
      * @param enabled 是否启用
      * @return 模型配置列表
@@ -52,7 +48,7 @@ public interface ModelConfigRepository extends JpaRepository<ModelConfig, Long> 
     List<ModelConfig> findByEnabledTrue();
 
     /**
-     * 根据模型名称查询
+     * 根据模型名称查询模型配置
      *
      * @param modelName 模型名称
      * @return 模型配置
@@ -60,21 +56,64 @@ public interface ModelConfigRepository extends JpaRepository<ModelConfig, Long> 
     Optional<ModelConfig> findByModelName(String modelName);
 
     /**
-     * 查询所有启用的模型配置，并通过 JOIN FETCH 加载关联的 capability
-     * 避免 N+1 查询问题
+     * 查询所有启用的模型配置并加载能力
      *
-     * @return 模型配置列表（包含 capability）
+     * @return 模型配置列表
      */
-    @Query("SELECT m FROM ModelConfig m LEFT JOIN FETCH m.capability WHERE m.enabled = true")
     List<ModelConfig> findByEnabledTrueWithCapability();
 
     /**
-     * 根据 ID 列表查询启用的模型配置
-     * 在 SQL 中直接过滤启用状态，提高性能
+     * 根据ID列表查询启用的模型配置
      *
-     * @param ids 模型 ID 列表
-     * @return 启用的模型配置列表
+     * @param ids 模型ID列表
+     * @return 模型配置列表
      */
-    @Query("SELECT m FROM ModelConfig m WHERE m.id IN :ids AND m.enabled = true")
-    List<ModelConfig> findEnabledByIds(@Param("ids") List<Long> ids);
+    List<ModelConfig> findEnabledByIds(List<Long> ids);
+
+    /**
+     * 根据ID查询模型配置
+     *
+     * @param id 模型ID
+     * @return 模型配置
+     */
+    Optional<ModelConfig> findById(Long id);
+
+    /**
+     * 查询模型配置分页数据（包含能力）
+     *
+     * @param offset   偏移量
+     * @param pageSize 每页大小
+     * @return 模型配置列表
+     */
+    List<ModelConfig> findPageWithCapability(int offset, int pageSize);
+
+    /**
+     * 统计模型配置总数
+     *
+     * @return 总数
+     */
+    long countAll();
+
+    /**
+     * 判断模型配置是否存在
+     *
+     * @param id 模型ID
+     * @return 是否存在
+     */
+    boolean existsById(Long id);
+
+    /**
+     * 保存模型配置（新增或更新）
+     *
+     * @param modelConfig 模型配置
+     * @return 保存后的模型配置
+     */
+    ModelConfig save(ModelConfig modelConfig);
+
+    /**
+     * 删除模型配置
+     *
+     * @param id 模型ID
+     */
+    void deleteById(Long id);
 }

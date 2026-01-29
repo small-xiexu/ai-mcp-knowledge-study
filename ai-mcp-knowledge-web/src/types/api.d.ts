@@ -12,10 +12,13 @@ export interface Result<T = any> {
  * 分页响应结构
  */
 export interface PageResult<T> {
-  list: T[]
+  records: T[]
   total: number
-  page: number
-  size: number
+  pageNum: number
+  pageSize: number
+  totalPages?: number
+  hasNext?: boolean
+  hasPrevious?: boolean
 }
 
 /**
@@ -24,4 +27,6 @@ export interface PageResult<T> {
 export interface PageRequest {
   pageNum: number
   pageSize: number
+  sortField?: string
+  sortOrder?: string
 }

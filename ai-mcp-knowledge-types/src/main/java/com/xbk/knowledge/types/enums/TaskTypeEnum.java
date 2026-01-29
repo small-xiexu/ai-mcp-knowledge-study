@@ -4,6 +4,7 @@ package com.xbk.knowledge.types.enums;
  * 任务类型枚举
  * 定义 AI 模型支持的任务类型
  *
+ * 职责：通用枚举，用于统一业务语义
  * @author xiexu
  */
 public enum TaskTypeEnum {

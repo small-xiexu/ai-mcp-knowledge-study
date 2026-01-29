@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.ConfigAuditMapper">
+
+    <resultMap id="ConfigAuditMap" type="com.xbk.knowledge.domain.model.entity.ConfigAudit">
+        <id column="id" property="id"/>
+        <result column="table_name" property="tableName"/>
+        <result column="record_id" property="recordId"/>
+        <result column="operation" property="operation"/>
+        <result column="old_value" property="oldValue"/>
+        <result column="new_value" property="newValue"/>
+        <result column="operator" property="operator"/>
+        <result column="created_at" property="createdAt"/>
+    </resultMap>
+
+    <insert id="insertConfigAudit" parameterType="com.xbk.knowledge.domain.model.entity.ConfigAudit"
+            useGeneratedKeys="true" keyProperty="id">
+        insert into ai_config_audit (
+            table_name,
+            record_id,
+            operation,
+            old_value,
+            new_value,
+            operator,
+            created_at
+        ) values (
+            #{tableName},
+            #{recordId},
+            #{operation},
+            #{oldValue},
+            #{newValue},
+            #{operator},
+            #{createdAt}
+        )
+    </insert>
+
+    <select id="findByTableNameAndRecordId" resultMap="ConfigAuditMap">
+        select
+            id,
+            table_name,
+            record_id,
+            operation,
+            old_value,
+            new_value,
+            operator,
+            created_at
+        from ai_config_audit
+        where table_name = #{tableName}
+          and record_id = #{recordId}
+    </select>
+
+    <select id="findByOperator" resultMap="ConfigAuditMap">
+        select
+            id,
+            table_name,
+            record_id,
+            operation,
+            old_value,
+            new_value,
+            operator,
+            created_at
+        from ai_config_audit
+        where operator = #{operator}
+    </select>
+
+    <select id="findByConditions" resultMap="ConfigAuditMap">
+        select
+            id,
+            table_name,
+            record_id,
+            operation,
+            old_value,
+            new_value,
+            operator,
+            created_at
+        from ai_config_audit
+        <where>
+            <if test="tableName != null">
+                and table_name = #{tableName}
+            </if>
+            <if test="recordId != null">
+                and record_id = #{recordId}
+            </if>
+            <if test="operator != null">
+                and operator = #{operator}
+            </if>
+        </where>
+        order by ${sortColumn} ${sortOrder}
+        limit #{pageSize} offset #{offset}
+    </select>
+
+    <select id="countByConditions" resultType="long">
+        select count(1)
+        from ai_config_audit
+        <where>
+            <if test="tableName != null">
+                and table_name = #{tableName}
+            </if>
+            <if test="recordId != null">
+                and record_id = #{recordId}
+            </if>
+            <if test="operator != null">
+                and operator = #{operator}
+            </if>
+        </where>
+    </select>
+
+</mapper>

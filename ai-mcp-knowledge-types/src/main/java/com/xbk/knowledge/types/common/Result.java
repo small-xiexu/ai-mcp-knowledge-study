@@ -12,6 +12,7 @@ import java.io.Serializable;
  * 统一响应结果类
  * 用于封装所有 API 的响应数据
  *
+ * 职责：通用基础结构，用于统一分页与响应结构
  * @author xiexu
  */
 @Getter
