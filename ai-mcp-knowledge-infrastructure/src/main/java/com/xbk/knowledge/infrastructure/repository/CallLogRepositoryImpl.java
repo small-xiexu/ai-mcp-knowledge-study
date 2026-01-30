@@ -2,16 +2,22 @@ package com.xbk.knowledge.infrastructure.repository;
 
 import com.xbk.knowledge.domain.model.entity.CallLog;
 import com.xbk.knowledge.domain.model.vo.CallMetrics;
+import com.xbk.knowledge.domain.model.vo.CallStatusQuery;
+import com.xbk.knowledge.domain.model.vo.MetricsQuery;
+import com.xbk.knowledge.domain.model.vo.ModelIdQuery;
+import com.xbk.knowledge.domain.model.vo.ModelIdStatusQuery;
 import com.xbk.knowledge.domain.model.vo.ModelUsage;
+import com.xbk.knowledge.domain.model.vo.ModelUsageQuery;
 import com.xbk.knowledge.domain.model.vo.ResponseTime;
 import com.xbk.knowledge.domain.model.vo.SuccessRate;
+import com.xbk.knowledge.domain.model.vo.TimeRangeQuery;
 import com.xbk.knowledge.domain.repository.CallLogRepository;
 import com.xbk.knowledge.infrastructure.mapper.CallLogMapper;
-import com.xbk.knowledge.types.enums.CallStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -27,6 +33,10 @@ public class CallLogRepositoryImpl implements CallLogRepository {
 
     private final CallLogMapper callLogMapper;
 
+    /**
+     * 保存调用日志
+     * 统一补齐创建时间，保证日志可追溯
+     */
     @Override
     public CallLog save(CallLog callLog) {
         if (callLog.getCreatedAt() == null) {
@@ -36,48 +46,99 @@ public class CallLogRepositoryImpl implements CallLogRepository {
         return callLog;
     }
 
+    /**
+     * 按模型 ID 查询调用日志
+     * 用于模型维度的日志回溯
+     */
     @Override
-    public List<CallLog> findByModelId(Long modelId) {
-        return callLogMapper.selectByModelId(modelId);
+    public List<CallLog> findByModelId(ModelIdQuery query) {
+        if (query == null || query.getModelId() == null) {
+            return Collections.emptyList();
+        }
+        return callLogMapper.selectByModelId(query);
     }
 
+    /**
+     * 按调用状态查询日志
+     * 用于失败/成功场景快速筛查
+     */
     @Override
-    public List<CallLog> findByStatus(CallStatus status) {
-        return callLogMapper.selectByStatus(status);
+    public List<CallLog> findByStatus(CallStatusQuery query) {
+        if (query == null || query.getStatus() == null) {
+            return Collections.emptyList();
+        }
+        return callLogMapper.selectByStatus(query);
     }
 
+    /**
+     * 按时间区间查询日志
+     * 用于时间窗口统计与排查
+     */
     @Override
-    public List<CallLog> findByCreatedAtBetween(LocalDateTime startTime, LocalDateTime endTime) {
-        return callLogMapper.selectByCreatedAtBetween(startTime, endTime);
+    public List<CallLog> findByCreatedAtBetween(TimeRangeQuery query) {
+        if (query == null) {
+            return Collections.emptyList();
+        }
+        return callLogMapper.selectByCreatedAtBetween(query);
     }
 
+    /**
+     * 统计某模型调用次数
+     * 用于模型维度统计
+     */
     @Override
-    public long countByModelId(Long modelId) {
-        return callLogMapper.countByModelId(modelId);
+    public long countByModelId(ModelIdQuery query) {
+        if (query == null || query.getModelId() == null) {
+            return 0L;
+        }
+        return callLogMapper.countByModelId(query);
     }
 
+    /**
+     * 统计某模型指定状态调用次数
+     * 用于成功/失败比例分析
+     */
     @Override
-    public long countByModelIdAndStatus(Long modelId, CallStatus status) {
-        return callLogMapper.countByModelIdAndStatus(modelId, status);
+    public long countByModelIdAndStatus(ModelIdStatusQuery query) {
+        if (query == null || query.getModelId() == null || query.getStatus() == null) {
+            return 0L;
+        }
+        return callLogMapper.countByModelIdAndStatus(query);
     }
 
+    /**
+     * 聚合调用次数指标
+     * 交由数据库统计以降低应用层计算成本
+     */
     @Override
-    public CallMetrics aggregateCallMetrics(Long modelId, String taskType, LocalDateTime startTime, LocalDateTime endTime) {
-        return callLogMapper.aggregateCallMetrics(modelId, taskType, startTime, endTime);
+    public CallMetrics aggregateCallMetrics(MetricsQuery query) {
+        return callLogMapper.aggregateCallMetrics(query);
     }
 
+    /**
+     * 聚合成功率指标
+     * 由数据库聚合确保口径一致
+     */
     @Override
-    public SuccessRate aggregateSuccessRate(Long modelId, String taskType, LocalDateTime startTime, LocalDateTime endTime) {
-        return callLogMapper.aggregateSuccessRate(modelId, taskType, startTime, endTime);
+    public SuccessRate aggregateSuccessRate(MetricsQuery query) {
+        return callLogMapper.aggregateSuccessRate(query);
     }
 
+    /**
+     * 聚合响应时间指标
+     * 统一在数据库层计算平均/最小/最大值
+     */
     @Override
-    public ResponseTime aggregateResponseTime(Long modelId, String taskType, LocalDateTime startTime, LocalDateTime endTime) {
-        return callLogMapper.aggregateResponseTime(modelId, taskType, startTime, endTime);
+    public ResponseTime aggregateResponseTime(MetricsQuery query) {
+        return callLogMapper.aggregateResponseTime(query);
     }
 
+    /**
+     * 聚合模型使用分布
+     * 用于统计不同模型调用占比
+     */
     @Override
-    public List<ModelUsage> aggregateModelUsage(LocalDateTime startTime, LocalDateTime endTime) {
-        return callLogMapper.aggregateModelUsage(startTime, endTime);
+    public List<ModelUsage> aggregateModelUsage(ModelUsageQuery query) {
+        return callLogMapper.aggregateModelUsage(query);
     }
 }

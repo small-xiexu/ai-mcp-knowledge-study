@@ -2,8 +2,8 @@ package com.xbk.knowledge.infrastructure.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.xbk.knowledge.domain.model.entity.ConfigAudit;
+import com.xbk.knowledge.domain.model.vo.AuditQuery;
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -28,50 +28,32 @@ public interface ConfigAuditMapper extends BaseMapper<ConfigAudit> {
     /**
      * 按表名和记录ID查询审计日志
      *
-     * @param tableName 表名
-     * @param recordId  记录ID
+     * @param query 表名与记录ID查询条件
      * @return 审计日志列表
      */
-    List<ConfigAudit> findByTableNameAndRecordId(@Param("tableName") String tableName,
-                                                 @Param("recordId") Long recordId);
+    List<ConfigAudit> findByTableNameAndRecordId(AuditQuery query);
 
     /**
      * 按操作人查询审计日志
      *
-     * @param operator 操作人
+     * @param query 操作人查询条件
      * @return 审计日志列表
      */
-    List<ConfigAudit> findByOperator(@Param("operator") String operator);
+    List<ConfigAudit> findByOperator(AuditQuery query);
 
     /**
      * 按条件分页查询审计日志
      *
-     * @param tableName  表名
-     * @param recordId   记录ID
-     * @param operator   操作人
-     * @param offset     偏移量
-     * @param pageSize   每页大小
-     * @param sortColumn 排序字段
-     * @param sortOrder  排序方向
+     * @param query 审计查询条件
      * @return 审计日志列表
      */
-    List<ConfigAudit> findByConditions(@Param("tableName") String tableName,
-                                       @Param("recordId") Long recordId,
-                                       @Param("operator") String operator,
-                                       @Param("offset") int offset,
-                                       @Param("pageSize") int pageSize,
-                                       @Param("sortColumn") String sortColumn,
-                                       @Param("sortOrder") String sortOrder);
+    List<ConfigAudit> findByConditions(AuditQuery query);
 
     /**
      * 按条件统计审计日志数量
      *
-     * @param tableName 表名
-     * @param recordId  记录ID
-     * @param operator  操作人
+     * @param query 审计查询条件
      * @return 总数
      */
-    long countByConditions(@Param("tableName") String tableName,
-                           @Param("recordId") Long recordId,
-                           @Param("operator") String operator);
+    long countByConditions(AuditQuery query);
 }

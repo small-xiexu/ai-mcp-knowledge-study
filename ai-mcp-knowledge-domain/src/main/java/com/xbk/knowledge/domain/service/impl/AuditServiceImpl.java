@@ -1,6 +1,7 @@
 package com.xbk.knowledge.domain.service.impl;
 
 import com.xbk.knowledge.domain.model.entity.ConfigAudit;
+import com.xbk.knowledge.domain.model.vo.AuditQuery;
 import com.xbk.knowledge.domain.repository.ConfigAuditRepository;
 import com.xbk.knowledge.domain.service.IAuditService;
 import com.xbk.knowledge.types.common.PageResult;
@@ -25,50 +26,47 @@ public class AuditServiceImpl implements IAuditService {
 
     private final ConfigAuditRepository configAuditRepository;
 
+    /**
+     * 分页查询审计日志
+     * 统一过滤与排序规则，避免 SQL 注入风险
+     */
     @Override
-    public PageResult<ConfigAudit> queryAuditPage(
-            String tableName,
-            Long recordId,
-            String operator,
-            int offset,
-            int pageSize,
-            String sortField,
-            String sortOrder
-    ) {
+    public PageResult<ConfigAudit> queryAuditPage(AuditQuery query) {
+        if (query == null) {
+            throw new IllegalArgumentException("审计查询条件不能为空");
+        }
         // 解析排序字段和排序方向（白名单方式避免 SQL 注入）
-        String sortColumn = resolveSortColumn(sortField);
-        String resolvedSortOrder = resolveSortOrder(sortOrder);
+        String sortColumn = resolveSortColumn(query.getSortField());
+        String resolvedSortOrder = resolveSortOrder(query.getSortOrder());
 
         // 规范化查询条件
-        String normalizedTableName = normalizeText(tableName);
-        String normalizedOperator = normalizeText(operator);
+        String normalizedTableName = normalizeText(query.getTableName());
+        String normalizedOperator = normalizeText(query.getOperator());
 
         // 查询分页数据
-        List<ConfigAudit> audits = configAuditRepository.findByConditions(
+        AuditQuery normalizedQuery = new AuditQuery(
                 normalizedTableName,
-                recordId,
+                query.getRecordId(),
                 normalizedOperator,
-                offset,
-                pageSize,
+                query.getOffset(),
+                query.getPageSize(),
                 sortColumn,
                 resolvedSortOrder
         );
+        List<ConfigAudit> audits = configAuditRepository.findByConditions(normalizedQuery);
 
         // 查询总数
-        long total = configAuditRepository.countByConditions(
-                normalizedTableName,
-                recordId,
-                normalizedOperator
-        );
+        long total = configAuditRepository.countByConditions(normalizedQuery);
 
         // 计算页码
-        int pageNum = (offset / pageSize) + 1;
+        int pageNum = (query.getOffset() / query.getPageSize()) + 1;
 
-        return PageResult.of(audits, total, pageNum, pageSize);
+        return PageResult.of(audits, total, pageNum, query.getPageSize());
     }
 
     /**
      * 规范化文本
+     * 统一去空白并处理空值
      */
     private String normalizeText(String value) {
         if (!StringUtils.hasText(value)) {
@@ -79,6 +77,7 @@ public class AuditServiceImpl implements IAuditService {
 
     /**
      * 解析排序字段
+     * 使用白名单映射，避免非法字段注入
      */
     private String resolveSortColumn(String sortField) {
         if (!StringUtils.hasText(sortField)) {
@@ -97,6 +96,7 @@ public class AuditServiceImpl implements IAuditService {
 
     /**
      * 解析排序方向
+     * 仅允许 ASC/DESC，其余回退默认值
      */
     private String resolveSortOrder(String sortOrder) {
         if (!StringUtils.hasText(sortOrder)) {

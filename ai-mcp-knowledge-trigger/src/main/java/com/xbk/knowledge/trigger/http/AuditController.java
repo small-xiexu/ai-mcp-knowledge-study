@@ -5,7 +5,8 @@ import com.xbk.knowledge.types.common.Result;
 import com.xbk.knowledge.api.dto.audit.AuditQueryRequest;
 import com.xbk.knowledge.api.dto.audit.AuditResponse;
 import com.xbk.knowledge.domain.model.entity.ConfigAudit;
-import com.xbk.knowledge.domain.service.IAuditService;
+import com.xbk.knowledge.domain.model.vo.AuditQuery;
+import com.xbk.knowledge.application.service.AuditAppService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,7 +20,7 @@ import java.util.List;
 
 /**
  * 审计日志查询 Controller
- * 负责接收 HTTP 请求，调用领域服务，转换响应
+ * 负责接收 HTTP 请求，调用应用服务，转换响应
  *
  * 职责：HTTP 接口适配，用于转发应用层能力
  * @author xiexu
@@ -30,7 +31,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AuditController {
 
-    private final IAuditService auditService;
+    private final AuditAppService auditAppService;
 
     /**
      * 分页查询审计日志
@@ -40,11 +41,8 @@ public class AuditController {
      */
     @PostMapping("/list")
     public Result<PageResult<AuditResponse>> listAudits(@Valid @RequestBody AuditQueryRequest request) {
-        // 验证并修正分页参数
-        request.validate();
-
-        // 调用领域服务查询
-        PageResult<ConfigAudit> pageResult = auditService.queryAuditPage(
+        // 调用应用服务查询
+        AuditQuery query = new AuditQuery(
                 request.getTableName(),
                 request.getRecordId(),
                 request.getOperator(),
@@ -53,6 +51,7 @@ public class AuditController {
                 request.getSortField(),
                 request.getSortOrder()
         );
+        PageResult<ConfigAudit> pageResult = auditAppService.queryAuditPage(query);
 
         // 转换为响应 DTO
         List<AuditResponse> records = pageResult.getRecords().stream()

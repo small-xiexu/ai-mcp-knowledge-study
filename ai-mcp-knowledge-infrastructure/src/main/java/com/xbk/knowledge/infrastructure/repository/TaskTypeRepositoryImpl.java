@@ -1,12 +1,16 @@
 package com.xbk.knowledge.infrastructure.repository;
 
 import com.xbk.knowledge.domain.model.entity.TaskType;
+import com.xbk.knowledge.domain.model.vo.IdQuery;
+import com.xbk.knowledge.domain.model.vo.TaskTypeCodeQuery;
+import com.xbk.knowledge.domain.model.vo.TaskTypePageQuery;
 import com.xbk.knowledge.domain.repository.TaskTypeRepository;
 import com.xbk.knowledge.infrastructure.mapper.TaskTypeMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,16 +27,34 @@ public class TaskTypeRepositoryImpl implements TaskTypeRepository {
 
     private final TaskTypeMapper taskTypeMapper;
 
+    /**
+     * 按任务编码查询
+     * 用于唯一性校验与业务定位
+     */
     @Override
-    public Optional<TaskType> findByTaskCode(String taskCode) {
-        return Optional.ofNullable(taskTypeMapper.findByTaskCode(taskCode));
+    public Optional<TaskType> findByTaskCode(TaskTypeCodeQuery query) {
+        if (query == null || query.getTaskCode() == null) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(taskTypeMapper.findByTaskCode(query));
     }
 
+    /**
+     * 按 ID 查询任务类型
+     * 用于详情展示与编辑加载
+     */
     @Override
-    public Optional<TaskType> findById(Long id) {
-        return Optional.ofNullable(taskTypeMapper.findById(id));
+    public Optional<TaskType> findById(IdQuery query) {
+        if (query == null || query.getId() == null) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(taskTypeMapper.findById(query));
     }
 
+    /**
+     * 保存任务类型
+     * 统一插入与更新逻辑并补齐时间戳
+     */
     @Override
     public TaskType save(TaskType taskType) {
         LocalDateTime now = LocalDateTime.now();
@@ -53,24 +75,46 @@ public class TaskTypeRepositoryImpl implements TaskTypeRepository {
         return taskType;
     }
 
+    /**
+     * 判断任务类型是否存在
+     * 用于删除与更新前置校验
+     */
     @Override
-    public boolean existsById(Long id) {
-        return taskTypeMapper.findById(id) != null;
+    public boolean existsById(IdQuery query) {
+        if (query == null || query.getId() == null) {
+            return false;
+        }
+        return taskTypeMapper.findById(query) != null;
     }
 
+    /**
+     * 删除任务类型
+     * 允许空 ID 直接返回，避免无效调用
+     */
     @Override
-    public void deleteById(Long id) {
-        if (id == null) {
+    public void deleteById(IdQuery query) {
+        if (query == null || query.getId() == null) {
             return;
         }
-        taskTypeMapper.deleteTaskTypeById(id);
+        taskTypeMapper.deleteTaskTypeById(query);
     }
 
+    /**
+     * 分页查询任务类型
+     * 用于配置管理列表展示
+     */
     @Override
-    public List<TaskType> findPage(int offset, int pageSize) {
-        return taskTypeMapper.findPage(offset, pageSize);
+    public List<TaskType> findPage(TaskTypePageQuery query) {
+        if (query == null) {
+            return Collections.emptyList();
+        }
+        return taskTypeMapper.findPage(query);
     }
 
+    /**
+     * 统计任务类型总数
+     * 用于分页统计
+     */
     @Override
     public long countAll() {
         return taskTypeMapper.countAll();

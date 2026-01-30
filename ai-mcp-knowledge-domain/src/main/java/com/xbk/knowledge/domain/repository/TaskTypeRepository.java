@@ -1,6 +1,9 @@
 package com.xbk.knowledge.domain.repository;
 
 import com.xbk.knowledge.domain.model.entity.TaskType;
+import com.xbk.knowledge.domain.model.vo.IdQuery;
+import com.xbk.knowledge.domain.model.vo.TaskTypeCodeQuery;
+import com.xbk.knowledge.domain.model.vo.TaskTypePageQuery;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,18 +20,18 @@ public interface TaskTypeRepository {
     /**
      * 根据任务编码查询任务类型
      *
-     * @param taskCode 任务编码
+     * @param query 任务编码查询条件
      * @return 任务类型
      */
-    Optional<TaskType> findByTaskCode(String taskCode);
+    Optional<TaskType> findByTaskCode(TaskTypeCodeQuery query);
 
     /**
      * 根据ID查询任务类型
      *
-     * @param id 任务类型ID
+     * @param query ID 查询条件
      * @return 任务类型
      */
-    Optional<TaskType> findById(Long id);
+    Optional<TaskType> findById(IdQuery query);
 
     /**
      * 保存任务类型（新增或更新）
@@ -41,26 +44,25 @@ public interface TaskTypeRepository {
     /**
      * 判断任务类型是否存在
      *
-     * @param id 任务类型ID
+     * @param query ID 查询条件
      * @return 是否存在
      */
-    boolean existsById(Long id);
+    boolean existsById(IdQuery query);
 
     /**
      * 删除任务类型
      *
-     * @param id 任务类型ID
+     * @param query ID 查询条件
      */
-    void deleteById(Long id);
+    void deleteById(IdQuery query);
 
     /**
      * 查询任务类型分页数据
      *
-     * @param offset   偏移量
-     * @param pageSize 每页大小
+     * @param query 分页查询条件
      * @return 任务类型列表
      */
-    List<TaskType> findPage(int offset, int pageSize);
+    List<TaskType> findPage(TaskTypePageQuery query);
 
     /**
      * 统计任务类型总数

@@ -4,6 +4,7 @@ import com.xbk.knowledge.types.common.Result;
 import com.xbk.knowledge.api.dto.ai.AIRequest;
 import com.xbk.knowledge.api.dto.ai.AIResponse;
 import com.xbk.knowledge.api.dto.ai.ModelInfo;
+import com.xbk.knowledge.api.dto.ai.ModelRecommendRequest;
 
 import java.util.List;
 
@@ -46,8 +47,8 @@ public interface IAICallService {
      * 获取推荐模型
      * 根据任务类型返回推荐的模型
      *
-     * @param taskType 任务类型编码（可选）
+     * @param request 推荐模型查询请求（taskType 可选）
      * @return 推荐模型
      */
-    Result<ModelInfo> getRecommendedModel(String taskType);
+    Result<ModelInfo> getRecommendedModel(ModelRecommendRequest request);
 }

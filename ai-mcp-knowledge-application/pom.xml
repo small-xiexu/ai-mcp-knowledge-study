@@ -39,6 +39,12 @@
             <artifactId>spring-boot-starter</artifactId>
         </dependency>
 
+        <!-- Spring 事务支持 -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+        </dependency>
+
         <!-- Spring AI Chat Client -->
         <dependency>
             <groupId>org.springframework.ai</groupId>

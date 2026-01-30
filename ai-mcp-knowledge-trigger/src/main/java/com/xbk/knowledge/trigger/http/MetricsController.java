@@ -9,10 +9,12 @@ import com.xbk.knowledge.api.dto.metrics.ModelUsageQueryRequest;
 import com.xbk.knowledge.api.dto.metrics.ResponseTimeDTO;
 import com.xbk.knowledge.api.dto.metrics.SuccessRateDTO;
 import com.xbk.knowledge.domain.model.vo.CallMetrics;
+import com.xbk.knowledge.domain.model.vo.MetricsQuery;
 import com.xbk.knowledge.domain.model.vo.ModelUsage;
+import com.xbk.knowledge.domain.model.vo.ModelUsageQuery;
 import com.xbk.knowledge.domain.model.vo.ResponseTime;
 import com.xbk.knowledge.domain.model.vo.SuccessRate;
-import com.xbk.knowledge.domain.service.IMetricsDomainService;
+import com.xbk.knowledge.application.service.MetricsAppService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
@@ -27,7 +29,7 @@ import java.util.stream.Collectors;
 
 /**
  * 监控统计 Controller
- * 负责接收 HTTP 请求，调用领域服务，转换响应
+ * 负责接收 HTTP 请求，调用应用服务，转换响应
  *
  * 职责：HTTP 接口适配，用于转发应用层能力
  * @author xiexu
@@ -39,18 +41,19 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MetricsController implements IMetricsService {
 
-    private final IMetricsDomainService metricsDomainService;
+    private final MetricsAppService metricsAppService;
 
     @Override
     @PostMapping("/calls")
     public Result<CallMetricsDTO> getCallMetrics(@Valid @RequestBody MetricsQueryRequest request) {
-        // 调用领域服务收集指标
-        CallMetrics metrics = metricsDomainService.collectCallMetrics(
+        // 调用应用服务收集指标
+        MetricsQuery query = new MetricsQuery(
                 request.getModelId(),
                 request.getTaskType(),
                 request.getStartTime(),
                 request.getEndTime()
         );
+        CallMetrics metrics = metricsAppService.collectCallMetrics(query);
 
         // 转换为 API DTO
         CallMetricsDTO dto = new CallMetricsDTO(
@@ -66,13 +69,14 @@ public class MetricsController implements IMetricsService {
     @Override
     @PostMapping("/success-rate")
     public Result<SuccessRateDTO> getSuccessRate(@Valid @RequestBody MetricsQueryRequest request) {
-        // 调用领域服务收集指标
-        SuccessRate successRate = metricsDomainService.collectSuccessRate(
+        // 调用应用服务收集指标
+        MetricsQuery query = new MetricsQuery(
                 request.getModelId(),
                 request.getTaskType(),
                 request.getStartTime(),
                 request.getEndTime()
         );
+        SuccessRate successRate = metricsAppService.collectSuccessRate(query);
 
         // 转换为 API DTO
         SuccessRateDTO dto = new SuccessRateDTO(
@@ -87,13 +91,14 @@ public class MetricsController implements IMetricsService {
     @Override
     @PostMapping("/response-time")
     public Result<ResponseTimeDTO> getResponseTime(@Valid @RequestBody MetricsQueryRequest request) {
-        // 调用领域服务收集指标
-        ResponseTime responseTime = metricsDomainService.collectResponseTime(
+        // 调用应用服务收集指标
+        MetricsQuery query = new MetricsQuery(
                 request.getModelId(),
                 request.getTaskType(),
                 request.getStartTime(),
                 request.getEndTime()
         );
+        ResponseTime responseTime = metricsAppService.collectResponseTime(query);
 
         // 转换为 API DTO
         ResponseTimeDTO dto = new ResponseTimeDTO(
@@ -108,11 +113,12 @@ public class MetricsController implements IMetricsService {
     @Override
     @PostMapping("/model-usage")
     public Result<List<ModelUsageDTO>> getModelUsage(@Valid @RequestBody ModelUsageQueryRequest request) {
-        // 调用领域服务收集指标
-        List<ModelUsage> usageList = metricsDomainService.collectModelUsage(
+        // 调用应用服务收集指标
+        ModelUsageQuery query = new ModelUsageQuery(
                 request.getStartTime(),
                 request.getEndTime()
         );
+        List<ModelUsage> usageList = metricsAppService.collectModelUsage(query);
 
         // 计算总调用次数
         long totalCalls = usageList.stream()

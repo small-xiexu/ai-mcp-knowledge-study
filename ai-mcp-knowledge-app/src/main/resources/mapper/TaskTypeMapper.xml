@@ -4,6 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.xbk.knowledge.infrastructure.mapper.TaskTypeMapper">
 
+    <!-- 任务类型结果映射 -->
     <resultMap id="TaskTypeMap" type="com.xbk.knowledge.domain.model.entity.TaskType">
         <id column="id" property="id"/>
         <result column="task_name" property="taskName"/>
@@ -15,6 +16,7 @@
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
 
+    <!-- 写入任务类型配置 -->
     <insert id="insertTaskType" parameterType="com.xbk.knowledge.domain.model.entity.TaskType" useGeneratedKeys="true"
             keyProperty="id">
         insert into ai_task_type (
@@ -36,6 +38,7 @@
         )
     </insert>
 
+    <!-- 更新任务类型配置 -->
     <update id="updateTaskType" parameterType="com.xbk.knowledge.domain.model.entity.TaskType">
         update ai_task_type
         set task_name = #{taskName},
@@ -47,11 +50,13 @@
         where id = #{id}
     </update>
 
+    <!-- 删除任务类型配置 -->
     <delete id="deleteTaskTypeById">
         delete from ai_task_type
         where id = #{id}
     </delete>
 
+    <!-- 按 ID 查询任务类型 -->
     <select id="findById" resultMap="TaskTypeMap">
         select
             id,
@@ -66,6 +71,7 @@
         where id = #{id}
     </select>
 
+    <!-- 按任务编码查询任务类型 -->
     <select id="findByTaskCode" resultMap="TaskTypeMap">
         select
             id,
@@ -80,6 +86,7 @@
         where task_code = #{taskCode}
     </select>
 
+    <!-- 分页查询任务类型 -->
     <select id="findPage" resultMap="TaskTypeMap">
         select
             id,
@@ -95,6 +102,7 @@
         limit #{pageSize} offset #{offset}
     </select>
 
+    <!-- 统计任务类型总数 -->
     <select id="countAll" resultType="long">
         select count(1)
         from ai_task_type

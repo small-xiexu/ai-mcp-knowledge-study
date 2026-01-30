@@ -5,11 +5,14 @@ import com.xbk.knowledge.api.IAICallService;
 import com.xbk.knowledge.api.dto.ai.AIRequest;
 import com.xbk.knowledge.api.dto.ai.AIResponse;
 import com.xbk.knowledge.api.dto.ai.ModelInfo;
+import com.xbk.knowledge.api.dto.ai.ModelRecommendRequest;
 import com.xbk.knowledge.application.model.dto.AICallCommand;
 import com.xbk.knowledge.application.model.dto.AICallResult;
 import com.xbk.knowledge.application.service.AIModelService;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
-import com.xbk.knowledge.domain.service.IModelConfigService;
+import com.xbk.knowledge.domain.model.vo.EnabledQuery;
+import com.xbk.knowledge.domain.model.vo.TaskTypeQuery;
+import com.xbk.knowledge.application.service.ModelConfigAppService;
 import com.xbk.knowledge.trigger.converter.DTOConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +24,7 @@ import java.util.stream.Collectors;
 
 /**
  * AI 调用 Controller
- * 负责接收 HTTP 请求，调用领域服务，转换响应
+ * 负责接收 HTTP 请求，调用应用服务，转换响应
  *
  * 职责：HTTP 接口适配，用于转发应用层能力
  * @author xiexu
@@ -33,7 +36,7 @@ import java.util.stream.Collectors;
 public class AICallController implements IAICallService {
 
     private final AIModelService aiModelService;
-    private final IModelConfigService modelConfigService;
+    private final ModelConfigAppService modelConfigAppService;
 
     /**
      * 通用 AI 调用接口
@@ -102,10 +105,10 @@ public class AICallController implements IAICallService {
      * @return 模型列表
      */
     @Override
-    @GetMapping("/models")
+    @PostMapping("/models")
     public Result<List<ModelInfo>> getAvailableModels() {
-        // 调用领域服务查询模型配置
-        List<ModelConfig> models = modelConfigService.queryEnabledModels();
+        // 调用应用服务查询模型配置
+        List<ModelConfig> models = modelConfigAppService.queryEnabledModels(new EnabledQuery(true));
 
         // 转换为 API DTO
         List<ModelInfo> modelInfos = models.stream()
@@ -129,10 +132,10 @@ public class AICallController implements IAICallService {
      * @return 推荐的模型信息
      */
     @Override
-    @GetMapping("/models/recommend")
-    public Result<ModelInfo> getRecommendedModel(@RequestParam String taskType) {
-        // 调用领域服务获取推荐模型
-        ModelConfig model = modelConfigService.getRecommendedModel(taskType);
+    @PostMapping("/models/recommend")
+    public Result<ModelInfo> getRecommendedModel(@Valid @RequestBody ModelRecommendRequest request) {
+        // 调用应用服务获取推荐模型
+        ModelConfig model = modelConfigAppService.getRecommendedModel(new TaskTypeQuery(request.getTaskType()));
 
         if (model == null) {
             return Result.error(404, "未找到推荐模型");

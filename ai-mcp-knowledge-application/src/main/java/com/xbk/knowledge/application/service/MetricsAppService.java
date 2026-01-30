@@ -1,4 +1,4 @@
-package com.xbk.knowledge.domain.service;
+package com.xbk.knowledge.application.service;
 
 import com.xbk.knowledge.domain.model.vo.CallMetrics;
 import com.xbk.knowledge.domain.model.vo.MetricsQuery;
@@ -10,13 +10,13 @@ import com.xbk.knowledge.domain.model.vo.SuccessRate;
 import java.util.List;
 
 /**
- * 监控指标领域服务接口
- * 负责监控指标的业务逻辑处理
+ * 监控指标应用服务接口
+ * 负责监控指标查询的用例编排
  *
- * 职责：领域服务接口，用于定义业务能力
+ * 职责：应用层用例接口，用于封装调用入口
  * @author xiexu
  */
-public interface IMetricsDomainService {
+public interface MetricsAppService {
 
     /**
      * 统计调用次数指标

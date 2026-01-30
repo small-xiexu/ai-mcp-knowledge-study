@@ -2,8 +2,10 @@ package com.xbk.knowledge.infrastructure.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.xbk.knowledge.domain.model.entity.TaskType;
+import com.xbk.knowledge.domain.model.vo.IdQuery;
+import com.xbk.knowledge.domain.model.vo.TaskTypeCodeQuery;
+import com.xbk.knowledge.domain.model.vo.TaskTypePageQuery;
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -36,35 +38,34 @@ public interface TaskTypeMapper extends BaseMapper<TaskType> {
     /**
      * 删除任务类型
      *
-     * @param id 任务类型ID
+     * @param query ID 查询条件
      * @return 影响行数
      */
-    int deleteTaskTypeById(@Param("id") Long id);
+    int deleteTaskTypeById(IdQuery query);
 
     /**
      * 根据ID查询任务类型
      *
-     * @param id 任务类型ID
+     * @param query ID 查询条件
      * @return 任务类型
      */
-    TaskType findById(@Param("id") Long id);
+    TaskType findById(IdQuery query);
 
     /**
      * 根据编码查询任务类型
      *
-     * @param taskCode 任务编码
+     * @param query 任务编码查询条件
      * @return 任务类型
      */
-    TaskType findByTaskCode(@Param("taskCode") String taskCode);
+    TaskType findByTaskCode(TaskTypeCodeQuery query);
 
     /**
      * 查询任务类型分页数据
      *
-     * @param offset   偏移量
-     * @param pageSize 每页大小
+     * @param query 分页查询条件
      * @return 任务类型列表
      */
-    List<TaskType> findPage(@Param("offset") int offset, @Param("pageSize") int pageSize);
+    List<TaskType> findPage(TaskTypePageQuery query);
 
     /**
      * 统计任务类型总数

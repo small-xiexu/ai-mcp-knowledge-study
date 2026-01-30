@@ -1,6 +1,7 @@
 package com.xbk.knowledge.domain.repository;
 
 import com.xbk.knowledge.domain.model.entity.ConfigAudit;
+import com.xbk.knowledge.domain.model.vo.AuditQuery;
 
 import java.util.List;
 
@@ -24,42 +25,32 @@ public interface ConfigAuditRepository {
     /**
      * 按表名和记录ID查询审计日志
      *
-     * @param tableName 表名
-     * @param recordId  记录ID
+     * @param query 表名与记录ID查询条件
      * @return 审计日志列表
      */
-    List<ConfigAudit> findByTableNameAndRecordId(String tableName, Long recordId);
+    List<ConfigAudit> findByTableNameAndRecordId(AuditQuery query);
 
     /**
      * 按操作人查询审计日志
      *
-     * @param operator 操作人
+     * @param query 操作人查询条件
      * @return 审计日志列表
      */
-    List<ConfigAudit> findByOperator(String operator);
+    List<ConfigAudit> findByOperator(AuditQuery query);
 
     /**
      * 按条件分页查询审计日志
      *
-     * @param tableName  表名
-     * @param recordId   记录ID
-     * @param operator   操作人
-     * @param offset     偏移量
-     * @param pageSize   每页大小
-     * @param sortColumn 排序字段
-     * @param sortOrder  排序方向
+     * @param query 审计查询条件
      * @return 审计日志列表
      */
-    List<ConfigAudit> findByConditions(String tableName, Long recordId, String operator,
-                                       int offset, int pageSize, String sortColumn, String sortOrder);
+    List<ConfigAudit> findByConditions(AuditQuery query);
 
     /**
      * 按条件统计审计日志数量
      *
-     * @param tableName 表名
-     * @param recordId  记录ID
-     * @param operator  操作人
+     * @param query 审计查询条件
      * @return 总数
      */
-    long countByConditions(String tableName, Long recordId, String operator);
+    long countByConditions(AuditQuery query);
 }

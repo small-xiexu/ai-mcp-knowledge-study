@@ -1,17 +1,17 @@
-package com.xbk.knowledge.domain.service;
+package com.xbk.knowledge.application.service;
 
 import com.xbk.knowledge.domain.model.entity.ConfigAudit;
 import com.xbk.knowledge.domain.model.vo.AuditQuery;
 import com.xbk.knowledge.types.common.PageResult;
 
 /**
- * 审计日志领域服务接口
- * 负责审计日志的业务逻辑处理
+ * 审计日志应用服务接口
+ * 负责审计日志查询的用例编排
  *
- * 职责：领域服务接口，用于定义业务能力
+ * 职责：应用层用例接口，用于封装调用入口
  * @author xiexu
  */
-public interface IAuditService {
+public interface AuditAppService {
 
     /**
      * 分页查询审计日志

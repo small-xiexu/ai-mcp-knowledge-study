@@ -9,8 +9,12 @@ import com.xbk.knowledge.api.dto.task.TaskTypeRequest;
 import com.xbk.knowledge.api.dto.task.TaskTypeResponse;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.model.entity.TaskType;
-import com.xbk.knowledge.domain.repository.ModelConfigRepository;
-import com.xbk.knowledge.domain.service.ITaskTypeService;
+import com.xbk.knowledge.domain.model.vo.IdQuery;
+import com.xbk.knowledge.domain.model.vo.TaskTypeCodeQuery;
+import com.xbk.knowledge.domain.model.vo.TaskTypePageQuery;
+import com.xbk.knowledge.application.service.ModelConfigAppService;
+import com.xbk.knowledge.application.service.TaskTypeAppService;
+import com.xbk.knowledge.types.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +25,7 @@ import java.util.stream.Collectors;
 
 /**
  * 任务类型管理 Controller
- * 负责接收 HTTP 请求，调用领域服务，转换响应
+ * 负责接收 HTTP 请求，调用应用服务，转换响应
  *
  * 职责：HTTP 接口适配，用于转发应用层能力
  * @author xiexu
@@ -32,8 +36,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TaskTypeController {
 
-    private final ITaskTypeService taskTypeService;
-    private final ModelConfigRepository modelConfigRepository;
+    private final TaskTypeAppService taskTypeAppService;
+    private final ModelConfigAppService modelConfigAppService;
 
     /**
      * 查询所有任务类型（分页）
@@ -43,14 +47,12 @@ public class TaskTypeController {
      */
     @PostMapping("/list")
     public Result<PageResult<TaskTypeResponse>> listTaskTypes(@Valid @RequestBody TaskTypeQueryRequest request) {
-        // 验证并修正分页参数
-        request.validate();
-
-        // 调用领域服务查询
-        PageResult<TaskType> pageResult = taskTypeService.queryTaskTypePage(
+        // 调用应用服务查询
+        TaskTypePageQuery query = new TaskTypePageQuery(
                 request.getOffset(),
                 request.getPageSize()
         );
+        PageResult<TaskType> pageResult = taskTypeAppService.queryTaskTypePage(query);
 
         // 转换为响应 DTO
         List<TaskTypeResponse> records = pageResult.getRecords().stream()
@@ -76,8 +78,8 @@ public class TaskTypeController {
      */
     @PostMapping("/get")
     public Result<TaskTypeResponse> getTaskType(@Valid @RequestBody IdRequest request) {
-        // 调用领域服务查询
-        TaskType taskType = taskTypeService.queryTaskTypeById(request.getId());
+        // 调用应用服务查询
+        TaskType taskType = taskTypeAppService.queryTaskTypeById(new IdQuery(request.getId()));
 
         // 转换为响应 DTO
         return Result.success(convertToResponse(taskType));
@@ -91,8 +93,8 @@ public class TaskTypeController {
      */
     @PostMapping("/get-by-code")
     public Result<TaskTypeResponse> getTaskTypeByCode(@Valid @RequestBody TaskTypeCodeRequest request) {
-        // 调用领域服务查询
-        TaskType taskType = taskTypeService.queryTaskTypeByCode(request.getCode());
+        // 调用应用服务查询
+        TaskType taskType = taskTypeAppService.queryTaskTypeByCode(new TaskTypeCodeQuery(request.getCode()));
 
         // 转换为响应 DTO
         return Result.success(convertToResponse(taskType));
@@ -109,8 +111,8 @@ public class TaskTypeController {
         // 构建领域实体
         TaskType taskType = buildTaskTypeFromRequest(request);
 
-        // 调用领域服务创建
-        TaskType savedTaskType = taskTypeService.createTaskType(taskType);
+        // 调用应用服务创建
+        TaskType savedTaskType = taskTypeAppService.createTaskType(taskType);
 
         // 转换为响应 DTO
         return Result.success("任务类型创建成功", convertToResponse(savedTaskType));
@@ -128,8 +130,8 @@ public class TaskTypeController {
         TaskType taskType = buildTaskTypeFromRequest(request);
         taskType.setId(request.getId());
 
-        // 调用领域服务更新
-        TaskType updatedTaskType = taskTypeService.updateTaskType(taskType);
+        // 调用应用服务更新
+        TaskType updatedTaskType = taskTypeAppService.updateTaskType(taskType);
 
         // 转换为响应 DTO
         return Result.success("任务类型更新成功", convertToResponse(updatedTaskType));
@@ -143,8 +145,8 @@ public class TaskTypeController {
      */
     @PostMapping("/delete")
     public Result<Void> deleteTaskType(@Valid @RequestBody IdRequest request) {
-        // 调用领域服务删除
-        taskTypeService.deleteTaskType(request.getId());
+        // 调用应用服务删除
+        taskTypeAppService.deleteTaskType(new IdQuery(request.getId()));
 
         return Result.success();
     }
@@ -157,9 +159,15 @@ public class TaskTypeController {
      */
     private TaskTypeResponse convertToResponse(TaskType taskType) {
         // 查询首选模型名称
-        String preferredModelName = modelConfigRepository.findById(taskType.getPreferredModelId())
-                .map(ModelConfig::getModelName)
-                .orElse(null);
+        String preferredModelName = null;
+        if (taskType.getPreferredModelId() != null) {
+            try {
+                ModelConfig modelConfig = modelConfigAppService.queryModelConfigById(new IdQuery(taskType.getPreferredModelId()));
+                preferredModelName = modelConfig.getModelName();
+            } catch (NotFoundException e) {
+                log.warn("任务类型首选模型不存在，modelId: {}", taskType.getPreferredModelId(), e);
+            }
+        }
 
         return TaskTypeResponse.builder()
                 .id(taskType.getId())

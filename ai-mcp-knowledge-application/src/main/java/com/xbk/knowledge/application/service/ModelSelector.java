@@ -2,6 +2,9 @@ package com.xbk.knowledge.application.service;
 
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.model.entity.TaskType;
+import com.xbk.knowledge.domain.model.vo.EnabledIdsQuery;
+import com.xbk.knowledge.domain.model.vo.IdQuery;
+import com.xbk.knowledge.domain.model.vo.TaskTypeCodeQuery;
 import com.xbk.knowledge.domain.repository.ModelConfigRepository;
 import com.xbk.knowledge.domain.repository.TaskTypeRepository;
 import com.xbk.knowledge.application.model.dto.ModelSelectionResult;
@@ -40,7 +43,7 @@ public class ModelSelector {
         log.info("开始根据任务类型选择模型，taskType: {}", taskType);
 
         // 1. 查询任务类型配置
-        TaskType task = taskTypeRepository.findByTaskCode(taskType).orElse(null);
+        TaskType task = taskTypeRepository.findByTaskCode(new TaskTypeCodeQuery(taskType)).orElse(null);
         if (task == null) {
             log.warn("未找到任务类型配置，taskType: {}，使用质量优先策略", taskType);
             // 如果任务类型不存在，退化为“全局默认策略”，保证仍可对外服务
@@ -52,7 +55,7 @@ public class ModelSelector {
         }
 
         // 2. 获取首选模型
-        ModelConfig primaryModel = modelConfigRepository.findById(task.getPreferredModelId()).orElse(null);
+        ModelConfig primaryModel = modelConfigRepository.findById(new IdQuery(task.getPreferredModelId())).orElse(null);
 
         // 如果首选模型不存在或未启用，使用质量优先策略
         if (primaryModel == null || !primaryModel.getEnabled()) {
@@ -127,7 +130,7 @@ public class ModelSelector {
                     .collect(Collectors.toList());
 
             // 批量查询并过滤启用的模型（在 SQL 中直接过滤，提高性能）
-            return modelConfigRepository.findEnabledByIds(modelIds);
+            return modelConfigRepository.findEnabledByIds(new EnabledIdsQuery(modelIds));
 
         } catch (NumberFormatException e) {
             log.error("解析备用模型ID失败，fallbackModelIds: {}", fallbackModelIds, e);

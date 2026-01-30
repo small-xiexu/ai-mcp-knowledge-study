@@ -4,6 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.xbk.knowledge.infrastructure.mapper.CallLogMapper">
 
+    <!-- 调用日志结果映射 -->
     <resultMap id="CallLogMap" type="com.xbk.knowledge.domain.model.entity.CallLog">
         <id column="id" property="id"/>
         <result column="model_id" property="modelId"/>
@@ -17,6 +18,7 @@
         <result column="created_at" property="createdAt"/>
     </resultMap>
 
+    <!-- 写入调用日志 -->
     <insert id="insertCallLog" parameterType="com.xbk.knowledge.domain.model.entity.CallLog" useGeneratedKeys="true"
             keyProperty="id">
         insert into ai_call_log (
@@ -42,6 +44,7 @@
         )
     </insert>
 
+    <!-- 按模型 ID 查询调用日志 -->
     <select id="selectByModelId" resultMap="CallLogMap">
         select
             id,
@@ -58,6 +61,7 @@
         where model_id = #{modelId}
     </select>
 
+    <!-- 按调用状态查询日志 -->
     <select id="selectByStatus" resultMap="CallLogMap">
         select
             id,
@@ -74,6 +78,7 @@
         where status = #{status}
     </select>
 
+    <!-- 按时间区间查询日志 -->
     <select id="selectByCreatedAtBetween" resultMap="CallLogMap">
         select
             id,
@@ -91,12 +96,14 @@
           and created_at <![CDATA[<=]]> #{endTime}
     </select>
 
+    <!-- 统计某模型调用次数 -->
     <select id="countByModelId" resultType="long">
         select count(1)
         from ai_call_log
         where model_id = #{modelId}
     </select>
 
+    <!-- 统计某模型指定状态调用次数 -->
     <select id="countByModelIdAndStatus" resultType="long">
         select count(1)
         from ai_call_log
@@ -104,6 +111,7 @@
           and status = #{status}
     </select>
 
+    <!-- 聚合调用次数与成功失败统计 -->
     <select id="aggregateCallMetrics" resultType="com.xbk.knowledge.domain.model.vo.CallMetrics">
         select
             count(1) as totalCalls,
@@ -128,6 +136,7 @@
         </where>
     </select>
 
+    <!-- 聚合成功率统计 -->
     <select id="aggregateSuccessRate" resultType="com.xbk.knowledge.domain.model.vo.SuccessRate">
         select
             null as modelId,
@@ -152,6 +161,7 @@
         </where>
     </select>
 
+    <!-- 聚合响应时间统计 -->
     <select id="aggregateResponseTime" resultType="com.xbk.knowledge.domain.model.vo.ResponseTime">
         select
             null as modelId,
@@ -176,6 +186,7 @@
         </where>
     </select>
 
+    <!-- 聚合模型使用分布 -->
     <select id="aggregateModelUsage" resultType="com.xbk.knowledge.domain.model.vo.ModelUsage">
         select
             model_id as modelId,

@@ -4,6 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.xbk.knowledge.infrastructure.mapper.ConfigAuditMapper">
 
+    <!-- 配置审计结果映射 -->
     <resultMap id="ConfigAuditMap" type="com.xbk.knowledge.domain.model.entity.ConfigAudit">
         <id column="id" property="id"/>
         <result column="table_name" property="tableName"/>
@@ -15,6 +16,7 @@
         <result column="created_at" property="createdAt"/>
     </resultMap>
 
+    <!-- 写入配置审计记录 -->
     <insert id="insertConfigAudit" parameterType="com.xbk.knowledge.domain.model.entity.ConfigAudit"
             useGeneratedKeys="true" keyProperty="id">
         insert into ai_config_audit (
@@ -36,6 +38,7 @@
         )
     </insert>
 
+    <!-- 按表名与记录 ID 查询审计 -->
     <select id="findByTableNameAndRecordId" resultMap="ConfigAuditMap">
         select
             id,
@@ -51,6 +54,7 @@
           and record_id = #{recordId}
     </select>
 
+    <!-- 按操作人查询审计 -->
     <select id="findByOperator" resultMap="ConfigAuditMap">
         select
             id,
@@ -65,6 +69,7 @@
         where operator = #{operator}
     </select>
 
+    <!-- 按条件分页查询审计，排序字段由上层白名单解析 -->
     <select id="findByConditions" resultMap="ConfigAuditMap">
         select
             id,
@@ -87,10 +92,11 @@
                 and operator = #{operator}
             </if>
         </where>
-        order by ${sortColumn} ${sortOrder}
+        order by ${sortField} ${sortOrder}
         limit #{pageSize} offset #{offset}
     </select>
 
+    <!-- 统计审计记录总数（用于分页） -->
     <select id="countByConditions" resultType="long">
         select count(1)
         from ai_config_audit

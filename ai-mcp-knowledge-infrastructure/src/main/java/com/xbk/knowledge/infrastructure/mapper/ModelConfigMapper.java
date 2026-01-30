@@ -2,9 +2,13 @@ package com.xbk.knowledge.infrastructure.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
-import com.xbk.knowledge.types.enums.ModelType;
+import com.xbk.knowledge.domain.model.vo.EnabledIdsQuery;
+import com.xbk.knowledge.domain.model.vo.EnabledQuery;
+import com.xbk.knowledge.domain.model.vo.IdQuery;
+import com.xbk.knowledge.domain.model.vo.ModelConfigPageQuery;
+import com.xbk.knowledge.domain.model.vo.ModelNameQuery;
+import com.xbk.knowledge.domain.model.vo.ModelTypeEnabledQuery;
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -37,52 +41,50 @@ public interface ModelConfigMapper extends BaseMapper<ModelConfig> {
     /**
      * 删除模型配置
      *
-     * @param id 模型ID
+     * @param query ID 查询条件
      * @return 影响行数
      */
-    int deleteModelConfigById(@Param("id") Long id);
+    int deleteModelConfigById(IdQuery query);
 
     /**
      * 根据ID查询模型配置
      *
-     * @param id 模型ID
+     * @param query ID 查询条件
      * @return 模型配置
      */
-    ModelConfig findById(@Param("id") Long id);
+    ModelConfig findById(IdQuery query);
 
     /**
      * 根据ID查询模型配置（包含能力）
      *
-     * @param id 模型ID
+     * @param query ID 查询条件
      * @return 模型配置
      */
-    ModelConfig findByIdWithCapability(@Param("id") Long id);
+    ModelConfig findByIdWithCapability(IdQuery query);
 
     /**
      * 根据模型名称查询模型配置
      *
-     * @param modelName 模型名称
+     * @param query 模型名称查询条件
      * @return 模型配置
      */
-    ModelConfig findByModelName(@Param("modelName") String modelName);
+    ModelConfig findByModelName(ModelNameQuery query);
 
     /**
      * 根据模型类型和启用状态查询模型配置
      *
-     * @param modelType 模型类型
-     * @param enabled   是否启用
+     * @param query 模型类型与启用状态查询条件
      * @return 模型配置列表
      */
-    List<ModelConfig> findByModelTypeAndEnabled(@Param("modelType") ModelType modelType,
-                                                @Param("enabled") Boolean enabled);
+    List<ModelConfig> findByModelTypeAndEnabled(ModelTypeEnabledQuery query);
 
     /**
      * 根据启用状态查询模型配置
      *
-     * @param enabled 是否启用
+     * @param query 启用状态查询条件
      * @return 模型配置列表
      */
-    List<ModelConfig> findByEnabled(@Param("enabled") Boolean enabled);
+    List<ModelConfig> findByEnabled(EnabledQuery query);
 
     /**
      * 查询所有启用的模型配置
@@ -94,10 +96,10 @@ public interface ModelConfigMapper extends BaseMapper<ModelConfig> {
     /**
      * 查询所有启用的模型配置，按优先级降序排序
      *
-     * @param enabled 是否启用
+     * @param query 启用状态查询条件
      * @return 模型配置列表
      */
-    List<ModelConfig> findByEnabledOrderByPriorityDesc(@Param("enabled") Boolean enabled);
+    List<ModelConfig> findByEnabledOrderByPriorityDesc(EnabledQuery query);
 
     /**
      * 查询所有启用的模型配置并加载能力
@@ -109,20 +111,18 @@ public interface ModelConfigMapper extends BaseMapper<ModelConfig> {
     /**
      * 根据ID列表查询启用的模型配置
      *
-     * @param ids 模型ID列表
+     * @param query 模型ID列表查询条件
      * @return 模型配置列表
      */
-    List<ModelConfig> findEnabledByIds(@Param("ids") List<Long> ids);
+    List<ModelConfig> findEnabledByIds(EnabledIdsQuery query);
 
     /**
      * 查询模型配置分页数据（包含能力）
      *
-     * @param offset   偏移量
-     * @param pageSize 每页大小
+     * @param query 分页查询条件
      * @return 模型配置列表
      */
-    List<ModelConfig> findPageWithCapability(@Param("offset") int offset,
-                                             @Param("pageSize") int pageSize);
+    List<ModelConfig> findPageWithCapability(ModelConfigPageQuery query);
 
     /**
      * 统计模型配置总数

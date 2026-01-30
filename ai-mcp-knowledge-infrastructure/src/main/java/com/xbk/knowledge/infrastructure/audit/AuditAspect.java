@@ -5,6 +5,7 @@ import com.xbk.knowledge.api.dto.model.ModelConfigResponse;
 import com.xbk.knowledge.api.dto.task.TaskTypeResponse;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.model.entity.TaskType;
+import com.xbk.knowledge.domain.model.vo.IdQuery;
 import com.xbk.knowledge.domain.repository.ModelConfigRepository;
 import com.xbk.knowledge.domain.repository.TaskTypeRepository;
 import com.xbk.knowledge.infrastructure.audit.AuditService;
@@ -46,7 +47,7 @@ public class AuditAspect {
         try {
             Long recordId = extractRecordId(result);
             if (recordId != null) {
-                ModelConfig newValue = modelConfigRepository.findById(recordId).orElse(null);
+                ModelConfig newValue = modelConfigRepository.findById(new IdQuery(recordId)).orElse(null);
                 auditService.recordAudit(MODEL_CONFIG_TABLE, recordId, OPERATION_INSERT, null, newValue);
             } else {
                 log.warn("创建模型配置审计未记录，未解析到记录ID");
@@ -60,12 +61,12 @@ public class AuditAspect {
     @Around("execution(* com.xbk.knowledge.trigger.http.ModelConfigController.updateModel(..))")
     public Object aroundUpdateModel(ProceedingJoinPoint joinPoint) throws Throwable {
         Long recordId = extractRecordId(joinPoint.getArgs());
-        ModelConfig oldValue = recordId == null ? null : modelConfigRepository.findById(recordId).orElse(null);
+        ModelConfig oldValue = recordId == null ? null : modelConfigRepository.findById(new IdQuery(recordId)).orElse(null);
         try {
             Object result = joinPoint.proceed();
             try {
                 if (recordId != null) {
-                    ModelConfig newValue = modelConfigRepository.findById(recordId).orElse(null);
+                    ModelConfig newValue = modelConfigRepository.findById(new IdQuery(recordId)).orElse(null);
                     auditService.recordAudit(MODEL_CONFIG_TABLE, recordId, OPERATION_UPDATE, oldValue, newValue);
                 } else {
                     log.warn("更新模型配置审计未记录，未解析到记录ID");
@@ -83,7 +84,7 @@ public class AuditAspect {
     @Around("execution(* com.xbk.knowledge.trigger.http.ModelConfigController.deleteModel(..))")
     public Object aroundDeleteModel(ProceedingJoinPoint joinPoint) throws Throwable {
         Long recordId = extractRecordId(joinPoint.getArgs());
-        ModelConfig oldValue = recordId == null ? null : modelConfigRepository.findById(recordId).orElse(null);
+        ModelConfig oldValue = recordId == null ? null : modelConfigRepository.findById(new IdQuery(recordId)).orElse(null);
         try {
             Object result = joinPoint.proceed();
             try {
@@ -108,7 +109,7 @@ public class AuditAspect {
         try {
             Long recordId = extractRecordId(result);
             if (recordId != null) {
-                TaskType newValue = taskTypeRepository.findById(recordId).orElse(null);
+                TaskType newValue = taskTypeRepository.findById(new IdQuery(recordId)).orElse(null);
                 auditService.recordAudit(TASK_TYPE_TABLE, recordId, OPERATION_INSERT, null, newValue);
             } else {
                 log.warn("创建任务类型审计未记录，未解析到记录ID");
@@ -122,12 +123,12 @@ public class AuditAspect {
     @Around("execution(* com.xbk.knowledge.trigger.http.TaskTypeController.updateTaskType(..))")
     public Object aroundUpdateTaskType(ProceedingJoinPoint joinPoint) throws Throwable {
         Long recordId = extractRecordId(joinPoint.getArgs());
-        TaskType oldValue = recordId == null ? null : taskTypeRepository.findById(recordId).orElse(null);
+        TaskType oldValue = recordId == null ? null : taskTypeRepository.findById(new IdQuery(recordId)).orElse(null);
         try {
             Object result = joinPoint.proceed();
             try {
                 if (recordId != null) {
-                    TaskType newValue = taskTypeRepository.findById(recordId).orElse(null);
+                    TaskType newValue = taskTypeRepository.findById(new IdQuery(recordId)).orElse(null);
                     auditService.recordAudit(TASK_TYPE_TABLE, recordId, OPERATION_UPDATE, oldValue, newValue);
                 } else {
                     log.warn("更新任务类型审计未记录，未解析到记录ID");
@@ -145,7 +146,7 @@ public class AuditAspect {
     @Around("execution(* com.xbk.knowledge.trigger.http.TaskTypeController.deleteTaskType(..))")
     public Object aroundDeleteTaskType(ProceedingJoinPoint joinPoint) throws Throwable {
         Long recordId = extractRecordId(joinPoint.getArgs());
-        TaskType oldValue = recordId == null ? null : taskTypeRepository.findById(recordId).orElse(null);
+        TaskType oldValue = recordId == null ? null : taskTypeRepository.findById(new IdQuery(recordId)).orElse(null);
         try {
             Object result = joinPoint.proceed();
             try {

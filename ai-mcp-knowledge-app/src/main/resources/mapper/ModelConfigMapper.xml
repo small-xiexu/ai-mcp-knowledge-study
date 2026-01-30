@@ -4,6 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.xbk.knowledge.infrastructure.mapper.ModelConfigMapper">
 
+    <!-- 模型配置基础字段映射 -->
     <resultMap id="ModelConfigMap" type="com.xbk.knowledge.domain.model.entity.ModelConfig">
         <id column="id" property="id"/>
         <result column="model_name" property="modelName"/>
@@ -16,6 +17,7 @@
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
 
+    <!-- 模型能力字段映射，供 capability 关联使用 -->
     <resultMap id="ModelCapabilityMap" type="com.xbk.knowledge.domain.model.entity.ModelCapability">
         <id column="cap_id" property="id"/>
         <result column="cap_model_id" property="modelId"/>
@@ -29,6 +31,7 @@
         <result column="cap_updated_at" property="updatedAt"/>
     </resultMap>
 
+    <!-- 联表映射：ModelConfig + ModelCapability，cap_* 字段映射到 capability -->
     <resultMap id="ModelConfigWithCapabilityMap" type="com.xbk.knowledge.domain.model.entity.ModelConfig" extends="ModelConfigMap">
         <association property="capability" javaType="com.xbk.knowledge.domain.model.entity.ModelCapability"
                      resultMap="ModelCapabilityMap"/>
@@ -246,6 +249,7 @@
         </where>
     </select>
 
+    <!-- 分页查询模型配置并携带能力配置，字段较多用于完整装配 capability -->
     <select id="findPageWithCapability" resultMap="ModelConfigWithCapabilityMap">
         select
             mc.id,

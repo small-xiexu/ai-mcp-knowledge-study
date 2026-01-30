@@ -8,7 +8,9 @@ import com.xbk.knowledge.api.dto.model.ModelConfigRequest;
 import com.xbk.knowledge.api.dto.model.ModelConfigResponse;
 import com.xbk.knowledge.domain.model.entity.ModelCapability;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
-import com.xbk.knowledge.domain.service.IModelConfigService;
+import com.xbk.knowledge.domain.model.vo.IdQuery;
+import com.xbk.knowledge.domain.model.vo.ModelConfigPageQuery;
+import com.xbk.knowledge.application.service.ModelConfigAppService;
 import com.xbk.knowledge.trigger.converter.DTOConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +22,7 @@ import java.util.stream.Collectors;
 
 /**
  * 模型配置管理 Controller
- * 负责接收 HTTP 请求，调用领域服务，转换响应
+ * 负责接收 HTTP 请求，调用应用服务，转换响应
  *
  * 职责：HTTP 接口适配，用于转发应用层能力
  * @author xiexu
@@ -31,7 +33,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ModelConfigController {
 
-    private final IModelConfigService modelConfigService;
+    private final ModelConfigAppService modelConfigAppService;
 
     /**
      * 查询所有可用模型（分页）
@@ -41,14 +43,12 @@ public class ModelConfigController {
      */
     @PostMapping("/list")
     public Result<PageResult<ModelConfigResponse>> listModels(@Valid @RequestBody ModelConfigQueryRequest request) {
-        // 验证并修正分页参数
-        request.validate();
-
-        // 调用领域服务查询
-        PageResult<ModelConfig> pageResult = modelConfigService.queryModelConfigPage(
+        // 调用应用服务查询
+        ModelConfigPageQuery query = new ModelConfigPageQuery(
                 request.getOffset(),
                 request.getPageSize()
         );
+        PageResult<ModelConfig> pageResult = modelConfigAppService.queryModelConfigPage(query);
 
         // 转换为响应 DTO
         List<ModelConfigResponse> records = pageResult.getRecords().stream()
@@ -74,8 +74,8 @@ public class ModelConfigController {
      */
     @PostMapping("/get")
     public Result<ModelConfigResponse> getModel(@Valid @RequestBody IdRequest request) {
-        // 调用领域服务查询
-        ModelConfig modelConfig = modelConfigService.queryModelConfigById(request.getId());
+        // 调用应用服务查询
+        ModelConfig modelConfig = modelConfigAppService.queryModelConfigById(new IdQuery(request.getId()));
 
         // 转换为响应 DTO
         return Result.success(convertToResponse(modelConfig));
@@ -92,8 +92,8 @@ public class ModelConfigController {
         // 构建领域实体
         ModelConfig modelConfig = buildModelConfigFromRequest(request);
 
-        // 调用领域服务创建
-        ModelConfig savedModel = modelConfigService.createModelConfig(modelConfig);
+        // 调用应用服务创建
+        ModelConfig savedModel = modelConfigAppService.createModelConfig(modelConfig);
 
         // 转换为响应 DTO
         return Result.success("模型配置创建成功", convertToResponse(savedModel));
@@ -111,8 +111,8 @@ public class ModelConfigController {
         ModelConfig modelConfig = buildModelConfigFromRequest(request);
         modelConfig.setId(request.getId());
 
-        // 调用领域服务更新
-        ModelConfig updatedModel = modelConfigService.updateModelConfig(modelConfig);
+        // 调用应用服务更新
+        ModelConfig updatedModel = modelConfigAppService.updateModelConfig(modelConfig);
 
         // 转换为响应 DTO
         return Result.success("模型配置更新成功", convertToResponse(updatedModel));
@@ -126,8 +126,8 @@ public class ModelConfigController {
      */
     @PostMapping("/delete")
     public Result<Void> deleteModel(@Valid @RequestBody IdRequest request) {
-        // 调用领域服务删除
-        modelConfigService.deleteModelConfig(request.getId());
+        // 调用应用服务删除
+        modelConfigAppService.deleteModelConfig(new IdQuery(request.getId()));
 
         return Result.success();
     }
@@ -140,8 +140,8 @@ public class ModelConfigController {
      */
     @PostMapping("/enable")
     public Result<ModelConfigResponse> enableModel(@Valid @RequestBody IdRequest request) {
-        // 调用领域服务启用
-        ModelConfig updatedModel = modelConfigService.enableModel(request.getId());
+        // 调用应用服务启用
+        ModelConfig updatedModel = modelConfigAppService.enableModel(new IdQuery(request.getId()));
 
         // 转换为响应 DTO
         return Result.success("模型启用成功", convertToResponse(updatedModel));
@@ -155,8 +155,8 @@ public class ModelConfigController {
      */
     @PostMapping("/disable")
     public Result<ModelConfigResponse> disableModel(@Valid @RequestBody IdRequest request) {
-        // 调用领域服务禁用
-        ModelConfig updatedModel = modelConfigService.disableModel(request.getId());
+        // 调用应用服务禁用
+        ModelConfig updatedModel = modelConfigAppService.disableModel(new IdQuery(request.getId()));
 
         // 转换为响应 DTO
         return Result.success("模型禁用成功", convertToResponse(updatedModel));

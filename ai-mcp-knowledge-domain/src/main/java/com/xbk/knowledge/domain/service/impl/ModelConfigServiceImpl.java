@@ -2,6 +2,11 @@ package com.xbk.knowledge.domain.service.impl;
 
 import com.xbk.knowledge.domain.model.entity.ModelCapability;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.model.vo.EnabledQuery;
+import com.xbk.knowledge.domain.model.vo.IdQuery;
+import com.xbk.knowledge.domain.model.vo.ModelConfigPageQuery;
+import com.xbk.knowledge.domain.model.vo.ModelNameQuery;
+import com.xbk.knowledge.domain.model.vo.TaskTypeQuery;
 import com.xbk.knowledge.domain.repository.ModelConfigRepository;
 import com.xbk.knowledge.domain.service.IModelConfigService;
 import com.xbk.knowledge.types.common.PageResult;
@@ -27,10 +32,19 @@ public class ModelConfigServiceImpl implements IModelConfigService {
 
     private final ModelConfigRepository modelConfigRepository;
 
+    /**
+     * 分页查询模型配置
+     * 统一分页口径并返回稳定的分页结构
+     */
     @Override
-    public PageResult<ModelConfig> queryModelConfigPage(int offset, int pageSize) {
+    public PageResult<ModelConfig> queryModelConfigPage(ModelConfigPageQuery query) {
+        if (query == null) {
+            throw new IllegalArgumentException("分页查询条件不能为空");
+        }
+        int offset = query.getOffset() == null ? 0 : query.getOffset();
+        int pageSize = query.getPageSize() == null ? 10 : query.getPageSize();
         // 查询分页数据
-        List<ModelConfig> models = modelConfigRepository.findPageWithCapability(offset, pageSize);
+        List<ModelConfig> models = modelConfigRepository.findPageWithCapability(new ModelConfigPageQuery(offset, pageSize));
 
         // 查询总数
         long total = modelConfigRepository.countAll();
@@ -41,16 +55,28 @@ public class ModelConfigServiceImpl implements IModelConfigService {
         return PageResult.of(models, total, pageNum, pageSize);
     }
 
+    /**
+     * 根据 ID 查询模型配置
+     * 明确业务语义，确保不存在时抛出领域异常
+     */
     @Override
-    public ModelConfig queryModelConfigById(Long id) {
-        return modelConfigRepository.findById(id)
+    public ModelConfig queryModelConfigById(IdQuery query) {
+        if (query == null || query.getId() == null) {
+            throw new IllegalArgumentException("模型 ID 不能为空");
+        }
+        Long id = query.getId();
+        return modelConfigRepository.findById(new IdQuery(id))
                 .orElseThrow(() -> new NotFoundException("模型配置不存在，id: " + id));
     }
 
+    /**
+     * 创建模型配置
+     * 统一校验并确保模型配置与能力配置的聚合一致性
+     */
     @Override
     public ModelConfig createModelConfig(ModelConfig modelConfig) {
         // 检查模型名称是否已存在
-        if (modelConfigRepository.findByModelName(modelConfig.getModelName()).isPresent()) {
+        if (modelConfigRepository.findByModelName(new ModelNameQuery(modelConfig.getModelName())).isPresent()) {
             // 业务层提前校验，避免数据库唯一约束异常影响可读性
             throw new IllegalArgumentException("模型名称已存在：" + modelConfig.getModelName());
         }
@@ -70,6 +96,10 @@ public class ModelConfigServiceImpl implements IModelConfigService {
         return modelConfigRepository.save(modelConfig);
     }
 
+    /**
+     * 更新模型配置
+     * 校验唯一性与存在性，确保聚合内字段一致更新
+     */
     @Override
     public ModelConfig updateModelConfig(ModelConfig modelConfig) {
         if (modelConfig.getId() == null) {
@@ -77,11 +107,11 @@ public class ModelConfigServiceImpl implements IModelConfigService {
         }
 
         // 查询现有配置
-        ModelConfig existingConfig = modelConfigRepository.findById(modelConfig.getId())
+        ModelConfig existingConfig = modelConfigRepository.findById(new IdQuery(modelConfig.getId()))
                 .orElseThrow(() -> new NotFoundException("模型配置不存在，id: " + modelConfig.getId()));
 
         // 检查模型名称是否与其他模型冲突
-        modelConfigRepository.findByModelName(modelConfig.getModelName())
+        modelConfigRepository.findByModelName(new ModelNameQuery(modelConfig.getModelName()))
                 .ifPresent(existing -> {
                     if (!existing.getId().equals(modelConfig.getId())) {
                         throw new IllegalArgumentException("模型名称已存在：" + modelConfig.getModelName());
@@ -116,20 +146,36 @@ public class ModelConfigServiceImpl implements IModelConfigService {
         return modelConfigRepository.save(existingConfig);
     }
 
+    /**
+     * 删除模型配置
+     * 防止删除不存在的模型，确保操作语义清晰
+     */
     @Override
-    public void deleteModelConfig(Long id) {
+    public void deleteModelConfig(IdQuery query) {
+        if (query == null || query.getId() == null) {
+            throw new IllegalArgumentException("模型 ID 不能为空");
+        }
+        Long id = query.getId();
         // 检查模型是否存在
-        if (!modelConfigRepository.existsById(id)) {
+        if (!modelConfigRepository.existsById(new IdQuery(id))) {
             throw new NotFoundException("模型配置不存在，id: " + id);
         }
 
         // 删除模型
-        modelConfigRepository.deleteById(id);
+        modelConfigRepository.deleteById(new IdQuery(id));
     }
 
+    /**
+     * 启用模型
+     * 统一更新启用状态并维护更新时间
+     */
     @Override
-    public ModelConfig enableModel(Long id) {
-        ModelConfig modelConfig = modelConfigRepository.findById(id)
+    public ModelConfig enableModel(IdQuery query) {
+        if (query == null || query.getId() == null) {
+            throw new IllegalArgumentException("模型 ID 不能为空");
+        }
+        Long id = query.getId();
+        ModelConfig modelConfig = modelConfigRepository.findById(new IdQuery(id))
                 .orElseThrow(() -> new NotFoundException("模型配置不存在，id: " + id));
 
         modelConfig.setEnabled(true);
@@ -138,9 +184,17 @@ public class ModelConfigServiceImpl implements IModelConfigService {
         return modelConfigRepository.save(modelConfig);
     }
 
+    /**
+     * 禁用模型
+     * 统一更新禁用状态并维护更新时间
+     */
     @Override
-    public ModelConfig disableModel(Long id) {
-        ModelConfig modelConfig = modelConfigRepository.findById(id)
+    public ModelConfig disableModel(IdQuery query) {
+        if (query == null || query.getId() == null) {
+            throw new IllegalArgumentException("模型 ID 不能为空");
+        }
+        Long id = query.getId();
+        ModelConfig modelConfig = modelConfigRepository.findById(new IdQuery(id))
                 .orElseThrow(() -> new NotFoundException("模型配置不存在，id: " + id));
 
         modelConfig.setEnabled(false);
@@ -149,16 +203,25 @@ public class ModelConfigServiceImpl implements IModelConfigService {
         return modelConfigRepository.save(modelConfig);
     }
 
+    /**
+     * 查询所有启用的模型
+     * 用于外部模型选择与推荐场景的基础数据来源
+     */
     @Override
-    public List<ModelConfig> queryEnabledModels() {
+    public List<ModelConfig> queryEnabledModels(EnabledQuery query) {
         // 查询所有启用的模型
-        return modelConfigRepository.findByEnabled(true);
+        Boolean enabled = query == null || query.getEnabled() == null ? Boolean.TRUE : query.getEnabled();
+        return modelConfigRepository.findByEnabled(new EnabledQuery(enabled));
     }
 
+    /**
+     * 获取推荐模型
+     * 当前按启用模型兜底，预留基于任务类型的推荐策略
+     */
     @Override
-    public ModelConfig getRecommendedModel(String taskType) {
+    public ModelConfig getRecommendedModel(TaskTypeQuery query) {
         // 查询所有启用的模型
-        List<ModelConfig> models = modelConfigRepository.findByEnabled(true);
+        List<ModelConfig> models = modelConfigRepository.findByEnabled(new EnabledQuery(true));
 
         // 返回第一个启用的模型作为推荐
         // TODO: 未来可以根据任务类型从 TaskType 表中查询 preferredModelId
