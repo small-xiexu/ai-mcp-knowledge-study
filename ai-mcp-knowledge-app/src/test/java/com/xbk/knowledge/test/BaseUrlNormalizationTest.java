@@ -5,6 +5,7 @@ import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.application.provider.ModelProviderFactory;
 import com.xbk.knowledge.types.enums.ModelType;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,14 +21,22 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * @author xiexu
  */
 @Slf4j
+@Tag("integration")
 @SpringBootTest(classes = Application.class)
 @ImportAutoConfiguration(exclude = {
         org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreAutoConfiguration.class
 })
 public class BaseUrlNormalizationTest {
 
+    private final ModelProviderFactory modelProviderFactory;
+
+    /**
+     * 对外暴露 BaseUrlNormalizationTest 作为调用入口，便于上层复用。
+     */
     @Autowired
-    private ModelProviderFactory modelProviderFactory;
+    public BaseUrlNormalizationTest(ModelProviderFactory modelProviderFactory) {
+        this.modelProviderFactory = modelProviderFactory;
+    }
 
     /**
      * 测试场景 1：标准格式（不带 /v1）

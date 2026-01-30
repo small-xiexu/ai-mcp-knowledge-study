@@ -112,7 +112,7 @@
 <script setup lang="ts">
 import { ref, reactive, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
-import { chat, chatByTaskType } from '@/api/ai'
+import { chat } from '@/api/ai'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -160,12 +160,10 @@ const handleSend = async () => {
       strategy: config.strategy
     }
 
-    const res = config.taskType
-      ? await chatByTaskType(config.taskType, requestData)
-      : await chat({
-          ...requestData,
-          taskType: config.taskType || undefined
-        })
+    const res = await chat({
+      ...requestData,
+      taskType: config.taskType || undefined
+    })
 
     const data = res.data.data
 

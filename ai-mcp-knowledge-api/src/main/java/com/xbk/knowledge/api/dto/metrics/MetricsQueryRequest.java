@@ -1,6 +1,7 @@
 package com.xbk.knowledge.api.dto.metrics;
 
 import com.xbk.knowledge.types.common.BaseRequest;
+import com.xbk.knowledge.types.enums.TaskTypeEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -8,6 +9,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import java.time.LocalDateTime;
 
 /**
@@ -37,8 +39,9 @@ public class MetricsQueryRequest extends BaseRequest {
      * 取值来自任务类型配置表 ai_task_type.task_code，可通过 /api/task-types/list 查询
      * 不指定则查询所有任务类型
      *
-     * @see com.xbk.knowledge.trigger.http.TaskTypeController#listTaskTypes(com.xbk.knowledge.api.dto.task.TaskTypeQueryRequest)
+     * @see com.xbk.knowledge.types.enums.TaskTypeEnum
      */
+    @Pattern(regexp = TaskTypeEnum.TASK_TYPE_REGEX, message = "任务类型编码不合法")
     private String taskType;
 
     /**

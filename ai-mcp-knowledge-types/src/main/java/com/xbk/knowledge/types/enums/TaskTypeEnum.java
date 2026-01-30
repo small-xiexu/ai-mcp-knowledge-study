@@ -45,6 +45,13 @@ public enum TaskTypeEnum {
     MCP_INTEGRATION("MCP_INTEGRATION", "对接MCP");
 
     /**
+     * 任务类型校验正则
+     * 用于接口层参数校验与枚举一致性约束
+     */
+    public static final String TASK_TYPE_REGEX =
+            "^(ANALYSIS|WRITING|TRANSLATION|CODE_GENERATION|CONVERSATION|SUMMARIZATION|MCP_INTEGRATION)$";
+
+    /**
      * 任务编码（与数据库 task_code 字段对应）
      */
     private final String code;
@@ -59,10 +66,16 @@ public enum TaskTypeEnum {
         this.displayName = displayName;
     }
 
+    /**
+     * 对外暴露 getCode 作为调用入口，便于上层复用。
+     */
     public String getCode() {
         return code;
     }
 
+    /**
+     * 对外暴露 getDisplayName 作为调用入口，便于上层复用。
+     */
     public String getDisplayName() {
         return displayName;
     }

@@ -26,17 +26,26 @@ public class RequestResponseLoggingAdvisor implements CallAdvisor {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    /**
+     * 对外暴露 getName 作为调用入口，便于上层复用。
+     */
     @Override
     public String getName() {
         return "RequestResponseLoggingAdvisor";
     }
 
+    /**
+     * 对外暴露 getOrder 作为调用入口，便于上层复用。
+     */
     @Override
     public int getOrder() {
         // 设置为最高优先级，确保最先执行
         return Ordered.HIGHEST_PRECEDENCE + 1;  // 在 TraceIdAdvisor 之后
     }
 
+    /**
+     * 对外暴露 adviseCall 作为调用入口，便于上层复用。
+     */
     @Override
     public ChatClientResponse adviseCall(ChatClientRequest request, CallAdvisorChain chain) {
         // 打印请求信息

@@ -161,15 +161,12 @@ public class WebLogAspect {
             return "无";
         }
 
-        Predicate<Object> notNull = arg -> arg != null;
-        Predicate<Object> notRequest = arg -> !(arg instanceof HttpServletRequest);
-        Predicate<Object> notResponse = arg -> !(arg instanceof jakarta.servlet.http.HttpServletResponse);
         Function<Object, String> jsonMapper = this::toJsonString;
         Collector<CharSequence, ?, String> joiningCollector = Collectors.joining(", ");
         String params = Arrays.stream(args)
-                .filter(notNull)
-                .filter(notRequest)
-                .filter(notResponse)
+                .filter(arg -> arg != null)
+                .filter(arg -> !(arg instanceof HttpServletRequest))
+                .filter(arg -> !(arg instanceof jakarta.servlet.http.HttpServletResponse))
                 .map(jsonMapper)
                 .collect(joiningCollector);
 

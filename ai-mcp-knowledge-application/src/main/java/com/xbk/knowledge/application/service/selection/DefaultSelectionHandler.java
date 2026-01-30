@@ -23,11 +23,17 @@ public class DefaultSelectionHandler implements ModelSelectionHandler {
 
     private final ModelSelector modelSelector;
 
+    /**
+     * 对外暴露 supports 作为调用入口，便于上层复用。
+     */
     @Override
     public boolean supports(AICallCommand request) {
         return true;
     }
 
+    /**
+     * 对外暴露 select 作为调用入口，便于上层复用。
+     */
     @Override
     public ModelSelectionDecision select(AICallCommand request) {
         ModelConfig selectedModel = modelSelector.selectByQualityPriority();

@@ -40,6 +40,13 @@ public class AIModelServiceImpl implements AIModelService {
     private final CallLogRepository callLogRepository;
     private final FallbackHandler fallbackHandler;
 
+    /**
+     * 统一聊天入口
+     * 通过选择链路隔离策略差异，保证调用入口稳定一致
+     *
+     * @param request 请求对象
+     * @return 调用结果
+     */
     @Override
     public AICallResult chat(AICallCommand request) {
         String content = request.getContent();
@@ -50,7 +57,8 @@ public class AIModelServiceImpl implements AIModelService {
         ModelSelectionDecision decision = modelSelectionChain.select(request);
         if (decision.isUseTaskType()) {
             // 任务类型有明确的业务语义，优先使用任务配置的模型
-            return chatByTaskType(decision.getTaskType(), request);
+            request.setTaskType(decision.getTaskType());
+            return chatByTaskType(request);
         }
         selectedModel = decision.getSelectedModel();
 
@@ -58,9 +66,17 @@ public class AIModelServiceImpl implements AIModelService {
         return executeCall(selectedModel, request, false);
     }
 
+    /**
+     * 按任务类型调用
+     * 保证任务语义优先并统一降级策略的处理路径
+     *
+     * @param request 请求对象
+     * @return 调用结果
+     */
     @Override
-    public AICallResult chatByTaskType(String taskType, AICallCommand request) {
+    public AICallResult chatByTaskType(AICallCommand request) {
         String content = request.getContent();
+        String taskType = request.getTaskType();
         log.info("开始处理 chatByTaskType 请求，taskType: {}, content: {}", taskType, content);
 
         // 根据任务类型选择模型

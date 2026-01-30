@@ -2,10 +2,9 @@ package com.xbk.knowledge.test;
 
 import com.xbk.knowledge.config.TraceIdAdvisor;
 import com.xbk.knowledge.trigger.job.MCPServerCSDNJob;
-import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.PromptChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.InMemoryChatMemoryRepository;
@@ -15,7 +14,6 @@ import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.function.Consumer;
 
@@ -50,33 +48,40 @@ import java.util.function.Consumer;
  */
 @Deprecated
 @Slf4j
-@RunWith(SpringRunner.class)
+@Tag("integration")
 @SpringBootTest
 @EnableAutoConfiguration(exclude = {
         org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreAutoConfiguration.class
 })
 public class MCPTest {
 
-    @Autowired
-    private ToolCallbackProvider tools;
+    private final ToolCallbackProvider tools;
 
     /**
      * Gemini 模型（通过 OpenAI 兼容协议调用）
      */
-    @Autowired
-    private OpenAiChatModel openAiChatModel;
+    private final OpenAiChatModel openAiChatModel;
 
     /**
      * CSDN 定时任务 Job
      */
-    @Autowired
-    private MCPServerCSDNJob mcpServerCSDNJob;
+    private final MCPServerCSDNJob mcpServerCSDNJob;
 
     /**
      * TraceId 链路追踪 Advisor
      */
+    private final TraceIdAdvisor traceIdAdvisor;
+
     @Autowired
-    private TraceIdAdvisor traceIdAdvisor;
+    public MCPTest(ToolCallbackProvider tools,
+                   OpenAiChatModel openAiChatModel,
+                   MCPServerCSDNJob mcpServerCSDNJob,
+                   TraceIdAdvisor traceIdAdvisor) {
+        this.tools = tools;
+        this.openAiChatModel = openAiChatModel;
+        this.mcpServerCSDNJob = mcpServerCSDNJob;
+        this.traceIdAdvisor = traceIdAdvisor;
+    }
 
     /**
      * traceId 传递指令模板
@@ -107,10 +112,7 @@ public class MCPTest {
                 .defaultAdvisors(traceIdAdvisor)
                 .build();
 
-        String questionMessage = "\n>>> QUESTION: " + userInput;
-        System
-                .out
-                .println(questionMessage);
+        log.info(">>> QUESTION: {}", userInput);
         String systemPrompt = String
                 .format(TRACE_ID_SYSTEM_PROMPT, traceId);
         String assistantContent = chatClient
@@ -119,10 +121,7 @@ public class MCPTest {
                 .user(userInput)
                 .call()
                 .content();
-        String assistantMessage = "\n>>> ASSISTANT: " + assistantContent;
-        System
-                .out
-                .println(assistantMessage);
+        log.info(">>> ASSISTANT: {}", assistantContent);
     }
 
     /**
@@ -147,10 +146,7 @@ public class MCPTest {
                 .defaultAdvisors(traceIdAdvisor)
                 .build();
 
-        String questionMessage = "\n>>> QUESTION: " + userInput;
-        System
-                .out
-                .println(questionMessage);
+        log.info(">>> QUESTION: {}", userInput);
         String systemPrompt = String
                 .format(TRACE_ID_SYSTEM_PROMPT, traceId);
         String assistantContent = chatClient
@@ -159,10 +155,7 @@ public class MCPTest {
                 .user(userInput)
                 .call()
                 .content();
-        String assistantMessage = "\n>>> ASSISTANT: " + assistantContent;
-        System
-                .out
-                .println(assistantMessage);
+        log.info(">>> ASSISTANT: {}", assistantContent);
     }
 
     /**

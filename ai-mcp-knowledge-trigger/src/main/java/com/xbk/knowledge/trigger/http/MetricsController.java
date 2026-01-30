@@ -47,6 +47,9 @@ public class MetricsController implements IMetricsService {
 
     private final MetricsAppService metricsAppService;
 
+    /**
+     * 对外暴露 getCallMetrics 作为调用入口，便于上层复用。
+     */
     @Override
     @PostMapping("/calls")
     public Result<CallMetricsDTO> getCallMetrics(@Valid @RequestBody MetricsQueryRequest request) {
@@ -77,6 +80,9 @@ public class MetricsController implements IMetricsService {
         return Result.success(dto);
     }
 
+    /**
+     * 对外暴露 getSuccessRate 作为调用入口，便于上层复用。
+     */
     @Override
     @PostMapping("/success-rate")
     public Result<SuccessRateDTO> getSuccessRate(@Valid @RequestBody MetricsQueryRequest request) {
@@ -106,6 +112,9 @@ public class MetricsController implements IMetricsService {
         return Result.success(dto);
     }
 
+    /**
+     * 对外暴露 getResponseTime 作为调用入口，便于上层复用。
+     */
     @Override
     @PostMapping("/response-time")
     public Result<ResponseTimeDTO> getResponseTime(@Valid @RequestBody MetricsQueryRequest request) {
@@ -135,6 +144,9 @@ public class MetricsController implements IMetricsService {
         return Result.success(dto);
     }
 
+    /**
+     * 对外暴露 getModelUsage 作为调用入口，便于上层复用。
+     */
     @Override
     @PostMapping("/model-usage")
     public Result<List<ModelUsageDTO>> getModelUsage(@Valid @RequestBody ModelUsageQueryRequest request) {

@@ -281,10 +281,13 @@ flowchart TB
 
 ## 8. DDD 与 MCP 的结合（本项目特色）
 
-在本项目中，MCP 工具调用属于“外部能力协同”，因此：
-- **MCP Client** 放在 Application 参与业务流程编排
-- **MCP Tool 的具体实现** 属于 Infrastructure（外部系统适配）
+在本项目中，MCP 工具调用属于“外部能力协同”，当前实现为：
+- **MCP 调用示例** 位于 Trigger 的定时任务中（`MCPServerCSDNJob`），直接编排 ChatClient 与工具调用
+- **MCP Tool 的具体实现** 仍属于 Infrastructure（外部系统适配）
 - **调用链路日志与审计** 属于 Domain 规则（存储模型）
+
+说明：
+- 如需更严格的分层，可将 MCP 调用编排迁移到 Application，用 Trigger 仅做适配
 
 ## 9. DDD 实战练习（建议按顺序完成）
 

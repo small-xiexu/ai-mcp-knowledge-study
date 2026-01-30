@@ -32,17 +32,26 @@ import java.util.stream.Stream;
 @Component
 public class ToolCallLoggingAdvisor implements CallAdvisor {
 
+    /**
+     * 对外暴露 getName 作为调用入口，便于上层复用。
+     */
     @Override
     public String getName() {
         return "ToolCallLoggingAdvisor";
     }
 
+    /**
+     * 对外暴露 getOrder 作为调用入口，便于上层复用。
+     */
     @Override
     public int getOrder() {
         // 放到链路末端，确保拿到完整响应结果
         return Ordered.LOWEST_PRECEDENCE;
     }
 
+    /**
+     * 对外暴露 adviseCall 作为调用入口，便于上层复用。
+     */
     @Override
     public ChatClientResponse adviseCall(ChatClientRequest request, CallAdvisorChain chain) {
         long startTime = TimeCostUtils.start();

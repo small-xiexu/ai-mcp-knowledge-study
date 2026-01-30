@@ -13,6 +13,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 public class Application {
 
+    /**
+     * 对外暴露 main 作为调用入口，便于上层复用。
+     */
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
     }

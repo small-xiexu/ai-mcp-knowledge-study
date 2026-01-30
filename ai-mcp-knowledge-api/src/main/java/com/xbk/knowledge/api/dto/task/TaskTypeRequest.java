@@ -1,6 +1,7 @@
 package com.xbk.knowledge.api.dto.task;
 
 import com.xbk.knowledge.types.common.BaseRequest;
+import com.xbk.knowledge.types.enums.TaskTypeEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 
 /**
  * 任务类型请求 DTO
@@ -41,6 +43,7 @@ public class TaskTypeRequest extends BaseRequest {
      * 任务编码（唯一）
      */
     @NotBlank(message = "任务编码不能为空")
+    @Pattern(regexp = TaskTypeEnum.TASK_TYPE_REGEX, message = "任务编码不合法")
     private String taskCode;
 
     /**

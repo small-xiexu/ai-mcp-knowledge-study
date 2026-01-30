@@ -25,9 +25,8 @@ public interface AIModelService {
      * 根据任务类型聊天
      * 自动选择该任务类型的首选模型，失败时尝试备用模型
      *
-     * @param taskType 任务类型编码
-     * @param request  AI 请求对象
+     * @param request AI 请求对象
      * @return AI 响应对象
      */
-    AICallResult chatByTaskType(String taskType, AICallCommand request);
+    AICallResult chatByTaskType(AICallCommand request);
 }

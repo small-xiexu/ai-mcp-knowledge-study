@@ -33,6 +33,9 @@ public class ChatClientEnhancer {
      */
     private ToolCallbackProvider toolCallbackProvider;
 
+    /**
+     * 对外暴露 ChatClientEnhancer 作为调用入口，便于上层复用。
+     */
     public ChatClientEnhancer(List<CallAdvisor> advisors, ObjectProvider<ToolCallbackProvider> toolCallbackProvider) {
         this.advisors = advisors;
         this

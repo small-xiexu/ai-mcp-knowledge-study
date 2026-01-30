@@ -33,6 +33,9 @@ public enum CallStatus {
         this.displayName = displayName;
     }
 
+    /**
+     * 对外暴露 getDisplayName 作为调用入口，便于上层复用。
+     */
     public String getDisplayName() {
         return displayName;
     }

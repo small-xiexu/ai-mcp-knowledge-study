@@ -78,41 +78,6 @@ public class AICallController implements IAICallService {
     }
 
     /**
-     * 按任务类型调用 AI
-     * 根据任务类型选择对应的模型
-     *
-     * @param taskType 任务类型
-     * @param request  AI 请求
-     * @return AI 响应
-     */
-    @Override
-    @PostMapping("/chat/{taskType}")
-    public Result<AIResponse> chatByTaskType(@PathVariable String taskType, @Valid @RequestBody AIRequest request) {
-        try {
-            AICallCommand command = DTOConverter.toAppAICallCommand(request);
-            command.setTaskType(taskType);
-
-            AICallResult result = aiModelService.chatByTaskType(taskType, command);
-            AIResponse response = DTOConverter.toApiAIResponse(result);
-
-            return Result.success(response);
-        } catch (BusinessException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("AI 调用失败", e);
-
-            // 统一错误响应格式，便于前端处理
-            AIResponse response = new AIResponse();
-            response.setSuccess(false);
-            String errorMessage = e.getMessage();
-            response.setErrorMessage(errorMessage);
-
-            String responseMessage = "AI 调用失败：" + errorMessage;
-            return Result.error(ResultCode.AI_CALL_FAILED, responseMessage, response);
-        }
-    }
-
-    /**
      * 获取所有可用模型列表
      *
      * @return 模型列表
@@ -148,7 +113,7 @@ public class AICallController implements IAICallService {
      * 获取推荐模型
      * 根据任务类型推荐最合适的模型
      *
-     * @param taskType 任务类型
+     * @param request 推荐模型查询请求
      * @return 推荐的模型信息
      */
     @Override

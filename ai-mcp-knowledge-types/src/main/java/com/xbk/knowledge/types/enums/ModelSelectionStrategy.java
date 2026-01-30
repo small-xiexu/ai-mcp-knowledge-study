@@ -42,10 +42,16 @@ public enum ModelSelectionStrategy {
         this.description = description;
     }
 
+    /**
+     * 对外暴露 getName 作为调用入口，便于上层复用。
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * 对外暴露 getDescription 作为调用入口，便于上层复用。
+     */
     public String getDescription() {
         return description;
     }

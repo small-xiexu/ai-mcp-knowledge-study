@@ -17,11 +17,17 @@ import org.springframework.stereotype.Component;
 @Order(2)
 public class TaskTypeSelectionHandler implements ModelSelectionHandler {
 
+    /**
+     * 对外暴露 supports 作为调用入口，便于上层复用。
+     */
     @Override
     public boolean supports(AICallCommand request) {
         return request.getTaskType() != null;
     }
 
+    /**
+     * 对外暴露 select 作为调用入口，便于上层复用。
+     */
     @Override
     public ModelSelectionDecision select(AICallCommand request) {
         String taskType = request.getTaskType();

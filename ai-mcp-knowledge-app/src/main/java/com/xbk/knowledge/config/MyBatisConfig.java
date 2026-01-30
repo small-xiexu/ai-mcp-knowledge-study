@@ -29,7 +29,7 @@ public class MyBatisConfig {
     /**
      * 使用 MyBatis-Plus 的 SqlSessionFactory
      *
-     * @param dataSource 数据源
+     * @param dataSource MySQL 数据源
      * @return SqlSessionFactory
      * @throws Exception 初始化异常
      */

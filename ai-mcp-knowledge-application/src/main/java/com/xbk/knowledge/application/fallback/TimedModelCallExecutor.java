@@ -18,10 +18,16 @@ public class TimedModelCallExecutor implements ModelCallExecutor {
 
     private final ModelCallExecutor delegate;
 
+    /**
+     * 对外暴露 Qualifier 作为调用入口，便于上层复用。
+     */
     public TimedModelCallExecutor(@Qualifier("defaultModelCallExecutor") ModelCallExecutor delegate) {
         this.delegate = delegate;
     }
 
+    /**
+     * 对外暴露 execute 作为调用入口，便于上层复用。
+     */
     @Override
     public AICallResult execute(ModelCallContext context) {
         long startTime = TimeCostUtils.start();

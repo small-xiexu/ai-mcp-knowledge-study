@@ -78,7 +78,7 @@ public class DataSourceConfig {
     /**
      * PostgreSQL(pgvector) JDBC 模板
      *
-     * @param dataSource PostgreSQL 数据源
+     * @param dataSource pgvector 数据源
      * @return JdbcTemplate
      */
     @Bean

@@ -50,9 +50,7 @@ public class ModelSelector {
 
         // 1. 查询任务类型配置
         TaskTypeCodeQuery taskTypeCodeQuery = new TaskTypeCodeQuery(taskType);
-        TaskType task = taskTypeRepository
-                .findByTaskCode(taskTypeCodeQuery)
-                .orElse(null);
+        TaskType task = taskTypeRepository.findByTaskCode(taskTypeCodeQuery).orElse(null);
         if (task == null) {
             log.warn("未找到任务类型配置，taskType: {}，使用质量优先策略", taskType);
             // 如果任务类型不存在，退化为“全局默认策略”，保证仍可对外服务
@@ -109,13 +107,12 @@ public class ModelSelector {
         }
 
         // 按质量评分降序排序，选择最高分模型；若都没有能力信息则返回第一个
-        Predicate<ModelConfig> hasCapability = model -> model.getCapability() != null;
         ToIntFunction<ModelConfig> scoreExtractor = this::getQualityScoreOrZero;
         Comparator<ModelConfig> comparator = Comparator.comparingInt(scoreExtractor);
         Supplier<ModelConfig> fallbackSupplier = () -> enabledModels.get(0);
         ModelConfig bestModel = enabledModels
                 .stream()
-                .filter(hasCapability)
+                .filter(model -> model.getCapability() != null)
                 .max(comparator)
                 .orElseGet(fallbackSupplier);
 
@@ -157,14 +154,13 @@ public class ModelSelector {
         try {
             // 解析ID列表
             Function<String, String> trimMapper = String::trim;
-            Predicate<String> notEmpty = s -> !s.isEmpty();
             Function<String, Long> idMapper = Long::parseLong;
             Collector<Long, ?, List<Long>> collector = Collectors.toList();
             String[] fallbackModelIdArray = fallbackModelIds.split(",");
             List<Long> modelIds = Arrays
                     .stream(fallbackModelIdArray)
                     .map(trimMapper)
-                    .filter(notEmpty)
+                    .filter(s -> !s.isEmpty())
                     .map(idMapper)
                     .distinct()
                     .collect(collector);

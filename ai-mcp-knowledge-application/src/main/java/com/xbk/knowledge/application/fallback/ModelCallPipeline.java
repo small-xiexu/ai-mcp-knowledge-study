@@ -46,6 +46,9 @@ public class ModelCallPipeline {
             this.index = 0;
         }
 
+        /**
+         * 对外暴露 proceed 作为调用入口，便于上层复用。
+         */
         @Override
         public ModelCallOutcome proceed(ModelCallContext context) {
             if (index < policies.size()) {

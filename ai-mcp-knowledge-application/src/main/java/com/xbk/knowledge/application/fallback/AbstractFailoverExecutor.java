@@ -18,6 +18,9 @@ import java.util.List;
 @Slf4j
 public abstract class AbstractFailoverExecutor implements FailoverExecutor {
 
+    /**
+     * 对外暴露 execute 作为调用入口，便于上层复用。
+     */
     @Override
     public AICallResult execute(ModelConfig primary, List<ModelConfig> fallbacks, AICallCommand request) {
         /**

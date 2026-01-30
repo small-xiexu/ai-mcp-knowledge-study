@@ -164,18 +164,6 @@
             <artifactId>fastjson</artifactId>
         </dependency>
 
-        <!--
-            JUnit 4
-            经典 Java 单元测试框架
-            提供基础的测试注解和断言功能
-            注：新项目建议使用 JUnit 5 (spring-boot-starter-test 已包含)
-        -->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-
         <!-- H2 Database (测试用内存数据库) -->
         <dependency>
             <groupId>com.h2database</groupId>
@@ -244,6 +232,7 @@
                 <configuration>
                     <skipTests>false</skipTests>
                     <testFailureIgnore>false</testFailureIgnore>
+                    <excludedGroups>integration</excludedGroups>
                     <includes>
                         <include>**/*Test.java</include>
                     </includes>

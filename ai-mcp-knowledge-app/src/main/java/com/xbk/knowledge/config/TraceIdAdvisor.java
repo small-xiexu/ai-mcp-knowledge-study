@@ -32,17 +32,26 @@ import org.springframework.stereotype.Component;
 @Component
 public class TraceIdAdvisor implements CallAdvisor {
 
+    /**
+     * 对外暴露 getName 作为调用入口，便于上层复用。
+     */
     @Override
     public String getName() {
         return "TraceIdAdvisor";
     }
 
+    /**
+     * 对外暴露 getOrder 作为调用入口，便于上层复用。
+     */
     @Override
     public int getOrder() {
         // 最高优先级，确保 traceId 在其他 Advisor 之前注入
         return Ordered.HIGHEST_PRECEDENCE;
     }
 
+    /**
+     * 对外暴露 adviseCall 作为调用入口，便于上层复用。
+     */
     @Override
     public ChatClientResponse adviseCall(ChatClientRequest request, CallAdvisorChain chain) {
         // 生成或获取 traceId

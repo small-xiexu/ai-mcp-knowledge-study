@@ -2,6 +2,7 @@ package com.xbk.knowledge.test;
 
 import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -29,6 +30,7 @@ import org.springframework.util.MimeTypeUtils;
 import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -45,6 +47,7 @@ import java.util.stream.Collectors;
  * @author xiexu
  */
 @Slf4j
+@Tag("integration")
 @SpringBootTest
 public class OpenAiTest {
 
@@ -245,7 +248,7 @@ public class OpenAiTest {
 
         // 4. 使用模板创建系统消息，将文档内容填充到 {documents} 占位符
         SystemPromptTemplate promptTemplate = new SystemPromptTemplate(SYSTEM_PROMPT);
-        Map<String, Object> promptVariables = Map.of("documents", documentsCollectors);
+        Map<String, Object> promptVariables = Collections.<String, Object>singletonMap("documents", documentsCollectors);
         Message ragMessage = promptTemplate.createMessage(promptVariables);
 
         // 5. 组装消息列表：用户问题 + 系统提示（含检索上下文）
@@ -264,10 +267,6 @@ public class OpenAiTest {
 
         String responseJson = JSON.toJSONString(chatResponse);
         log.info("测试结果:{}", responseJson);
-    }
-
-    @Test
-    public void test_() {
     }
 
 }

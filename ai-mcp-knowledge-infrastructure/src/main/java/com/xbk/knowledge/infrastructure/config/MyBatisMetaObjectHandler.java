@@ -16,6 +16,9 @@ import java.time.LocalDateTime;
 @Component
 public class MyBatisMetaObjectHandler implements MetaObjectHandler {
 
+    /**
+     * 对外暴露 insertFill 作为调用入口，便于上层复用。
+     */
     @Override
     public void insertFill(MetaObject metaObject) {
         LocalDateTime now = LocalDateTime.now();
@@ -23,6 +26,9 @@ public class MyBatisMetaObjectHandler implements MetaObjectHandler {
         this.strictInsertFill(metaObject, "updatedAt", LocalDateTime.class, now);
     }
 
+    /**
+     * 对外暴露 updateFill 作为调用入口，便于上层复用。
+     */
     @Override
     public void updateFill(MetaObject metaObject) {
         LocalDateTime updatedAt = LocalDateTime.now();

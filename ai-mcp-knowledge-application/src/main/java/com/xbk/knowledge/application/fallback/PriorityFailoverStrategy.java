@@ -20,6 +20,9 @@ import java.util.Set;
 @Component
 public class PriorityFailoverStrategy implements FailoverStrategy {
 
+    /**
+     * 对外暴露 orderCandidates 作为调用入口，便于上层复用。
+     */
     @Override
     public List<ModelConfig> orderCandidates(ModelConfig primary, List<ModelConfig> fallbacks, AICallCommand request) {
         List<ModelConfig> candidates = new ArrayList<>();

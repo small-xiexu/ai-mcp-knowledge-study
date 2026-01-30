@@ -8,12 +8,6 @@ export const chat = (data: AIRequest) =>
   request.post<AIResponse>('/ai/chat', data)
 
 /**
- * 按任务类型调用 AI
- */
-export const chatByTaskType = (taskType: string, data: AIRequest) =>
-  request.post<AIResponse>(`/ai/chat/${taskType}`, data)
-
-/**
  * 获取可用模型列表
  */
 export const getAvailableModels = () =>

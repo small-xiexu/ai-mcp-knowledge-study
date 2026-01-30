@@ -25,6 +25,9 @@ public class DefaultModelCallExecutor implements ModelCallExecutor {
 
     private final ModelProviderFactory providerFactory;
 
+    /**
+     * 对外暴露 execute 作为调用入口，便于上层复用。
+     */
     @Override
     public AICallResult execute(ModelCallContext context) {
         ModelConfig model = context.getModel();

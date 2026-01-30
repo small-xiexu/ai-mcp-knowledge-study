@@ -27,18 +27,6 @@ public interface IAICallService {
     Result<AIResponse> chat(AIRequest request);
 
     /**
-     * 按任务类型调用 AI
-     * 根据任务类型选择对应的模型
-     *
-     * @param taskType 任务类型编码，取值来自任务类型配置表 ai_task_type.task_code，可通过 /api/task-types/list 查询
-     * @param request  AI 请求
-     * @return AI 响应
-     *
-     * @see com.xbk.knowledge.trigger.http.TaskTypeController#listTaskTypes(com.xbk.knowledge.api.dto.task.TaskTypeQueryRequest)
-     */
-    Result<AIResponse> chatByTaskType(String taskType, AIRequest request);
-
-    /**
      * 获取所有可用模型列表
      *
      * @return 模型列表

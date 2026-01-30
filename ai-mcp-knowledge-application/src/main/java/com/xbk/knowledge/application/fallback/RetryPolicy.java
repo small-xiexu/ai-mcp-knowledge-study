@@ -28,6 +28,9 @@ public class RetryPolicy implements ModelCallPolicy {
      */
     private static final long BASE_BACKOFF_MILLIS = 100L;
 
+    /**
+     * 对外暴露 apply 作为调用入口，便于上层复用。
+     */
     @Override
     public ModelCallOutcome apply(ModelCallContext context, ModelCallPolicyChain chain) {
         int retryCount = 0;

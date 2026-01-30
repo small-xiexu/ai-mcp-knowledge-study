@@ -21,6 +21,9 @@ public class CircuitBreakerPolicy implements ModelCallPolicy {
 
     private final CircuitBreaker circuitBreaker;
 
+    /**
+     * 对外暴露 apply 作为调用入口，便于上层复用。
+     */
     @Override
     public ModelCallOutcome apply(ModelCallContext context, ModelCallPolicyChain chain) {
         ModelConfig model = context.getModel();

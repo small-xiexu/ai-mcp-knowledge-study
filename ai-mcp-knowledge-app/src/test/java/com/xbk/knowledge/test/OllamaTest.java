@@ -3,6 +3,7 @@ package com.xbk.knowledge.test;
 import com.alibaba.fastjson.JSON;
 import com.xbk.knowledge.test.Utils.TokenTextSplitterWithContext;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -24,6 +25,7 @@ import org.springframework.ai.vectorstore.SimpleVectorStore;
 import org.springframework.ai.vectorstore.pgvector.PgVectorStore;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -31,9 +33,12 @@ import org.springframework.core.io.Resource;
 import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.test.web.client.ExpectedCount;
+import org.springframework.test.web.client.MockRestServiceServer;
 import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -41,6 +46,11 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 /**
  * Ollama 大模型集成测试类
@@ -50,6 +60,7 @@ import java.util.stream.Collectors;
  * @author xiexu
  */
 @Slf4j
+@Tag("integration")
 @SpringBootTest
 public class OllamaTest {
 
@@ -249,7 +260,7 @@ public class OllamaTest {
 
         // 4. 使用模板创建系统消息，将文档内容填充到 {documents} 占位符
         SystemPromptTemplate promptTemplate = new SystemPromptTemplate(SYSTEM_PROMPT);
-        Map<String, Object> promptVariables = Map.of("documents", documentsCollectors);
+        Map<String, Object> promptVariables = Collections.<String, Object>singletonMap("documents", documentsCollectors);
         Message ragMessage = promptTemplate.createMessage(promptVariables);
 
         // 5. 组装消息列表：用户问题 + 系统提示（含检索上下文）
@@ -294,9 +305,16 @@ public class OllamaTest {
         HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
 
         RestTemplate restTemplate = new RestTemplate();
+        MockRestServiceServer server = MockRestServiceServer.createServer(restTemplate);
+        server.expect(ExpectedCount.once(), requestTo(url))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andRespond(withSuccess("{\"mock\":\"ok\"}", MediaType.APPLICATION_JSON));
+
         String response = restTemplate.postForObject(url, entity, String.class);
 
         log.info("原生调用结果: {}", response);
+        server.verify();
     }
 
 

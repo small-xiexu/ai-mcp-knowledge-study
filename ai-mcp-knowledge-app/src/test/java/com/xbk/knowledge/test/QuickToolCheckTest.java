@@ -2,6 +2,7 @@ package com.xbk.knowledge.test;
 
 import com.xbk.knowledge.Application;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.ToolCallbackProvider;
@@ -15,15 +16,26 @@ import static org.junit.jupiter.api.Assertions.*;
  * 快速检查工具注册状态
  */
 @Slf4j
+@Tag("integration")
 @SpringBootTest(classes = Application.class)
 @ImportAutoConfiguration(exclude = {
         org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreAutoConfiguration.class
 })
 public class QuickToolCheckTest {
 
-    @Autowired
-    private ToolCallbackProvider toolCallbackProvider;
+    private final ToolCallbackProvider toolCallbackProvider;
 
+    /**
+     * 对外暴露 QuickToolCheckTest 作为调用入口，便于上层复用。
+     */
+    @Autowired
+    public QuickToolCheckTest(ToolCallbackProvider toolCallbackProvider) {
+        this.toolCallbackProvider = toolCallbackProvider;
+    }
+
+    /**
+     * 对外暴露 checkToolsRegistered 作为调用入口，便于上层复用。
+     */
     @Test
     public void checkToolsRegistered() {
         log.info("=== 快速检查工具注册状态 ===");

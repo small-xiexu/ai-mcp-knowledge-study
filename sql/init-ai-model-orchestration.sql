@@ -24,7 +24,7 @@ CREATE TABLE ai_model_config (
     api_key VARCHAR(500) NOT NULL COMMENT 'API密钥',
     base_url VARCHAR(500) NOT NULL COMMENT 'API地址',
     enabled TINYINT(1) DEFAULT 1 COMMENT '是否启用(0:禁用 1:启用)',
-    priority INT DEFAULT 0 COMMENT '优先级(数字越大优先级越高)',
+    priority INT DEFAULT 0 COMMENT '优先级(数值越大越优先；用于默认/扩展策略排序，是否生效取决于策略实现)',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     INDEX idx_model_type (model_type),

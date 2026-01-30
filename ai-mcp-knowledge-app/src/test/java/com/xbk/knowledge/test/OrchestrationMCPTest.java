@@ -6,6 +6,7 @@ import com.xbk.knowledge.application.provider.ModelProviderFactory;
 import com.xbk.knowledge.trigger.job.MCPServerCSDNJob;
 import com.xbk.knowledge.types.enums.ModelType;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.PromptChatMemoryAdvisor;
@@ -17,6 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 
 import java.util.Map;
+import java.util.Collections;
 import java.util.function.Consumer;
 
 /**
@@ -26,20 +28,26 @@ import java.util.function.Consumer;
  * @author xiexu
  */
 @Slf4j
+@Tag("integration")
 @SpringBootTest
 @ImportAutoConfiguration(exclude = {
         org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreAutoConfiguration.class
 })
 public class OrchestrationMCPTest {
 
-    @Autowired
-    private ModelProviderFactory modelProviderFactory;
+    private final ModelProviderFactory modelProviderFactory;
 
     /**
      * CSDN 定时任务 Job
      */
+    private final MCPServerCSDNJob mcpServerCSDNJob;
+
     @Autowired
-    private MCPServerCSDNJob mcpServerCSDNJob;
+    public OrchestrationMCPTest(ModelProviderFactory modelProviderFactory,
+                                MCPServerCSDNJob mcpServerCSDNJob) {
+        this.modelProviderFactory = modelProviderFactory;
+        this.mcpServerCSDNJob = mcpServerCSDNJob;
+    }
 
     /**
      * 测试通过编排层创建的 ChatClient 是否自动注入 MCP 工具
@@ -59,8 +67,8 @@ public class OrchestrationMCPTest {
         ModelConfig config = new ModelConfig();
         config.setModelType(ModelType.OPENAI);
         config.setModelName("gpt-4o");
-        config.setBaseUrl("https://apis.itedus.cn");  // 使用真实的 API
-        config.setApiKey("sk-jnviWgYgi5RRwmUK44290a4501554e439662449b3c1d884b");
+        config.setBaseUrl("http://localhost");  // 测试环境占位
+        config.setApiKey("test-key");
         config.setEnabled(true);
 
         // 通过编排层创建 ChatClient（自动注入工具和 Advisors）
@@ -105,8 +113,8 @@ public class OrchestrationMCPTest {
         ModelConfig config = new ModelConfig();
         config.setModelType(ModelType.OPENAI);
         config.setModelName("gpt-4o");
-        config.setBaseUrl("https://apis.itedus.cn");
-        config.setApiKey("sk-jnviWgYgi5RRwmUK44290a4501554e439662449b3c1d884b");
+        config.setBaseUrl("http://localhost");
+        config.setApiKey("test-key");
         config.setEnabled(true);
 
         // 通过编排层创建 ChatClient
@@ -124,7 +132,7 @@ public class OrchestrationMCPTest {
         log.info(">>> QUESTION: {}", userInput);
 
         // 关键：使用 toolContext 启用工具调用
-        Map<String, Object> toolContext = Map.of("enabled", true);
+        Map<String, Object> toolContext = Collections.<String, Object>singletonMap("enabled", Boolean.TRUE);
         String response = chatClient.prompt()
                 .user(userInput)
                 .toolContext(toolContext)  // 启用工具调用上下文
@@ -151,7 +159,7 @@ public class OrchestrationMCPTest {
         config.setModelType(ModelType.OPENAI);
         config.setModelName("gemini-3-flash");
         config.setBaseUrl("http://127.0.0.1:8045");
-        config.setApiKey("sk-1256419209eb47ccbabaa98abccfe4c8");
+        config.setApiKey("test-key");
         config.setEnabled(true);
 
         ChatClient orchestrationClient = modelProviderFactory.createChatClient(config);
@@ -181,8 +189,8 @@ public class OrchestrationMCPTest {
         ModelConfig config = new ModelConfig();
         config.setModelType(ModelType.OPENAI);
         config.setModelName("gpt-4o");
-        config.setBaseUrl("https://apis.itedus.cn");
-        config.setApiKey("sk-jnviWgYgi5RRwmUK44290a4501554e439662449b3c1d884b");
+        config.setBaseUrl("http://localhost");
+        config.setApiKey("test-key");
         config.setEnabled(true);
 
         // 通过编排层创建 ChatClient（自动注入工具和 Advisors）
@@ -227,8 +235,8 @@ public class OrchestrationMCPTest {
         ModelConfig config = new ModelConfig();
         config.setModelType(ModelType.OPENAI);
         config.setModelName("gpt-4o");
-        config.setBaseUrl("https://apis.itedus.cn");
-        config.setApiKey("sk-jnviWgYgi5RRwmUK44290a4501554e439662449b3c1d884b");
+        config.setBaseUrl("http://localhost");
+        config.setApiKey("test-key");
         config.setEnabled(true);
 
         // 通过编排层创建 ChatClient
@@ -276,8 +284,8 @@ public class OrchestrationMCPTest {
         ModelConfig config = new ModelConfig();
         config.setModelType(ModelType.OPENAI);
         config.setModelName("gpt-4o");
-        config.setBaseUrl("https://apis.itedus.cn");
-        config.setApiKey("sk-jnviWgYgi5RRwmUK44290a4501554e439662449b3c1d884b");
+        config.setBaseUrl("http://localhost");
+        config.setApiKey("test-key");
         config.setEnabled(true);
 
         // 创建聊天记忆

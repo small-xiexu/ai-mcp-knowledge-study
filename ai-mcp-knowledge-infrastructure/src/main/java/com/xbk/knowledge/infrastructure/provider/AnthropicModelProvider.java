@@ -50,6 +50,9 @@ public class AnthropicModelProvider implements ModelProvider {
         }
     }
 
+    /**
+     * 对外暴露 createChatClient 作为调用入口，便于上层复用。
+     */
     @Override
     public ChatClient createChatClient(ModelConfig config) {
         ChatModel chatModel = createChatModel(config);
@@ -58,11 +61,17 @@ public class AnthropicModelProvider implements ModelProvider {
                 .build();
     }
 
+    /**
+     * 对外暴露 getModelType 作为调用入口，便于上层复用。
+     */
     @Override
     public ModelType getModelType() {
         return ModelType.ANTHROPIC;
     }
 
+    /**
+     * 对外暴露 isHealthy 作为调用入口，便于上层复用。
+     */
     @Override
     public boolean isHealthy(ModelConfig config) {
         try {

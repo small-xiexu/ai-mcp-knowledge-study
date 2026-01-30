@@ -41,6 +41,9 @@ public class AuditAspect {
     private final ModelConfigRepository modelConfigRepository;
     private final TaskTypeRepository taskTypeRepository;
 
+    /**
+     * 对外暴露 aroundCreateModel 作为调用入口，便于上层复用。
+     */
     @Around("execution(* com.xbk.knowledge.trigger.http.ModelConfigController.createModel(..))")
     public Object aroundCreateModel(ProceedingJoinPoint joinPoint) throws Throwable {
         Object result = joinPoint.proceed();
@@ -61,6 +64,9 @@ public class AuditAspect {
         return result;
     }
 
+    /**
+     * 对外暴露 aroundUpdateModel 作为调用入口，便于上层复用。
+     */
     @Around("execution(* com.xbk.knowledge.trigger.http.ModelConfigController.updateModel(..))")
     public Object aroundUpdateModel(ProceedingJoinPoint joinPoint) throws Throwable {
         Object[] args = joinPoint.getArgs();
@@ -90,6 +96,9 @@ public class AuditAspect {
         }
     }
 
+    /**
+     * 对外暴露 aroundDeleteModel 作为调用入口，便于上层复用。
+     */
     @Around("execution(* com.xbk.knowledge.trigger.http.ModelConfigController.deleteModel(..))")
     public Object aroundDeleteModel(ProceedingJoinPoint joinPoint) throws Throwable {
         Object[] args = joinPoint.getArgs();
@@ -116,6 +125,9 @@ public class AuditAspect {
         }
     }
 
+    /**
+     * 对外暴露 aroundCreateTaskType 作为调用入口，便于上层复用。
+     */
     @Around("execution(* com.xbk.knowledge.trigger.http.TaskTypeController.createTaskType(..))")
     public Object aroundCreateTaskType(ProceedingJoinPoint joinPoint) throws Throwable {
         Object result = joinPoint.proceed();
@@ -136,6 +148,9 @@ public class AuditAspect {
         return result;
     }
 
+    /**
+     * 对外暴露 aroundUpdateTaskType 作为调用入口，便于上层复用。
+     */
     @Around("execution(* com.xbk.knowledge.trigger.http.TaskTypeController.updateTaskType(..))")
     public Object aroundUpdateTaskType(ProceedingJoinPoint joinPoint) throws Throwable {
         Object[] args = joinPoint.getArgs();
@@ -165,6 +180,9 @@ public class AuditAspect {
         }
     }
 
+    /**
+     * 对外暴露 aroundDeleteTaskType 作为调用入口，便于上层复用。
+     */
     @Around("execution(* com.xbk.knowledge.trigger.http.TaskTypeController.deleteTaskType(..))")
     public Object aroundDeleteTaskType(ProceedingJoinPoint joinPoint) throws Throwable {
         Object[] args = joinPoint.getArgs();

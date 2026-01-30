@@ -17,6 +17,9 @@ import org.springframework.stereotype.Component;
 @Order(1)
 public class LoggingPolicy implements ModelCallPolicy {
 
+    /**
+     * 对外暴露 apply 作为调用入口，便于上层复用。
+     */
     @Override
     public ModelCallOutcome apply(ModelCallContext context, ModelCallPolicyChain chain) {
         Long modelId = context

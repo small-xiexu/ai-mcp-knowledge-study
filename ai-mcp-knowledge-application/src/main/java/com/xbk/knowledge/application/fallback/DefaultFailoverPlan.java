@@ -19,6 +19,9 @@ public class DefaultFailoverPlan implements FailoverPlan {
     private final int fallbackCount;
     private int index;
 
+    /**
+     * 对外暴露 DefaultFailoverPlan 作为调用入口，便于上层复用。
+     */
     public DefaultFailoverPlan(List<ModelConfig> candidates, ModelConfig primary, List<ModelConfig> fallbacks) {
         this.candidates = candidates;
         this
@@ -30,11 +33,17 @@ public class DefaultFailoverPlan implements FailoverPlan {
         this.index = 0;
     }
 
+    /**
+     * 对外暴露 hasNext 作为调用入口，便于上层复用。
+     */
     @Override
     public boolean hasNext() {
         return candidates != null && index < candidates.size();
     }
 
+    /**
+     * 对外暴露 next 作为调用入口，便于上层复用。
+     */
     @Override
     public FailoverCandidate next() {
         ModelConfig model = candidates.get(index);
@@ -50,11 +59,17 @@ public class DefaultFailoverPlan implements FailoverPlan {
                 .build();
     }
 
+    /**
+     * 对外暴露 getPrimaryName 作为调用入口，便于上层复用。
+     */
     @Override
     public String getPrimaryName() {
         return primaryName;
     }
 
+    /**
+     * 对外暴露 getFallbackCount 作为调用入口，便于上层复用。
+     */
     @Override
     public int getFallbackCount() {
         return fallbackCount;
