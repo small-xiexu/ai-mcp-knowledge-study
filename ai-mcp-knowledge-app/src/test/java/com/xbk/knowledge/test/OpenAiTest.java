@@ -32,6 +32,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
@@ -96,13 +99,15 @@ public class OpenAiTest {
      */
     @Test
     public void test_call() {
-        ChatResponse response = openAiChatModel.call(new Prompt(
-                "1+1",
-                OpenAiChatOptions.builder()
-                        .model("deepseek-ai/DeepSeek-R1-Distill-Qwen-7B")
-                        .build()));
+        OpenAiChatOptions chatOptions = OpenAiChatOptions
+                .builder()
+                .model("deepseek-ai/DeepSeek-R1-Distill-Qwen-7B")
+                .build();
+        Prompt prompt = new Prompt("1+1", chatOptions);
+        ChatResponse response = openAiChatModel.call(prompt);
 
-        log.info("测试结果(call):{}", JSON.toJSONString(response));
+        String responseJson = JSON.toJSONString(response);
+        log.info("测试结果(call):{}", responseJson);
     }
 
     /**
@@ -113,18 +118,22 @@ public class OpenAiTest {
     @Test
     public void test_call_images() {
         // 构建包含图片的用户消息（使用 Builder 模式）
+        MimeType mimeType = MimeType.valueOf(MimeTypeUtils.IMAGE_PNG_VALUE);
+        Media imageMedia = new Media(mimeType, imageResource);
         UserMessage userMessage = UserMessage.builder()
                 .text("请描述这张图片的主要内容，并说明图中物品的可能用途。")
-                .media(new Media(MimeType.valueOf(MimeTypeUtils.IMAGE_PNG_VALUE), imageResource))
+                .media(imageMedia)
                 .build();
 
-        ChatResponse response = openAiChatModel.call(new Prompt(
-                userMessage,
-                OpenAiChatOptions.builder()
-                        .model("gpt-4o")
-                        .build()));
+        OpenAiChatOptions chatOptions = OpenAiChatOptions
+                .builder()
+                .model("gpt-4o")
+                .build();
+        Prompt prompt = new Prompt(userMessage, chatOptions);
+        ChatResponse response = openAiChatModel.call(prompt);
 
-        log.info("测试结果(images):{}", JSON.toJSONString(response));
+        String responseJson = JSON.toJSONString(response);
+        log.info("测试结果(images):{}", responseJson);
     }
 
     /**
@@ -137,23 +146,30 @@ public class OpenAiTest {
         CountDownLatch countDownLatch = new CountDownLatch(1);
 
         // 发起流式请求，返回 Flux 响应流
-        Flux<ChatResponse> stream = openAiChatModel.stream(new Prompt(
-                "1+1",
-                OpenAiChatOptions.builder()
-                        .model("gpt-4o")
-                        .build()));
+        OpenAiChatOptions chatOptions = OpenAiChatOptions
+                .builder()
+                .model("gpt-4o")
+                .build();
+        Prompt prompt = new Prompt("1+1", chatOptions);
+        Flux<ChatResponse> stream = openAiChatModel.stream(prompt);
 
         // 订阅响应流：逐块处理、错误处理、完成回调
+        Consumer<ChatResponse> responseConsumer = chatResponse -> {
+            AssistantMessage output = chatResponse
+                    .getResult()
+                    .getOutput();
+            String outputJson = JSON.toJSONString(output);
+            log.info("测试结果(stream): {}", outputJson);
+        };
+        Consumer<Throwable> errorConsumer = Throwable::printStackTrace;
+        Runnable completionHandler = () -> {
+            countDownLatch.countDown();
+            log.info("测试结果(stream): done!");
+        };
         stream.subscribe(
-                chatResponse -> {
-                    AssistantMessage output = chatResponse.getResult().getOutput();
-                    log.info("测试结果(stream): {}", JSON.toJSONString(output));
-                },
-                Throwable::printStackTrace,
-                () -> {
-                    countDownLatch.countDown();
-                    log.info("测试结果(stream): done!");
-                }
+                responseConsumer,
+                errorConsumer,
+                completionHandler
         );
 
         // 阻塞主线程，等待流式响应完成
@@ -176,8 +192,11 @@ public class OpenAiTest {
         List<Document> documentSplitterList = tokenTextSplitter.apply(documents);
 
         // 3. 为文档添加元数据标签，便于后续按知识库筛选
-        documents.forEach(doc -> doc.getMetadata().put("knowledge", "知识库名称v2"));
-        documentSplitterList.forEach(doc -> doc.getMetadata().put("knowledge", "知识库名称v2"));
+        Consumer<Document> metadataAppender = doc -> doc
+                .getMetadata()
+                .put("knowledge", "知识库名称v2");
+        documents.forEach(metadataAppender);
+        documentSplitterList.forEach(metadataAppender);
 
         // 4. 将切块后的文档写入 PostgreSQL 向量数据库（注释掉避免重复写入）
 //        pgVectorStore.accept(documentSplitterList);
@@ -214,24 +233,37 @@ public class OpenAiTest {
         List<Document> documents = pgVectorStore.similaritySearch(request);
 
         // 3. 将检索到的文档内容拼接为上下文字符串（空值保护）
-        String documentsCollectors = null == documents ? "" : documents.stream().map(Document::getText).collect(Collectors.joining());
+        String documentsCollectors = "";
+        if (documents != null) {
+            Collector<CharSequence, ?, String> joiningCollector = Collectors.joining();
+            Function<Document, CharSequence> textMapper = Document::getText;
+            documentsCollectors = documents
+                    .stream()
+                    .map(textMapper)
+                    .collect(joiningCollector);
+        }
 
         // 4. 使用模板创建系统消息，将文档内容填充到 {documents} 占位符
-        Message ragMessage = new SystemPromptTemplate(SYSTEM_PROMPT).createMessage(Map.of("documents", documentsCollectors));
+        SystemPromptTemplate promptTemplate = new SystemPromptTemplate(SYSTEM_PROMPT);
+        Map<String, Object> promptVariables = Map.of("documents", documentsCollectors);
+        Message ragMessage = promptTemplate.createMessage(promptVariables);
 
         // 5. 组装消息列表：用户问题 + 系统提示（含检索上下文）
         ArrayList<Message> messages = new ArrayList<>();
-        messages.add(new UserMessage(message));
+        UserMessage userMessage = new UserMessage(message);
+        messages.add(userMessage);
         messages.add(ragMessage);
 
         // 6. 调用模型生成最终答案
-        ChatResponse chatResponse = openAiChatModel.call(new Prompt(
-                messages,
-                OpenAiChatOptions.builder()
-                        .model("gpt-4o")
-                        .build()));
+        OpenAiChatOptions chatOptions = OpenAiChatOptions
+                .builder()
+                .model("gpt-4o")
+                .build();
+        Prompt prompt = new Prompt(messages, chatOptions);
+        ChatResponse chatResponse = openAiChatModel.call(prompt);
 
-        log.info("测试结果:{}", JSON.toJSONString(chatResponse));
+        String responseJson = JSON.toJSONString(chatResponse);
+        log.info("测试结果:{}", responseJson);
     }
 
     @Test

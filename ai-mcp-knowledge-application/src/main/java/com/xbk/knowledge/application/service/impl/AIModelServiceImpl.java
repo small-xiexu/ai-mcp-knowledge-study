@@ -1,20 +1,22 @@
 package com.xbk.knowledge.application.service.impl;
 
 import com.xbk.knowledge.application.fallback.FallbackHandler;
+import com.xbk.knowledge.application.fallback.ModelCallContext;
+import com.xbk.knowledge.application.fallback.ModelCallExecutor;
 import com.xbk.knowledge.application.model.dto.AICallCommand;
 import com.xbk.knowledge.application.model.dto.AICallResult;
+import com.xbk.knowledge.application.model.dto.ModelSelectionDecision;
 import com.xbk.knowledge.application.model.dto.ModelSelectionResult;
-import com.xbk.knowledge.application.provider.ModelProviderFactory;
 import com.xbk.knowledge.application.service.AIModelService;
 import com.xbk.knowledge.application.service.ModelSelector;
+import com.xbk.knowledge.application.service.selection.ModelSelectionChain;
+import com.xbk.knowledge.domain.model.aggregate.call.CallLogAggregate;
 import com.xbk.knowledge.domain.model.entity.CallLog;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.repository.CallLogRepository;
 import com.xbk.knowledge.types.enums.CallStatus;
-import com.xbk.knowledge.types.enums.ModelSelectionStrategy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -33,26 +35,24 @@ import java.util.List;
 public class AIModelServiceImpl implements AIModelService {
 
     private final ModelSelector modelSelector;
-    private final ModelProviderFactory providerFactory;
+    private final ModelSelectionChain modelSelectionChain;
+    private final ModelCallExecutor modelCallExecutor;
     private final CallLogRepository callLogRepository;
     private final FallbackHandler fallbackHandler;
 
     @Override
     public AICallResult chat(AICallCommand request) {
-        log.info("开始处理 chat 请求，content: {}", request.getContent());
+        String content = request.getContent();
+        log.info("开始处理 chat 请求，content: {}", content);
 
-        // 模型选择优先级：显式策略 > 任务类型 > 默认策略
-        // 当前仅实现质量优先策略，其它策略预留扩展
+        // 选择链优先级：显式策略 > 任务类型 > 默认策略
         ModelConfig selectedModel;
-        if (request.getStrategy() == ModelSelectionStrategy.QUALITY_PRIORITY) {
-            selectedModel = modelSelector.selectByQualityPriority();
-        } else if (request.getTaskType() != null) {
+        ModelSelectionDecision decision = modelSelectionChain.select(request);
+        if (decision.isUseTaskType()) {
             // 任务类型有明确的业务语义，优先使用任务配置的模型
-            return chatByTaskType(request.getTaskType(), request);
-        } else {
-            // 默认使用质量优先策略
-            selectedModel = modelSelector.selectByQualityPriority();
+            return chatByTaskType(decision.getTaskType(), request);
         }
+        selectedModel = decision.getSelectedModel();
 
         // 执行调用
         return executeCall(selectedModel, request, false);
@@ -60,7 +60,8 @@ public class AIModelServiceImpl implements AIModelService {
 
     @Override
     public AICallResult chatByTaskType(String taskType, AICallCommand request) {
-        log.info("开始处理 chatByTaskType 请求，taskType: {}, content: {}", taskType, request.getContent());
+        String content = request.getContent();
+        log.info("开始处理 chatByTaskType 请求，taskType: {}, content: {}", taskType, content);
 
         // 根据任务类型选择模型
         ModelSelectionResult selectionResult = modelSelector.selectModel(taskType);
@@ -86,72 +87,74 @@ public class AIModelServiceImpl implements AIModelService {
      * @return 响应对象
      */
     private AICallResult executeCall(ModelConfig modelConfig, AICallCommand request, boolean isFallback) {
-        long startTime = System.currentTimeMillis();
+        Long modelId = modelConfig.getId();
+        String taskType = request.getTaskType();
+        String requestContent = request.getContent();
+        String truncatedRequestContent = truncateContent(requestContent, 5000);
         CallLog callLog = CallLog.builder()
-                .modelId(modelConfig.getId())
-                .taskType(request.getTaskType())
-                .requestContent(truncateContent(request.getContent(), 5000))
+                .modelId(modelId)
+                .taskType(taskType)
+                .requestContent(truncatedRequestContent)
                 .build();
 
-        try {
-            // 通过 ProviderFactory 统一创建 ChatClient，隔离不同厂商差异
-            ChatClient chatClient = providerFactory.createChatClient(modelConfig);
-
-            // 统一拼接系统提示词，避免业务层自行处理拼接逻辑
-            String promptText = request.getSystemPrompt() != null
-                    ? request.getSystemPrompt() + "\n\n" + request.getContent()
-                    : request.getContent();
-
-            // 执行调用
-            String responseContent = chatClient.prompt()
-                    .user(promptText)
-                    .call()
-                    .content();
-
-            long responseTime = System.currentTimeMillis() - startTime;
-
-            // 记录成功日志
-            callLog.setResponseContent(truncateContent(responseContent, 5000));
-            callLog.setTokensUsed(0); // Spring AI 可能无法提供，设为 0
-            callLog.setResponseTime(responseTime);
-            callLog.setStatus(isFallback ? CallStatus.FALLBACK : CallStatus.SUCCESS);
-            callLog.setCreatedAt(LocalDateTime.now());
-            callLogRepository.save(callLog);
-
-            log.info("模型调用成功，modelId: {}, responseTime: {}ms", modelConfig.getId(), responseTime);
-
-            return AICallResult.builder()
-                    .content(responseContent)
-                    .modelUsed(modelConfig.getModelName())
-                    .tokensUsed(0)
-                    .responseTime(responseTime)
-                    .success(true)
-                    .fallback(isFallback)
-                    .retryCount(0)
-                    .build();
-
-        } catch (Exception e) {
-            long responseTime = System.currentTimeMillis() - startTime;
-
-            // 记录失败日志
-            callLog.setResponseContent(null);
-            callLog.setTokensUsed(0);
-            callLog.setResponseTime(responseTime);
-            callLog.setStatus(CallStatus.FAILED);
-            callLog.setErrorMessage(e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
-            callLog.setCreatedAt(LocalDateTime.now());
-            callLogRepository.save(callLog);
-
-            log.error("模型调用失败，modelId: {}, error: {}", modelConfig.getId(), e.getMessage(), e);
-
-            return AICallResult.builder()
+        ModelCallContext context = ModelCallContext.builder()
+                .model(modelConfig)
+                .request(request)
+                .build();
+        AICallResult response = modelCallExecutor.execute(context);
+        if (response == null) {
+            response = AICallResult.builder()
                     .success(false)
-                    .errorMessage(e.getMessage() != null ? e.getMessage() : "调用失败：" + e.getClass().getSimpleName())
+                    .errorMessage("模型调用失败")
                     .modelUsed(modelConfig.getModelName())
-                    .responseTime(responseTime)
                     .fallback(isFallback)
                     .build();
         }
+
+        Long responseTime = response.getResponseTime();
+        Long safeResponseTime = responseTime != null ? responseTime : 0L;
+        Integer tokensUsed = response.getTokensUsed();
+        Integer safeTokensUsed = tokensUsed != null ? tokensUsed : 0;
+        Boolean success = response.getSuccess();
+
+        if (Boolean.TRUE.equals(success)) {
+            // 记录成功日志
+            String responseContent = response.getContent();
+            String truncateContent = truncateContent(responseContent, 5000);
+            callLog.setResponseContent(truncateContent);
+            callLog.setTokensUsed(safeTokensUsed);
+            callLog.setResponseTime(safeResponseTime);
+            CallStatus callStatus = isFallback ? CallStatus.FALLBACK : CallStatus.SUCCESS;
+            callLog.setStatus(callStatus);
+            LocalDateTime createdAt = LocalDateTime.now();
+            callLog.setCreatedAt(createdAt);
+            CallLogAggregate aggregate = CallLogAggregate.builder()
+                    .callLog(callLog)
+                    .build();
+            callLogRepository.save(aggregate);
+
+            log.info("模型调用成功，modelId: {}, responseTime: {}ms", modelId, safeResponseTime);
+            response.setFallback(isFallback);
+            return response;
+        }
+
+        // 记录失败日志
+        callLog.setResponseContent(null);
+        callLog.setTokensUsed(safeTokensUsed);
+        callLog.setResponseTime(safeResponseTime);
+        callLog.setStatus(CallStatus.FAILED);
+        String errorMessage = response.getErrorMessage();
+        callLog.setErrorMessage(errorMessage);
+        LocalDateTime createdAt = LocalDateTime.now();
+        callLog.setCreatedAt(createdAt);
+        CallLogAggregate aggregate = CallLogAggregate.builder()
+                .callLog(callLog)
+                .build();
+        callLogRepository.save(aggregate);
+
+        log.error("模型调用失败，modelId: {}, error: {}", modelId, errorMessage);
+        response.setFallback(isFallback);
+        return response;
     }
 
     /**
@@ -180,20 +183,38 @@ public class AIModelServiceImpl implements AIModelService {
      * @param response    响应对象
      */
     private void recordCallLog(ModelConfig modelConfig, AICallCommand request, AICallResult response) {
+        Long modelId = modelConfig.getId();
+        String taskType = request.getTaskType();
+        String requestContent = request.getContent();
+        String responseContent = response.getContent();
+        Integer tokensUsed = response.getTokensUsed();
+        Long responseTime = response.getResponseTime();
+        Boolean success = response.getSuccess();
+        Boolean fallback = response.getFallback();
+        String errorMessage = response.getErrorMessage();
+        String truncatedRequestContent = truncateContent(requestContent, 5000);
+        String truncatedResponseContent = truncateContent(responseContent, 5000);
+        Integer safeTokensUsed = tokensUsed != null ? tokensUsed : 0;
+        Long safeResponseTime = responseTime != null ? responseTime : 0L;
+        CallStatus status = Boolean.TRUE.equals(success)
+                ? (Boolean.TRUE.equals(fallback) ? CallStatus.FALLBACK : CallStatus.SUCCESS)
+                : CallStatus.FAILED;
+        LocalDateTime createdAt = LocalDateTime.now();
         CallLog callLog = CallLog.builder()
-                .modelId(modelConfig.getId())
-                .taskType(request.getTaskType())
-                .requestContent(truncateContent(request.getContent(), 5000))
-                .responseContent(truncateContent(response.getContent(), 5000))
-                .tokensUsed(response.getTokensUsed() != null ? response.getTokensUsed() : 0)
-                .responseTime(response.getResponseTime() != null ? response.getResponseTime() : 0L)
-                .status(response.getSuccess() ?
-                        (response.getFallback() ? CallStatus.FALLBACK : CallStatus.SUCCESS)
-                        : CallStatus.FAILED)
-                .errorMessage(response.getErrorMessage())
-                .createdAt(LocalDateTime.now())
+                .modelId(modelId)
+                .taskType(taskType)
+                .requestContent(truncatedRequestContent)
+                .responseContent(truncatedResponseContent)
+                .tokensUsed(safeTokensUsed)
+                .responseTime(safeResponseTime)
+                .status(status)
+                .errorMessage(errorMessage)
+                .createdAt(createdAt)
                 .build();
 
-        callLogRepository.save(callLog);
+        CallLogAggregate aggregate = CallLogAggregate.builder()
+                .callLog(callLog)
+                .build();
+        callLogRepository.save(aggregate);
     }
 }

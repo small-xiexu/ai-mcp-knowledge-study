@@ -1,6 +1,7 @@
 package com.xbk.knowledge.config;
 
 import com.xbk.knowledge.types.trace.TraceIdUtils;
+import com.xbk.knowledge.types.time.TimeCostUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;
@@ -8,10 +9,17 @@ import org.springframework.ai.chat.client.advisor.api.CallAdvisor;
 import org.springframework.ai.chat.client.advisor.api.CallAdvisorChain;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.model.Generation;
 import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 工具调用日志 Advisor
@@ -37,14 +45,15 @@ public class ToolCallLoggingAdvisor implements CallAdvisor {
 
     @Override
     public ChatClientResponse adviseCall(ChatClientRequest request, CallAdvisorChain chain) {
-        long startTime = System.currentTimeMillis();
+        long startTime = TimeCostUtils.start();
         ChatClientResponse response = chain.nextCall(request);
         ChatResponse chatResponse = response == null ? null : response.chatResponse();
         if (hasToolCalls(chatResponse)) {
             String traceId = TraceIdUtils.getOrCreateTraceId();
-            long cost = System.currentTimeMillis() - startTime;
+            long cost = TimeCostUtils.costMillis(startTime);
             String toolNames = extractToolNames(chatResponse);
-            String userPrompt = truncatePrompt(getUserText(request), 100);
+            String userText = getUserText(request);
+            String userPrompt = truncatePrompt(userText, 100);
             log.info("[{}] 工具调用触发, 耗时: {}ms, tools: {}, prompt: {}", traceId, cost, toolNames, userPrompt);
         }
         return response;
@@ -67,12 +76,21 @@ public class ToolCallLoggingAdvisor implements CallAdvisor {
      * @return 工具名称
      */
     private String extractToolNames(ChatResponse chatResponse) {
-        java.util.Set<String> toolNames = chatResponse.getResults().stream()
-                .map(result -> result.getOutput())
-                .filter(AssistantMessage::hasToolCalls)
-                .flatMap(result -> result.getToolCalls().stream())
-                .map(AssistantMessage.ToolCall::name)
-                .collect(Collectors.toSet());
+        List<Generation> results = chatResponse.getResults();
+        Function<Generation, AssistantMessage> outputMapper = Generation::getOutput;
+        Predicate<AssistantMessage> hasToolCalls = AssistantMessage::hasToolCalls;
+        Function<AssistantMessage, Stream<AssistantMessage.ToolCall>> toolCallStreamMapper = message -> message
+                .getToolCalls()
+                .stream();
+        Function<AssistantMessage.ToolCall, String> toolCallNameMapper = AssistantMessage.ToolCall::name;
+        Collector<String, ?, Set<String>> collector = Collectors.toSet();
+        Set<String> toolNames = results
+                .stream()
+                .map(outputMapper)
+                .filter(hasToolCalls)
+                .flatMap(toolCallStreamMapper)
+                .map(toolCallNameMapper)
+                .collect(collector);
         if (toolNames.isEmpty()) {
             return "unknown";
         }
@@ -86,8 +104,12 @@ public class ToolCallLoggingAdvisor implements CallAdvisor {
      * @return 用户输入文本
      */
     private String getUserText(ChatClientRequest request) {
-        if (request.prompt().getContents() != null) {
-            return request.prompt().getContents();
+        if (request
+                .prompt()
+                .getContents() != null) {
+            return request
+                    .prompt()
+                    .getContents();
         }
         return "";
     }

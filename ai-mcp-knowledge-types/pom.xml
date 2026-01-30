@@ -11,6 +11,7 @@
     </parent>
 
     <artifactId>ai-mcp-knowledge-types</artifactId>
+    <description>通用基础类型与工具模块，提供跨层复用的公共模型</description>
 
     <dependencies>
         <dependency>

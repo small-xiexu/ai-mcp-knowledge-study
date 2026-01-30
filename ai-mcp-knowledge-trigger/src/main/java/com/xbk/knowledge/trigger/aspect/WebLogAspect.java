@@ -2,6 +2,7 @@ package com.xbk.knowledge.trigger.aspect;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xbk.knowledge.types.trace.TraceIdUtils;
+import com.xbk.knowledge.types.time.TimeCostUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -15,7 +16,10 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Web 请求日志切面
@@ -48,7 +52,7 @@ public class WebLogAspect {
      */
     @Around("webLog()")
     public Object doAround(ProceedingJoinPoint joinPoint) throws Throwable {
-        long startTime = System.currentTimeMillis();
+        long startTime = TimeCostUtils.start();
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
 
         // 获取请求信息
@@ -71,7 +75,7 @@ public class WebLogAspect {
             throw e;
         } finally {
             // 记录响应信息
-            long costTime = System.currentTimeMillis() - startTime;
+            long costTime = TimeCostUtils.costMillis(startTime);
             logResponse(joinPoint, result, exception, costTime, traceId);
         }
     }
@@ -87,16 +91,21 @@ public class WebLogAspect {
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         String className = signature.getDeclaringTypeName();
         String methodName = signature.getName();
+        int lastDotIndex = className.lastIndexOf('.');
+        int classNameStart = lastDotIndex + 1;
+        String simpleClassName = className.substring(classNameStart);
 
         // 获取请求参数
         Object[] args = joinPoint.getArgs();
         String params = formatParams(args);
+        String httpMethod = request.getMethod();
+        String requestUri = request.getRequestURI();
 
         log.info("[{}] >>> 请求开始 | {} {} | {}.{} | 参数: {}",
                 traceId,
-                request.getMethod(),
-                request.getRequestURI(),
-                className.substring(className.lastIndexOf('.') + 1),
+                httpMethod,
+                requestUri,
+                simpleClassName,
                 methodName,
                 params);
     }
@@ -115,21 +124,25 @@ public class WebLogAspect {
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         String className = signature.getDeclaringTypeName();
         String methodName = signature.getName();
+        int lastDotIndex = className.lastIndexOf('.');
+        int classNameStart = lastDotIndex + 1;
+        String simpleClassName = className.substring(classNameStart);
 
         if (exception != null) {
             // 记录异常
+            String exceptionMessage = exception.getMessage();
             log.error("[{}] <<< 请求异常 | {}.{} | 耗时: {}ms | 异常: {}",
                     traceId,
-                    className.substring(className.lastIndexOf('.') + 1),
+                    simpleClassName,
                     methodName,
                     costTime,
-                    exception.getMessage());
+                    exceptionMessage);
         } else {
             // 记录正常响应
             String response = formatResponse(result);
             log.info("[{}] <<< 请求结束 | {}.{} | 耗时: {}ms | 响应: {}",
                     traceId,
-                    className.substring(className.lastIndexOf('.') + 1),
+                    simpleClassName,
                     methodName,
                     costTime,
                     response);
@@ -148,12 +161,17 @@ public class WebLogAspect {
             return "无";
         }
 
+        Predicate<Object> notNull = arg -> arg != null;
+        Predicate<Object> notRequest = arg -> !(arg instanceof HttpServletRequest);
+        Predicate<Object> notResponse = arg -> !(arg instanceof jakarta.servlet.http.HttpServletResponse);
+        Function<Object, String> jsonMapper = this::toJsonString;
+        Collector<CharSequence, ?, String> joiningCollector = Collectors.joining(", ");
         String params = Arrays.stream(args)
-                .filter(arg -> arg != null)
-                .filter(arg -> !(arg instanceof HttpServletRequest))
-                .filter(arg -> !(arg instanceof jakarta.servlet.http.HttpServletResponse))
-                .map(this::toJsonString)
-                .collect(Collectors.joining(", "));
+                .filter(notNull)
+                .filter(notRequest)
+                .filter(notResponse)
+                .map(jsonMapper)
+                .collect(joiningCollector);
 
         return truncate(params, 500);
     }

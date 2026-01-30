@@ -2,6 +2,9 @@ spring:
   application:
     # 应用名称（日志/注册中心等会使用）
     name: ai-rag-knowledge
+  autoconfigure:
+    exclude:
+      - org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreAutoConfiguration
   profiles:
     # 默认激活的运行环境
     active: dev

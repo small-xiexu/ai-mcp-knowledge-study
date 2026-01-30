@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>ai-mcp-knowledge-app</artifactId>
+    <description>应用核心模块，负责业务编排与基础设施集成</description>
 
     <dependencies>
         <!--
@@ -34,6 +35,13 @@
             <groupId>org.mybatis</groupId>
             <artifactId>mybatis-spring</artifactId>
             <version>${mybatis-spring.version}</version>
+        </dependency>
+
+        <!-- Druid 数据库连接池（Spring Boot 3） -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid-spring-boot-3-starter</artifactId>
+            <version>1.2.23</version>
         </dependency>
 
         <!--
@@ -173,6 +181,13 @@
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <scope>test</scope>
+        </dependency>
+
+        <!-- MySQL Driver -->
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <scope>runtime</scope>
         </dependency>
 
         <dependency>

@@ -175,7 +175,7 @@ const handleSend = async () => {
       meta: {
         modelUsed: data.modelUsed,
         responseTime: data.responseTime,
-        fallback: data.fallback
+        fallback: data.fallback ?? false
       }
     }
 

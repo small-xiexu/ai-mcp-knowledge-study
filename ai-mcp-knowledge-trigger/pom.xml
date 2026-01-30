@@ -11,6 +11,7 @@
     </parent>
 
     <artifactId>ai-mcp-knowledge-trigger</artifactId>
+    <description>应用触发层模块，提供对外接口入口与请求响应编排</description>
 
     <dependencies>
         <!-- 依赖 application 模块 -->
