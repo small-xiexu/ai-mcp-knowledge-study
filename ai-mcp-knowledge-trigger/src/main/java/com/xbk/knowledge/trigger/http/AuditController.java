@@ -5,7 +5,7 @@ import com.xbk.knowledge.types.common.Result;
 import com.xbk.knowledge.api.dto.audit.AuditQueryRequest;
 import com.xbk.knowledge.api.dto.audit.AuditResponse;
 import com.xbk.knowledge.domain.model.entity.ConfigAudit;
-import com.xbk.knowledge.domain.model.vo.AuditQuery;
+import com.xbk.knowledge.domain.model.vo.audit.AuditQuery;
 import com.xbk.knowledge.application.service.AuditAppService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.function.Function;
 
 
 /**
@@ -42,28 +43,41 @@ public class AuditController {
     @PostMapping("/list")
     public Result<PageResult<AuditResponse>> listAudits(@Valid @RequestBody AuditQueryRequest request) {
         // 调用应用服务查询
+        String tableName = request.getTableName();
+        Long recordId = request.getRecordId();
+        String operator = request.getOperator();
+        int offset = request.getOffset();
+        Integer pageSize = request.getPageSize();
+        String sortField = request.getSortField();
+        String sortOrder = request.getSortOrder();
         AuditQuery query = new AuditQuery(
-                request.getTableName(),
-                request.getRecordId(),
-                request.getOperator(),
-                request.getOffset(),
-                request.getPageSize(),
-                request.getSortField(),
-                request.getSortOrder()
+                tableName,
+                recordId,
+                operator,
+                offset,
+                pageSize,
+                sortField,
+                sortOrder
         );
         PageResult<ConfigAudit> pageResult = auditAppService.queryAuditPage(query);
 
         // 转换为响应 DTO
-        List<AuditResponse> records = pageResult.getRecords().stream()
-                .map(this::convertToResponse)
+        Function<ConfigAudit, AuditResponse> responseConverter = this::convertToResponse;
+        List<AuditResponse> records = pageResult
+                .getRecords()
+                .stream()
+                .map(responseConverter)
                 .toList();
 
         // 构建分页结果
+        Long total = pageResult.getTotal();
+        Integer pageNum = pageResult.getPageNum();
+        Integer resultPageSize = pageResult.getPageSize();
         PageResult<AuditResponse> result = PageResult.of(
                 records,
-                pageResult.getTotal(),
-                pageResult.getPageNum(),
-                pageResult.getPageSize()
+                total,
+                pageNum,
+                resultPageSize
         );
 
         return Result.success(result);

@@ -2,7 +2,7 @@ package com.xbk.knowledge.application.service.impl;
 
 import com.xbk.knowledge.application.service.AuditAppService;
 import com.xbk.knowledge.domain.model.entity.ConfigAudit;
-import com.xbk.knowledge.domain.model.vo.AuditQuery;
+import com.xbk.knowledge.domain.model.vo.audit.AuditQuery;
 import com.xbk.knowledge.domain.service.IAuditService;
 import com.xbk.knowledge.types.common.PageResult;
 import lombok.RequiredArgsConstructor;

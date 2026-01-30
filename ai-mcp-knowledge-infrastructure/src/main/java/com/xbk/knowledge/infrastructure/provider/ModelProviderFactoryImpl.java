@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
@@ -39,12 +40,17 @@ public class ModelProviderFactoryImpl implements ModelProviderFactory {
     @Autowired
     public ModelProviderFactoryImpl(List<ModelProvider> providers) {
         // 将 Provider 列表转换为 Map，以 ModelType 为 key
-        this.providerMap = providers.stream()
-                .collect(Collectors.toMap(
-                        ModelProvider::getModelType,
-                        Function.identity()
-                ));
-        log.info("初始化 ModelProviderFactoryImpl，已注册 {} 个模型提供者", providerMap.size());
+        Function<ModelProvider, ModelType> typeMapper = ModelProvider::getModelType;
+        Function<ModelProvider, ModelProvider> identityMapper = Function.identity();
+        Collector<ModelProvider, ?, Map<ModelType, ModelProvider>> collector = Collectors.toMap(
+                typeMapper,
+                identityMapper
+        );
+        this.providerMap = providers
+                .stream()
+                .collect(collector);
+        int providerCount = providerMap.size();
+        log.info("初始化 ModelProviderFactoryImpl，已注册 {} 个模型提供者", providerCount);
     }
 
     /**
@@ -72,7 +78,8 @@ public class ModelProviderFactoryImpl implements ModelProviderFactory {
      */
     @Override
     public ChatClient createChatClient(ModelConfig config) {
-        ModelProvider provider = getProvider(config.getModelType());
+        ModelType modelType = config.getModelType();
+        ModelProvider provider = getProvider(modelType);
         return provider.createChatClient(config);
     }
 

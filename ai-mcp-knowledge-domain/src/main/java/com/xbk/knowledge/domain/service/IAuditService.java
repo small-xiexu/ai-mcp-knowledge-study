@@ -1,7 +1,7 @@
 package com.xbk.knowledge.domain.service;
 
 import com.xbk.knowledge.domain.model.entity.ConfigAudit;
-import com.xbk.knowledge.domain.model.vo.AuditQuery;
+import com.xbk.knowledge.domain.model.vo.audit.AuditQuery;
 import com.xbk.knowledge.types.common.PageResult;
 
 /**

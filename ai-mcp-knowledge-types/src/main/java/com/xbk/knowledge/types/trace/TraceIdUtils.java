@@ -43,7 +43,8 @@ public final class TraceIdUtils {
      * @return traceId
      */
     public static String getOrCreateTraceId() {
-        return ensureTraceId().getTraceId();
+        return ensureTraceId()
+                .getTraceId();
     }
 
     /**
@@ -70,7 +71,11 @@ public final class TraceIdUtils {
      * @return traceId
      */
     private static String generateTraceId() {
-        return UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+        return UUID
+                .randomUUID()
+                .toString()
+                .replace("-", "")
+                .substring(0, 16);
     }
 
     /**

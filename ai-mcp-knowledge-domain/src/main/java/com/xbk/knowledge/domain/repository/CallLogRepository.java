@@ -1,16 +1,17 @@
 package com.xbk.knowledge.domain.repository;
 
+import com.xbk.knowledge.domain.model.aggregate.call.CallLogAggregate;
 import com.xbk.knowledge.domain.model.entity.CallLog;
-import com.xbk.knowledge.domain.model.vo.CallMetrics;
-import com.xbk.knowledge.domain.model.vo.CallStatusQuery;
-import com.xbk.knowledge.domain.model.vo.MetricsQuery;
-import com.xbk.knowledge.domain.model.vo.ModelIdQuery;
-import com.xbk.knowledge.domain.model.vo.ModelIdStatusQuery;
-import com.xbk.knowledge.domain.model.vo.ModelUsage;
-import com.xbk.knowledge.domain.model.vo.ModelUsageQuery;
-import com.xbk.knowledge.domain.model.vo.ResponseTime;
-import com.xbk.knowledge.domain.model.vo.SuccessRate;
-import com.xbk.knowledge.domain.model.vo.TimeRangeQuery;
+import com.xbk.knowledge.domain.model.vo.metrics.CallMetrics;
+import com.xbk.knowledge.domain.model.vo.metrics.CallStatusQuery;
+import com.xbk.knowledge.domain.model.vo.metrics.MetricsQuery;
+import com.xbk.knowledge.domain.model.vo.model.ModelIdQuery;
+import com.xbk.knowledge.domain.model.vo.model.ModelIdStatusQuery;
+import com.xbk.knowledge.domain.model.vo.metrics.ModelUsage;
+import com.xbk.knowledge.domain.model.vo.metrics.ModelUsageQuery;
+import com.xbk.knowledge.domain.model.vo.metrics.ResponseTime;
+import com.xbk.knowledge.domain.model.vo.metrics.SuccessRate;
+import com.xbk.knowledge.domain.model.vo.metrics.TimeRangeQuery;
 
 import java.util.List;
 
@@ -24,12 +25,12 @@ import java.util.List;
 public interface CallLogRepository {
 
     /**
-     * 保存调用日志
+     * 保存调用日志聚合
      *
-     * @param callLog 调用日志
-     * @return 保存后的日志
+     * @param aggregate 调用日志聚合
+     * @return 保存后的聚合
      */
-    CallLog save(CallLog callLog);
+    CallLogAggregate save(CallLogAggregate aggregate);
 
     /**
      * 根据模型ID查询调用日志

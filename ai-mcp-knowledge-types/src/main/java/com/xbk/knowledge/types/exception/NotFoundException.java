@@ -1,5 +1,7 @@
 package com.xbk.knowledge.types.exception;
 
+import com.xbk.knowledge.types.common.ResultCode;
+
 /**
  * 资源未找到异常
  * 用于表示请求的资源不存在
@@ -17,7 +19,7 @@ public class NotFoundException extends BusinessException {
      * @param message 错误消息
      */
     public NotFoundException(String message) {
-        super(404, message);
+        super(ResultCode.NOT_FOUND.getCode(), message);
     }
 
     /**
@@ -27,6 +29,6 @@ public class NotFoundException extends BusinessException {
      * @param data    错误数据
      */
     public NotFoundException(String message, Object data) {
-        super(404, message, data);
+        super(ResultCode.NOT_FOUND.getCode(), message, data);
     }
 }

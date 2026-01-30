@@ -1,7 +1,8 @@
 package com.xbk.knowledge.infrastructure.repository;
 
+import com.xbk.knowledge.domain.model.aggregate.audit.ConfigAuditAggregate;
 import com.xbk.knowledge.domain.model.entity.ConfigAudit;
-import com.xbk.knowledge.domain.model.vo.AuditQuery;
+import com.xbk.knowledge.domain.model.vo.audit.AuditQuery;
 import com.xbk.knowledge.domain.repository.ConfigAuditRepository;
 import com.xbk.knowledge.infrastructure.mapper.ConfigAuditMapper;
 import lombok.RequiredArgsConstructor;
@@ -29,12 +30,18 @@ public class ConfigAuditRepositoryImpl implements ConfigAuditRepository {
      * 统一补齐创建时间，保证审计可追溯
      */
     @Override
-    public ConfigAudit save(ConfigAudit audit) {
+    public ConfigAuditAggregate save(ConfigAuditAggregate aggregate) {
+        if (aggregate == null || aggregate.getConfigAudit() == null) {
+            return aggregate;
+        }
+        ConfigAudit audit = aggregate.getConfigAudit();
         if (audit.getCreatedAt() == null) {
-            audit.setCreatedAt(LocalDateTime.now());
+            LocalDateTime createdAt = LocalDateTime.now();
+            audit.setCreatedAt(createdAt);
         }
         configAuditMapper.insertConfigAudit(audit);
-        return audit;
+        aggregate.setConfigAudit(audit);
+        return aggregate;
     }
 
     /**

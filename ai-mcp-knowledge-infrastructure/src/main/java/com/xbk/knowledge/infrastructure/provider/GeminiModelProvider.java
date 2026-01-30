@@ -29,18 +29,21 @@ public class GeminiModelProvider implements ModelProvider {
 
     private ChatModel createChatModel(ModelConfig config) {
         try {
-            log.info("创建 Gemini 模型（通过 OpenAI 兼容协议）: {}", config.getModelName());
+            String modelName = config.getModelName();
+            log.info("创建 Gemini 模型（通过 OpenAI 兼容协议）: {}", modelName);
 
             // 使用 OpenAI 兼容协议调用 Gemini
             // 这样可以避免 Spring AI 的 GoogleGenAiChatModel 的 bug
+            String baseUrl = config.getBaseUrl();
+            String apiKey = config.getApiKey();
             OpenAiApi openAiApi = OpenAiApi.builder()
-                    .baseUrl(config.getBaseUrl())
-                    .apiKey(config.getApiKey())
+                    .baseUrl(baseUrl)
+                    .apiKey(apiKey)
                     .build();
 
             // 创建聊天选项
             OpenAiChatOptions options = OpenAiChatOptions.builder()
-                    .model(config.getModelName())
+                    .model(modelName)
                     .build();
 
             // 创建聊天模型
@@ -49,7 +52,8 @@ public class GeminiModelProvider implements ModelProvider {
                     .defaultOptions(options)
                     .build();
         } catch (Exception e) {
-            log.error("创建 Gemini 模型失败: {}", e.getMessage(), e);
+            String errorMessage = e.getMessage();
+            log.error("创建 Gemini 模型失败: {}", errorMessage, e);
             throw new RuntimeException("创建 Gemini 模型失败", e);
         }
     }
@@ -57,7 +61,9 @@ public class GeminiModelProvider implements ModelProvider {
     @Override
     public ChatClient createChatClient(ModelConfig config) {
         ChatModel chatModel = createChatModel(config);
-        return ChatClient.builder(chatModel).build();
+        return ChatClient
+                .builder(chatModel)
+                .build();
     }
 
     @Override
@@ -72,7 +78,8 @@ public class GeminiModelProvider implements ModelProvider {
             createChatModel(config);
             return true;
         } catch (Exception e) {
-            log.warn("Gemini 模型健康检查失败: {}", e.getMessage());
+            String errorMessage = e.getMessage();
+            log.warn("Gemini 模型健康检查失败: {}", errorMessage);
             return false;
         }
     }

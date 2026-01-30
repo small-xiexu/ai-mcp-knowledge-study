@@ -2,9 +2,9 @@ package com.xbk.knowledge.infrastructure.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.xbk.knowledge.domain.model.entity.TaskType;
-import com.xbk.knowledge.domain.model.vo.IdQuery;
-import com.xbk.knowledge.domain.model.vo.TaskTypeCodeQuery;
-import com.xbk.knowledge.domain.model.vo.TaskTypePageQuery;
+import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.model.vo.task.TaskTypeCodeQuery;
+import com.xbk.knowledge.domain.model.vo.task.TaskTypePageQuery;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;

@@ -1,22 +1,26 @@
 package com.xbk.knowledge.domain.service.impl;
 
+import com.xbk.knowledge.domain.model.aggregate.model.ModelConfigAggregate;
 import com.xbk.knowledge.domain.model.entity.ModelCapability;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
-import com.xbk.knowledge.domain.model.vo.EnabledQuery;
-import com.xbk.knowledge.domain.model.vo.IdQuery;
-import com.xbk.knowledge.domain.model.vo.ModelConfigPageQuery;
-import com.xbk.knowledge.domain.model.vo.ModelNameQuery;
-import com.xbk.knowledge.domain.model.vo.TaskTypeQuery;
+import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
+import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.model.vo.model.ModelConfigPageQuery;
+import com.xbk.knowledge.domain.model.vo.model.ModelNameQuery;
+import com.xbk.knowledge.domain.model.vo.task.TaskTypeQuery;
 import com.xbk.knowledge.domain.repository.ModelConfigRepository;
 import com.xbk.knowledge.domain.service.IModelConfigService;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.exception.NotFoundException;
+import com.xbk.knowledge.types.enums.ModelType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * 模型配置领域服务实现
@@ -44,7 +48,8 @@ public class ModelConfigServiceImpl implements IModelConfigService {
         int offset = query.getOffset() == null ? 0 : query.getOffset();
         int pageSize = query.getPageSize() == null ? 10 : query.getPageSize();
         // 查询分页数据
-        List<ModelConfig> models = modelConfigRepository.findPageWithCapability(new ModelConfigPageQuery(offset, pageSize));
+        ModelConfigPageQuery pageQuery = new ModelConfigPageQuery(offset, pageSize);
+        List<ModelConfig> models = modelConfigRepository.findPageWithCapability(pageQuery);
 
         // 查询总数
         long total = modelConfigRepository.countAll();
@@ -65,8 +70,12 @@ public class ModelConfigServiceImpl implements IModelConfigService {
             throw new IllegalArgumentException("模型 ID 不能为空");
         }
         Long id = query.getId();
-        return modelConfigRepository.findById(new IdQuery(id))
-                .orElseThrow(() -> new NotFoundException("模型配置不存在，id: " + id));
+        IdQuery idQuery = new IdQuery(id);
+        String notFoundMessage = "模型配置不存在，id: " + id;
+        Supplier<NotFoundException> exceptionSupplier = () -> new NotFoundException(notFoundMessage);
+        return modelConfigRepository
+                .findById(idQuery)
+                .orElseThrow(exceptionSupplier);
     }
 
     /**
@@ -76,9 +85,13 @@ public class ModelConfigServiceImpl implements IModelConfigService {
     @Override
     public ModelConfig createModelConfig(ModelConfig modelConfig) {
         // 检查模型名称是否已存在
-        if (modelConfigRepository.findByModelName(new ModelNameQuery(modelConfig.getModelName())).isPresent()) {
+        String modelName = modelConfig.getModelName();
+        ModelNameQuery modelNameQuery = new ModelNameQuery(modelName);
+        if (modelConfigRepository
+                .findByModelName(modelNameQuery)
+                .isPresent()) {
             // 业务层提前校验，避免数据库唯一约束异常影响可读性
-            throw new IllegalArgumentException("模型名称已存在：" + modelConfig.getModelName());
+            throw new IllegalArgumentException("模型名称已存在：" + modelName);
         }
 
         // 设置创建时间和更新时间
@@ -88,12 +101,22 @@ public class ModelConfigServiceImpl implements IModelConfigService {
 
         // 能力配置属于同一聚合，确保与模型配置同时落库
         if (modelConfig.getCapability() != null) {
-            modelConfig.getCapability().setCreatedAt(now);
-            modelConfig.getCapability().setUpdatedAt(now);
+            modelConfig
+                    .getCapability()
+                    .setCreatedAt(now);
+            modelConfig
+                    .getCapability()
+                    .setUpdatedAt(now);
         }
 
         // 保存到数据库
-        return modelConfigRepository.save(modelConfig);
+        ModelCapability modelCapability = modelConfig.getCapability();
+        ModelConfigAggregate aggregate = ModelConfigAggregate.builder()
+                .modelConfig(modelConfig)
+                .modelCapability(modelCapability)
+                .build();
+        ModelConfigAggregate savedAggregate = modelConfigRepository.save(aggregate);
+        return savedAggregate.getModelConfig();
     }
 
     /**
@@ -107,28 +130,46 @@ public class ModelConfigServiceImpl implements IModelConfigService {
         }
 
         // 查询现有配置
-        ModelConfig existingConfig = modelConfigRepository.findById(new IdQuery(modelConfig.getId()))
-                .orElseThrow(() -> new NotFoundException("模型配置不存在，id: " + modelConfig.getId()));
+        Long modelConfigId = modelConfig.getId();
+        IdQuery idQuery = new IdQuery(modelConfigId);
+        String notFoundMessage = "模型配置不存在，id: " + modelConfigId;
+        Supplier<NotFoundException> exceptionSupplier = () -> new NotFoundException(notFoundMessage);
+        ModelConfig existingConfig = modelConfigRepository
+                .findById(idQuery)
+                .orElseThrow(exceptionSupplier);
 
         // 检查模型名称是否与其他模型冲突
-        modelConfigRepository.findByModelName(new ModelNameQuery(modelConfig.getModelName()))
-                .ifPresent(existing -> {
-                    if (!existing.getId().equals(modelConfig.getId())) {
-                        throw new IllegalArgumentException("模型名称已存在：" + modelConfig.getModelName());
-                    }
-                });
+        String modelName = modelConfig.getModelName();
+        ModelNameQuery modelNameQuery = new ModelNameQuery(modelName);
+        Consumer<ModelConfig> duplicateChecker = existing -> {
+            if (!existing
+                    .getId()
+                    .equals(modelConfigId)) {
+                throw new IllegalArgumentException("模型名称已存在：" + modelName);
+            }
+        };
+        modelConfigRepository
+                .findByModelName(modelNameQuery)
+                .ifPresent(duplicateChecker);
 
         // 更新字段
-        existingConfig.setModelName(modelConfig.getModelName());
-        existingConfig.setModelType(modelConfig.getModelType());
-        existingConfig.setApiKey(modelConfig.getApiKey());
-        existingConfig.setBaseUrl(modelConfig.getBaseUrl());
-        existingConfig.setEnabled(modelConfig.getEnabled());
-        existingConfig.setPriority(modelConfig.getPriority());
-        existingConfig.setUpdatedAt(LocalDateTime.now());
+        ModelType modelType = modelConfig.getModelType();
+        String apiKey = modelConfig.getApiKey();
+        String baseUrl = modelConfig.getBaseUrl();
+        Boolean enabled = modelConfig.getEnabled();
+        Integer priority = modelConfig.getPriority();
+        LocalDateTime updatedAt = LocalDateTime.now();
+        existingConfig.setModelName(modelName);
+        existingConfig.setModelType(modelType);
+        existingConfig.setApiKey(apiKey);
+        existingConfig.setBaseUrl(baseUrl);
+        existingConfig.setEnabled(enabled);
+        existingConfig.setPriority(priority);
+        existingConfig.setUpdatedAt(updatedAt);
 
         // 能力配置可能不存在（历史数据），此处补齐保证聚合一致性
         if (modelConfig.getCapability() != null) {
+            ModelCapability configCapability = modelConfig.getCapability();
             ModelCapability capability = existingConfig.getCapability();
             if (capability == null) {
                 capability = ModelCapability.builder()
@@ -136,14 +177,24 @@ public class ModelConfigServiceImpl implements IModelConfigService {
                         .build();
                 existingConfig.setCapability(capability);
             }
-            capability.setMaxInputTokens(modelConfig.getCapability().getMaxInputTokens());
-            capability.setMaxOutputTokens(modelConfig.getCapability().getMaxOutputTokens());
-            capability.setQualityScore(modelConfig.getCapability().getQualityScore());
-            capability.setUpdatedAt(LocalDateTime.now());
+            Integer maxInputTokens = configCapability.getMaxInputTokens();
+            Integer maxOutputTokens = configCapability.getMaxOutputTokens();
+            Integer qualityScore = configCapability.getQualityScore();
+            LocalDateTime capabilityUpdatedAt = LocalDateTime.now();
+            capability.setMaxInputTokens(maxInputTokens);
+            capability.setMaxOutputTokens(maxOutputTokens);
+            capability.setQualityScore(qualityScore);
+            capability.setUpdatedAt(capabilityUpdatedAt);
         }
 
         // 保存更新
-        return modelConfigRepository.save(existingConfig);
+        ModelCapability existingCapability = existingConfig.getCapability();
+        ModelConfigAggregate aggregate = ModelConfigAggregate.builder()
+                .modelConfig(existingConfig)
+                .modelCapability(existingCapability)
+                .build();
+        ModelConfigAggregate savedAggregate = modelConfigRepository.save(aggregate);
+        return savedAggregate.getModelConfig();
     }
 
     /**
@@ -157,12 +208,13 @@ public class ModelConfigServiceImpl implements IModelConfigService {
         }
         Long id = query.getId();
         // 检查模型是否存在
-        if (!modelConfigRepository.existsById(new IdQuery(id))) {
+        IdQuery idQuery = new IdQuery(id);
+        if (!modelConfigRepository.existsById(idQuery)) {
             throw new NotFoundException("模型配置不存在，id: " + id);
         }
 
         // 删除模型
-        modelConfigRepository.deleteById(new IdQuery(id));
+        modelConfigRepository.deleteById(idQuery);
     }
 
     /**
@@ -175,13 +227,24 @@ public class ModelConfigServiceImpl implements IModelConfigService {
             throw new IllegalArgumentException("模型 ID 不能为空");
         }
         Long id = query.getId();
-        ModelConfig modelConfig = modelConfigRepository.findById(new IdQuery(id))
-                .orElseThrow(() -> new NotFoundException("模型配置不存在，id: " + id));
+        IdQuery idQuery = new IdQuery(id);
+        String notFoundMessage = "模型配置不存在，id: " + id;
+        Supplier<NotFoundException> exceptionSupplier = () -> new NotFoundException(notFoundMessage);
+        ModelConfig modelConfig = modelConfigRepository
+                .findById(idQuery)
+                .orElseThrow(exceptionSupplier);
 
         modelConfig.setEnabled(true);
-        modelConfig.setUpdatedAt(LocalDateTime.now());
+        LocalDateTime updatedAt = LocalDateTime.now();
+        modelConfig.setUpdatedAt(updatedAt);
 
-        return modelConfigRepository.save(modelConfig);
+        ModelCapability modelCapability = modelConfig.getCapability();
+        ModelConfigAggregate aggregate = ModelConfigAggregate.builder()
+                .modelConfig(modelConfig)
+                .modelCapability(modelCapability)
+                .build();
+        ModelConfigAggregate savedAggregate = modelConfigRepository.save(aggregate);
+        return savedAggregate.getModelConfig();
     }
 
     /**
@@ -194,13 +257,24 @@ public class ModelConfigServiceImpl implements IModelConfigService {
             throw new IllegalArgumentException("模型 ID 不能为空");
         }
         Long id = query.getId();
-        ModelConfig modelConfig = modelConfigRepository.findById(new IdQuery(id))
-                .orElseThrow(() -> new NotFoundException("模型配置不存在，id: " + id));
+        IdQuery idQuery = new IdQuery(id);
+        String notFoundMessage = "模型配置不存在，id: " + id;
+        Supplier<NotFoundException> exceptionSupplier = () -> new NotFoundException(notFoundMessage);
+        ModelConfig modelConfig = modelConfigRepository
+                .findById(idQuery)
+                .orElseThrow(exceptionSupplier);
 
         modelConfig.setEnabled(false);
-        modelConfig.setUpdatedAt(LocalDateTime.now());
+        LocalDateTime updatedAt = LocalDateTime.now();
+        modelConfig.setUpdatedAt(updatedAt);
 
-        return modelConfigRepository.save(modelConfig);
+        ModelCapability modelCapability = modelConfig.getCapability();
+        ModelConfigAggregate aggregate = ModelConfigAggregate.builder()
+                .modelConfig(modelConfig)
+                .modelCapability(modelCapability)
+                .build();
+        ModelConfigAggregate savedAggregate = modelConfigRepository.save(aggregate);
+        return savedAggregate.getModelConfig();
     }
 
     /**
@@ -211,7 +285,8 @@ public class ModelConfigServiceImpl implements IModelConfigService {
     public List<ModelConfig> queryEnabledModels(EnabledQuery query) {
         // 查询所有启用的模型
         Boolean enabled = query == null || query.getEnabled() == null ? Boolean.TRUE : query.getEnabled();
-        return modelConfigRepository.findByEnabled(new EnabledQuery(enabled));
+        EnabledQuery enabledQuery = new EnabledQuery(enabled);
+        return modelConfigRepository.findByEnabled(enabledQuery);
     }
 
     /**
@@ -221,7 +296,8 @@ public class ModelConfigServiceImpl implements IModelConfigService {
     @Override
     public ModelConfig getRecommendedModel(TaskTypeQuery query) {
         // 查询所有启用的模型
-        List<ModelConfig> models = modelConfigRepository.findByEnabled(new EnabledQuery(true));
+        EnabledQuery enabledQuery = new EnabledQuery(true);
+        List<ModelConfig> models = modelConfigRepository.findByEnabled(enabledQuery);
 
         // 返回第一个启用的模型作为推荐
         // TODO: 未来可以根据任务类型从 TaskType 表中查询 preferredModelId

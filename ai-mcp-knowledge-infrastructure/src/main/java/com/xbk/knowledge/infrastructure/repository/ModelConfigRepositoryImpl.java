@@ -1,13 +1,14 @@
 package com.xbk.knowledge.infrastructure.repository;
 
+import com.xbk.knowledge.domain.model.aggregate.model.ModelConfigAggregate;
 import com.xbk.knowledge.domain.model.entity.ModelCapability;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
-import com.xbk.knowledge.domain.model.vo.EnabledIdsQuery;
-import com.xbk.knowledge.domain.model.vo.EnabledQuery;
-import com.xbk.knowledge.domain.model.vo.IdQuery;
-import com.xbk.knowledge.domain.model.vo.ModelConfigPageQuery;
-import com.xbk.knowledge.domain.model.vo.ModelNameQuery;
-import com.xbk.knowledge.domain.model.vo.ModelTypeEnabledQuery;
+import com.xbk.knowledge.domain.model.vo.common.EnabledIdsQuery;
+import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
+import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.model.vo.model.ModelConfigPageQuery;
+import com.xbk.knowledge.domain.model.vo.model.ModelNameQuery;
+import com.xbk.knowledge.domain.model.vo.model.ModelTypeEnabledQuery;
 import com.xbk.knowledge.domain.repository.ModelConfigRepository;
 import com.xbk.knowledge.infrastructure.mapper.ModelCapabilityMapper;
 import com.xbk.knowledge.infrastructure.mapper.ModelConfigMapper;
@@ -87,7 +88,8 @@ public class ModelConfigRepositoryImpl implements ModelConfigRepository {
         if (query == null || query.getModelName() == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(modelConfigMapper.findByModelName(query));
+        ModelConfig modelConfig = modelConfigMapper.findByModelName(query);
+        return Optional.ofNullable(modelConfig);
     }
 
     /**
@@ -105,7 +107,10 @@ public class ModelConfigRepositoryImpl implements ModelConfigRepository {
      */
     @Override
     public List<ModelConfig> findEnabledByIds(EnabledIdsQuery query) {
-        if (query == null || query.getIds() == null || query.getIds().isEmpty()) {
+        if (query == null || query
+                .getIds() == null || query
+                .getIds()
+                .isEmpty()) {
             return Collections.emptyList();
         }
         return modelConfigMapper.findEnabledByIds(query);
@@ -120,7 +125,8 @@ public class ModelConfigRepositoryImpl implements ModelConfigRepository {
         if (query == null || query.getId() == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(modelConfigMapper.findByIdWithCapability(query));
+        ModelConfig modelConfig = modelConfigMapper.findByIdWithCapability(query);
+        return Optional.ofNullable(modelConfig);
     }
 
     /**
@@ -161,7 +167,15 @@ public class ModelConfigRepositoryImpl implements ModelConfigRepository {
      * 统一插入与更新逻辑，保证聚合一致性
      */
     @Override
-    public ModelConfig save(ModelConfig modelConfig) {
+    public ModelConfigAggregate save(ModelConfigAggregate aggregate) {
+        if (aggregate == null || aggregate.getModelConfig() == null) {
+            return aggregate;
+        }
+        ModelConfig modelConfig = aggregate.getModelConfig();
+        ModelCapability aggregateCapability = aggregate.getModelCapability();
+        if (modelConfig.getCapability() == null && aggregateCapability != null) {
+            modelConfig.setCapability(aggregateCapability);
+        }
         LocalDateTime now = LocalDateTime.now();
         if (modelConfig.getId() == null) {
             if (modelConfig.getCreatedAt() == null) {
@@ -172,14 +186,20 @@ public class ModelConfigRepositoryImpl implements ModelConfigRepository {
             }
             modelConfigMapper.insertModelConfig(modelConfig);
             persistCapability(modelConfig, now, true);
-            return modelConfig;
+            aggregate.setModelConfig(modelConfig);
+            ModelCapability modelCapability = modelConfig.getCapability();
+            aggregate.setModelCapability(modelCapability);
+            return aggregate;
         }
         if (modelConfig.getUpdatedAt() == null) {
             modelConfig.setUpdatedAt(now);
         }
         modelConfigMapper.updateModelConfig(modelConfig);
         persistCapability(modelConfig, now, false);
-        return modelConfig;
+        aggregate.setModelConfig(modelConfig);
+        ModelCapability modelCapability = modelConfig.getCapability();
+        aggregate.setModelCapability(modelCapability);
+        return aggregate;
     }
 
     /**
@@ -206,14 +226,16 @@ public class ModelConfigRepositoryImpl implements ModelConfigRepository {
             return;
         }
         if (capability.getModelId() == null) {
-            capability.setModelId(modelConfig.getId());
+            Long modelId = modelConfig.getId();
+            capability.setModelId(modelId);
         }
         if (insertOnly) {
             fillCapabilityCreateTime(capability, now);
             modelCapabilityMapper.insertModelCapability(capability);
             return;
         }
-        ModelCapability existing = modelCapabilityMapper.findByModelId(capability.getModelId());
+        Long modelId = capability.getModelId();
+        ModelCapability existing = modelCapabilityMapper.findByModelId(modelId);
         if (existing == null) {
             fillCapabilityCreateTime(capability, now);
             modelCapabilityMapper.insertModelCapability(capability);

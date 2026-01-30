@@ -2,9 +2,9 @@ package com.xbk.knowledge.application.service.impl;
 
 import com.xbk.knowledge.application.service.TaskTypeAppService;
 import com.xbk.knowledge.domain.model.entity.TaskType;
-import com.xbk.knowledge.domain.model.vo.IdQuery;
-import com.xbk.knowledge.domain.model.vo.TaskTypeCodeQuery;
-import com.xbk.knowledge.domain.model.vo.TaskTypePageQuery;
+import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.model.vo.task.TaskTypeCodeQuery;
+import com.xbk.knowledge.domain.model.vo.task.TaskTypePageQuery;
 import com.xbk.knowledge.domain.service.ITaskTypeService;
 import com.xbk.knowledge.types.common.PageResult;
 import lombok.RequiredArgsConstructor;

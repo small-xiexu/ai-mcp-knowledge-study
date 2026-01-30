@@ -32,7 +32,25 @@
 - `ai-mcp-knowledge-trigger`
 - `ai-mcp-knowledge-types`
 
+## 模型调用与降级设计
+
+为降低阅读成本并便于扩展，模型调用流程采用多种设计模式分层解耦：
+
+- 策略模式（Strategy）
+  - 作用：定义候选模型顺序与降级规则
+  - 关键类：`FailoverStrategy`、`PriorityFailoverStrategy`
+
+- 模板方法（Template Method）+ 迭代器（Iterator）
+  - 作用：固定降级流程骨架，并把“主/备遍历”从业务代码中隐藏
+  - 关键类：`AbstractFailoverExecutor`、`DefaultFailoverExecutor`、`FailoverPlan`、`DefaultFailoverPlan`
+
+- 责任链（Chain of Responsibility）
+  - 作用：叠加重试、熔断、日志等横切能力，避免流程膨胀
+  - 关键类：`ModelCallPipeline`、`ModelCallPolicy`、`RetryPolicy`、`CircuitBreakerPolicy`、`LoggingPolicy`
+
+调用入口保持简单：
+- `FallbackHandler` 只负责触发降级执行器
+
 ## 变更记录
 
 - 将共享内核模块从 `ai-mcp-knowledge-common` 更名为 `ai-mcp-knowledge-types`。
-

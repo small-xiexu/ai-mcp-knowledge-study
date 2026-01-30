@@ -106,12 +106,25 @@ Trigger → Application → Domain → Infrastructure
 `ai-mcp-knowledge-types/src/main/java/com/xbk/knowledge/types/enums/`  
 `ai-mcp-knowledge-domain/src/main/java/com/xbk/knowledge/domain/model/vo/`
 
+VO 子包按业务语义拆分：
+- `vo/model`：模型相关查询对象
+- `vo/task`：任务相关查询对象
+- `vo/metrics`：指标统计相关对象
+- `vo/audit`：审计相关查询对象
+- `vo/common`：通用查询对象
+
 ### 4.3 Aggregate（聚合）
 保证一致性边界。
 
 本项目典型聚合：
-- `ModelConfig` + `ModelCapability`
+- `ModelConfigAggregate`：`ModelConfig` + `ModelCapability`
   - `ModelConfig` 是聚合根，能力配置随其变化。
+- `TaskTypeAggregate`：`TaskType`
+- `CallLogAggregate`：`CallLog`
+- `ConfigAuditAggregate`：`ConfigAudit`
+
+定位路径：  
+`ai-mcp-knowledge-domain/src/main/java/com/xbk/knowledge/domain/model/aggregate/`
 
 ### 4.4 Domain Service（领域服务）
 不适合放在实体里的业务规则，放在领域服务。
@@ -145,6 +158,83 @@ Trigger → Application → Domain → Infrastructure
 理解方式：
 - Application 是“流程导演”
 - Domain 是“业务规则库”
+
+### 5.3 应用层的模型编排设计（本项目落地）
+
+本项目在 Application 层将“模型选择 + 调用容错”拆分为多个可组合的模式，避免 if-else 与循环驱动分散在业务代码中：
+
+1) **模型选择责任链（Chain of Responsibility）**
+   - 目标：按优先级处理“显式策略 > 任务类型 > 默认策略”
+   - 关键类：
+     - `ModelSelectionChain`
+     - `ExplicitStrategySelectionHandler`
+     - `TaskTypeSelectionHandler`
+     - `DefaultSelectionHandler`
+
+2) **降级排序策略（Strategy）**
+   - 目标：统一主/备模型顺序规则，避免硬编码排序逻辑
+   - 关键类：
+     - `FailoverStrategy`
+     - `PriorityFailoverStrategy`
+
+3) **降级流程模板 + 迭代器（Template Method + Iterator）**
+   - 目标：将“循环尝试模型”的流程封装为模板方法，调用方不感知循环细节
+   - 关键类：
+     - `AbstractFailoverExecutor`
+     - `DefaultFailoverExecutor`
+     - `FailoverPlan`
+     - `DefaultFailoverPlan`
+
+4) **调用管道责任链（Chain of Responsibility）**
+   - 目标：把熔断、重试、日志等横切能力模块化
+   - 关键类：
+     - `ModelCallPipeline`
+     - `ModelCallPolicy`
+     - `RetryPolicy`
+     - `CircuitBreakerPolicy`
+     - `LoggingPolicy`
+
+这样做的直接收益：
+- 阅读成本低：业务代码只看到“选择 -> 执行”，不需要维护细节流程。
+- 扩展成本低：新增策略/拦截器只加类，不改核心流程。
+
+#### 5.3.1 模型选择责任链（类图）
+
+```mermaid
+classDiagram
+    class ModelSelectionChain {
+      +select(request) ModelSelectionDecision
+    }
+    class ModelSelectionHandler {
+      <<interface>>
+      +supports(request) boolean
+      +select(request) ModelSelectionDecision
+    }
+    class ExplicitStrategySelectionHandler
+    class TaskTypeSelectionHandler
+    class DefaultSelectionHandler
+    class ModelSelectionDecision
+
+    ModelSelectionChain --> ModelSelectionHandler
+    ModelSelectionHandler <|.. ExplicitStrategySelectionHandler
+    ModelSelectionHandler <|.. TaskTypeSelectionHandler
+    ModelSelectionHandler <|.. DefaultSelectionHandler
+    ModelSelectionChain --> ModelSelectionDecision
+```
+
+#### 5.3.2 调用管道 + 降级执行（流程图）
+
+```mermaid
+flowchart TB
+    A[FallbackHandler] --> B[FailoverExecutor]
+    B --> C[FailoverPlan]
+    C --> D[Candidate Iterator]
+    D --> E[ModelCallPipeline]
+    E --> F[LoggingPolicy]
+    E --> G[CircuitBreakerPolicy]
+    E --> H[RetryPolicy]
+    E --> I[DefaultModelCallExecutor]
+```
 
 ## 6. DDD 的“从 0 到 1”学习路径（结合本项目）
 

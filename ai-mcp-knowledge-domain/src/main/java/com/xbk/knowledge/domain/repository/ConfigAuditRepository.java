@@ -1,7 +1,8 @@
 package com.xbk.knowledge.domain.repository;
 
+import com.xbk.knowledge.domain.model.aggregate.audit.ConfigAuditAggregate;
 import com.xbk.knowledge.domain.model.entity.ConfigAudit;
-import com.xbk.knowledge.domain.model.vo.AuditQuery;
+import com.xbk.knowledge.domain.model.vo.audit.AuditQuery;
 
 import java.util.List;
 
@@ -15,12 +16,12 @@ import java.util.List;
 public interface ConfigAuditRepository {
 
     /**
-     * 保存审计日志
+     * 保存审计日志聚合
      *
-     * @param audit 审计日志
-     * @return 保存后的日志
+     * @param aggregate 审计日志聚合
+     * @return 保存后的聚合
      */
-    ConfigAudit save(ConfigAudit audit);
+    ConfigAuditAggregate save(ConfigAuditAggregate aggregate);
 
     /**
      * 按表名和记录ID查询审计日志

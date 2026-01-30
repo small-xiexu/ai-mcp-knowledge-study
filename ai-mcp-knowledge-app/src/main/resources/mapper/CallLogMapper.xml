@@ -112,7 +112,7 @@
     </select>
 
     <!-- 聚合调用次数与成功失败统计 -->
-    <select id="aggregateCallMetrics" resultType="com.xbk.knowledge.domain.model.vo.CallMetrics">
+    <select id="aggregateCallMetrics" resultType="com.xbk.knowledge.domain.model.vo.metrics.CallMetrics">
         select
             count(1) as totalCalls,
             coalesce(sum(case when status = 'SUCCESS' then 1 else 0 end), 0) as successCalls,
@@ -137,7 +137,7 @@
     </select>
 
     <!-- 聚合成功率统计 -->
-    <select id="aggregateSuccessRate" resultType="com.xbk.knowledge.domain.model.vo.SuccessRate">
+    <select id="aggregateSuccessRate" resultType="com.xbk.knowledge.domain.model.vo.metrics.SuccessRate">
         select
             null as modelId,
             null as modelName,
@@ -162,7 +162,7 @@
     </select>
 
     <!-- 聚合响应时间统计 -->
-    <select id="aggregateResponseTime" resultType="com.xbk.knowledge.domain.model.vo.ResponseTime">
+    <select id="aggregateResponseTime" resultType="com.xbk.knowledge.domain.model.vo.metrics.ResponseTime">
         select
             null as modelId,
             null as modelName,
@@ -187,7 +187,7 @@
     </select>
 
     <!-- 聚合模型使用分布 -->
-    <select id="aggregateModelUsage" resultType="com.xbk.knowledge.domain.model.vo.ModelUsage">
+    <select id="aggregateModelUsage" resultType="com.xbk.knowledge.domain.model.vo.metrics.ModelUsage">
         select
             model_id as modelId,
             null as modelName,

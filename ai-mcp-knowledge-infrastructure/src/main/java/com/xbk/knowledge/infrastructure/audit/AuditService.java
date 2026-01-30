@@ -2,6 +2,7 @@ package com.xbk.knowledge.infrastructure.audit;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.xbk.knowledge.domain.model.aggregate.audit.ConfigAuditAggregate;
 import com.xbk.knowledge.domain.model.entity.ConfigAudit;
 import com.xbk.knowledge.domain.repository.ConfigAuditRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -62,7 +63,10 @@ public class AuditService {
                 .operator(operator)
                 .build();
 
-        configAuditRepository.save(audit);
+        ConfigAuditAggregate aggregate = ConfigAuditAggregate.builder()
+                .configAudit(audit)
+                .build();
+        configAuditRepository.save(aggregate);
         log.info("审计日志已记录，tableName: {}, recordId: {}, operation: {}, operator: {}", tableName, recordId, operation, operator);
     }
 

@@ -7,6 +7,7 @@ import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.model.Generation;
 import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.document.Document;
 import org.springframework.ai.model.tool.ToolCallingManager;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.api.OpenAiApi;
@@ -40,9 +41,20 @@ public class TestBeanConfig {
     @Primary
     public OpenAiChatModel openAiChatModel() {
         OpenAiChatModel mock = Mockito.mock(OpenAiChatModel.class);
-        ChatResponse response = new ChatResponse(List.of(new Generation(new AssistantMessage("mock-response"))));
-        Mockito.when(mock.call(Mockito.any(Prompt.class))).thenReturn(response);
-        Mockito.when(mock.stream(Mockito.any(Prompt.class))).thenReturn(Flux.just(response));
+        AssistantMessage assistantMessage = new AssistantMessage("mock-response");
+        Generation generation = new Generation(assistantMessage);
+        List<Generation> generations = List.of(generation);
+        ChatResponse response = new ChatResponse(generations);
+        Prompt anyPrompt = Mockito.any(Prompt.class);
+        Mockito
+                .doReturn(response)
+                .when(mock)
+                .call(anyPrompt);
+        Flux<ChatResponse> responseFlux = Flux.just(response);
+        Mockito
+                .doReturn(responseFlux)
+                .when(mock)
+                .stream(anyPrompt);
         return mock;
     }
 
@@ -66,7 +78,12 @@ public class TestBeanConfig {
     @Primary
     public SimpleVectorStore openAiSimpleVectorStore() {
         SimpleVectorStore mock = Mockito.mock(SimpleVectorStore.class);
-        Mockito.when(mock.similaritySearch(Mockito.any(SearchRequest.class))).thenReturn(List.of());
+        SearchRequest anySearchRequest = Mockito.any(SearchRequest.class);
+        List<Document> emptyDocuments = List.of();
+        Mockito
+                .doReturn(emptyDocuments)
+                .when(mock)
+                .similaritySearch(anySearchRequest);
         return mock;
     }
 
@@ -79,7 +96,12 @@ public class TestBeanConfig {
     @Primary
     public PgVectorStore openAiPgVectorStore() {
         PgVectorStore mock = Mockito.mock(PgVectorStore.class);
-        Mockito.when(mock.similaritySearch(Mockito.any(SearchRequest.class))).thenReturn(List.of());
+        SearchRequest anySearchRequest = Mockito.any(SearchRequest.class);
+        List<Document> emptyDocuments = List.of();
+        Mockito
+                .doReturn(emptyDocuments)
+                .when(mock)
+                .similaritySearch(anySearchRequest);
         return mock;
     }
 

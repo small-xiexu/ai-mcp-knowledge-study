@@ -25,14 +25,17 @@ public class AnthropicModelProvider implements ModelProvider {
     private ChatModel createChatModel(ModelConfig config) {
         try {
             // 创建 Anthropic API 客户端
+            String baseUrl = config.getBaseUrl();
+            String apiKey = config.getApiKey();
             AnthropicApi anthropicApi = AnthropicApi.builder()
-                    .baseUrl(config.getBaseUrl())
-                    .apiKey(config.getApiKey())
+                    .baseUrl(baseUrl)
+                    .apiKey(apiKey)
                     .build();
 
             // 创建聊天选项
+            String modelName = config.getModelName();
             AnthropicChatOptions options = AnthropicChatOptions.builder()
-                    .model(config.getModelName())
+                    .model(modelName)
                     .build();
 
             // 创建聊天模型
@@ -41,7 +44,8 @@ public class AnthropicModelProvider implements ModelProvider {
                     .defaultOptions(options)
                     .build();
         } catch (Exception e) {
-            log.error("创建 Anthropic 模型失败: {}", e.getMessage(), e);
+            String errorMessage = e.getMessage();
+            log.error("创建 Anthropic 模型失败: {}", errorMessage, e);
             throw new RuntimeException("创建 Anthropic 模型失败", e);
         }
     }
@@ -49,7 +53,9 @@ public class AnthropicModelProvider implements ModelProvider {
     @Override
     public ChatClient createChatClient(ModelConfig config) {
         ChatModel chatModel = createChatModel(config);
-        return ChatClient.builder(chatModel).build();
+        return ChatClient
+                .builder(chatModel)
+                .build();
     }
 
     @Override
@@ -64,7 +70,8 @@ public class AnthropicModelProvider implements ModelProvider {
             createChatModel(config);
             return true;
         } catch (Exception e) {
-            log.warn("Anthropic 模型健康检查失败: {}", e.getMessage());
+            String errorMessage = e.getMessage();
+            log.warn("Anthropic 模型健康检查失败: {}", errorMessage);
             return false;
         }
     }

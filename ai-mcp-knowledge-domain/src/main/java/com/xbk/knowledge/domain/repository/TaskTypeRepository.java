@@ -1,9 +1,10 @@
 package com.xbk.knowledge.domain.repository;
 
+import com.xbk.knowledge.domain.model.aggregate.task.TaskTypeAggregate;
 import com.xbk.knowledge.domain.model.entity.TaskType;
-import com.xbk.knowledge.domain.model.vo.IdQuery;
-import com.xbk.knowledge.domain.model.vo.TaskTypeCodeQuery;
-import com.xbk.knowledge.domain.model.vo.TaskTypePageQuery;
+import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.model.vo.task.TaskTypeCodeQuery;
+import com.xbk.knowledge.domain.model.vo.task.TaskTypePageQuery;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,12 +35,12 @@ public interface TaskTypeRepository {
     Optional<TaskType> findById(IdQuery query);
 
     /**
-     * 保存任务类型（新增或更新）
+     * 保存任务类型聚合（新增或更新）
      *
-     * @param taskType 任务类型
-     * @return 保存后的任务类型
+     * @param aggregate 任务类型聚合
+     * @return 保存后的聚合
      */
-    TaskType save(TaskType taskType);
+    TaskTypeAggregate save(TaskTypeAggregate aggregate);
 
     /**
      * 判断任务类型是否存在

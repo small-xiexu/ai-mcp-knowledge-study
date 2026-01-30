@@ -6,6 +6,9 @@ import org.springframework.ai.document.Document;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.function.IntFunction;
 
 /**
  * 基于结巴分词的文本分割器（带上下文重叠）
@@ -54,18 +57,28 @@ public class TokenTextSplitterWithContext {
 
             // 2. 滑动窗口切块：每次取 chunkSize 个 Token，步进 (chunkSize - chunkOverlap)
             while (start < tokens.length) {
-                int end = Math.min(start + chunkSize, tokens.length);
+                int maxEnd = start + chunkSize;
+                int tokensLength = tokens.length;
+                int end = Math.min(maxEnd, tokensLength);
 
                 // 3. 将 Token 数组拼接为文本字符串
                 StringBuilder chunkBuilder = new StringBuilder();
                 for (int i = start; i < end; i++) {
-                    chunkBuilder.append(tokens[i]).append(" ");
+                    String token = tokens[i];
+                    chunkBuilder
+                            .append(token)
+                            .append(" ");
                 }
-                String chunkText = chunkBuilder.toString().trim();
+                String chunkText = chunkBuilder
+                        .toString()
+                        .trim();
 
                 // 4. 创建新文档并继承原文档的元数据
                 Document chunkDoc = new Document(chunkText);
-                chunkDoc.getMetadata().putAll(doc.getMetadata());
+                Map<String, Object> metadata = doc.getMetadata();
+                chunkDoc
+                        .getMetadata()
+                        .putAll(metadata);
                 result.add(chunkDoc);
 
                 // 5. 滑动窗口前进，保留 overlap 部分
@@ -86,7 +99,12 @@ public class TokenTextSplitterWithContext {
         JiebaSegmenter segmenter = new JiebaSegmenter();
         // INDEX 模式：在精确模式基础上，对长词再次切分，提高召回率
         List<SegToken> segTokens = segmenter.process(text, JiebaSegmenter.SegMode.INDEX);
-        return segTokens.stream().map(token -> token.word).toArray(String[]::new);
+        Function<SegToken, String> tokenMapper = token -> token.word;
+        IntFunction<String[]> arrayFactory = String[]::new;
+        return segTokens
+                .stream()
+                .map(tokenMapper)
+                .toArray(arrayFactory);
     }
 
 }

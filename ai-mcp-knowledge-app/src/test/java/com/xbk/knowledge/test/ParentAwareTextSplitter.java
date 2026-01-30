@@ -2,6 +2,7 @@ package com.xbk.knowledge.test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
@@ -59,7 +60,9 @@ public class ParentAwareTextSplitter {
                                    boolean keepSeparator, int minChunkChars) {
         this.chunkSize = chunkSize;
         this.chunkOverlap = chunkOverlap;
-        this.separators = separators != null ? separators : List.of("\n\n", "\n", " ");
+        this
+                .separators = separators != null ? separators : List
+                .of("\n\n", "\n", " ");
         this.keepSeparator = keepSeparator;
         this.minChunkChars = minChunkChars;
     }
@@ -95,7 +98,8 @@ public class ParentAwareTextSplitter {
     private List<TextChunk> splitBySeparator(String text, String separator, String parentId) {
         List<TextChunk> chunks = new ArrayList<>();
         // 使用 Pattern.quote 转义分隔符中的特殊字符
-        String[] parts = text.split(Pattern.quote(separator));
+        String quotedSeparator = Pattern.quote(separator);
+        String[] parts = text.split(quotedSeparator);
 
         for (int i = 0; i < parts.length; i++) {
             // 跳过空白块
@@ -133,7 +137,9 @@ public class ParentAwareTextSplitter {
             List<TextChunk> result = new ArrayList<>();
             for (TextChunk chunk : chunks) {
                 // 超过 4 倍 chunkSize 的块需要进一步分割
-                if (chunk.getText().length() > chunkSize * 4) {
+                if (chunk
+                        .getText()
+                        .length() > chunkSize * 4) {
                     splitByLength(chunk, result);
                 } else {
                     result.add(chunk);
@@ -162,15 +168,23 @@ public class ParentAwareTextSplitter {
 
         while (start < text.length()) {
             // 计算窗口结束位置
-            int end = Math.min(start + chunkSize * 4, text.length());
-            String subText = text.substring(start, end).trim();
+            int maxEnd = start + chunkSize * 4;
+            int textLength = text.length();
+            int end = Math.min(maxEnd, textLength);
+            String subText = text
+                    .substring(start, end)
+                    .trim();
 
             // 只保留达到最小长度要求的块
             if (subText.length() >= minChunkChars) {
                 TextChunk subChunk = new TextChunk(subText);
                 // 继承父块 ID 和元数据
-                subChunk.setParentId(chunk.getParentId());
-                subChunk.getMetadata().putAll(chunk.getMetadata());
+                String parentId = chunk.getParentId();
+                subChunk.setParentId(parentId);
+                Map<String, Object> parentMetadata = chunk.getMetadata();
+                subChunk
+                        .getMetadata()
+                        .putAll(parentMetadata);
                 output.add(subChunk);
             }
 

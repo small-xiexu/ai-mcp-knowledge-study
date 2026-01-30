@@ -35,7 +35,9 @@ public class ChatClientEnhancer {
 
     public ChatClientEnhancer(List<CallAdvisor> advisors, ObjectProvider<ToolCallbackProvider> toolCallbackProvider) {
         this.advisors = advisors;
-        this.toolCallbackProvider = toolCallbackProvider.getIfAvailable();
+        this
+                .toolCallbackProvider = toolCallbackProvider
+                .getIfAvailable();
     }
 
     /**
@@ -49,14 +51,20 @@ public class ChatClientEnhancer {
 
         if (toolCallbackProvider != null) {
             builder.defaultToolCallbacks(toolCallbackProvider);
-            log.info("✅ 已注入 MCP 工具: {}", toolCallbackProvider.getClass().getName());
+            String toolProviderName = toolCallbackProvider
+                    .getClass()
+                    .getName();
+            log.info("✅ 已注入 MCP 工具: {}", toolProviderName);
         } else {
             log.warn("⚠️ ToolCallbackProvider 为 null，MCP 工具未注入");
         }
 
         if (advisors != null && !advisors.isEmpty()) {
-            builder.defaultAdvisors(advisors.toArray(new CallAdvisor[0]));
-            log.info("✅ 已注入 {} 个 Advisors", advisors.size());
+            CallAdvisor[] emptyAdvisors = new CallAdvisor[0];
+            CallAdvisor[] advisorArray = advisors.toArray(emptyAdvisors);
+            builder.defaultAdvisors(advisorArray);
+            int advisorCount = advisors.size();
+            log.info("✅ 已注入 {} 个 Advisors", advisorCount);
         } else {
             log.warn("⚠️ Advisors 为空");
         }

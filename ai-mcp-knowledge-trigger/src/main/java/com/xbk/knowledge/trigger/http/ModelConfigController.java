@@ -6,10 +6,13 @@ import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.common.Result;
 import com.xbk.knowledge.api.dto.model.ModelConfigRequest;
 import com.xbk.knowledge.api.dto.model.ModelConfigResponse;
+import com.xbk.knowledge.api.dto.model.ModelCapabilityRequest;
+import com.xbk.knowledge.api.dto.model.ModelCapabilityDTO;
 import com.xbk.knowledge.domain.model.entity.ModelCapability;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
-import com.xbk.knowledge.domain.model.vo.IdQuery;
-import com.xbk.knowledge.domain.model.vo.ModelConfigPageQuery;
+import com.xbk.knowledge.types.enums.ModelType;
+import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.model.vo.model.ModelConfigPageQuery;
 import com.xbk.knowledge.application.service.ModelConfigAppService;
 import com.xbk.knowledge.trigger.converter.DTOConverter;
 import lombok.RequiredArgsConstructor;
@@ -17,8 +20,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.function.Function;
 
 /**
  * 模型配置管理 Controller
@@ -44,23 +50,32 @@ public class ModelConfigController {
     @PostMapping("/list")
     public Result<PageResult<ModelConfigResponse>> listModels(@Valid @RequestBody ModelConfigQueryRequest request) {
         // 调用应用服务查询
+        int offset = request.getOffset();
+        Integer pageSize = request.getPageSize();
         ModelConfigPageQuery query = new ModelConfigPageQuery(
-                request.getOffset(),
-                request.getPageSize()
+                offset,
+                pageSize
         );
         PageResult<ModelConfig> pageResult = modelConfigAppService.queryModelConfigPage(query);
 
         // 转换为响应 DTO
-        List<ModelConfigResponse> records = pageResult.getRecords().stream()
-                .map(this::convertToResponse)
-                .collect(Collectors.toList());
+        Collector<ModelConfigResponse, ?, List<ModelConfigResponse>> toListCollector = Collectors.toList();
+        Function<ModelConfig, ModelConfigResponse> responseConverter = this::convertToResponse;
+        List<ModelConfigResponse> records = pageResult
+                .getRecords()
+                .stream()
+                .map(responseConverter)
+                .collect(toListCollector);
 
         // 构建分页结果
+        Long total = pageResult.getTotal();
+        Integer pageNum = pageResult.getPageNum();
+        Integer resultPageSize = pageResult.getPageSize();
         PageResult<ModelConfigResponse> result = PageResult.of(
                 records,
-                pageResult.getTotal(),
-                pageResult.getPageNum(),
-                pageResult.getPageSize()
+                total,
+                pageNum,
+                resultPageSize
         );
 
         return Result.success(result);
@@ -75,10 +90,13 @@ public class ModelConfigController {
     @PostMapping("/get")
     public Result<ModelConfigResponse> getModel(@Valid @RequestBody IdRequest request) {
         // 调用应用服务查询
-        ModelConfig modelConfig = modelConfigAppService.queryModelConfigById(new IdQuery(request.getId()));
+        Long id = request.getId();
+        IdQuery idQuery = new IdQuery(id);
+        ModelConfig modelConfig = modelConfigAppService.queryModelConfigById(idQuery);
 
         // 转换为响应 DTO
-        return Result.success(convertToResponse(modelConfig));
+        ModelConfigResponse response = convertToResponse(modelConfig);
+        return Result.success(response);
     }
 
     /**
@@ -96,7 +114,8 @@ public class ModelConfigController {
         ModelConfig savedModel = modelConfigAppService.createModelConfig(modelConfig);
 
         // 转换为响应 DTO
-        return Result.success("模型配置创建成功", convertToResponse(savedModel));
+        ModelConfigResponse response = convertToResponse(savedModel);
+        return Result.success("模型配置创建成功", response);
     }
 
     /**
@@ -109,13 +128,15 @@ public class ModelConfigController {
     public Result<ModelConfigResponse> updateModel(@Valid @RequestBody ModelConfigRequest request) {
         // 构建领域实体
         ModelConfig modelConfig = buildModelConfigFromRequest(request);
-        modelConfig.setId(request.getId());
+        Long id = request.getId();
+        modelConfig.setId(id);
 
         // 调用应用服务更新
         ModelConfig updatedModel = modelConfigAppService.updateModelConfig(modelConfig);
 
         // 转换为响应 DTO
-        return Result.success("模型配置更新成功", convertToResponse(updatedModel));
+        ModelConfigResponse response = convertToResponse(updatedModel);
+        return Result.success("模型配置更新成功", response);
     }
 
     /**
@@ -127,7 +148,9 @@ public class ModelConfigController {
     @PostMapping("/delete")
     public Result<Void> deleteModel(@Valid @RequestBody IdRequest request) {
         // 调用应用服务删除
-        modelConfigAppService.deleteModelConfig(new IdQuery(request.getId()));
+        Long id = request.getId();
+        IdQuery idQuery = new IdQuery(id);
+        modelConfigAppService.deleteModelConfig(idQuery);
 
         return Result.success();
     }
@@ -141,10 +164,13 @@ public class ModelConfigController {
     @PostMapping("/enable")
     public Result<ModelConfigResponse> enableModel(@Valid @RequestBody IdRequest request) {
         // 调用应用服务启用
-        ModelConfig updatedModel = modelConfigAppService.enableModel(new IdQuery(request.getId()));
+        Long id = request.getId();
+        IdQuery idQuery = new IdQuery(id);
+        ModelConfig updatedModel = modelConfigAppService.enableModel(idQuery);
 
         // 转换为响应 DTO
-        return Result.success("模型启用成功", convertToResponse(updatedModel));
+        ModelConfigResponse response = convertToResponse(updatedModel);
+        return Result.success("模型启用成功", response);
     }
 
     /**
@@ -156,10 +182,13 @@ public class ModelConfigController {
     @PostMapping("/disable")
     public Result<ModelConfigResponse> disableModel(@Valid @RequestBody IdRequest request) {
         // 调用应用服务禁用
-        ModelConfig updatedModel = modelConfigAppService.disableModel(new IdQuery(request.getId()));
+        Long id = request.getId();
+        IdQuery idQuery = new IdQuery(id);
+        ModelConfig updatedModel = modelConfigAppService.disableModel(idQuery);
 
         // 转换为响应 DTO
-        return Result.success("模型禁用成功", convertToResponse(updatedModel));
+        ModelConfigResponse response = convertToResponse(updatedModel);
+        return Result.success("模型禁用成功", response);
     }
 
     /**
@@ -169,16 +198,26 @@ public class ModelConfigController {
      * @return 响应 DTO
      */
     private ModelConfigResponse convertToResponse(ModelConfig modelConfig) {
+        Long modelId = modelConfig.getId();
+        String modelName = modelConfig.getModelName();
+        ModelType modelType = modelConfig.getModelType();
+        String baseUrl = modelConfig.getBaseUrl();
+        Boolean enabled = modelConfig.getEnabled();
+        Integer priority = modelConfig.getPriority();
+        ModelCapability modelCapability = modelConfig.getCapability();
+        ModelCapabilityDTO capability = DTOConverter.toApiModelCapability(modelCapability);
+        LocalDateTime createdAt = modelConfig.getCreatedAt();
+        LocalDateTime updatedAt = modelConfig.getUpdatedAt();
         return ModelConfigResponse.builder()
-                .id(modelConfig.getId())
-                .modelName(modelConfig.getModelName())
-                .modelType(modelConfig.getModelType())
-                .baseUrl(modelConfig.getBaseUrl())
-                .enabled(modelConfig.getEnabled())
-                .priority(modelConfig.getPriority())
-                .capability(DTOConverter.toApiModelCapability(modelConfig.getCapability()))
-                .createdAt(modelConfig.getCreatedAt())
-                .updatedAt(modelConfig.getUpdatedAt())
+                .id(modelId)
+                .modelName(modelName)
+                .modelType(modelType)
+                .baseUrl(baseUrl)
+                .enabled(enabled)
+                .priority(priority)
+                .capability(capability)
+                .createdAt(createdAt)
+                .updatedAt(updatedAt)
                 .build();
     }
 
@@ -189,25 +228,34 @@ public class ModelConfigController {
      * @return 领域实体
      */
     private ModelConfig buildModelConfigFromRequest(ModelConfigRequest request) {
+        String modelName = request.getModelName();
+        ModelType modelType = request.getModelType();
+        String apiKey = request.getApiKey();
+        String baseUrl = request.getBaseUrl();
+        Boolean enabled = request.getEnabled();
+        Integer priority = request.getPriority();
         ModelConfig modelConfig = ModelConfig.builder()
-                .modelName(request.getModelName())
-                .modelType(request.getModelType())
-                .apiKey(request.getApiKey())
-                .baseUrl(request.getBaseUrl())
-                .enabled(request.getEnabled())
-                .priority(request.getPriority())
+                .modelName(modelName)
+                .modelType(modelType)
+                .apiKey(apiKey)
+                .baseUrl(baseUrl)
+                .enabled(enabled)
+                .priority(priority)
                 .build();
 
         // 如果有能力配置，创建关联
         if (request.getCapability() != null) {
+            ModelCapabilityRequest capabilityRequest = request.getCapability();
+            Integer maxTokens = capabilityRequest.getMaxTokens();
+            Integer qualityScore = capabilityRequest.getQualityScore();
             ModelCapability capability = ModelCapability.builder()
                     .modelConfig(modelConfig)
-                    .maxInputTokens(request.getCapability().getMaxTokens())
-                    .maxOutputTokens(request.getCapability().getMaxTokens())
+                    .maxInputTokens(maxTokens)
+                    .maxOutputTokens(maxTokens)
                     .supportFunctionCalling(false)
                     .supportVision(false)
                     .supportStreaming(false)
-                    .qualityScore(request.getCapability().getQualityScore())
+                    .qualityScore(qualityScore)
                     .build();
             modelConfig.setCapability(capability);
         }

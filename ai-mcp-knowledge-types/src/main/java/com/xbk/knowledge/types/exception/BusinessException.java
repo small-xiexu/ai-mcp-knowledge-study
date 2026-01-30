@@ -1,5 +1,6 @@
 package com.xbk.knowledge.types.exception;
 
+import com.xbk.knowledge.types.common.ResultCode;
 import lombok.Getter;
 
 /**
@@ -31,7 +32,10 @@ public class BusinessException extends RuntimeException {
      */
     public BusinessException(String message) {
         super(message);
-        this.code = 400;
+        this
+                .code = ResultCode
+                .BAD_REQUEST
+                .getCode();
         this.data = null;
     }
 
@@ -68,7 +72,10 @@ public class BusinessException extends RuntimeException {
      */
     public BusinessException(String message, Throwable cause) {
         super(message, cause);
-        this.code = 400;
+        this
+                .code = ResultCode
+                .BAD_REQUEST
+                .getCode();
         this.data = null;
     }
 }

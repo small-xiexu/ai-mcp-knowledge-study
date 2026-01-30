@@ -2,12 +2,12 @@ package com.xbk.knowledge.infrastructure.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
-import com.xbk.knowledge.domain.model.vo.EnabledIdsQuery;
-import com.xbk.knowledge.domain.model.vo.EnabledQuery;
-import com.xbk.knowledge.domain.model.vo.IdQuery;
-import com.xbk.knowledge.domain.model.vo.ModelConfigPageQuery;
-import com.xbk.knowledge.domain.model.vo.ModelNameQuery;
-import com.xbk.knowledge.domain.model.vo.ModelTypeEnabledQuery;
+import com.xbk.knowledge.domain.model.vo.common.EnabledIdsQuery;
+import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
+import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.model.vo.model.ModelConfigPageQuery;
+import com.xbk.knowledge.domain.model.vo.model.ModelNameQuery;
+import com.xbk.knowledge.domain.model.vo.model.ModelTypeEnabledQuery;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;

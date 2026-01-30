@@ -46,7 +46,9 @@ public class TraceIdAdvisor implements CallAdvisor {
     @Override
     public ChatClientResponse adviseCall(ChatClientRequest request, CallAdvisorChain chain) {
         // 生成或获取 traceId
-        TraceIdUtils.TraceIdContext traceIdContext = TraceIdUtils.ensureTraceId();
+        TraceIdUtils
+                .TraceIdContext traceIdContext = TraceIdUtils
+                .ensureTraceId();
         String traceId = traceIdContext.getTraceId();
         boolean generated = traceIdContext.isGenerated();
 
@@ -54,7 +56,8 @@ public class TraceIdAdvisor implements CallAdvisor {
             ChatClientResponse response = chain.nextCall(request);
             return response;
         } catch (Exception e) {
-            log.error("[{}] AI 请求失败, 错误: {}", traceId, e.getMessage());
+            String errorMessage = e.getMessage();
+            log.error("[{}] AI 请求失败, 错误: {}", traceId, errorMessage);
             throw e;
         } finally {
             TraceIdUtils.clearIfGenerated(generated);

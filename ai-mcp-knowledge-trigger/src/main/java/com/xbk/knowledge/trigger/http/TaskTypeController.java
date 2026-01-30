@@ -9,9 +9,9 @@ import com.xbk.knowledge.api.dto.task.TaskTypeRequest;
 import com.xbk.knowledge.api.dto.task.TaskTypeResponse;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.model.entity.TaskType;
-import com.xbk.knowledge.domain.model.vo.IdQuery;
-import com.xbk.knowledge.domain.model.vo.TaskTypeCodeQuery;
-import com.xbk.knowledge.domain.model.vo.TaskTypePageQuery;
+import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.model.vo.task.TaskTypeCodeQuery;
+import com.xbk.knowledge.domain.model.vo.task.TaskTypePageQuery;
 import com.xbk.knowledge.application.service.ModelConfigAppService;
 import com.xbk.knowledge.application.service.TaskTypeAppService;
 import com.xbk.knowledge.types.exception.NotFoundException;
@@ -20,8 +20,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.function.Function;
 
 /**
  * 任务类型管理 Controller
@@ -48,23 +51,32 @@ public class TaskTypeController {
     @PostMapping("/list")
     public Result<PageResult<TaskTypeResponse>> listTaskTypes(@Valid @RequestBody TaskTypeQueryRequest request) {
         // 调用应用服务查询
+        int offset = request.getOffset();
+        Integer pageSize = request.getPageSize();
         TaskTypePageQuery query = new TaskTypePageQuery(
-                request.getOffset(),
-                request.getPageSize()
+                offset,
+                pageSize
         );
         PageResult<TaskType> pageResult = taskTypeAppService.queryTaskTypePage(query);
 
         // 转换为响应 DTO
-        List<TaskTypeResponse> records = pageResult.getRecords().stream()
-                .map(this::convertToResponse)
-                .collect(Collectors.toList());
+        Collector<TaskTypeResponse, ?, List<TaskTypeResponse>> toListCollector = Collectors.toList();
+        Function<TaskType, TaskTypeResponse> responseConverter = this::convertToResponse;
+        List<TaskTypeResponse> records = pageResult
+                .getRecords()
+                .stream()
+                .map(responseConverter)
+                .collect(toListCollector);
 
         // 构建分页结果
+        Long total = pageResult.getTotal();
+        Integer pageNum = pageResult.getPageNum();
+        Integer resultPageSize = pageResult.getPageSize();
         PageResult<TaskTypeResponse> result = PageResult.of(
                 records,
-                pageResult.getTotal(),
-                pageResult.getPageNum(),
-                pageResult.getPageSize()
+                total,
+                pageNum,
+                resultPageSize
         );
 
         return Result.success(result);
@@ -79,10 +91,13 @@ public class TaskTypeController {
     @PostMapping("/get")
     public Result<TaskTypeResponse> getTaskType(@Valid @RequestBody IdRequest request) {
         // 调用应用服务查询
-        TaskType taskType = taskTypeAppService.queryTaskTypeById(new IdQuery(request.getId()));
+        Long id = request.getId();
+        IdQuery idQuery = new IdQuery(id);
+        TaskType taskType = taskTypeAppService.queryTaskTypeById(idQuery);
 
         // 转换为响应 DTO
-        return Result.success(convertToResponse(taskType));
+        TaskTypeResponse response = convertToResponse(taskType);
+        return Result.success(response);
     }
 
     /**
@@ -94,10 +109,13 @@ public class TaskTypeController {
     @PostMapping("/get-by-code")
     public Result<TaskTypeResponse> getTaskTypeByCode(@Valid @RequestBody TaskTypeCodeRequest request) {
         // 调用应用服务查询
-        TaskType taskType = taskTypeAppService.queryTaskTypeByCode(new TaskTypeCodeQuery(request.getCode()));
+        String code = request.getCode();
+        TaskTypeCodeQuery taskTypeCodeQuery = new TaskTypeCodeQuery(code);
+        TaskType taskType = taskTypeAppService.queryTaskTypeByCode(taskTypeCodeQuery);
 
         // 转换为响应 DTO
-        return Result.success(convertToResponse(taskType));
+        TaskTypeResponse response = convertToResponse(taskType);
+        return Result.success(response);
     }
 
     /**
@@ -115,7 +133,8 @@ public class TaskTypeController {
         TaskType savedTaskType = taskTypeAppService.createTaskType(taskType);
 
         // 转换为响应 DTO
-        return Result.success("任务类型创建成功", convertToResponse(savedTaskType));
+        TaskTypeResponse response = convertToResponse(savedTaskType);
+        return Result.success("任务类型创建成功", response);
     }
 
     /**
@@ -128,13 +147,15 @@ public class TaskTypeController {
     public Result<TaskTypeResponse> updateTaskType(@Valid @RequestBody TaskTypeRequest request) {
         // 构建领域实体
         TaskType taskType = buildTaskTypeFromRequest(request);
-        taskType.setId(request.getId());
+        Long id = request.getId();
+        taskType.setId(id);
 
         // 调用应用服务更新
         TaskType updatedTaskType = taskTypeAppService.updateTaskType(taskType);
 
         // 转换为响应 DTO
-        return Result.success("任务类型更新成功", convertToResponse(updatedTaskType));
+        TaskTypeResponse response = convertToResponse(updatedTaskType);
+        return Result.success("任务类型更新成功", response);
     }
 
     /**
@@ -146,7 +167,9 @@ public class TaskTypeController {
     @PostMapping("/delete")
     public Result<Void> deleteTaskType(@Valid @RequestBody IdRequest request) {
         // 调用应用服务删除
-        taskTypeAppService.deleteTaskType(new IdQuery(request.getId()));
+        Long id = request.getId();
+        IdQuery idQuery = new IdQuery(id);
+        taskTypeAppService.deleteTaskType(idQuery);
 
         return Result.success();
     }
@@ -160,25 +183,34 @@ public class TaskTypeController {
     private TaskTypeResponse convertToResponse(TaskType taskType) {
         // 查询首选模型名称
         String preferredModelName = null;
-        if (taskType.getPreferredModelId() != null) {
+        Long preferredModelId = taskType.getPreferredModelId();
+        if (preferredModelId != null) {
             try {
-                ModelConfig modelConfig = modelConfigAppService.queryModelConfigById(new IdQuery(taskType.getPreferredModelId()));
+                IdQuery idQuery = new IdQuery(preferredModelId);
+                ModelConfig modelConfig = modelConfigAppService.queryModelConfigById(idQuery);
                 preferredModelName = modelConfig.getModelName();
             } catch (NotFoundException e) {
-                log.warn("任务类型首选模型不存在，modelId: {}", taskType.getPreferredModelId(), e);
+                log.warn("任务类型首选模型不存在，modelId: {}", preferredModelId, e);
             }
         }
 
+        Long taskTypeId = taskType.getId();
+        String taskName = taskType.getTaskName();
+        String taskCode = taskType.getTaskCode();
+        String description = taskType.getDescription();
+        String fallbackModelIds = taskType.getFallbackModelIds();
+        LocalDateTime createdAt = taskType.getCreatedAt();
+        LocalDateTime updatedAt = taskType.getUpdatedAt();
         return TaskTypeResponse.builder()
-                .id(taskType.getId())
-                .taskName(taskType.getTaskName())
-                .taskCode(taskType.getTaskCode())
-                .description(taskType.getDescription())
-                .preferredModelId(taskType.getPreferredModelId())
+                .id(taskTypeId)
+                .taskName(taskName)
+                .taskCode(taskCode)
+                .description(description)
+                .preferredModelId(preferredModelId)
                 .preferredModelName(preferredModelName)
-                .fallbackModelIds(taskType.getFallbackModelIds())
-                .createdAt(taskType.getCreatedAt())
-                .updatedAt(taskType.getUpdatedAt())
+                .fallbackModelIds(fallbackModelIds)
+                .createdAt(createdAt)
+                .updatedAt(updatedAt)
                 .build();
     }
 
@@ -189,12 +221,17 @@ public class TaskTypeController {
      * @return 领域实体
      */
     private TaskType buildTaskTypeFromRequest(TaskTypeRequest request) {
+        String taskName = request.getTaskName();
+        String taskCode = request.getTaskCode();
+        String description = request.getDescription();
+        Long preferredModelId = request.getPreferredModelId();
+        String fallbackModelIds = request.getFallbackModelIds();
         return TaskType.builder()
-                .taskName(request.getTaskName())
-                .taskCode(request.getTaskCode())
-                .description(request.getDescription())
-                .preferredModelId(request.getPreferredModelId())
-                .fallbackModelIds(request.getFallbackModelIds())
+                .taskName(taskName)
+                .taskCode(taskCode)
+                .description(description)
+                .preferredModelId(preferredModelId)
+                .fallbackModelIds(fallbackModelIds)
                 .build();
     }
 }

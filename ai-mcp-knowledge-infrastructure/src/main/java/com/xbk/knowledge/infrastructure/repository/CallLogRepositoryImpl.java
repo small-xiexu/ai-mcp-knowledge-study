@@ -1,16 +1,17 @@
 package com.xbk.knowledge.infrastructure.repository;
 
+import com.xbk.knowledge.domain.model.aggregate.call.CallLogAggregate;
 import com.xbk.knowledge.domain.model.entity.CallLog;
-import com.xbk.knowledge.domain.model.vo.CallMetrics;
-import com.xbk.knowledge.domain.model.vo.CallStatusQuery;
-import com.xbk.knowledge.domain.model.vo.MetricsQuery;
-import com.xbk.knowledge.domain.model.vo.ModelIdQuery;
-import com.xbk.knowledge.domain.model.vo.ModelIdStatusQuery;
-import com.xbk.knowledge.domain.model.vo.ModelUsage;
-import com.xbk.knowledge.domain.model.vo.ModelUsageQuery;
-import com.xbk.knowledge.domain.model.vo.ResponseTime;
-import com.xbk.knowledge.domain.model.vo.SuccessRate;
-import com.xbk.knowledge.domain.model.vo.TimeRangeQuery;
+import com.xbk.knowledge.domain.model.vo.metrics.CallMetrics;
+import com.xbk.knowledge.domain.model.vo.metrics.CallStatusQuery;
+import com.xbk.knowledge.domain.model.vo.metrics.MetricsQuery;
+import com.xbk.knowledge.domain.model.vo.model.ModelIdQuery;
+import com.xbk.knowledge.domain.model.vo.model.ModelIdStatusQuery;
+import com.xbk.knowledge.domain.model.vo.metrics.ModelUsage;
+import com.xbk.knowledge.domain.model.vo.metrics.ModelUsageQuery;
+import com.xbk.knowledge.domain.model.vo.metrics.ResponseTime;
+import com.xbk.knowledge.domain.model.vo.metrics.SuccessRate;
+import com.xbk.knowledge.domain.model.vo.metrics.TimeRangeQuery;
 import com.xbk.knowledge.domain.repository.CallLogRepository;
 import com.xbk.knowledge.infrastructure.mapper.CallLogMapper;
 import lombok.RequiredArgsConstructor;
@@ -38,12 +39,18 @@ public class CallLogRepositoryImpl implements CallLogRepository {
      * 统一补齐创建时间，保证日志可追溯
      */
     @Override
-    public CallLog save(CallLog callLog) {
+    public CallLogAggregate save(CallLogAggregate aggregate) {
+        if (aggregate == null || aggregate.getCallLog() == null) {
+            return aggregate;
+        }
+        CallLog callLog = aggregate.getCallLog();
         if (callLog.getCreatedAt() == null) {
-            callLog.setCreatedAt(LocalDateTime.now());
+            LocalDateTime createdAt = LocalDateTime.now();
+            callLog.setCreatedAt(createdAt);
         }
         callLogMapper.insertCallLog(callLog);
-        return callLog;
+        aggregate.setCallLog(callLog);
+        return aggregate;
     }
 
     /**

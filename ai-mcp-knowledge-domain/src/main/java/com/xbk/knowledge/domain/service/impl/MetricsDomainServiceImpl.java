@@ -1,11 +1,11 @@
 package com.xbk.knowledge.domain.service.impl;
 
-import com.xbk.knowledge.domain.model.vo.CallMetrics;
-import com.xbk.knowledge.domain.model.vo.MetricsQuery;
-import com.xbk.knowledge.domain.model.vo.ModelUsage;
-import com.xbk.knowledge.domain.model.vo.ModelUsageQuery;
-import com.xbk.knowledge.domain.model.vo.ResponseTime;
-import com.xbk.knowledge.domain.model.vo.SuccessRate;
+import com.xbk.knowledge.domain.model.vo.metrics.CallMetrics;
+import com.xbk.knowledge.domain.model.vo.metrics.MetricsQuery;
+import com.xbk.knowledge.domain.model.vo.metrics.ModelUsage;
+import com.xbk.knowledge.domain.model.vo.metrics.ModelUsageQuery;
+import com.xbk.knowledge.domain.model.vo.metrics.ResponseTime;
+import com.xbk.knowledge.domain.model.vo.metrics.SuccessRate;
 import com.xbk.knowledge.domain.repository.CallLogRepository;
 import com.xbk.knowledge.domain.service.IMetricsDomainService;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +40,9 @@ public class MetricsDomainServiceImpl implements IMetricsDomainService {
             throw new IllegalArgumentException("指标查询条件不能为空");
         }
         // 验证时间范围
-        validateTimeRange(query.getStartTime(), query.getEndTime());
+        LocalDateTime startTime = query.getStartTime();
+        LocalDateTime endTime = query.getEndTime();
+        validateTimeRange(startTime, endTime);
 
         // 调用仓储聚合数据
         CallMetrics metrics = callLogRepository.aggregateCallMetrics(query);
@@ -59,7 +61,9 @@ public class MetricsDomainServiceImpl implements IMetricsDomainService {
             throw new IllegalArgumentException("指标查询条件不能为空");
         }
         // 验证时间范围
-        validateTimeRange(query.getStartTime(), query.getEndTime());
+        LocalDateTime startTime = query.getStartTime();
+        LocalDateTime endTime = query.getEndTime();
+        validateTimeRange(startTime, endTime);
 
         // 调用仓储聚合数据
         SuccessRate successRate = callLogRepository.aggregateSuccessRate(query);
@@ -78,7 +82,9 @@ public class MetricsDomainServiceImpl implements IMetricsDomainService {
             throw new IllegalArgumentException("指标查询条件不能为空");
         }
         // 验证时间范围
-        validateTimeRange(query.getStartTime(), query.getEndTime());
+        LocalDateTime startTime = query.getStartTime();
+        LocalDateTime endTime = query.getEndTime();
+        validateTimeRange(startTime, endTime);
 
         // 调用仓储聚合数据
         ResponseTime responseTime = callLogRepository.aggregateResponseTime(query);
@@ -97,7 +103,9 @@ public class MetricsDomainServiceImpl implements IMetricsDomainService {
             throw new IllegalArgumentException("模型使用查询条件不能为空");
         }
         // 验证时间范围
-        validateTimeRange(query.getStartTime(), query.getEndTime());
+        LocalDateTime startTime = query.getStartTime();
+        LocalDateTime endTime = query.getEndTime();
+        validateTimeRange(startTime, endTime);
 
         // 调用仓储聚合数据
         List<ModelUsage> usageList = callLogRepository.aggregateModelUsage(query);

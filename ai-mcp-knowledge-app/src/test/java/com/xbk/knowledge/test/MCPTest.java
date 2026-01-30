@@ -17,6 +17,8 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.function.Consumer;
+
 /**
  * MCP 工具调用测试类（遗留代码 - 仅供参考）
  * 演示使用不同大模型进行 Function Calling
@@ -105,12 +107,22 @@ public class MCPTest {
                 .defaultAdvisors(traceIdAdvisor)
                 .build();
 
-        System.out.println("\n>>> QUESTION: " + userInput);
-        System.out.println("\n>>> ASSISTANT: " + chatClient.prompt()
-                .system(String.format(TRACE_ID_SYSTEM_PROMPT, traceId))
+        String questionMessage = "\n>>> QUESTION: " + userInput;
+        System
+                .out
+                .println(questionMessage);
+        String systemPrompt = String
+                .format(TRACE_ID_SYSTEM_PROMPT, traceId);
+        String assistantContent = chatClient
+                .prompt()
+                .system(systemPrompt)
                 .user(userInput)
                 .call()
-                .content());
+                .content();
+        String assistantMessage = "\n>>> ASSISTANT: " + assistantContent;
+        System
+                .out
+                .println(assistantMessage);
     }
 
     /**
@@ -135,12 +147,22 @@ public class MCPTest {
                 .defaultAdvisors(traceIdAdvisor)
                 .build();
 
-        System.out.println("\n>>> QUESTION: " + userInput);
-        System.out.println("\n>>> ASSISTANT: " + chatClient.prompt()
-                .system(String.format(TRACE_ID_SYSTEM_PROMPT, traceId))
+        String questionMessage = "\n>>> QUESTION: " + userInput;
+        System
+                .out
+                .println(questionMessage);
+        String systemPrompt = String
+                .format(TRACE_ID_SYSTEM_PROMPT, traceId);
+        String assistantContent = chatClient
+                .prompt()
+                .system(systemPrompt)
                 .user(userInput)
                 .call()
-                .content());
+                .content();
+        String assistantMessage = "\n>>> ASSISTANT: " + assistantContent;
+        System
+                .out
+                .println(assistantMessage);
     }
 
     /**
@@ -169,11 +191,15 @@ public class MCPTest {
                 .build();
 
         log.info("\n>>> QUESTION: {}", userInput);
-        log.info("\n>>> ASSISTANT: {}", chatClient.prompt()
-                .system(String.format(TRACE_ID_SYSTEM_PROMPT, traceId))
+        String systemPrompt = String
+                .format(TRACE_ID_SYSTEM_PROMPT, traceId);
+        String assistantContent = chatClient
+                .prompt()
+                .system(systemPrompt)
                 .user(userInput)
                 .call()
-                .content());
+                .content();
+        log.info("\n>>> ASSISTANT: {}", assistantContent);
     }
 
     /**
@@ -204,11 +230,15 @@ public class MCPTest {
                 .build();
 
         log.info("\n>>> QUESTION: {}", userInput);
-        log.info("\n>>> ASSISTANT: {}", chatClient.prompt()
-                .system(String.format(TRACE_ID_SYSTEM_PROMPT, traceId))
+        String systemPrompt = String
+                .format(TRACE_ID_SYSTEM_PROMPT, traceId);
+        String assistantContent = chatClient
+                .prompt()
+                .system(systemPrompt)
                 .user(userInput)
                 .call()
-                .content());
+                .content();
+        log.info("\n>>> ASSISTANT: {}", assistantContent);
     }
 
     /**
@@ -232,24 +262,32 @@ public class MCPTest {
                 """;
         String traceId = TraceIdAdvisor.getCurrentTraceId();
 
+        InMemoryChatMemoryRepository chatMemoryRepository = new InMemoryChatMemoryRepository();
         MessageWindowChatMemory chatMemory = MessageWindowChatMemory.builder()
-                .chatMemoryRepository(new InMemoryChatMemoryRepository())
+                .chatMemoryRepository(chatMemoryRepository)
                 .maxMessages(100)
+                .build();
+        PromptChatMemoryAdvisor memoryAdvisor = PromptChatMemoryAdvisor.builder(chatMemory)
                 .build();
         ChatClient chatClient = ChatClient.builder(openAiChatModel)
                 .defaultToolCallbacks(tools)
-                .defaultAdvisors(traceIdAdvisor, PromptChatMemoryAdvisor.builder(chatMemory).build())
+                .defaultAdvisors(traceIdAdvisor, memoryAdvisor)
                 .build();
 
         log.info("\n>>> QUESTION: {}", userInput);
-        log.info("\n>>> ASSISTANT: {}", chatClient
+        String systemPrompt = String
+                .format(TRACE_ID_SYSTEM_PROMPT, traceId);
+        String conversationId = "mcp-csdn-weixin-1";
+        Consumer<ChatClient.AdvisorSpec> conversationAdvisor = advisor -> advisor
+                .param("chat_memory_conversation_id", conversationId);
+        String assistantContent = chatClient
                 .prompt()
-                .system(String.format(TRACE_ID_SYSTEM_PROMPT, traceId))
+                .system(systemPrompt)
                 .user(userInput)
-                .advisors(advisor -> advisor
-                        .param("chat_memory_conversation_id", "mcp-csdn-weixin-1"))
+                .advisors(conversationAdvisor)
                 .call()
-                .content());
+                .content();
+        log.info("\n>>> ASSISTANT: {}", assistantContent);
 
         String noticeInput = """
                 根据上一轮对话中已发布的文章信息，进行微信公众号消息通知：
@@ -261,14 +299,14 @@ public class MCPTest {
                 注意：不要再次发布文章，直接使用上一轮对话中的发布结果。
                 """;
         log.info("\n>>> QUESTION: {}", noticeInput);
-        log.info("\n>>> ASSISTANT: {}", chatClient
+        String noticeContent = chatClient
                 .prompt()
-                .system(String.format(TRACE_ID_SYSTEM_PROMPT, traceId))
+                .system(systemPrompt)
                 .user(noticeInput)
-                .advisors(advisor -> advisor
-                        .param("chat_memory_conversation_id", "mcp-csdn-weixin-1"))
+                .advisors(conversationAdvisor)
                 .call()
-                .content());
+                .content();
+        log.info("\n>>> ASSISTANT: {}", noticeContent);
     }
 
     /**

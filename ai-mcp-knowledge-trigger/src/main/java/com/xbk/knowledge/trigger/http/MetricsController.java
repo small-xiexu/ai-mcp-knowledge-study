@@ -8,12 +8,12 @@ import com.xbk.knowledge.api.dto.metrics.ModelUsageDTO;
 import com.xbk.knowledge.api.dto.metrics.ModelUsageQueryRequest;
 import com.xbk.knowledge.api.dto.metrics.ResponseTimeDTO;
 import com.xbk.knowledge.api.dto.metrics.SuccessRateDTO;
-import com.xbk.knowledge.domain.model.vo.CallMetrics;
-import com.xbk.knowledge.domain.model.vo.MetricsQuery;
-import com.xbk.knowledge.domain.model.vo.ModelUsage;
-import com.xbk.knowledge.domain.model.vo.ModelUsageQuery;
-import com.xbk.knowledge.domain.model.vo.ResponseTime;
-import com.xbk.knowledge.domain.model.vo.SuccessRate;
+import com.xbk.knowledge.domain.model.vo.metrics.CallMetrics;
+import com.xbk.knowledge.domain.model.vo.metrics.MetricsQuery;
+import com.xbk.knowledge.domain.model.vo.metrics.ModelUsage;
+import com.xbk.knowledge.domain.model.vo.metrics.ModelUsageQuery;
+import com.xbk.knowledge.domain.model.vo.metrics.ResponseTime;
+import com.xbk.knowledge.domain.model.vo.metrics.SuccessRate;
 import com.xbk.knowledge.application.service.MetricsAppService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,8 +24,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.function.Function;
+import java.util.function.ToLongFunction;
 
 /**
  * 监控统计 Controller
@@ -47,19 +51,26 @@ public class MetricsController implements IMetricsService {
     @PostMapping("/calls")
     public Result<CallMetricsDTO> getCallMetrics(@Valid @RequestBody MetricsQueryRequest request) {
         // 调用应用服务收集指标
+        Long modelId = request.getModelId();
+        String taskType = request.getTaskType();
+        LocalDateTime startTime = request.getStartTime();
+        LocalDateTime endTime = request.getEndTime();
         MetricsQuery query = new MetricsQuery(
-                request.getModelId(),
-                request.getTaskType(),
-                request.getStartTime(),
-                request.getEndTime()
+                modelId,
+                taskType,
+                startTime,
+                endTime
         );
         CallMetrics metrics = metricsAppService.collectCallMetrics(query);
 
         // 转换为 API DTO
+        Long totalCalls = metrics.getTotalCalls();
+        Long successCalls = metrics.getSuccessCalls();
+        Long failedCalls = metrics.getFailedCalls();
         CallMetricsDTO dto = new CallMetricsDTO(
-                metrics.getTotalCalls(),
-                metrics.getSuccessCalls(),
-                metrics.getFailedCalls(),
+                totalCalls,
+                successCalls,
+                failedCalls,
                 0L  // fallbackCalls - CallMetrics 中没有这个字段，暂时用 0
         );
 
@@ -70,19 +81,26 @@ public class MetricsController implements IMetricsService {
     @PostMapping("/success-rate")
     public Result<SuccessRateDTO> getSuccessRate(@Valid @RequestBody MetricsQueryRequest request) {
         // 调用应用服务收集指标
+        Long modelId = request.getModelId();
+        String taskType = request.getTaskType();
+        LocalDateTime startTime = request.getStartTime();
+        LocalDateTime endTime = request.getEndTime();
         MetricsQuery query = new MetricsQuery(
-                request.getModelId(),
-                request.getTaskType(),
-                request.getStartTime(),
-                request.getEndTime()
+                modelId,
+                taskType,
+                startTime,
+                endTime
         );
         SuccessRate successRate = metricsAppService.collectSuccessRate(query);
 
         // 转换为 API DTO
+        Long totalCalls = successRate.getTotalCalls();
+        Long successCalls = successRate.getSuccessCalls();
+        Double successRatio = successRate.getSuccessRate();
         SuccessRateDTO dto = new SuccessRateDTO(
-                successRate.getTotalCalls(),
-                successRate.getSuccessCalls(),
-                successRate.getSuccessRate()
+                totalCalls,
+                successCalls,
+                successRatio
         );
 
         return Result.success(dto);
@@ -92,19 +110,26 @@ public class MetricsController implements IMetricsService {
     @PostMapping("/response-time")
     public Result<ResponseTimeDTO> getResponseTime(@Valid @RequestBody MetricsQueryRequest request) {
         // 调用应用服务收集指标
+        Long modelId = request.getModelId();
+        String taskType = request.getTaskType();
+        LocalDateTime startTime = request.getStartTime();
+        LocalDateTime endTime = request.getEndTime();
         MetricsQuery query = new MetricsQuery(
-                request.getModelId(),
-                request.getTaskType(),
-                request.getStartTime(),
-                request.getEndTime()
+                modelId,
+                taskType,
+                startTime,
+                endTime
         );
         ResponseTime responseTime = metricsAppService.collectResponseTime(query);
 
         // 转换为 API DTO
+        Double avgResponseTime = responseTime.getAvgResponseTime();
+        Long maxResponseTime = responseTime.getMaxResponseTime();
+        Long minResponseTime = responseTime.getMinResponseTime();
         ResponseTimeDTO dto = new ResponseTimeDTO(
-                responseTime.getAvgResponseTime(),
-                responseTime.getMaxResponseTime(),
-                responseTime.getMinResponseTime()
+                avgResponseTime,
+                maxResponseTime,
+                minResponseTime
         );
 
         return Result.success(dto);
@@ -114,30 +139,39 @@ public class MetricsController implements IMetricsService {
     @PostMapping("/model-usage")
     public Result<List<ModelUsageDTO>> getModelUsage(@Valid @RequestBody ModelUsageQueryRequest request) {
         // 调用应用服务收集指标
+        LocalDateTime startTime = request.getStartTime();
+        LocalDateTime endTime = request.getEndTime();
         ModelUsageQuery query = new ModelUsageQuery(
-                request.getStartTime(),
-                request.getEndTime()
+                startTime,
+                endTime
         );
         List<ModelUsage> usageList = metricsAppService.collectModelUsage(query);
 
         // 计算总调用次数
-        long totalCalls = usageList.stream()
-                .mapToLong(ModelUsage::getCallCount)
+        ToLongFunction<ModelUsage> callCountMapper = ModelUsage::getCallCount;
+        long totalCalls = usageList
+                .stream()
+                .mapToLong(callCountMapper)
                 .sum();
 
         // 转换为 API DTO
-        List<ModelUsageDTO> dtoList = usageList.stream()
-                .map(usage -> {
-                    double usageRate = totalCalls > 0
-                            ? (usage.getCallCount() * 100.0 / totalCalls)
-                            : 0.0;
-                    return new ModelUsageDTO(
-                            usage.getModelId(),
-                            usage.getCallCount(),
-                            usageRate
-                    );
-                })
-                .collect(Collectors.toList());
+        Collector<ModelUsageDTO, ?, List<ModelUsageDTO>> toListCollector = Collectors.toList();
+        Function<ModelUsage, ModelUsageDTO> usageMapper = usage -> {
+            Long callCount = usage.getCallCount();
+            double usageRate = totalCalls > 0
+                    ? (callCount * 100.0 / totalCalls)
+                    : 0.0;
+            Long modelId = usage.getModelId();
+            return new ModelUsageDTO(
+                    modelId,
+                    callCount,
+                    usageRate
+            );
+        };
+        List<ModelUsageDTO> dtoList = usageList
+                .stream()
+                .map(usageMapper)
+                .collect(toListCollector);
 
         return Result.success(dtoList);
     }

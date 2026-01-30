@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 /**
  * 熔断器
@@ -66,9 +67,11 @@ public class CircuitBreaker {
      * @param modelId 模型ID
      */
     public void recordSuccess(Long modelId) {
-        CircuitState state = circuitStates.computeIfAbsent(modelId, k -> new CircuitState());
+        Function<Long, CircuitState> stateFactory = key -> new CircuitState();
+        CircuitState state = circuitStates.computeIfAbsent(modelId, stateFactory);
         state.recordSuccess();
-        log.debug("记录成功调用，modelId: {}, consecutiveFailures: {}", modelId, state.getConsecutiveFailures());
+        int consecutiveFailures = state.getConsecutiveFailures();
+        log.debug("记录成功调用，modelId: {}, consecutiveFailures: {}", modelId, consecutiveFailures);
     }
 
     /**
@@ -78,15 +81,17 @@ public class CircuitBreaker {
      * @param modelId 模型ID
      */
     public void recordFailure(Long modelId) {
-        CircuitState state = circuitStates.computeIfAbsent(modelId, k -> new CircuitState());
+        Function<Long, CircuitState> stateFactory = key -> new CircuitState();
+        CircuitState state = circuitStates.computeIfAbsent(modelId, stateFactory);
         state.recordFailure();
 
-        log.warn("记录失败调用，modelId: {}, consecutiveFailures: {}", modelId, state.getConsecutiveFailures());
+        int consecutiveFailures = state.getConsecutiveFailures();
+        log.warn("记录失败调用，modelId: {}, consecutiveFailures: {}", modelId, consecutiveFailures);
 
         // 达到失败阈值，打开熔断器
-        if (state.getConsecutiveFailures() >= FAILURE_THRESHOLD) {
+        if (consecutiveFailures >= FAILURE_THRESHOLD) {
             state.open();
-            log.error("熔断器打开，modelId: {}, consecutiveFailures: {}", modelId, state.getConsecutiveFailures());
+            log.error("熔断器打开，modelId: {}, consecutiveFailures: {}", modelId, consecutiveFailures);
         }
     }
 
@@ -144,7 +149,9 @@ public class CircuitBreaker {
          */
         public void open() {
             this.open = true;
-            this.openTime = System.currentTimeMillis();
+            this
+                    .openTime = System
+                    .currentTimeMillis();
         }
 
         /**

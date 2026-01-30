@@ -24,19 +24,22 @@ public class OpenAIModelProvider implements ModelProvider {
     private ChatModel createChatModel(ModelConfig config) {
         try {
             // 规范化 baseUrl，去掉可能存在的 /v1/chat/completions 后缀
-            String normalizedBaseUrl = normalizeBaseUrl(config.getBaseUrl());
+            String baseUrl = config.getBaseUrl();
+            String normalizedBaseUrl = normalizeBaseUrl(baseUrl);
 
-            log.info("创建 OpenAI 模型 - 原始 baseUrl: {}, 规范化后: {}", config.getBaseUrl(), normalizedBaseUrl);
+            log.info("创建 OpenAI 模型 - 原始 baseUrl: {}, 规范化后: {}", baseUrl, normalizedBaseUrl);
 
             // 创建 OpenAI API 客户端
+            String apiKey = config.getApiKey();
             OpenAiApi openAiApi = OpenAiApi.builder()
                     .baseUrl(normalizedBaseUrl)
-                    .apiKey(config.getApiKey())
+                    .apiKey(apiKey)
                     .build();
 
             // 创建聊天选项
+            String modelName = config.getModelName();
             OpenAiChatOptions options = OpenAiChatOptions.builder()
-                    .model(config.getModelName())
+                    .model(modelName)
                     .build();
 
             // 创建聊天模型
@@ -45,7 +48,8 @@ public class OpenAIModelProvider implements ModelProvider {
                     .defaultOptions(options)
                     .build();
         } catch (Exception e) {
-            log.error("创建 OpenAI 模型失败: {}", e.getMessage(), e);
+            String errorMessage = e.getMessage();
+            log.error("创建 OpenAI 模型失败: {}", errorMessage, e);
             throw new RuntimeException("创建 OpenAI 模型失败", e);
         }
     }
@@ -53,7 +57,9 @@ public class OpenAIModelProvider implements ModelProvider {
     @Override
     public ChatClient createChatClient(ModelConfig config) {
         ChatModel chatModel = createChatModel(config);
-        return ChatClient.builder(chatModel).build();
+        return ChatClient
+                .builder(chatModel)
+                .build();
     }
 
     @Override
@@ -84,17 +90,22 @@ public class OpenAIModelProvider implements ModelProvider {
 
         // 去掉末尾的斜杠
         while (normalized.endsWith("/")) {
-            normalized = normalized.substring(0, normalized.length() - 1);
+            int length = normalized.length();
+            normalized = normalized.substring(0, length - 1);
         }
 
         // 检查并去除 /v1/chat/completions 后缀
         if (normalized.endsWith("/v1/chat/completions")) {
-            normalized = normalized.substring(0, normalized.length() - "/v1/chat/completions".length());
+            int length = normalized.length();
+            int suffixLength = "/v1/chat/completions".length();
+            normalized = normalized.substring(0, length - suffixLength);
             log.info("检测到 baseUrl 包含 /v1/chat/completions 后缀，已自动去除。原始: {}, 规范化后: {}", baseUrl, normalized);
         }
         // 检查并去除 /v1 后缀（避免路径重复）
         else if (normalized.endsWith("/v1")) {
-            normalized = normalized.substring(0, normalized.length() - "/v1".length());
+            int length = normalized.length();
+            int suffixLength = "/v1".length();
+            normalized = normalized.substring(0, length - suffixLength);
             log.info("检测到 baseUrl 包含 /v1 后缀，已自动去除。原始: {}, 规范化后: {}", baseUrl, normalized);
         }
 
@@ -108,7 +119,8 @@ public class OpenAIModelProvider implements ModelProvider {
             createChatModel(config);
             return true;
         } catch (Exception e) {
-            log.warn("OpenAI 模型健康检查失败: {}", e.getMessage());
+            String errorMessage = e.getMessage();
+            log.warn("OpenAI 模型健康检查失败: {}", errorMessage);
             return false;
         }
     }

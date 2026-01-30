@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 })
 public class QuickToolCheckTest {
 
-    @Autowired(required = false)
+    @Autowired
     private ToolCallbackProvider toolCallbackProvider;
 
     @Test
@@ -34,10 +34,16 @@ public class QuickToolCheckTest {
         ToolCallback[] tools = toolCallbackProvider.getToolCallbacks();
         log.info(">>> 已注册工具数量: {}", tools.length);
 
-        assertTrue(tools.length > 0, "❌ 没有注册任何工具！");
+        boolean hasTools = tools.length > 0;
+        assertTrue(hasTools, "❌ 没有注册任何工具！");
 
         for (int i = 0; i < tools.length; i++) {
-            log.info(">>> 工具 {}: {}", i + 1, tools[i].getClass().getSimpleName());
+            int displayIndex = i + 1;
+            ToolCallback tool = tools[i];
+            String toolName = tool
+                    .getClass()
+                    .getSimpleName();
+            log.info(">>> 工具 {}: {}", displayIndex, toolName);
         }
 
         log.info("✅ 工具注册正常，共 {} 个工具", tools.length);

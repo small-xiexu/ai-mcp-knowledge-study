@@ -1,9 +1,10 @@
 package com.xbk.knowledge.domain.service.impl;
 
+import com.xbk.knowledge.domain.model.aggregate.task.TaskTypeAggregate;
 import com.xbk.knowledge.domain.model.entity.TaskType;
-import com.xbk.knowledge.domain.model.vo.IdQuery;
-import com.xbk.knowledge.domain.model.vo.TaskTypeCodeQuery;
-import com.xbk.knowledge.domain.model.vo.TaskTypePageQuery;
+import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.model.vo.task.TaskTypeCodeQuery;
+import com.xbk.knowledge.domain.model.vo.task.TaskTypePageQuery;
 import com.xbk.knowledge.domain.repository.ModelConfigRepository;
 import com.xbk.knowledge.domain.repository.TaskTypeRepository;
 import com.xbk.knowledge.domain.service.ITaskTypeService;
@@ -15,6 +16,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * 任务类型领域服务实现
@@ -43,7 +46,8 @@ public class TaskTypeServiceImpl implements ITaskTypeService {
         int offset = query.getOffset() == null ? 0 : query.getOffset();
         int pageSize = query.getPageSize() == null ? 10 : query.getPageSize();
         // 查询分页数据
-        List<TaskType> taskTypes = taskTypeRepository.findPage(new TaskTypePageQuery(offset, pageSize));
+        TaskTypePageQuery pageQuery = new TaskTypePageQuery(offset, pageSize);
+        List<TaskType> taskTypes = taskTypeRepository.findPage(pageQuery);
 
         // 查询总数
         long total = taskTypeRepository.countAll();
@@ -61,7 +65,8 @@ public class TaskTypeServiceImpl implements ITaskTypeService {
     @Override
     public List<TaskType> queryAllTaskTypes() {
         // 使用一个较大的 pageSize 来获取所有数据
-        return taskTypeRepository.findPage(new TaskTypePageQuery(0, 1000));
+        TaskTypePageQuery pageQuery = new TaskTypePageQuery(0, 1000);
+        return taskTypeRepository.findPage(pageQuery);
     }
 
     /**
@@ -74,8 +79,12 @@ public class TaskTypeServiceImpl implements ITaskTypeService {
             throw new IllegalArgumentException("任务类型 ID 不能为空");
         }
         Long id = query.getId();
-        return taskTypeRepository.findById(new IdQuery(id))
-                .orElseThrow(() -> new NotFoundException("任务类型不存在，id: " + id));
+        IdQuery idQuery = new IdQuery(id);
+        String notFoundMessage = "任务类型不存在，id: " + id;
+        Supplier<NotFoundException> exceptionSupplier = () -> new NotFoundException(notFoundMessage);
+        return taskTypeRepository
+                .findById(idQuery)
+                .orElseThrow(exceptionSupplier);
     }
 
     /**
@@ -88,8 +97,12 @@ public class TaskTypeServiceImpl implements ITaskTypeService {
             throw new IllegalArgumentException("任务类型代码不能为空");
         }
         String taskCode = query.getTaskCode();
-        return taskTypeRepository.findByTaskCode(new TaskTypeCodeQuery(taskCode))
-                .orElseThrow(() -> new NotFoundException("任务类型不存在，code: " + taskCode));
+        TaskTypeCodeQuery taskTypeCodeQuery = new TaskTypeCodeQuery(taskCode);
+        String notFoundMessage = "任务类型不存在，code: " + taskCode;
+        Supplier<NotFoundException> exceptionSupplier = () -> new NotFoundException(notFoundMessage);
+        return taskTypeRepository
+                .findByTaskCode(taskTypeCodeQuery)
+                .orElseThrow(exceptionSupplier);
     }
 
     /**
@@ -99,15 +112,22 @@ public class TaskTypeServiceImpl implements ITaskTypeService {
     @Override
     public TaskType createTaskType(TaskType taskType) {
         // 检查任务类型代码是否已存在
-        if (taskTypeRepository.findByTaskCode(new TaskTypeCodeQuery(taskType.getTaskCode())).isPresent()) {
-            throw new IllegalArgumentException("任务类型代码已存在：" + taskType.getTaskCode());
+        String taskCode = taskType.getTaskCode();
+        TaskTypeCodeQuery taskTypeCodeQuery = new TaskTypeCodeQuery(taskCode);
+        if (taskTypeRepository
+                .findByTaskCode(taskTypeCodeQuery)
+                .isPresent()) {
+            throw new IllegalArgumentException("任务类型代码已存在：" + taskCode);
         }
 
         // 检查首选模型是否存在
-        if (taskType.getPreferredModelId() != null &&
-                !modelConfigRepository.existsById(new IdQuery(taskType.getPreferredModelId()))) {
-            // 避免任务类型指向不存在的模型，保证配置可用
-            throw new NotFoundException("首选模型不存在，id: " + taskType.getPreferredModelId());
+        Long preferredModelId = taskType.getPreferredModelId();
+        if (preferredModelId != null) {
+            IdQuery preferredModelIdQuery = new IdQuery(preferredModelId);
+            if (!modelConfigRepository.existsById(preferredModelIdQuery)) {
+                // 避免任务类型指向不存在的模型，保证配置可用
+                throw new NotFoundException("首选模型不存在，id: " + preferredModelId);
+            }
         }
 
         // 设置创建时间和更新时间
@@ -116,7 +136,11 @@ public class TaskTypeServiceImpl implements ITaskTypeService {
         taskType.setUpdatedAt(now);
 
         // 保存到数据库
-        return taskTypeRepository.save(taskType);
+        TaskTypeAggregate aggregate = TaskTypeAggregate.builder()
+                .taskType(taskType)
+                .build();
+        TaskTypeAggregate savedAggregate = taskTypeRepository.save(aggregate);
+        return savedAggregate.getTaskType();
     }
 
     /**
@@ -130,34 +154,57 @@ public class TaskTypeServiceImpl implements ITaskTypeService {
         }
 
         // 查询现有配置
-        TaskType existingTaskType = taskTypeRepository.findById(new IdQuery(taskType.getId()))
-                .orElseThrow(() -> new NotFoundException("任务类型不存在，id: " + taskType.getId()));
+        Long taskTypeId = taskType.getId();
+        IdQuery idQuery = new IdQuery(taskTypeId);
+        String notFoundMessage = "任务类型不存在，id: " + taskTypeId;
+        Supplier<NotFoundException> exceptionSupplier = () -> new NotFoundException(notFoundMessage);
+        TaskType existingTaskType = taskTypeRepository
+                .findById(idQuery)
+                .orElseThrow(exceptionSupplier);
 
         // 检查任务类型代码是否与其他任务类型冲突
-        taskTypeRepository.findByTaskCode(new TaskTypeCodeQuery(taskType.getTaskCode()))
-                .ifPresent(existing -> {
-                    if (!existing.getId().equals(taskType.getId())) {
-                        throw new IllegalArgumentException("任务类型代码已存在：" + taskType.getTaskCode());
-                    }
-                });
+        String taskCode = taskType.getTaskCode();
+        TaskTypeCodeQuery taskTypeCodeQuery = new TaskTypeCodeQuery(taskCode);
+        Consumer<TaskType> duplicateChecker = existing -> {
+            if (!existing
+                    .getId()
+                    .equals(taskType
+                    .getId())) {
+                throw new IllegalArgumentException("任务类型代码已存在：" + taskCode);
+            }
+        };
+        taskTypeRepository
+                .findByTaskCode(taskTypeCodeQuery)
+                .ifPresent(duplicateChecker);
 
         // 检查首选模型是否存在
-        if (taskType.getPreferredModelId() != null &&
-                !modelConfigRepository.existsById(new IdQuery(taskType.getPreferredModelId()))) {
-            // 业务侧校验优先模型有效性，防止配置悬挂
-            throw new NotFoundException("首选模型不存在，id: " + taskType.getPreferredModelId());
+        Long preferredModelId = taskType.getPreferredModelId();
+        if (preferredModelId != null) {
+            IdQuery preferredModelIdQuery = new IdQuery(preferredModelId);
+            if (!modelConfigRepository.existsById(preferredModelIdQuery)) {
+                // 业务侧校验优先模型有效性，防止配置悬挂
+                throw new NotFoundException("首选模型不存在，id: " + preferredModelId);
+            }
         }
 
         // 更新字段
-        existingTaskType.setTaskCode(taskType.getTaskCode());
-        existingTaskType.setTaskName(taskType.getTaskName());
-        existingTaskType.setDescription(taskType.getDescription());
-        existingTaskType.setPreferredModelId(taskType.getPreferredModelId());
-        existingTaskType.setFallbackModelIds(taskType.getFallbackModelIds());
-        existingTaskType.setUpdatedAt(LocalDateTime.now());
+        String taskName = taskType.getTaskName();
+        String description = taskType.getDescription();
+        String fallbackModelIds = taskType.getFallbackModelIds();
+        LocalDateTime updatedAt = LocalDateTime.now();
+        existingTaskType.setTaskCode(taskCode);
+        existingTaskType.setTaskName(taskName);
+        existingTaskType.setDescription(description);
+        existingTaskType.setPreferredModelId(preferredModelId);
+        existingTaskType.setFallbackModelIds(fallbackModelIds);
+        existingTaskType.setUpdatedAt(updatedAt);
 
         // 保存更新
-        return taskTypeRepository.save(existingTaskType);
+        TaskTypeAggregate aggregate = TaskTypeAggregate.builder()
+                .taskType(existingTaskType)
+                .build();
+        TaskTypeAggregate savedAggregate = taskTypeRepository.save(aggregate);
+        return savedAggregate.getTaskType();
     }
 
     /**
@@ -171,11 +218,12 @@ public class TaskTypeServiceImpl implements ITaskTypeService {
         }
         Long id = query.getId();
         // 检查任务类型是否存在
-        if (!taskTypeRepository.existsById(new IdQuery(id))) {
+        IdQuery idQuery = new IdQuery(id);
+        if (!taskTypeRepository.existsById(idQuery)) {
             throw new NotFoundException("任务类型不存在，id: " + id);
         }
 
         // 删除任务类型
-        taskTypeRepository.deleteById(new IdQuery(id));
+        taskTypeRepository.deleteById(idQuery);
     }
 }

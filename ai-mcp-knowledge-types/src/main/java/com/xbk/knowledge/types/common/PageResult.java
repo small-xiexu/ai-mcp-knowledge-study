@@ -72,6 +72,8 @@ public class PageResult<T> implements Serializable {
     public static <T> PageResult<T> of(List<T> records, Long total, Integer pageNum, Integer pageSize) {
         // 计算总页数
         int totalPages = (int) Math.ceil((double) total / pageSize);
+        boolean hasNext = pageNum < totalPages;
+        boolean hasPrevious = pageNum > 1;
 
         return PageResult.<T>builder()
                 .records(records)
@@ -79,8 +81,8 @@ public class PageResult<T> implements Serializable {
                 .pageNum(pageNum)
                 .pageSize(pageSize)
                 .totalPages(totalPages)
-                .hasNext(pageNum < totalPages)
-                .hasPrevious(pageNum > 1)
+                .hasNext(hasNext)
+                .hasPrevious(hasPrevious)
                 .build();
     }
 
@@ -92,8 +94,9 @@ public class PageResult<T> implements Serializable {
      * @return PageResult
      */
     public static <T> PageResult<T> empty(Integer pageNum, Integer pageSize) {
+        List<T> emptyRecords = List.of();
         return PageResult.<T>builder()
-                .records(List.of())
+                .records(emptyRecords)
                 .total(0L)
                 .pageNum(pageNum)
                 .pageSize(pageSize)

@@ -1,9 +1,10 @@
 package com.xbk.knowledge.infrastructure.repository;
 
+import com.xbk.knowledge.domain.model.aggregate.task.TaskTypeAggregate;
 import com.xbk.knowledge.domain.model.entity.TaskType;
-import com.xbk.knowledge.domain.model.vo.IdQuery;
-import com.xbk.knowledge.domain.model.vo.TaskTypeCodeQuery;
-import com.xbk.knowledge.domain.model.vo.TaskTypePageQuery;
+import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.model.vo.task.TaskTypeCodeQuery;
+import com.xbk.knowledge.domain.model.vo.task.TaskTypePageQuery;
 import com.xbk.knowledge.domain.repository.TaskTypeRepository;
 import com.xbk.knowledge.infrastructure.mapper.TaskTypeMapper;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +37,8 @@ public class TaskTypeRepositoryImpl implements TaskTypeRepository {
         if (query == null || query.getTaskCode() == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(taskTypeMapper.findByTaskCode(query));
+        TaskType taskType = taskTypeMapper.findByTaskCode(query);
+        return Optional.ofNullable(taskType);
     }
 
     /**
@@ -48,7 +50,8 @@ public class TaskTypeRepositoryImpl implements TaskTypeRepository {
         if (query == null || query.getId() == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(taskTypeMapper.findById(query));
+        TaskType taskType = taskTypeMapper.findById(query);
+        return Optional.ofNullable(taskType);
     }
 
     /**
@@ -56,7 +59,11 @@ public class TaskTypeRepositoryImpl implements TaskTypeRepository {
      * 统一插入与更新逻辑并补齐时间戳
      */
     @Override
-    public TaskType save(TaskType taskType) {
+    public TaskTypeAggregate save(TaskTypeAggregate aggregate) {
+        if (aggregate == null || aggregate.getTaskType() == null) {
+            return aggregate;
+        }
+        TaskType taskType = aggregate.getTaskType();
         LocalDateTime now = LocalDateTime.now();
         if (taskType.getId() == null) {
             if (taskType.getCreatedAt() == null) {
@@ -66,13 +73,15 @@ public class TaskTypeRepositoryImpl implements TaskTypeRepository {
                 taskType.setUpdatedAt(now);
             }
             taskTypeMapper.insertTaskType(taskType);
-            return taskType;
+            aggregate.setTaskType(taskType);
+            return aggregate;
         }
         if (taskType.getUpdatedAt() == null) {
             taskType.setUpdatedAt(now);
         }
         taskTypeMapper.updateTaskType(taskType);
-        return taskType;
+        aggregate.setTaskType(taskType);
+        return aggregate;
     }
 
     /**

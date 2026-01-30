@@ -1,11 +1,11 @@
 package com.xbk.knowledge.domain.service;
 
-import com.xbk.knowledge.domain.model.vo.CallMetrics;
-import com.xbk.knowledge.domain.model.vo.MetricsQuery;
-import com.xbk.knowledge.domain.model.vo.ModelUsage;
-import com.xbk.knowledge.domain.model.vo.ModelUsageQuery;
-import com.xbk.knowledge.domain.model.vo.ResponseTime;
-import com.xbk.knowledge.domain.model.vo.SuccessRate;
+import com.xbk.knowledge.domain.model.vo.metrics.CallMetrics;
+import com.xbk.knowledge.domain.model.vo.metrics.MetricsQuery;
+import com.xbk.knowledge.domain.model.vo.metrics.ModelUsage;
+import com.xbk.knowledge.domain.model.vo.metrics.ModelUsageQuery;
+import com.xbk.knowledge.domain.model.vo.metrics.ResponseTime;
+import com.xbk.knowledge.domain.model.vo.metrics.SuccessRate;
 
 import java.util.List;
 

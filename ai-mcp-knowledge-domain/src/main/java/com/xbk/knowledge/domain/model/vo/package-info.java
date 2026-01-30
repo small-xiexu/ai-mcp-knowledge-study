@@ -1,5 +1,6 @@
 /**
- * 领域值对象集合，承载指标统计的 VO（CallMetrics/ResponseTime/SuccessRate/ModelUsage）。
+ * 领域值对象顶层包
+ * 按业务子域拆分：model / task / metrics / audit / common
  *
  * @author xiexu
  */

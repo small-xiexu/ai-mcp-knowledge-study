@@ -11,6 +11,8 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 /**
  * 请求响应日志 Advisor
  * 用于打印大模型的入参和出参，便于调试
@@ -58,9 +60,12 @@ public class RequestResponseLoggingAdvisor implements CallAdvisor {
 
             // 整合成一行日志
             String promptJson = objectMapper.writeValueAsString(prompt);
+            List<?> instructions = prompt.getInstructions();
+            int instructionCount = instructions.size();
+            String truncatedPromptJson = truncate(promptJson, 1000);
             log.info("📤 [REQUEST] Messages: {}, Prompt: {}",
-                    prompt.getInstructions().size(),
-                    truncate(promptJson, 1000));
+                    instructionCount,
+                    truncatedPromptJson);
         } catch (Exception e) {
             log.error("打印请求信息失败", e);
         }
@@ -76,7 +81,8 @@ public class RequestResponseLoggingAdvisor implements CallAdvisor {
             if (chatResponse != null) {
                 // 整合成一行日志
                 String responseJson = objectMapper.writeValueAsString(chatResponse);
-                log.info("📥 [RESPONSE] {}", truncate(responseJson, 1000));
+                String truncatedResponseJson = truncate(responseJson, 1000);
+                log.info("📥 [RESPONSE] {}", truncatedResponseJson);
             } else {
                 log.warn("📥 [RESPONSE] ⚠️ 响应为空");
             }

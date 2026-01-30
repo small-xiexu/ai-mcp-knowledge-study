@@ -24,16 +24,19 @@ public class SwaggerConfig {
      */
     @Bean
     public OpenAPI customOpenAPI() {
+        Contact contact = new Contact()
+                .name("xiexu")
+                .email("xiexu@example.com");
+        License license = new License()
+                .name("Apache 2.0")
+                .url("https://www.apache.org/licenses/LICENSE-2.0.html");
+        Info info = new Info()
+                .title("AI 多模型编排系统 API")
+                .description("统一管理 OpenAI、Anthropic、Gemini 等多种 AI 模型的编排系统")
+                .version("1.0.0")
+                .contact(contact)
+                .license(license);
         return new OpenAPI()
-                .info(new Info()
-                        .title("AI 多模型编排系统 API")
-                        .description("统一管理 OpenAI、Anthropic、Gemini 等多种 AI 模型的编排系统")
-                        .version("1.0.0")
-                        .contact(new Contact()
-                                .name("xiexu")
-                                .email("xiexu@example.com"))
-                        .license(new License()
-                                .name("Apache 2.0")
-                                .url("https://www.apache.org/licenses/LICENSE-2.0.html")));
+                .info(info);
     }
 }

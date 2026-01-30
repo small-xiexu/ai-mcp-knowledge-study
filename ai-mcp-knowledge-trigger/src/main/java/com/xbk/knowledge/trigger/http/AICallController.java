@@ -1,6 +1,7 @@
 package com.xbk.knowledge.trigger.http;
 
 import com.xbk.knowledge.types.common.Result;
+import com.xbk.knowledge.types.common.ResultCode;
 import com.xbk.knowledge.api.IAICallService;
 import com.xbk.knowledge.api.dto.ai.AIRequest;
 import com.xbk.knowledge.api.dto.ai.AIResponse;
@@ -10,23 +11,29 @@ import com.xbk.knowledge.application.model.dto.AICallCommand;
 import com.xbk.knowledge.application.model.dto.AICallResult;
 import com.xbk.knowledge.application.service.AIModelService;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
-import com.xbk.knowledge.domain.model.vo.EnabledQuery;
-import com.xbk.knowledge.domain.model.vo.TaskTypeQuery;
+import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
+import com.xbk.knowledge.domain.model.vo.task.TaskTypeQuery;
 import com.xbk.knowledge.application.service.ModelConfigAppService;
 import com.xbk.knowledge.trigger.converter.DTOConverter;
+import com.xbk.knowledge.types.exception.BusinessException;
+import com.xbk.knowledge.types.enums.ModelType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+
 import java.util.List;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.function.Function;
 
 /**
  * AI 调用 Controller
  * 负责接收 HTTP 请求，调用应用服务，转换响应
- *
+ * <p>
  * 职责：HTTP 接口适配，用于转发应用层能力
+ *
  * @author xiexu
  */
 @Slf4j
@@ -54,15 +61,19 @@ public class AICallController implements IAICallService {
             AIResponse response = DTOConverter.toApiAIResponse(result);
 
             return Result.success(response);
+        } catch (BusinessException e) {
+            throw e;
         } catch (Exception e) {
             log.error("AI 调用失败", e);
 
             // 统一返回业务错误结构，避免将异常栈暴露给前端
             AIResponse response = new AIResponse();
             response.setSuccess(false);
-            response.setErrorMessage(e.getMessage());
+            String errorMessage = e.getMessage();
+            response.setErrorMessage(errorMessage);
 
-            return Result.error(500, "AI 调用失败：" + e.getMessage(), response);
+            String responseMessage = "AI 调用失败：" + errorMessage;
+            return Result.error(ResultCode.AI_CALL_FAILED, responseMessage, response);
         }
     }
 
@@ -76,9 +87,7 @@ public class AICallController implements IAICallService {
      */
     @Override
     @PostMapping("/chat/{taskType}")
-    public Result<AIResponse> chatByTaskType(
-            @PathVariable String taskType,
-            @Valid @RequestBody AIRequest request) {
+    public Result<AIResponse> chatByTaskType(@PathVariable String taskType, @Valid @RequestBody AIRequest request) {
         try {
             AICallCommand command = DTOConverter.toAppAICallCommand(request);
             command.setTaskType(taskType);
@@ -87,15 +96,19 @@ public class AICallController implements IAICallService {
             AIResponse response = DTOConverter.toApiAIResponse(result);
 
             return Result.success(response);
+        } catch (BusinessException e) {
+            throw e;
         } catch (Exception e) {
             log.error("AI 调用失败", e);
 
             // 统一错误响应格式，便于前端处理
             AIResponse response = new AIResponse();
             response.setSuccess(false);
-            response.setErrorMessage(e.getMessage());
+            String errorMessage = e.getMessage();
+            response.setErrorMessage(errorMessage);
 
-            return Result.error(500, "AI 调用失败：" + e.getMessage(), response);
+            String responseMessage = "AI 调用失败：" + errorMessage;
+            return Result.error(ResultCode.AI_CALL_FAILED, responseMessage, response);
         }
     }
 
@@ -108,18 +121,25 @@ public class AICallController implements IAICallService {
     @PostMapping("/models")
     public Result<List<ModelInfo>> getAvailableModels() {
         // 调用应用服务查询模型配置
-        List<ModelConfig> models = modelConfigAppService.queryEnabledModels(new EnabledQuery(true));
+        EnabledQuery enabledQuery = new EnabledQuery(true);
+        List<ModelConfig> models = modelConfigAppService.queryEnabledModels(enabledQuery);
 
         // 转换为 API DTO
-        List<ModelInfo> modelInfos = models.stream()
-                .map(model -> {
-                    ModelInfo info = new ModelInfo();
-                    info.setModelId(model.getId());
-                    info.setModelName(model.getModelName());
-                    info.setModelType(model.getModelType());
-                    return info;
-                })
-                .collect(Collectors.toList());
+        Collector<ModelInfo, ?, List<ModelInfo>> toListCollector = Collectors.toList();
+        Function<ModelConfig, ModelInfo> modelInfoMapper = model -> {
+            ModelInfo info = new ModelInfo();
+            Long modelId = model.getId();
+            String modelName = model.getModelName();
+            ModelType modelType = model.getModelType();
+            info.setModelId(modelId);
+            info.setModelName(modelName);
+            info.setModelType(modelType);
+            return info;
+        };
+        List<ModelInfo> modelInfos = models
+                .stream()
+                .map(modelInfoMapper)
+                .collect(toListCollector);
 
         return Result.success(modelInfos);
     }
@@ -135,17 +155,22 @@ public class AICallController implements IAICallService {
     @PostMapping("/models/recommend")
     public Result<ModelInfo> getRecommendedModel(@Valid @RequestBody ModelRecommendRequest request) {
         // 调用应用服务获取推荐模型
-        ModelConfig model = modelConfigAppService.getRecommendedModel(new TaskTypeQuery(request.getTaskType()));
+        String taskType = request.getTaskType();
+        TaskTypeQuery taskTypeQuery = new TaskTypeQuery(taskType);
+        ModelConfig model = modelConfigAppService.getRecommendedModel(taskTypeQuery);
 
         if (model == null) {
-            return Result.error(404, "未找到推荐模型");
+            return Result.error(ResultCode.NOT_FOUND, "未找到推荐模型");
         }
 
         // 转换为 API DTO
         ModelInfo modelInfo = new ModelInfo();
-        modelInfo.setModelId(model.getId());
-        modelInfo.setModelName(model.getModelName());
-        modelInfo.setModelType(model.getModelType());
+        Long modelId = model.getId();
+        String modelName = model.getModelName();
+        ModelType modelType = model.getModelType();
+        modelInfo.setModelId(modelId);
+        modelInfo.setModelName(modelName);
+        modelInfo.setModelType(modelType);
 
         return Result.success(modelInfo);
     }

@@ -17,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * 编排层 MCP 工具集成测试
@@ -66,7 +67,9 @@ public class OrchestrationMCPTest {
         ChatClient chatClient = modelProviderFactory.createChatClient(config);
 
         // 调试：打印 ChatClient 信息
-        log.info(">>> ChatClient 创建成功: {}", chatClient.getClass().getName());
+        log.info(">>> ChatClient 创建成功: {}", chatClient
+                .getClass()
+                .getName());
 
         // 测试工具调用
         // 重要：使用明确的指令，让 AI 知道需要调用工具
@@ -121,9 +124,10 @@ public class OrchestrationMCPTest {
         log.info(">>> QUESTION: {}", userInput);
 
         // 关键：使用 toolContext 启用工具调用
+        Map<String, Object> toolContext = Map.of("enabled", true);
         String response = chatClient.prompt()
                 .user(userInput)
-                .toolContext(Map.of("enabled", true))  // 启用工具调用上下文
+                .toolContext(toolContext)  // 启用工具调用上下文
                 .call()
                 .content();
 
@@ -277,15 +281,18 @@ public class OrchestrationMCPTest {
         config.setEnabled(true);
 
         // 创建聊天记忆
+        InMemoryChatMemoryRepository chatMemoryRepository = new InMemoryChatMemoryRepository();
         MessageWindowChatMemory chatMemory = MessageWindowChatMemory.builder()
-                .chatMemoryRepository(new InMemoryChatMemoryRepository())
+                .chatMemoryRepository(chatMemoryRepository)
                 .maxMessages(100)
                 .build();
 
         // 通过编排层创建 ChatClient，并添加聊天记忆 Advisor
+        PromptChatMemoryAdvisor memoryAdvisor = PromptChatMemoryAdvisor.builder(chatMemory)
+                .build();
         ChatClient chatClient = modelProviderFactory.createChatClient(config)
                 .mutate()
-                .defaultAdvisors(PromptChatMemoryAdvisor.builder(chatMemory).build())
+                .defaultAdvisors(memoryAdvisor)
                 .build();
 
         // 第一轮对话：发布文章到 CSDN
@@ -302,10 +309,13 @@ public class OrchestrationMCPTest {
 
         log.info(">>> [第一轮] QUESTION: {}", publishInput);
 
-        String publishResponse = chatClient.prompt()
+        String conversationId = "orchestration-csdn-weixin-1";
+        Consumer<ChatClient.AdvisorSpec> memoryParam = advisor -> advisor
+                .param("chat_memory_conversation_id", conversationId);
+        String publishResponse = chatClient
+                .prompt()
                 .user(publishInput)
-                .advisors(advisor -> advisor
-                        .param("chat_memory_conversation_id", "orchestration-csdn-weixin-1"))
+                .advisors(memoryParam)
                 .call()
                 .content();
 
@@ -324,10 +334,10 @@ public class OrchestrationMCPTest {
 
         log.info(">>> [第二轮] QUESTION: {}", noticeInput);
 
-        String noticeResponse = chatClient.prompt()
+        String noticeResponse = chatClient
+                .prompt()
                 .user(noticeInput)
-                .advisors(advisor -> advisor
-                        .param("chat_memory_conversation_id", "orchestration-csdn-weixin-1"))
+                .advisors(memoryParam)
                 .call()
                 .content();
 

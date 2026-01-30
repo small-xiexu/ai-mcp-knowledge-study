@@ -7,15 +7,46 @@ spring:
     # 设为 none 会禁用 Web 接口；需要对外提供 HTTP 时请改为 servlet
     web-application-type: none
   datasource:
-    # 数据库驱动（当前为 PostgreSQL）
-    driver-class-name: org.postgresql.Driver
-    # 数据库账号
-    username: postgres
-    # 数据库密码
-    password: postgres
-    # 数据库地址（请根据本机环境调整）
-    url: jdbc:postgresql://localhost:5432/ai-rag-knowledge
-    type: com.zaxxer.hikari.HikariDataSource
+    mysql:
+      # 数据库驱动（MySQL）
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      # 数据库账号
+      username: root
+      # 数据库密码
+      password: root
+      # 数据库地址（请根据本机环境调整）
+      url: jdbc:mysql://localhost:3306/ai_model_orchestration?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+      type: com.alibaba.druid.pool.DruidDataSource
+      druid:
+        # 初始化连接数
+        initial-size: 5
+        # 最小空闲连接数
+        min-idle: 5
+        # 最大活动连接数
+        max-active: 20
+        # 获取连接最大等待时间
+        max-wait: 60000
+        # 空闲连接检查间隔
+        time-between-eviction-runs-millis: 60000
+        # 连接最小生存时间
+        min-evictable-idle-time-millis: 300000
+        # 连接校验
+        validation-query: SELECT 1
+        test-while-idle: true
+        test-on-borrow: false
+        test-on-return: false
+        pool-prepared-statements: true
+        max-pool-prepared-statement-per-connection-size: 20
+    pgvector:
+      # 数据库驱动（PostgreSQL）
+      driver-class-name: org.postgresql.Driver
+      # 数据库账号
+      username: postgres
+      # 数据库密码
+      password: postgres
+      # 数据库地址（请根据本机环境调整）
+      url: jdbc:postgresql://localhost:5432/ai-rag-knowledge
+      type: com.zaxxer.hikari.HikariDataSource
   ai:
     mcp:
       client:

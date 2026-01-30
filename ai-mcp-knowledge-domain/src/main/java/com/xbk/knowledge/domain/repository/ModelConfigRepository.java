@@ -1,12 +1,13 @@
 package com.xbk.knowledge.domain.repository;
 
+import com.xbk.knowledge.domain.model.aggregate.model.ModelConfigAggregate;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
-import com.xbk.knowledge.domain.model.vo.EnabledIdsQuery;
-import com.xbk.knowledge.domain.model.vo.EnabledQuery;
-import com.xbk.knowledge.domain.model.vo.IdQuery;
-import com.xbk.knowledge.domain.model.vo.ModelConfigPageQuery;
-import com.xbk.knowledge.domain.model.vo.ModelNameQuery;
-import com.xbk.knowledge.domain.model.vo.ModelTypeEnabledQuery;
+import com.xbk.knowledge.domain.model.vo.common.EnabledIdsQuery;
+import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
+import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.model.vo.model.ModelConfigPageQuery;
+import com.xbk.knowledge.domain.model.vo.model.ModelNameQuery;
+import com.xbk.knowledge.domain.model.vo.model.ModelTypeEnabledQuery;
 import java.util.List;
 import java.util.Optional;
 
@@ -105,12 +106,12 @@ public interface ModelConfigRepository {
     boolean existsById(IdQuery query);
 
     /**
-     * 保存模型配置（新增或更新）
+     * 保存模型配置聚合（新增或更新）
      *
-     * @param modelConfig 模型配置
-     * @return 保存后的模型配置
+     * @param aggregate 模型配置聚合
+     * @return 保存后的聚合
      */
-    ModelConfig save(ModelConfig modelConfig);
+    ModelConfigAggregate save(ModelConfigAggregate aggregate);
 
     /**
      * 删除模型配置

@@ -6,6 +6,9 @@ import com.xbk.knowledge.api.dto.model.ModelCapabilityDTO;
 import com.xbk.knowledge.application.model.dto.AICallCommand;
 import com.xbk.knowledge.application.model.dto.AICallResult;
 import com.xbk.knowledge.domain.model.entity.ModelCapability;
+import com.xbk.knowledge.types.enums.ModelSelectionStrategy;
+
+import java.util.Map;
 
 /**
  * DTO 转换工具类
@@ -24,13 +27,19 @@ public class DTOConverter {
             return null;
         }
         // 只做字段映射，不引入业务逻辑，保持接口层与应用层解耦
+        String content = api.getContent();
+        String taskType = api.getTaskType();
+        String systemPrompt = api.getSystemPrompt();
+        Map<String, Object> parameters = api.getParameters();
+        ModelSelectionStrategy strategy = api.getStrategy();
+        Boolean streaming = api.getStreaming();
         return AICallCommand.builder()
-                .content(api.getContent())
-                .taskType(api.getTaskType())
-                .systemPrompt(api.getSystemPrompt())
-                .parameters(api.getParameters())
-                .strategy(api.getStrategy())
-                .streaming(api.getStreaming())
+                .content(content)
+                .taskType(taskType)
+                .systemPrompt(systemPrompt)
+                .parameters(parameters)
+                .strategy(strategy)
+                .streaming(streaming)
                 .build();
     }
 
@@ -41,15 +50,23 @@ public class DTOConverter {
         if (result == null) {
             return null;
         }
+        String content = result.getContent();
+        String modelUsed = result.getModelUsed();
+        Integer tokensUsed = result.getTokensUsed();
+        Long responseTime = result.getResponseTime();
+        Boolean success = result.getSuccess();
+        String errorMessage = result.getErrorMessage();
+        Boolean fallback = result.getFallback();
+        Integer retryCount = result.getRetryCount();
         return AIResponse.builder()
-                .content(result.getContent())
-                .modelUsed(result.getModelUsed())
-                .tokensUsed(result.getTokensUsed())
-                .responseTime(result.getResponseTime())
-                .success(result.getSuccess())
-                .errorMessage(result.getErrorMessage())
-                .fallback(result.getFallback())
-                .retryCount(result.getRetryCount())
+                .content(content)
+                .modelUsed(modelUsed)
+                .tokensUsed(tokensUsed)
+                .responseTime(responseTime)
+                .success(success)
+                .errorMessage(errorMessage)
+                .fallback(fallback)
+                .retryCount(retryCount)
                 .build();
     }
 
@@ -60,13 +77,19 @@ public class DTOConverter {
         if (capability == null) {
             return null;
         }
+        Integer qualityScore = capability.getQualityScore();
+        Integer maxInputTokens = capability.getMaxInputTokens();
+        Integer maxOutputTokens = capability.getMaxOutputTokens();
+        Boolean supportStreaming = capability.getSupportStreaming();
+        Boolean supportFunctionCalling = capability.getSupportFunctionCalling();
+        Boolean supportVision = capability.getSupportVision();
         return ModelCapabilityDTO.builder()
-                .qualityScore(capability.getQualityScore())
-                .maxInputTokens(capability.getMaxInputTokens())
-                .maxOutputTokens(capability.getMaxOutputTokens())
-                .supportStreaming(capability.getSupportStreaming())
-                .supportFunctionCalling(capability.getSupportFunctionCalling())
-                .supportVision(capability.getSupportVision())
+                .qualityScore(qualityScore)
+                .maxInputTokens(maxInputTokens)
+                .maxOutputTokens(maxOutputTokens)
+                .supportStreaming(supportStreaming)
+                .supportFunctionCalling(supportFunctionCalling)
+                .supportVision(supportVision)
                 .build();
     }
 }

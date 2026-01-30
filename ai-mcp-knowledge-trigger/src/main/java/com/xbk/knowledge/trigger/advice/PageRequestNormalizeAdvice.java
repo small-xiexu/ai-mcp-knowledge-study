@@ -52,9 +52,10 @@ public class PageRequestNormalizeAdvice implements RequestBodyAdvice {
                                 HttpInputMessage inputMessage,
                                 MethodParameter parameter,
                                 Type targetType,
-                                Class<? extends HttpMessageConverter<?>> converterType) {
+        Class<? extends HttpMessageConverter<?>> converterType) {
         if (body instanceof PageRequest) {
-            ((PageRequest) body).validate();
+            PageRequest pageRequest = (PageRequest) body;
+            pageRequest.validate();
         }
         return body;
     }

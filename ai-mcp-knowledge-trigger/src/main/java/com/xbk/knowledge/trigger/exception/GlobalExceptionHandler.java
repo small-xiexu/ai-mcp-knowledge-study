@@ -1,12 +1,14 @@
 package com.xbk.knowledge.trigger.exception;
 
 import com.xbk.knowledge.types.common.Result;
+import com.xbk.knowledge.types.common.ResultCode;
 import com.xbk.knowledge.types.exception.BusinessException;
 import com.xbk.knowledge.types.exception.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * 全局异常处理器
@@ -36,8 +39,12 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(BusinessException.class)
     public Result<Object> handleBusinessException(BusinessException e, HttpServletRequest request) {
-        log.warn("业务异常: path={}, code={}, message={}", request.getRequestURI(), e.getCode(), e.getMessage());
-        return Result.error(e.getCode(), e.getMessage(), e.getData());
+        String requestUri = request.getRequestURI();
+        Integer code = e.getCode();
+        String message = e.getMessage();
+        Object data = e.getData();
+        log.warn("业务异常: path={}, code={}, message={}", requestUri, code, message);
+        return Result.error(code, message, data);
     }
 
     /**
@@ -50,8 +57,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public Result<Object> handleNotFoundException(NotFoundException e, HttpServletRequest request) {
-        log.warn("资源未找到: path={}, message={}", request.getRequestURI(), e.getMessage());
-        return Result.error(404, e.getMessage(), e.getData());
+        String requestUri = request.getRequestURI();
+        String message = e.getMessage();
+        Object data = e.getData();
+        log.warn("资源未找到: path={}, message={}", requestUri, message);
+        return Result.error(ResultCode.NOT_FOUND, message, data);
     }
 
     /**
@@ -64,17 +74,23 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Result<Object> handleValidationException(MethodArgumentNotValidException e, HttpServletRequest request) {
-        log.warn("参数校验失败: path={}", request.getRequestURI());
+        String requestUri = request.getRequestURI();
+        log.warn("参数校验失败: path={}", requestUri);
 
         // 收集所有字段的错误信息
         Map<String, String> errors = new HashMap<>();
-        e.getBindingResult().getAllErrors().forEach(error -> {
-            String fieldName = ((FieldError) error).getField();
+        Consumer<ObjectError> errorConsumer = error -> {
+            FieldError fieldError = (FieldError) error;
+            String fieldName = fieldError.getField();
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
-        });
+        };
+        e
+                .getBindingResult()
+                .getAllErrors()
+                .forEach(errorConsumer);
 
-        return Result.error(400, "参数校验失败", errors);
+        return Result.error(ResultCode.PARAM_VALIDATION_FAILED, errors);
     }
 
     /**
@@ -87,17 +103,23 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BindException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Result<Object> handleBindException(BindException e, HttpServletRequest request) {
-        log.warn("参数绑定失败: path={}", request.getRequestURI());
+        String requestUri = request.getRequestURI();
+        log.warn("参数绑定失败: path={}", requestUri);
 
         // 收集所有字段的错误信息
         Map<String, String> errors = new HashMap<>();
-        e.getBindingResult().getAllErrors().forEach(error -> {
-            String fieldName = ((FieldError) error).getField();
+        Consumer<ObjectError> errorConsumer = error -> {
+            FieldError fieldError = (FieldError) error;
+            String fieldName = fieldError.getField();
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
-        });
+        };
+        e
+                .getBindingResult()
+                .getAllErrors()
+                .forEach(errorConsumer);
 
-        return Result.error(400, "参数绑定失败", errors);
+        return Result.error(ResultCode.PARAM_BIND_FAILED, errors);
     }
 
     /**
@@ -110,8 +132,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Result<Object> handleIllegalArgumentException(IllegalArgumentException e, HttpServletRequest request) {
-        log.warn("非法参数: path={}, message={}", request.getRequestURI(), e.getMessage());
-        return Result.error(400, e.getMessage());
+        String requestUri = request.getRequestURI();
+        String message = e.getMessage();
+        log.warn("非法参数: path={}, message={}", requestUri, message);
+        return Result.error(ResultCode.BAD_REQUEST, message);
     }
 
     /**
@@ -124,8 +148,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Result<Object> handleRuntimeException(RuntimeException e, HttpServletRequest request) {
-        log.error("运行时异常: path={}, message={}", request.getRequestURI(), e.getMessage(), e);
-        return Result.error(500, "系统内部错误：" + e.getMessage());
+        String requestUri = request.getRequestURI();
+        String message = e.getMessage();
+        String responseMessage = "系统内部错误：" + message;
+        log.error("运行时异常: path={}, message={}", requestUri, message, e);
+        return Result.error(ResultCode.INTERNAL_ERROR, responseMessage);
     }
 
     /**
@@ -138,7 +165,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Result<Object> handleException(Exception e, HttpServletRequest request) {
-        log.error("未知异常: path={}, message={}", request.getRequestURI(), e.getMessage(), e);
-        return Result.error(500, "系统内部错误");
+        String requestUri = request.getRequestURI();
+        String message = e.getMessage();
+        log.error("未知异常: path={}, message={}", requestUri, message, e);
+        return Result.error(ResultCode.INTERNAL_ERROR);
     }
 }

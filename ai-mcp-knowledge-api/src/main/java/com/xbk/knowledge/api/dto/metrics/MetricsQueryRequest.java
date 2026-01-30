@@ -33,8 +33,11 @@ public class MetricsQueryRequest extends BaseRequest {
     private Long modelId;
 
     /**
-     * 任务类型（可选）
+     * 任务类型编码（可选）
+     * 取值来自任务类型配置表 ai_task_type.task_code，可通过 /api/task-types/list 查询
      * 不指定则查询所有任务类型
+     *
+     * @see com.xbk.knowledge.trigger.http.TaskTypeController#listTaskTypes(com.xbk.knowledge.api.dto.task.TaskTypeQueryRequest)
      */
     private String taskType;
 

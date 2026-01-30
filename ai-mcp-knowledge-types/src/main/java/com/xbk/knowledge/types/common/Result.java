@@ -50,10 +50,13 @@ public class Result<T> implements Serializable {
      * @return Result
      */
     public static <T> Result<T> success() {
+        Integer code = ResultCode.SUCCESS.getCode();
+        String message = ResultCode.SUCCESS.getMessage();
+        Long timestamp = System.currentTimeMillis();
         return Result.<T>builder()
-                .code(200)
-                .message("操作成功")
-                .timestamp(System.currentTimeMillis())
+                .code(code)
+                .message(message)
+                .timestamp(timestamp)
                 .build();
     }
 
@@ -64,11 +67,14 @@ public class Result<T> implements Serializable {
      * @return Result
      */
     public static <T> Result<T> success(T data) {
+        Integer code = ResultCode.SUCCESS.getCode();
+        String message = ResultCode.SUCCESS.getMessage();
+        Long timestamp = System.currentTimeMillis();
         return Result.<T>builder()
-                .code(200)
-                .message("操作成功")
+                .code(code)
+                .message(message)
                 .data(data)
-                .timestamp(System.currentTimeMillis())
+                .timestamp(timestamp)
                 .build();
     }
 
@@ -80,11 +86,13 @@ public class Result<T> implements Serializable {
      * @return Result
      */
     public static <T> Result<T> success(String message, T data) {
+        Integer code = ResultCode.SUCCESS.getCode();
+        Long timestamp = System.currentTimeMillis();
         return Result.<T>builder()
-                .code(200)
+                .code(code)
                 .message(message)
                 .data(data)
-                .timestamp(System.currentTimeMillis())
+                .timestamp(timestamp)
                 .build();
     }
 
@@ -95,10 +103,12 @@ public class Result<T> implements Serializable {
      * @return Result
      */
     public static <T> Result<T> error(String message) {
+        Integer code = ResultCode.INTERNAL_ERROR.getCode();
+        Long timestamp = System.currentTimeMillis();
         return Result.<T>builder()
-                .code(500)
+                .code(code)
                 .message(message)
-                .timestamp(System.currentTimeMillis())
+                .timestamp(timestamp)
                 .build();
     }
 
@@ -110,10 +120,83 @@ public class Result<T> implements Serializable {
      * @return Result
      */
     public static <T> Result<T> error(Integer code, String message) {
+        Long timestamp = System.currentTimeMillis();
         return Result.<T>builder()
                 .code(code)
                 .message(message)
-                .timestamp(System.currentTimeMillis())
+                .timestamp(timestamp)
+                .build();
+    }
+
+    /**
+     * 失败响应（使用统一错误码）
+     *
+     * @param resultCode 错误码
+     * @return Result
+     */
+    public static <T> Result<T> error(ResultCode resultCode) {
+        Integer code = resultCode.getCode();
+        String message = resultCode.getMessage();
+        Long timestamp = System.currentTimeMillis();
+        return Result.<T>builder()
+                .code(code)
+                .message(message)
+                .timestamp(timestamp)
+                .build();
+    }
+
+    /**
+     * 失败响应（统一错误码 + 自定义消息）
+     *
+     * @param resultCode 错误码
+     * @param message    错误消息
+     * @return Result
+     */
+    public static <T> Result<T> error(ResultCode resultCode, String message) {
+        Integer code = resultCode.getCode();
+        Long timestamp = System.currentTimeMillis();
+        return Result.<T>builder()
+                .code(code)
+                .message(message)
+                .timestamp(timestamp)
+                .build();
+    }
+
+    /**
+     * 失败响应（统一错误码 + 数据）
+     *
+     * @param resultCode 错误码
+     * @param data       错误数据
+     * @return Result
+     */
+    public static <T> Result<T> error(ResultCode resultCode, T data) {
+        Integer code = resultCode.getCode();
+        String message = resultCode.getMessage();
+        Long timestamp = System.currentTimeMillis();
+        return Result.<T>builder()
+                .code(code)
+                .message(message)
+                .data(data)
+                .timestamp(timestamp)
+                .build();
+    }
+
+    /**
+     * 失败响应（统一错误码 + 自定义消息 + 数据）
+     *
+     * @param resultCode 错误码
+     * @param message    错误消息
+     * @param data       错误数据
+     * @return Result
+     */
+    public static <T> Result<T> error(ResultCode resultCode, String message, T data) {
+        Integer code = resultCode.getCode();
+        Long timestamp = System.currentTimeMillis();
+        return Result.<T>builder()
+                .code(code)
+                .message(message)
+                .data(data)
+                .timestamp(timestamp)
                 .build();
     }
 
@@ -126,11 +209,12 @@ public class Result<T> implements Serializable {
      * @return Result
      */
     public static <T> Result<T> error(Integer code, String message, T data) {
+        Long timestamp = System.currentTimeMillis();
         return Result.<T>builder()
                 .code(code)
                 .message(message)
                 .data(data)
-                .timestamp(System.currentTimeMillis())
+                .timestamp(timestamp)
                 .build();
     }
 }

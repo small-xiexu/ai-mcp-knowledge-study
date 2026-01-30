@@ -14,6 +14,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * CSDN 文章自动发布定时任务
@@ -49,7 +50,7 @@ public class MCPServerCSDNJob {
     @Autowired
     private ToolCallbackProvider tools;
 
-    @Autowired(required = false)
+    @Autowired
     private List<CallAdvisor> advisors;
 
     /**
@@ -69,28 +70,39 @@ public class MCPServerCSDNJob {
      */
     @Scheduled(cron = "0 0 10,11,15,16 * * ?")
     public void exec() {
-        TraceIdUtils.TraceIdContext traceIdContext = TraceIdUtils.ensureTraceId();
+        TraceIdUtils
+                .TraceIdContext traceIdContext = TraceIdUtils
+                .ensureTraceId();
         String traceId = traceIdContext.getTraceId();
         boolean generated = traceIdContext.isGenerated();
         log.info("[{}] CSDN 定时任务开始执行", traceId);
 
         try {
             // 构建带记忆功能的 ChatClient
+            InMemoryChatMemoryRepository chatMemoryRepository = new InMemoryChatMemoryRepository();
             MessageWindowChatMemory chatMemory = MessageWindowChatMemory.builder()
-                    .chatMemoryRepository(new InMemoryChatMemoryRepository())
+                    .chatMemoryRepository(chatMemoryRepository)
                     .maxMessages(100)
                     .build();
 
+            CallAdvisor promptAdvisor = PromptChatMemoryAdvisor.builder(chatMemory)
+                    .build();
             ChatClient.Builder builder = ChatClient.builder(openAiChatModel)
                     .defaultToolCallbacks(tools)
-                    .defaultAdvisors(PromptChatMemoryAdvisor.builder(chatMemory).build());
+                    .defaultAdvisors(promptAdvisor);
 
             if (advisors != null && !advisors.isEmpty()) {
-                builder.defaultAdvisors(advisors.toArray(new CallAdvisor[0]));
+                CallAdvisor[] emptyAdvisors = new CallAdvisor[0];
+                CallAdvisor[] advisorArray = advisors.toArray(emptyAdvisors);
+                builder.defaultAdvisors(advisorArray);
             }
 
             ChatClient chatClient = builder.build();
             String conversationId = "csdn-job-" + traceId;
+            Consumer<ChatClient.AdvisorSpec> conversationAdvisor = advisor -> advisor
+                    .param("chat_memory_conversation_id", conversationId);
+            String systemPrompt = String
+                    .format(TRACE_ID_SYSTEM_PROMPT, traceId);
 
             // 第一轮：生成文章并发布到 CSDN
             String publishPrompt = """
@@ -107,10 +119,11 @@ public class MCPServerCSDNJob {
                     """;
 
             log.info("[{}] 开始生成并发布 CSDN 文章", traceId);
-            String publishResult = chatClient.prompt()
-                    .system(String.format(TRACE_ID_SYSTEM_PROMPT, traceId))
+            String publishResult = chatClient
+                    .prompt()
+                    .system(systemPrompt)
                     .user(publishPrompt)
-                    .advisors(advisor -> advisor.param("chat_memory_conversation_id", conversationId))
+                    .advisors(conversationAdvisor)
                     .call()
                     .content();
             log.info("[{}] CSDN 文章发布结果: {}", traceId, publishResult);
@@ -127,10 +140,11 @@ public class MCPServerCSDNJob {
                     """;
 
             log.info("[{}] 开始发送微信通知", traceId);
-            String noticeResult = chatClient.prompt()
-                    .system(String.format(TRACE_ID_SYSTEM_PROMPT, traceId))
+            String noticeResult = chatClient
+                    .prompt()
+                    .system(systemPrompt)
                     .user(noticePrompt)
-                    .advisors(advisor -> advisor.param("chat_memory_conversation_id", conversationId))
+                    .advisors(conversationAdvisor)
                     .call()
                     .content();
             log.info("[{}] 微信通知结果: {}", traceId, noticeResult);

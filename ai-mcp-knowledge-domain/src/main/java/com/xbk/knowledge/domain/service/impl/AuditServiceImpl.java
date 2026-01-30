@@ -1,7 +1,7 @@
 package com.xbk.knowledge.domain.service.impl;
 
 import com.xbk.knowledge.domain.model.entity.ConfigAudit;
-import com.xbk.knowledge.domain.model.vo.AuditQuery;
+import com.xbk.knowledge.domain.model.vo.audit.AuditQuery;
 import com.xbk.knowledge.domain.repository.ConfigAuditRepository;
 import com.xbk.knowledge.domain.service.IAuditService;
 import com.xbk.knowledge.types.common.PageResult;
@@ -59,9 +59,11 @@ public class AuditServiceImpl implements IAuditService {
         long total = configAuditRepository.countByConditions(normalizedQuery);
 
         // 计算页码
-        int pageNum = (query.getOffset() / query.getPageSize()) + 1;
+        Integer offset = query.getOffset();
+        Integer pageSize = query.getPageSize();
+        int pageNum = (offset / pageSize) + 1;
 
-        return PageResult.of(audits, total, pageNum, query.getPageSize());
+        return PageResult.of(audits, total, pageNum, pageSize);
     }
 
     /**
@@ -102,7 +104,9 @@ public class AuditServiceImpl implements IAuditService {
         if (!StringUtils.hasText(sortOrder)) {
             return "DESC";
         }
-        String normalized = sortOrder.trim().toUpperCase();
-        return (normalized.equals("ASC") || normalized.equals("DESC")) ? normalized : "DESC";
+        String normalized = sortOrder
+                .trim()
+                .toUpperCase();
+        return ("ASC".equals(normalized) || "DESC".equals(normalized)) ? normalized : "DESC";
     }
 }
