@@ -3,6 +3,7 @@ package com.xbk.knowledge.trigger.http;
 import com.xbk.knowledge.api.dto.common.IdRequest;
 import com.xbk.knowledge.api.dto.model.ModelConfigQueryRequest;
 import com.xbk.knowledge.types.common.PageResult;
+import com.xbk.knowledge.types.common.PageResultConverter;
 import com.xbk.knowledge.types.common.Result;
 import com.xbk.knowledge.api.dto.model.ModelConfigRequest;
 import com.xbk.knowledge.api.dto.model.ModelConfigResponse;
@@ -22,9 +23,6 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
-import java.util.function.Function;
 
 /**
  * 模型配置管理 Controller
@@ -58,25 +56,8 @@ public class ModelConfigController {
         );
         PageResult<ModelConfig> pageResult = modelConfigAppService.queryModelConfigPage(query);
 
-        // 转换为响应 DTO
-        Collector<ModelConfigResponse, ?, List<ModelConfigResponse>> toListCollector = Collectors.toList();
-        Function<ModelConfig, ModelConfigResponse> responseConverter = this::convertToResponse;
-        List<ModelConfigResponse> records = pageResult
-                .getRecords()
-                .stream()
-                .map(responseConverter)
-                .collect(toListCollector);
-
-        // 构建分页结果
-        Long total = pageResult.getTotal();
-        Integer pageNum = pageResult.getPageNum();
-        Integer resultPageSize = pageResult.getPageSize();
-        PageResult<ModelConfigResponse> result = PageResult.of(
-                records,
-                total,
-                pageNum,
-                resultPageSize
-        );
+        // 转换为响应 DTO 并构建分页结果
+        PageResult<ModelConfigResponse> result = PageResultConverter.convert(pageResult, this::convertToResponse);
 
         return Result.success(result);
     }

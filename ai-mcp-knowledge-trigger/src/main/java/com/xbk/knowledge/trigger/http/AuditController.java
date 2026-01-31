@@ -1,6 +1,7 @@
 package com.xbk.knowledge.trigger.http;
 
 import com.xbk.knowledge.types.common.PageResult;
+import com.xbk.knowledge.types.common.PageResultConverter;
 import com.xbk.knowledge.types.common.Result;
 import com.xbk.knowledge.api.dto.audit.AuditQueryRequest;
 import com.xbk.knowledge.api.dto.audit.AuditResponse;
@@ -16,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import java.util.List;
-import java.util.function.Function;
 
 
 /**
@@ -61,24 +61,7 @@ public class AuditController {
         );
         PageResult<ConfigAudit> pageResult = auditAppService.queryAuditPage(query);
 
-        // 转换为响应 DTO
-        Function<ConfigAudit, AuditResponse> responseConverter = this::convertToResponse;
-        List<AuditResponse> records = pageResult
-                .getRecords()
-                .stream()
-                .map(responseConverter)
-                .toList();
-
-        // 构建分页结果
-        Long total = pageResult.getTotal();
-        Integer pageNum = pageResult.getPageNum();
-        Integer resultPageSize = pageResult.getPageSize();
-        PageResult<AuditResponse> result = PageResult.of(
-                records,
-                total,
-                pageNum,
-                resultPageSize
-        );
+        PageResult<AuditResponse> result = PageResultConverter.convert(pageResult, this::convertToResponse);
 
         return Result.success(result);
     }

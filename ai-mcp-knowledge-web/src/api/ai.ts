@@ -11,10 +11,10 @@ export const chat = (data: AIRequest) =>
  * 获取可用模型列表
  */
 export const getAvailableModels = () =>
-  request.get<ModelInfo[]>('/ai/models')
+  request.post<ModelInfo[]>('/ai/models')
 
 /**
  * 获取推荐模型
  */
 export const getRecommendedModel = (taskType?: string) =>
-  request.get<ModelInfo>('/ai/models/recommend', { params: { taskType } })
+  request.post<ModelInfo>('/ai/models/recommend', { taskType })

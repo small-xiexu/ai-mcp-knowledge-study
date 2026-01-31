@@ -1,22 +1,27 @@
 <template>
   <el-container class="main-layout">
     <el-aside :width="sidebarWidth" class="sidebar">
-      <div class="logo">
-        <h2>AI MCP</h2>
+      <div class="logo" :class="{ collapsed: appStore.sidebarCollapsed }">
+        <h2>
+          <span class="logo-full">AI MCP</span>
+          <span class="logo-short">AI</span>
+        </h2>
       </div>
       <el-menu
         :default-active="activeMenu"
         :collapse="appStore.sidebarCollapsed"
-        router
         class="sidebar-menu"
+        router
       >
         <el-menu-item
           v-for="route in menuRoutes"
           :key="route.path"
-          :index="route.path"
+          :index="resolveMenuPath(route.path)"
         >
-          <el-icon><component :is="route.meta?.icon" /></el-icon>
-          <template #title>{{ route.meta?.title }}</template>
+          <router-link :to="resolveMenuPath(route.path)" class="menu-link">
+            <el-icon><component :is="route.meta?.icon" /></el-icon>
+            <span class="menu-title">{{ route.meta?.title }}</span>
+          </router-link>
         </el-menu-item>
       </el-menu>
     </el-aside>
@@ -61,6 +66,12 @@ const activeMenu = computed(() => route.path)
 
 // 侧边栏宽度
 const sidebarWidth = computed(() => appStore.sidebarCollapsed ? '64px' : '200px')
+
+const resolveMenuPath = (path?: string) => {
+  if (!path) return '/'
+  return path.startsWith('/') ? path : `/${path}`
+}
+
 </script>
 
 <style scoped>
@@ -83,6 +94,25 @@ const sidebarWidth = computed(() => appStore.sidebarCollapsed ? '64px' : '200px'
   font-weight: bold;
 }
 
+.logo h2 {
+  margin: 0;
+  font-size: inherit;
+}
+
+.logo-short {
+  display: none;
+}
+
+.logo.collapsed .logo-full {
+  display: none;
+}
+
+.logo.collapsed .logo-short {
+  display: inline-block;
+  font-size: 18px;
+  letter-spacing: 1px;
+}
+
 .sidebar-menu {
   border-right: none;
   background-color: #304156;
@@ -100,6 +130,19 @@ const sidebarWidth = computed(() => appStore.sidebarCollapsed ? '64px' : '200px'
 .sidebar-menu :deep(.el-menu-item.is-active) {
   background-color: #409eff;
   color: #fff;
+}
+
+.menu-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+
+.menu-title {
+  color: inherit;
 }
 
 .header {

@@ -1,0 +1,296 @@
+package com.xbk.knowledge.infrastructure.mcp;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.xbk.knowledge.application.service.runtime.McpServerRuntimeService;
+import com.xbk.knowledge.domain.model.entity.McpServerConfig;
+import com.xbk.knowledge.types.enums.McpServerType;
+import io.modelcontextprotocol.client.McpClient;
+import io.modelcontextprotocol.client.McpSyncClient;
+import io.modelcontextprotocol.client.transport.HttpClientSseClientTransport;
+import io.modelcontextprotocol.client.transport.HttpClientStreamableHttpTransport;
+import io.modelcontextprotocol.client.transport.ServerParameters;
+import io.modelcontextprotocol.client.transport.StdioClientTransport;
+import io.modelcontextprotocol.json.McpJsonMapper;
+import io.modelcontextprotocol.json.jackson.JacksonMcpJsonMapper;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
+import jakarta.annotation.PreDestroy;
+import java.net.http.HttpRequest;
+import java.time.Duration;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
+/**
+ * MCP Server 运行时管理实现
+ * 负责按配置动态创建与管理 MCP 客户端连接
+ *
+ * 职责：基础设施实现，用于连接 MCP Server 并维护运行状态
+ * @author xiexu
+ */
+@Slf4j
+@Service
+public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
+
+    private static final int DEFAULT_CONNECT_TIMEOUT_MS = 10000;
+    private static final int DEFAULT_REQUEST_TIMEOUT_MS = 60000;
+    private static final int DEFAULT_INIT_TIMEOUT_MS = 60000;
+
+    private final ObjectMapper objectMapper;
+    private final DynamicMcpToolCallbackProvider toolCallbackProvider;
+    private final Map<Long, McpSyncClient> clientRegistry = new ConcurrentHashMap<>();
+    private final McpJsonMapper mcpJsonMapper;
+
+    public McpServerRuntimeServiceImpl(ObjectMapper objectMapper,
+                                       DynamicMcpToolCallbackProvider toolCallbackProvider) {
+        this.objectMapper = objectMapper;
+        this.toolCallbackProvider = toolCallbackProvider;
+        this.mcpJsonMapper = new JacksonMcpJsonMapper(objectMapper);
+    }
+
+    /**
+     * 注册或更新 MCP Server 连接
+     * 根据配置类型创建客户端并完成初始化
+     */
+    @Override
+    public void registerOrUpdate(McpServerConfig config) {
+        if (config == null) {
+            return;
+        }
+        Long configId = config.getId();
+        if (configId == null) {
+            return;
+        }
+        if (!Boolean.TRUE.equals(config.getEnabled())) {
+            unregister(configId);
+            return;
+        }
+
+        McpSyncClient existing = clientRegistry.remove(configId);
+        closeQuietly(existing);
+
+        McpSyncClient client = buildClient(config);
+        client.initialize();
+        clientRegistry.put(configId, client);
+        refreshToolCallbacks();
+        log.info("MCP Server 已注册，id: {}, name: {}", configId, config.getServerName());
+    }
+
+    /**
+     * 取消注册 MCP Server 连接
+     * 释放客户端资源并刷新工具回调
+     */
+    @Override
+    public void unregister(Long id) {
+        if (id == null) {
+            return;
+        }
+        McpSyncClient client = clientRegistry.remove(id);
+        closeQuietly(client);
+        refreshToolCallbacks();
+        log.info("MCP Server 已注销，id: {}", id);
+    }
+
+    /**
+     * 刷新所有启用 MCP Server 连接
+     * 以配置列表为准重建运行时连接
+     */
+    @Override
+    public void refresh(List<McpServerConfig> configs) {
+        List<McpServerConfig> safeConfigs = configs == null ? Collections.emptyList() : configs;
+        Set<Long> activeIds = ConcurrentHashMap.newKeySet();
+        for (McpServerConfig config : safeConfigs) {
+            if (config == null || config.getId() == null) {
+                continue;
+            }
+            activeIds.add(config.getId());
+            registerOrUpdate(config);
+        }
+
+        for (Long id : clientRegistry.keySet()) {
+            if (!activeIds.contains(id)) {
+                unregister(id);
+            }
+        }
+    }
+
+    /**
+     * 判断 MCP Server 是否处于运行状态
+     */
+    @Override
+    public boolean isRunning(Long id) {
+        if (id == null) {
+            return false;
+        }
+        return clientRegistry.containsKey(id);
+    }
+
+    /**
+     * 关闭所有 MCP 客户端连接
+     */
+    @PreDestroy
+    public void shutdown() {
+        for (McpSyncClient client : clientRegistry.values()) {
+            closeQuietly(client);
+        }
+        clientRegistry.clear();
+        refreshToolCallbacks();
+    }
+
+    private McpSyncClient buildClient(McpServerConfig config) {
+        McpServerType serverType = config.getServerType();
+        if (serverType == null) {
+            throw new IllegalArgumentException("MCP Server 类型不能为空");
+        }
+        switch (serverType) {
+            case STDIO:
+                return buildStdioClient(config);
+            case SSE:
+                return buildSseClient(config);
+            case HTTP:
+                return buildHttpClient(config);
+            case WEBSOCKET:
+                throw new IllegalArgumentException("当前版本暂不支持 WEBSOCKET 类型");
+            default:
+                throw new IllegalArgumentException("不支持的 MCP Server 类型: " + serverType);
+        }
+    }
+
+    private McpSyncClient buildStdioClient(McpServerConfig config) {
+        String command = config.getCommand();
+        if (!StringUtils.hasText(command)) {
+            throw new IllegalArgumentException("STDIO 模式必须配置 command");
+        }
+        List<String> args = parseStringList(config.getArgs());
+        Map<String, String> env = parseStringMap(config.getEnv());
+
+        ServerParameters parameters = ServerParameters
+                .builder(command)
+                .args(args)
+                .env(env)
+                .build();
+        StdioClientTransport transport = new StdioClientTransport(parameters, mcpJsonMapper);
+        return buildSyncClient(transport, config);
+    }
+
+    private McpSyncClient buildSseClient(McpServerConfig config) {
+        String endpoint = config.getEndpoint();
+        if (!StringUtils.hasText(endpoint)) {
+            throw new IllegalArgumentException("SSE 模式必须配置 endpoint");
+        }
+
+        HttpClientSseClientTransport.Builder builder = HttpClientSseClientTransport.builder(endpoint);
+        String sseEndpoint = config.getSseEndpoint();
+        if (StringUtils.hasText(sseEndpoint)) {
+            builder.sseEndpoint(sseEndpoint);
+        }
+
+        Map<String, String> headers = parseStringMap(config.getHeaders());
+        if (!headers.isEmpty()) {
+            builder.customizeRequest(requestBuilder -> applyHeaders(requestBuilder, headers));
+        }
+
+        int connectTimeoutMs = getTimeout(config.getConnectTimeoutMs(), DEFAULT_CONNECT_TIMEOUT_MS);
+        builder.connectTimeout(Duration.ofMillis(connectTimeoutMs));
+        builder.jsonMapper(mcpJsonMapper);
+
+        HttpClientSseClientTransport transport = builder.build();
+        return buildSyncClient(transport, config);
+    }
+
+    private McpSyncClient buildHttpClient(McpServerConfig config) {
+        String endpoint = config.getEndpoint();
+        if (!StringUtils.hasText(endpoint)) {
+            throw new IllegalArgumentException("HTTP 模式必须配置 endpoint");
+        }
+
+        HttpClientStreamableHttpTransport.Builder builder = HttpClientStreamableHttpTransport.builder(endpoint);
+        Map<String, String> headers = parseStringMap(config.getHeaders());
+        if (!headers.isEmpty()) {
+            builder.customizeRequest(requestBuilder -> applyHeaders(requestBuilder, headers));
+        }
+
+        int connectTimeoutMs = getTimeout(config.getConnectTimeoutMs(), DEFAULT_CONNECT_TIMEOUT_MS);
+        builder.connectTimeout(Duration.ofMillis(connectTimeoutMs));
+        builder.jsonMapper(mcpJsonMapper);
+
+        HttpClientStreamableHttpTransport transport = builder.build();
+        return buildSyncClient(transport, config);
+    }
+
+    private McpSyncClient buildSyncClient(io.modelcontextprotocol.spec.McpClientTransport transport,
+                                          McpServerConfig config) {
+        int requestTimeoutMs = getTimeout(config.getRequestTimeoutMs(), DEFAULT_REQUEST_TIMEOUT_MS);
+        int initTimeoutMs = getTimeout(config.getInitTimeoutMs(), DEFAULT_INIT_TIMEOUT_MS);
+        return McpClient
+                .sync(transport)
+                .requestTimeout(Duration.ofMillis(requestTimeoutMs))
+                .initializationTimeout(Duration.ofMillis(initTimeoutMs))
+                .build();
+    }
+
+    private void applyHeaders(HttpRequest.Builder requestBuilder, Map<String, String> headers) {
+        if (requestBuilder == null || headers == null || headers.isEmpty()) {
+            return;
+        }
+        for (Map.Entry<String, String> entry : headers.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            if (!StringUtils.hasText(key) || value == null) {
+                continue;
+            }
+            requestBuilder.header(key, value);
+        }
+    }
+
+    private List<String> parseStringList(String json) {
+        if (!StringUtils.hasText(json)) {
+            return Collections.emptyList();
+        }
+        try {
+            return objectMapper.readValue(json, new TypeReference<List<String>>() {});
+        } catch (Exception e) {
+            log.warn("解析 MCP args 失败，json: {}", json, e);
+            return Collections.emptyList();
+        }
+    }
+
+    private Map<String, String> parseStringMap(String json) {
+        if (!StringUtils.hasText(json)) {
+            return Collections.emptyMap();
+        }
+        try {
+            return objectMapper.readValue(json, new TypeReference<Map<String, String>>() {});
+        } catch (Exception e) {
+            log.warn("解析 MCP map 配置失败，json: {}", json, e);
+            return Collections.emptyMap();
+        }
+    }
+
+    private int getTimeout(Integer value, int defaultValue) {
+        if (value == null || value <= 0) {
+            return defaultValue;
+        }
+        return value;
+    }
+
+    private void closeQuietly(McpSyncClient client) {
+        if (client == null) {
+            return;
+        }
+        try {
+            client.closeGracefully();
+        } catch (Exception e) {
+            log.warn("关闭 MCP 客户端失败", e);
+        }
+    }
+
+    private void refreshToolCallbacks() {
+        toolCallbackProvider.updateClients(new java.util.ArrayList<>(clientRegistry.values()));
+    }
+}

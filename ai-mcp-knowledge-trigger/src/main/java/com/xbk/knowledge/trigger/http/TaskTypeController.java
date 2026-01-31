@@ -4,6 +4,7 @@ import com.xbk.knowledge.api.dto.common.IdRequest;
 import com.xbk.knowledge.api.dto.task.TaskTypeCodeRequest;
 import com.xbk.knowledge.api.dto.task.TaskTypeQueryRequest;
 import com.xbk.knowledge.types.common.PageResult;
+import com.xbk.knowledge.types.common.PageResultConverter;
 import com.xbk.knowledge.types.common.Result;
 import com.xbk.knowledge.api.dto.task.TaskTypeRequest;
 import com.xbk.knowledge.api.dto.task.TaskTypeResponse;
@@ -22,9 +23,6 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
-import java.util.function.Function;
 
 /**
  * 任务类型管理 Controller
@@ -59,25 +57,7 @@ public class TaskTypeController {
         );
         PageResult<TaskType> pageResult = taskTypeAppService.queryTaskTypePage(query);
 
-        // 转换为响应 DTO
-        Collector<TaskTypeResponse, ?, List<TaskTypeResponse>> toListCollector = Collectors.toList();
-        Function<TaskType, TaskTypeResponse> responseConverter = this::convertToResponse;
-        List<TaskTypeResponse> records = pageResult
-                .getRecords()
-                .stream()
-                .map(responseConverter)
-                .collect(toListCollector);
-
-        // 构建分页结果
-        Long total = pageResult.getTotal();
-        Integer pageNum = pageResult.getPageNum();
-        Integer resultPageSize = pageResult.getPageSize();
-        PageResult<TaskTypeResponse> result = PageResult.of(
-                records,
-                total,
-                pageNum,
-                resultPageSize
-        );
+        PageResult<TaskTypeResponse> result = PageResultConverter.convert(pageResult, this::convertToResponse);
 
         return Result.success(result);
     }

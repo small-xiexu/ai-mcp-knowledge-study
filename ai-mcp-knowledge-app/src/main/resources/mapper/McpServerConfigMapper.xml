@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.McpServerConfigMapper">
+
+    <!-- MCP Server 配置字段映射 -->
+    <resultMap id="McpServerConfigMap" type="com.xbk.knowledge.domain.model.entity.McpServerConfig">
+        <id column="id" property="id"/>
+        <result column="server_name" property="serverName"/>
+        <result column="server_type" property="serverType"/>
+        <result column="enabled" property="enabled"/>
+        <result column="description" property="description"/>
+        <result column="command" property="command"/>
+        <result column="args" property="args"/>
+        <result column="env" property="env"/>
+        <result column="endpoint" property="endpoint"/>
+        <result column="sse_endpoint" property="sseEndpoint"/>
+        <result column="headers" property="headers"/>
+        <result column="connect_timeout_ms" property="connectTimeoutMs"/>
+        <result column="request_timeout_ms" property="requestTimeoutMs"/>
+        <result column="init_timeout_ms" property="initTimeoutMs"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <insert id="insertMcpServerConfig" parameterType="com.xbk.knowledge.domain.model.entity.McpServerConfig" useGeneratedKeys="true"
+            keyProperty="id">
+        insert into ai_mcp_server_config (
+            server_name,
+            server_type,
+            enabled,
+            description,
+            command,
+            args,
+            env,
+            endpoint,
+            sse_endpoint,
+            headers,
+            connect_timeout_ms,
+            request_timeout_ms,
+            init_timeout_ms,
+            created_at,
+            updated_at
+        ) values (
+            #{serverName},
+            #{serverType},
+            #{enabled},
+            #{description},
+            #{command},
+            #{args},
+            #{env},
+            #{endpoint},
+            #{sseEndpoint},
+            #{headers},
+            #{connectTimeoutMs},
+            #{requestTimeoutMs},
+            #{initTimeoutMs},
+            #{createdAt},
+            #{updatedAt}
+        )
+    </insert>
+
+    <update id="updateMcpServerConfig" parameterType="com.xbk.knowledge.domain.model.entity.McpServerConfig">
+        update ai_mcp_server_config
+        set server_name = #{serverName},
+            server_type = #{serverType},
+            enabled = #{enabled},
+            description = #{description},
+            command = #{command},
+            args = #{args},
+            env = #{env},
+            endpoint = #{endpoint},
+            sse_endpoint = #{sseEndpoint},
+            headers = #{headers},
+            connect_timeout_ms = #{connectTimeoutMs},
+            request_timeout_ms = #{requestTimeoutMs},
+            init_timeout_ms = #{initTimeoutMs},
+            updated_at = #{updatedAt}
+        where id = #{id}
+    </update>
+
+    <delete id="deleteMcpServerConfigById">
+        delete from ai_mcp_server_config
+        where id = #{id}
+    </delete>
+
+    <select id="findById" resultMap="McpServerConfigMap">
+        select
+            id,
+            server_name,
+            server_type,
+            enabled,
+            description,
+            command,
+            args,
+            env,
+            endpoint,
+            sse_endpoint,
+            headers,
+            connect_timeout_ms,
+            request_timeout_ms,
+            init_timeout_ms,
+            created_at,
+            updated_at
+        from ai_mcp_server_config
+        where id = #{id}
+    </select>
+
+    <select id="findByName" resultMap="McpServerConfigMap">
+        select
+            id,
+            server_name,
+            server_type,
+            enabled,
+            description,
+            command,
+            args,
+            env,
+            endpoint,
+            sse_endpoint,
+            headers,
+            connect_timeout_ms,
+            request_timeout_ms,
+            init_timeout_ms,
+            created_at,
+            updated_at
+        from ai_mcp_server_config
+        where server_name = #{serverName}
+    </select>
+
+    <select id="findByEnabled" resultMap="McpServerConfigMap">
+        select
+            id,
+            server_name,
+            server_type,
+            enabled,
+            description,
+            command,
+            args,
+            env,
+            endpoint,
+            sse_endpoint,
+            headers,
+            connect_timeout_ms,
+            request_timeout_ms,
+            init_timeout_ms,
+            created_at,
+            updated_at
+        from ai_mcp_server_config
+        where enabled = #{enabled}
+    </select>
+
+    <select id="findPage" resultMap="McpServerConfigMap">
+        select
+            id,
+            server_name,
+            server_type,
+            enabled,
+            description,
+            command,
+            args,
+            env,
+            endpoint,
+            sse_endpoint,
+            headers,
+            connect_timeout_ms,
+            request_timeout_ms,
+            init_timeout_ms,
+            created_at,
+            updated_at
+        from ai_mcp_server_config
+        order by id desc
+        limit #{pageSize} offset #{offset}
+    </select>
+
+    <select id="countAll" resultType="long">
+        select count(1)
+        from ai_mcp_server_config
+    </select>
+</mapper>

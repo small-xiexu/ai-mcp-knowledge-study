@@ -9,6 +9,7 @@ import com.xbk.knowledge.api.dto.metrics.ResponseTimeDTO;
 import com.xbk.knowledge.api.dto.metrics.SuccessRateDTO;
 
 import java.util.List;
+import jakarta.validation.Valid;
 
 /**
  * 监控统计服务接口
@@ -25,7 +26,7 @@ public interface IMetricsService {
      * @param request 监控统计查询请求
      * @return 调用次数统计
      */
-    Result<CallMetricsDTO> getCallMetrics(MetricsQueryRequest request);
+    Result<CallMetricsDTO> getCallMetrics(@Valid MetricsQueryRequest request);
 
     /**
      * 成功率统计
@@ -33,7 +34,7 @@ public interface IMetricsService {
      * @param request 监控统计查询请求
      * @return 成功率统计
      */
-    Result<SuccessRateDTO> getSuccessRate(MetricsQueryRequest request);
+    Result<SuccessRateDTO> getSuccessRate(@Valid MetricsQueryRequest request);
 
     /**
      * 响应时间统计
@@ -41,7 +42,7 @@ public interface IMetricsService {
      * @param request 监控统计查询请求
      * @return 响应时间统计
      */
-    Result<ResponseTimeDTO> getResponseTime(MetricsQueryRequest request);
+    Result<ResponseTimeDTO> getResponseTime(@Valid MetricsQueryRequest request);
 
     /**
      * 模型使用分布
@@ -49,5 +50,5 @@ public interface IMetricsService {
      * @param request 模型使用情况查询请求
      * @return 模型使用分布
      */
-    Result<List<ModelUsageDTO>> getModelUsage(ModelUsageQueryRequest request);
+    Result<List<ModelUsageDTO>> getModelUsage(@Valid ModelUsageQueryRequest request);
 }

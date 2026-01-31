@@ -3,10 +3,6 @@ import type { RouteRecordRaw } from 'vue-router'
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
-    redirect: '/dashboard'
-  },
-  {
-    path: '/',
     component: () => import('@/components/Layout/MainLayout.vue'),
     children: [
       {
@@ -28,6 +24,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '任务策略', icon: 'List' }
       },
       {
+        path: 'mcp-servers',
+        name: 'McpServers',
+        component: () => import('@/views/mcp/index.vue'),
+        meta: { title: 'MCP 配置', icon: 'Link' }
+      },
+      {
         path: 'audit',
         name: 'Audit',
         component: () => import('@/views/audit/index.vue'),
@@ -40,6 +42,10 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '调试演练', icon: 'ChatDotRound' }
       }
     ]
+  },
+  {
+    path: '/',
+    redirect: '/dashboard'
   }
 ]
 

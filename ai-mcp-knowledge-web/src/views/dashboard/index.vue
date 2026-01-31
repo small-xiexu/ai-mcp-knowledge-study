@@ -93,11 +93,32 @@ let successRateChart: ECharts | null = null
 let responseTimeChart: ECharts | null = null
 let modelUsageChart: ECharts | null = null
 
+const formatLocalDateTime = (date: Date) => {
+  const pad = (value: number) => String(value).padStart(2, '0')
+  const year = date.getFullYear()
+  const month = pad(date.getMonth() + 1)
+  const day = pad(date.getDate())
+  const hours = pad(date.getHours())
+  const minutes = pad(date.getMinutes())
+  const seconds = pad(date.getSeconds())
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`
+}
+
+const buildDefaultRange = () => {
+  const end = new Date()
+  const start = new Date()
+  start.setDate(end.getDate() - 7)
+  return {
+    startTime: formatLocalDateTime(start),
+    endTime: formatLocalDateTime(end)
+  }
+}
+
 // 获取调用次数统计
 const fetchCallMetrics = async () => {
   loading.metrics = true
   try {
-    const res = await getCallMetrics()
+    const res = await getCallMetrics(buildDefaultRange())
     const data = res.data.data
     metrics.totalCalls = data.totalCalls
     metrics.successCalls = data.successCalls
@@ -117,7 +138,7 @@ const initSuccessRateChart = async () => {
   successRateChart = echarts.init(successRateChartRef.value)
 
   try {
-    const res = await getSuccessRate()
+    const res = await getSuccessRate(buildDefaultRange())
     const data = res.data.data
 
     const option = {
@@ -163,7 +184,7 @@ const initResponseTimeChart = async () => {
   responseTimeChart = echarts.init(responseTimeChartRef.value)
 
   try {
-    const res = await getResponseTime()
+    const res = await getResponseTime(buildDefaultRange())
     const data = res.data.data
 
     const option = {
@@ -209,7 +230,7 @@ const initModelUsageChart = async () => {
   modelUsageChart = echarts.init(modelUsageChartRef.value)
 
   try {
-    const res = await getModelUsage()
+    const res = await getModelUsage(buildDefaultRange())
     const data = res.data.data
     const modelRes = await getAvailableModels()
     const modelList = modelRes.data.data || []

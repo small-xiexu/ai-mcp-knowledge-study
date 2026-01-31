@@ -105,6 +105,31 @@ CREATE TABLE ai_config_audit (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='配置审计日志表';
 
 -- =====================================================
+-- 6. MCP Server 配置表
+-- =====================================================
+CREATE TABLE ai_mcp_server_config (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+    server_name VARCHAR(100) NOT NULL COMMENT 'MCP Server 名称',
+    server_type VARCHAR(20) NOT NULL COMMENT 'MCP Server 类型(STDIO/HTTP/SSE/WEBSOCKET)',
+    enabled TINYINT(1) DEFAULT 1 COMMENT '是否启用(0:禁用 1:启用)',
+    description VARCHAR(500) COMMENT '描述信息',
+    command VARCHAR(255) COMMENT 'STDIO 命令',
+    args TEXT COMMENT 'STDIO 参数(JSON数组)',
+    env TEXT COMMENT 'STDIO 环境变量(JSON对象)',
+    endpoint VARCHAR(500) COMMENT '远程服务地址',
+    sse_endpoint VARCHAR(200) COMMENT 'SSE 连接路径',
+    headers TEXT COMMENT 'HTTP Header(JSON对象)',
+    connect_timeout_ms INT DEFAULT 10000 COMMENT '连接超时(毫秒)',
+    request_timeout_ms INT DEFAULT 60000 COMMENT '请求超时(毫秒)',
+    init_timeout_ms INT DEFAULT 60000 COMMENT '初始化超时(毫秒)',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    UNIQUE KEY uk_mcp_server_name (server_name),
+    INDEX idx_mcp_server_type (server_type),
+    INDEX idx_mcp_enabled (enabled)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='MCP Server 配置表';
+
+-- =====================================================
 -- 初始化数据：模型配置
 -- =====================================================
 INSERT INTO ai_model_config (model_name, model_type, api_key, base_url, enabled, priority) VALUES

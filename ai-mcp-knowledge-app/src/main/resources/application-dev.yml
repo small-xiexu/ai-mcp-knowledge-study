@@ -3,9 +3,6 @@ server:
   port: 8090
 
 spring:
-  main:
-    # 设为 none 会禁用 Web 接口；需要对外提供 HTTP 时请改为 servlet
-    web-application-type: none
   datasource:
     mysql:
       # 数据库驱动（MySQL）
@@ -52,9 +49,6 @@ spring:
       client:
         # MCP Client 超时时间（与外部工具交互时可能较长）
         request-timeout: 360s
-        stdio:
-          # MCP 工具配置文件（指向本地可执行 MCP Server JAR）
-          servers-configuration: classpath:/config/mcp-servers-config.json
     google:
       genai:
         # Google GenAI SDK 模式的代理服务

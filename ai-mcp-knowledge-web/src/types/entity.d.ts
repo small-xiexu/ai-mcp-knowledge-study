@@ -166,3 +166,46 @@ export interface TaskTypeRequest {
   preferredModelId: number
   fallbackModelIds?: string
 }
+
+/**
+ * MCP Server 配置（响应）
+ */
+export interface McpServerConfig {
+  id: number
+  serverName: string
+  serverType: string
+  enabled: boolean
+  description?: string
+  command?: string
+  args?: string[]
+  env?: Record<string, string>
+  endpoint?: string
+  sseEndpoint?: string
+  headers?: Record<string, string>
+  connectTimeoutMs?: number
+  requestTimeoutMs?: number
+  initTimeoutMs?: number
+  running?: boolean
+  createdAt?: string
+  updatedAt?: string
+}
+
+/**
+ * MCP Server 配置（请求）
+ */
+export interface McpServerConfigRequest {
+  id?: number
+  serverName: string
+  serverType: string
+  enabled?: boolean
+  description?: string
+  command?: string
+  args?: string[]
+  env?: Record<string, string>
+  endpoint?: string
+  sseEndpoint?: string
+  headers?: Record<string, string>
+  connectTimeoutMs?: number
+  requestTimeoutMs?: number
+  initTimeoutMs?: number
+}
