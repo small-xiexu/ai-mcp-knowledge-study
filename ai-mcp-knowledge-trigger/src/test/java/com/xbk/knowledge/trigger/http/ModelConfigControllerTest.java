@@ -4,7 +4,7 @@ import com.xbk.knowledge.api.dto.model.ModelCapabilityRequest;
 import com.xbk.knowledge.api.dto.model.ModelConfigQueryRequest;
 import com.xbk.knowledge.api.dto.model.ModelConfigRequest;
 import com.xbk.knowledge.api.dto.model.ModelConfigResponse;
-import com.xbk.knowledge.application.service.ModelConfigAppService;
+import com.xbk.knowledge.application.service.app.ModelConfigAppService;
 import com.xbk.knowledge.domain.model.entity.ModelCapability;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.model.vo.model.ModelConfigPageQuery;

@@ -2,8 +2,8 @@ package com.xbk.knowledge.trigger.http;
 
 import com.xbk.knowledge.api.dto.task.TaskTypeQueryRequest;
 import com.xbk.knowledge.api.dto.task.TaskTypeResponse;
-import com.xbk.knowledge.application.service.ModelConfigAppService;
-import com.xbk.knowledge.application.service.TaskTypeAppService;
+import com.xbk.knowledge.application.service.app.ModelConfigAppService;
+import com.xbk.knowledge.application.service.app.TaskTypeAppService;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.model.entity.TaskType;
 import com.xbk.knowledge.domain.model.vo.common.IdQuery;

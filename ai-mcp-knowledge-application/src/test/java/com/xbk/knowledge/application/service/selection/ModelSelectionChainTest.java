@@ -2,12 +2,11 @@ package com.xbk.knowledge.application.service.selection;
 
 import com.xbk.knowledge.application.model.dto.AICallCommand;
 import com.xbk.knowledge.application.model.dto.ModelSelectionDecision;
+import com.xbk.knowledge.application.service.selection.chain.AbstractModelSelectionHandler;
+import com.xbk.knowledge.application.service.selection.chain.ModelSelectionChain;
+import com.xbk.knowledge.application.service.selection.handler.ModelSelectionHandler;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import org.junit.jupiter.api.Test;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -28,7 +27,8 @@ public class ModelSelectionChainTest {
         ModelSelectionDecision decision = ModelSelectionDecision.byModel(modelConfig);
         ModelSelectionHandler handler1 = new FixedHandler(false, null);
         ModelSelectionHandler handler2 = new FixedHandler(true, decision);
-        ModelSelectionChain chain = new ModelSelectionChain(Arrays.asList(handler1, handler2));
+        handler1.appendNext(handler2);
+        ModelSelectionChain chain = new ModelSelectionChain(handler1);
 
         ModelSelectionDecision result = chain.select(AICallCommand.builder().content("hi").build());
 
@@ -40,12 +40,12 @@ public class ModelSelectionChainTest {
      */
     @Test
     public void shouldThrowWhenNoHandlerSupports() {
-        ModelSelectionChain chain = new ModelSelectionChain(Collections.<ModelSelectionHandler>singletonList(new FixedHandler(false, null)));
+        ModelSelectionChain chain = new ModelSelectionChain(new FixedHandler(false, null));
 
         assertThrows(IllegalStateException.class, () -> chain.select(AICallCommand.builder().content("hi").build()));
     }
 
-    private static class FixedHandler implements ModelSelectionHandler {
+    private static class FixedHandler extends AbstractModelSelectionHandler {
         private final boolean supports;
         private final ModelSelectionDecision decision;
 
@@ -66,7 +66,13 @@ public class ModelSelectionChainTest {
          * 对外暴露 select 作为调用入口，便于上层复用。
          */
         @Override
-        public ModelSelectionDecision select(AICallCommand request) {
+        protected ModelSelectionDecision doSelect(AICallCommand request) {
+            if (!supports) {
+                if (next() == null) {
+                    throw new IllegalStateException("模型选择处理器未配置");
+                }
+                return next().select(request);
+            }
             return decision;
         }
     }

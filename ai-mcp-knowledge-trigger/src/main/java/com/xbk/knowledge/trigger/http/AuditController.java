@@ -6,7 +6,7 @@ import com.xbk.knowledge.api.dto.audit.AuditQueryRequest;
 import com.xbk.knowledge.api.dto.audit.AuditResponse;
 import com.xbk.knowledge.domain.model.entity.ConfigAudit;
 import com.xbk.knowledge.domain.model.vo.audit.AuditQuery;
-import com.xbk.knowledge.application.service.AuditAppService;
+import com.xbk.knowledge.application.service.app.AuditAppService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;

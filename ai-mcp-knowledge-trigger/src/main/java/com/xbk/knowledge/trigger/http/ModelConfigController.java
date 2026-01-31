@@ -13,7 +13,7 @@ import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.types.enums.ModelType;
 import com.xbk.knowledge.domain.model.vo.common.IdQuery;
 import com.xbk.knowledge.domain.model.vo.model.ModelConfigPageQuery;
-import com.xbk.knowledge.application.service.ModelConfigAppService;
+import com.xbk.knowledge.application.service.app.ModelConfigAppService;
 import com.xbk.knowledge.trigger.converter.DTOConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

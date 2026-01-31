@@ -1,12 +1,14 @@
 package com.xbk.knowledge.application.service.selection;
 
 import com.xbk.knowledge.application.model.dto.AICallCommand;
-import com.xbk.knowledge.application.service.ModelSelector;
+import com.xbk.knowledge.application.service.selector.ModelSelector;
+import com.xbk.knowledge.application.service.selection.handler.ExplicitStrategySelectionHandler;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.types.enums.ModelSelectionStrategy;
 import com.xbk.knowledge.types.exception.BusinessException;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -28,7 +30,8 @@ public class ExplicitStrategySelectionHandlerTest {
         ModelConfig modelConfig = ModelConfig.builder().modelName("best").build();
         when(selector.selectByQualityPriority()).thenReturn(modelConfig);
 
-        ExplicitStrategySelectionHandler handler = new ExplicitStrategySelectionHandler(selector);
+        ExplicitStrategySelectionHandler handler = new ExplicitStrategySelectionHandler();
+        ReflectionTestUtils.setField(handler, "modelSelector", selector);
         AICallCommand command = AICallCommand.builder()
                 .content("hi")
                 .strategy(ModelSelectionStrategy.QUALITY_PRIORITY)
@@ -43,7 +46,8 @@ public class ExplicitStrategySelectionHandlerTest {
     @Test
     public void shouldThrowForUnsupportedStrategy() {
         ModelSelector selector = Mockito.mock(ModelSelector.class);
-        ExplicitStrategySelectionHandler handler = new ExplicitStrategySelectionHandler(selector);
+        ExplicitStrategySelectionHandler handler = new ExplicitStrategySelectionHandler();
+        ReflectionTestUtils.setField(handler, "modelSelector", selector);
         AICallCommand command = AICallCommand.builder()
                 .content("hi")
                 .strategy(ModelSelectionStrategy.SPEED_PRIORITY)

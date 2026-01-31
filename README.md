@@ -51,6 +51,22 @@
 调用入口保持简单：
 - `FallbackHandler` 只负责触发降级执行器
 
+## 模型选择责任链（显式 next 方式）
+
+为保证顺序清晰可读，模型选择采用“显式 next”责任链模式：
+
+- 责任链装配集中在 `ModelSelectionChainFactory`
+  - 通过枚举 `ModelSelectionHandlerOrder` 固定顺序
+  - 通过 `Map<String, ModelSelectionHandler>` 获取处理器并显式挂接
+- 处理器内部显式调用 `next()` 决定是否进入下一个节点
+  - 命中当前节点直接处理
+  - 未命中则交给下一个节点
+
+当前顺序：
+1. 显式策略处理器
+2. 任务类型处理器
+3. 默认兜底处理器
+
 ## 变更记录
 
 - 将共享内核模块从 `ai-mcp-knowledge-common` 更名为 `ai-mcp-knowledge-types`。

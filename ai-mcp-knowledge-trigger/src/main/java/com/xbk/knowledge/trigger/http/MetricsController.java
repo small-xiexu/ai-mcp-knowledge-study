@@ -14,7 +14,7 @@ import com.xbk.knowledge.domain.model.vo.metrics.ModelUsage;
 import com.xbk.knowledge.domain.model.vo.metrics.ModelUsageQuery;
 import com.xbk.knowledge.domain.model.vo.metrics.ResponseTime;
 import com.xbk.knowledge.domain.model.vo.metrics.SuccessRate;
-import com.xbk.knowledge.application.service.MetricsAppService;
+import com.xbk.knowledge.application.service.app.MetricsAppService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;

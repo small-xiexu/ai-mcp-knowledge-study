@@ -1,6 +1,7 @@
 package com.xbk.knowledge.application.service.selection;
 
 import com.xbk.knowledge.application.model.dto.AICallCommand;
+import com.xbk.knowledge.application.service.selection.handler.TaskTypeSelectionHandler;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

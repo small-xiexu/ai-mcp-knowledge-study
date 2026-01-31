@@ -1,10 +1,12 @@
 package com.xbk.knowledge.application.service.selection;
 
 import com.xbk.knowledge.application.model.dto.AICallCommand;
-import com.xbk.knowledge.application.service.ModelSelector;
+import com.xbk.knowledge.application.service.selector.ModelSelector;
+import com.xbk.knowledge.application.service.selection.handler.DefaultSelectionHandler;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
@@ -25,7 +27,8 @@ public class DefaultSelectionHandlerTest {
         ModelConfig modelConfig = ModelConfig.builder().modelName("default").build();
         when(selector.selectByQualityPriority()).thenReturn(modelConfig);
 
-        DefaultSelectionHandler handler = new DefaultSelectionHandler(selector);
+        DefaultSelectionHandler handler = new DefaultSelectionHandler();
+        ReflectionTestUtils.setField(handler, "modelSelector", selector);
         AICallCommand command = AICallCommand.builder().content("hi").build();
 
         assertEquals("default", handler.select(command).getSelectedModel().getModelName());
