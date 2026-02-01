@@ -23,6 +23,8 @@ public class ConfigAuditAggregate {
 
     /**
      * 配置审计记录（聚合根）
+     *
+     * 为什么：保证审计记录的保存具有一致性边界
      */
     private ConfigAudit configAudit;
 }

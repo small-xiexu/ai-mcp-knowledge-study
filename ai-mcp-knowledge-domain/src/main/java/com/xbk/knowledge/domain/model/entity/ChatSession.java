@@ -31,33 +31,45 @@ public class ChatSession {
 
     /**
      * 主键ID
+     *
+     * 为什么：用于持久化唯一标识
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
      * 会话标题
+     *
+     * 为什么：前端展示与检索需要标题
      */
     private String title;
 
     /**
      * 会话默认模型ID
+     *
+     * 为什么：记录会话默认模型，便于复现上下文
      */
     private Long modelId;
 
     /**
      * 关联知识库标签(JSON文本)
+     *
+     * 为什么：支持按标签检索与上下文增强
      */
     private String ragTags;
 
     /**
      * 创建时间
+     *
+     * 为什么：用于时序分析与审计
      */
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
     /**
      * 更新时间
+     *
+     * 为什么：用于判断会话活跃度与清理
      */
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedAt;

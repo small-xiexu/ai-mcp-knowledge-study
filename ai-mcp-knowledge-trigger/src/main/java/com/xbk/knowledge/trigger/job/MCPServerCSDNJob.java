@@ -1,23 +1,15 @@
 package com.xbk.knowledge.trigger.job;
 
-import com.xbk.knowledge.application.provider.ModelProvider;
-import com.xbk.knowledge.application.provider.ModelProviderFactory;
-import com.xbk.knowledge.application.service.app.ModelConfigAppService;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.application.service.app.ChatClientAssemblyService;
 import com.xbk.knowledge.types.trace.TraceIdUtils;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.PromptChatMemoryAdvisor;
-import org.springframework.ai.chat.client.advisor.api.CallAdvisor;
-import org.springframework.ai.chat.memory.InMemoryChatMemoryRepository;
-import org.springframework.ai.chat.memory.MessageWindowChatMemory;
-import org.springframework.ai.tool.ToolCallbackProvider;
+import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * CSDN 文章自动发布定时任务
@@ -48,10 +40,9 @@ import java.util.function.Consumer;
 @RequiredArgsConstructor
 public class MCPServerCSDNJob {
 
-    private final ModelConfigAppService modelConfigAppService;
-    private final ModelProviderFactory modelProviderFactory;
-    private final ToolCallbackProvider tools;
-    private final List<CallAdvisor> advisors;
+    private final ChatClientAssemblyService chatClientAssemblyService;
+    private final ChatMemory chatMemory;
+    private final ChatMemoryRepository chatMemoryRepository;
 
     /**
      * traceId 传递指令模板
@@ -67,74 +58,47 @@ public class MCPServerCSDNJob {
      * CSDN 文章发布与微信通知
      * XXL-Job Handler: mcpServerCSDNHandler
      * 建议 Cron: 0 0 10,11,15,16 * * ? (每天 10:00、11:00、15:00、16:00 执行)
+     *
+     * 为什么：将内容生产集中到固定时间点，便于运营节奏与资源控制。
      */
     @XxlJob("mcpServerCSDNHandler")
-    public void exec() {
-        TraceIdUtils
-                .TraceIdContext traceIdContext = TraceIdUtils
-                .ensureTraceId();
-        String traceId = traceIdContext.getTraceId();
-        boolean generated = traceIdContext.isGenerated();
-        log.info("[{}] CSDN 定时任务开始执行", traceId);
+    public void mcpServerCSDNHandler() {
+        String conversationId = TraceIdUtils.getOrCreateTraceId();
+        PromptChatMemoryAdvisor memoryAdvisor = PromptChatMemoryAdvisor
+                .builder(chatMemory)
+                .conversationId(conversationId)
+                .build();
+        // 目的：统一从应用层组装 ChatClient，避免重复配置模型与工具
+        ChatClient chatClient = chatClientAssemblyService
+                .buildDefaultChatClient(memoryAdvisor);
+        String systemPrompt = String
+                .format(TRACE_ID_SYSTEM_PROMPT, conversationId);
+
+        // 约束：生成内容需包含结构化输出，确保可直接发布
+        String publishPrompt = """
+                我需要你帮我生成一篇文章，要求如下：
+                1. 场景为 AI 学习与实战系列文章
+                2. 主题从以下列表中任选其一深入讲解，不要全部覆盖：Spring AI + MCP 实战、RAG 入门、向量数据库实践、Skills 实战、Prompt Engineering、Embedding、微调与对齐（SFT/RLHF）、评测与安全、MLOps/上线、GPU/推理优化
+                3. 文章结构清晰，按主题分小节，循序渐进，从概念、原理、关键步骤、实践示例与注意事项进行讲解
+                4. 至少包含 8 个小节，每个小节不少于 400 字，全文不少于 5000 字
+                5. 结尾给出学习路线与实践建议，便于新手跟学
+
+                根据以上内容，不要阐述其他信息，请直接提供：文章标题、文章内容、文章标签（最多7个，用英文逗号隔开）、文章简述（100字）
+
+                将以上内容发布文章到CSDN。
+                """;
 
         try {
-            ModelConfig activeChatModel = modelConfigAppService.getActiveChatModel();
-            if (activeChatModel == null || activeChatModel.getModelType() == null) {
-                log.warn("[{}] 未配置激活的对话模型，任务终止", traceId);
-                return;
-            }
-            ModelProvider provider = modelProviderFactory.getProvider(activeChatModel.getModelType());
-            // 构建带记忆功能的 ChatClient
-            InMemoryChatMemoryRepository chatMemoryRepository = new InMemoryChatMemoryRepository();
-            MessageWindowChatMemory chatMemory = MessageWindowChatMemory.builder()
-                    .chatMemoryRepository(chatMemoryRepository)
-                    .maxMessages(100)
-                    .build();
-
-            CallAdvisor promptAdvisor = PromptChatMemoryAdvisor.builder(chatMemory)
-                    .build();
-            ChatClient.Builder builder = ChatClient.builder(provider.createChatModel(activeChatModel))
-                    .defaultToolCallbacks(tools)
-                    .defaultAdvisors(promptAdvisor);
-
-            if (advisors != null && !advisors.isEmpty()) {
-                CallAdvisor[] emptyAdvisors = new CallAdvisor[0];
-                CallAdvisor[] advisorArray = advisors.toArray(emptyAdvisors);
-                builder.defaultAdvisors(advisorArray);
-            }
-
-            ChatClient chatClient = builder.build();
-            String conversationId = "csdn-job-" + traceId;
-            Consumer<ChatClient.AdvisorSpec> conversationAdvisor = advisor -> advisor
-                    .param("chat_memory_conversation_id", conversationId);
-            String systemPrompt = String
-                    .format(TRACE_ID_SYSTEM_PROMPT, traceId);
-
-            // 第一轮：生成文章并发布到 CSDN
-            String publishPrompt = """
-                    我需要你帮我生成一篇文章，要求如下：
-                    1. 场景为 AI 学习与实战系列文章
-                    2. 主题从以下列表中任选其一深入讲解，不要全部覆盖：Spring AI + MCP 实战、RAG 入门、向量数据库实践、Skills 实战、Prompt Engineering、Embedding、微调与对齐（SFT/RLHF）、评测与安全、MLOps/上线、GPU/推理优化
-                    3. 文章结构清晰，按主题分小节，循序渐进，从概念、原理、关键步骤、实践示例与注意事项进行讲解
-                    4. 至少包含 8 个小节，每个小节不少于 400 字，全文不少于 5000 字
-                    5. 结尾给出学习路线与实践建议，便于新手跟学
-
-                    根据以上内容，不要阐述其他信息，请直接提供：文章标题、文章内容、文章标签（最多7个，用英文逗号隔开）、文章简述（100字）
-
-                    将以上内容发布文章到CSDN。
-                    """;
-
-            log.info("[{}] 开始生成并发布 CSDN 文章", traceId);
+            log.info("开始生成并发布 CSDN 文章");
             String publishResult = chatClient
                     .prompt()
                     .system(systemPrompt)
                     .user(publishPrompt)
-                    .advisors(conversationAdvisor)
                     .call()
                     .content();
-            log.info("[{}] CSDN 文章发布结果: {}", traceId, publishResult);
+            log.info("CSDN 文章发布结果: {}", publishResult);
 
-            // 第二轮：发送微信公众号通知（使用上一轮的文章信息）
+            // 目的：复用上一轮上下文结果进行通知，避免二次发布
             String noticePrompt = """
                     根据上一轮对话中已发布的文章信息，进行微信公众号消息通知：
                     - 平台：CSDN
@@ -145,21 +109,18 @@ public class MCPServerCSDNJob {
                     注意：不要再次发布文章，直接使用上一轮对话中的发布结果。
                     """;
 
-            log.info("[{}] 开始发送微信通知", traceId);
+            log.info("开始发送微信通知");
             String noticeResult = chatClient
                     .prompt()
                     .system(systemPrompt)
                     .user(noticePrompt)
-                    .advisors(conversationAdvisor)
                     .call()
                     .content();
-            log.info("[{}] 微信通知结果: {}", traceId, noticeResult);
-
-            log.info("[{}] CSDN 定时任务执行完成", traceId);
-        } catch (Exception e) {
-            log.error("[{}] CSDN 定时任务执行失败", traceId, e);
+            log.info("微信通知结果: {}", noticeResult);
+            log.info("CSDN 定时任务执行完成");
         } finally {
-            TraceIdUtils.clearIfGenerated(generated);
+            chatMemoryRepository.deleteByConversationId(conversationId);
+            log.info("已清理 CSDN 任务会话记忆: {}", conversationId);
         }
     }
 

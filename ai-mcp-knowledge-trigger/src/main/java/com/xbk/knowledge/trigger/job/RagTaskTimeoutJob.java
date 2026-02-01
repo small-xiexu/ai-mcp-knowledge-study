@@ -29,43 +29,41 @@ public class RagTaskTimeoutJob {
      * 处理超时任务
      * XXL-Job Handler: ragTaskTimeoutHandler
      * 建议 Cron: 0 0 * * * ? (每小时执行一次)
+     *
+     * 为什么：按小时扫描可及时释放卡住的任务，避免无穷等待。
      */
     @XxlJob("ragTaskTimeoutHandler")
     public void handleTimeoutTasks() {
-        log.info("开始检查超时任务...");
+        // 目的：定义超时窗口，避免误杀短时波动任务
+        // 查询超过 2 小时仍处于 PROCESSING 状态的任务
+        LocalDateTime twoHoursAgo = LocalDateTime.now().minusHours(2);
+        List<RagTask> timeoutTasks = ragTaskRepository.findProcessingTasksBefore(twoHoursAgo);
 
-        try {
-            // 查询超过 2 小时仍处于 PROCESSING 状态的任务
-            LocalDateTime twoHoursAgo = LocalDateTime.now().minusHours(2);
-            List<RagTask> timeoutTasks = ragTaskRepository.findProcessingTasksBefore(twoHoursAgo);
-
-            if (timeoutTasks.isEmpty()) {
-                log.info("没有超时任务");
-                return;
-            }
-
-            log.warn("发现 {} 个超时任务", timeoutTasks.size());
-
-            // 标记为失败
-            int successCount = 0;
-            for (RagTask task : timeoutTasks) {
-                try {
-                    task.setStatus(RagTaskStatus.FAILED);
-                    task.setMessage("任务超时（超过 2 小时未完成）");
-                    ragTaskRepository.update(task);
-                    successCount++;
-
-                    log.warn("任务 {} 已标记为失败（超时）", task.getTaskId());
-
-                } catch (Exception e) {
-                    log.error("处理超时任务 {} 失败", task.getTaskId(), e);
-                }
-            }
-
-            log.info("超时任务处理完成，成功: {}, 失败: {}", successCount, timeoutTasks.size() - successCount);
-
-        } catch (Exception e) {
-            log.error("处理超时任务异常", e);
+        if (timeoutTasks.isEmpty()) {
+            log.info("没有超时任务");
+            return;
         }
+
+        log.warn("发现 {} 个超时任务", timeoutTasks.size());
+
+        // 约束：逐条失败不影响整体处理
+        // 标记为失败
+        int successCount = 0;
+        for (RagTask task : timeoutTasks) {
+            try {
+                // 目的：统一状态与失败原因，便于后续排查与重试
+                task.setStatus(RagTaskStatus.FAILED);
+                task.setMessage("任务超时（超过 2 小时未完成）");
+                ragTaskRepository.update(task);
+                successCount++;
+
+                log.warn("任务 {} 已标记为失败（超时）", task.getTaskId());
+
+            } catch (Exception e) {
+                log.error("处理超时任务 {} 失败", task.getTaskId(), e);
+            }
+        }
+
+        log.info("超时任务处理完成，成功: {}, 失败: {}", successCount, timeoutTasks.size() - successCount);
     }
 }

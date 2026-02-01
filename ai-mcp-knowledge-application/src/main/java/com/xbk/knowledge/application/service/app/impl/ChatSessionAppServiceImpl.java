@@ -30,21 +30,46 @@ public class ChatSessionAppServiceImpl implements ChatSessionAppService {
     private final ChatSessionRepository chatSessionRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final ChatMemoryRepository chatMemoryRepository;
+
+    /**
+     * 创建会话
+     *
+     * 为什么：会话是消息聚合根，创建时保证数据一致性
+     * 入参：会话实体
+     * 出参：持久化后的会话
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ChatSession createSession(ChatSession session) {
         return chatSessionRepository.create(session);
     }
 
+    /**
+     * 更新会话
+     *
+     * 为什么：集中处理会话元数据修改，保持统一事务边界
+     * 入参：会话实体
+     * 出参：更新后的会话
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ChatSession updateSession(ChatSession session) {
         return chatSessionRepository.update(session);
     }
 
+    /**
+     * 删除会话
+     *
+     * 为什么：删除会话时需同步清理消息与记忆，避免残留数据
+     * 入参：会话 ID
+     * 出参：无
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteSession(Long sessionId) {
+        /*
+         * 目的：先删消息再删会话，避免外键或引用一致性问题
+         */
         chatMessageRepository.deleteBySessionId(sessionId);
         chatSessionRepository.deleteById(sessionId);
         if (sessionId != null) {
@@ -52,13 +77,30 @@ public class ChatSessionAppServiceImpl implements ChatSessionAppService {
         }
     }
 
+    /**
+     * 查询会话
+     *
+     * 为什么：提供会话详情给前端或业务流程
+     * 入参：会话 ID
+     * 出参：会话实体
+     */
     @Override
     public ChatSession getSession(Long sessionId) {
         return chatSessionRepository.findById(sessionId);
     }
 
+    /**
+     * 分页查询会话
+     *
+     * 为什么：控制单次返回数量，避免加载过大
+     * 入参：页码、页大小
+     * 出参：分页结果
+     */
     @Override
     public PageResult<ChatSession> listSessions(int pageNum, int pageSize) {
+        /*
+         * 目的：将页码转换为偏移量以适配仓储分页
+         */
         int offset = Math.max(pageNum - 1, 0) * pageSize;
         ChatSessionPageQuery query = new ChatSessionPageQuery(offset, pageSize);
         List<ChatSession> sessions = chatSessionRepository.findPage(query);
@@ -66,14 +108,31 @@ public class ChatSessionAppServiceImpl implements ChatSessionAppService {
         return PageResult.of(sessions, total, pageNum, pageSize);
     }
 
+    /**
+     * 追加消息
+     *
+     * 为什么：消息写入需保证事务性，便于后续检索与统计
+     * 入参：消息实体
+     * 出参：持久化后的消息
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ChatMessage appendMessage(ChatMessage message) {
         return chatMessageRepository.create(message);
     }
 
+    /**
+     * 分页查询会话消息
+     *
+     * 为什么：历史消息可能很大，分页防止接口超时
+     * 入参：会话 ID、页码、页大小
+     * 出参：分页结果
+     */
     @Override
     public PageResult<ChatMessage> listMessages(Long sessionId, int pageNum, int pageSize) {
+        /*
+         * 目的：将页码转换为偏移量以适配仓储分页
+         */
         int offset = Math.max(pageNum - 1, 0) * pageSize;
         ChatMessagePageQuery query = new ChatMessagePageQuery(sessionId, offset, pageSize);
         List<ChatMessage> messages = chatMessageRepository.findPage(query);
@@ -81,6 +140,13 @@ public class ChatSessionAppServiceImpl implements ChatSessionAppService {
         return PageResult.of(messages, total, pageNum, pageSize);
     }
 
+    /**
+     * 清空会话消息
+     *
+     * 为什么：仅清理消息，不影响会话元数据
+     * 入参：会话 ID
+     * 出参：无
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteMessages(Long sessionId) {

@@ -44,25 +44,32 @@ public class AIModelServiceImpl implements AIModelService {
      * 统一聊天入口
      * 通过选择链路隔离策略差异，保证调用入口稳定一致
      *
-     * @param request 请求对象
-     * @return 调用结果
+     * 为什么：将模型选择与调用入口统一，便于策略扩展与治理
+     * 入参：聊天调用命令
+     * 出参：模型调用结果
      */
     @Override
     public AICallResult chat(AICallCommand request) {
         String content = request.getContent();
         log.info("开始处理 chat 请求，content: {}", content);
 
-        // 选择链优先级：显式策略 > 任务类型 > 默认策略
+        /*
+         * 目的：明确选择链路优先级，确保策略一致性
+         */
         ModelConfig selectedModel;
         ModelSelectionDecision decision = modelSelectionChain.select(request);
         if (decision.isUseTaskType()) {
-            // 任务类型有明确的业务语义，优先使用任务配置的模型
+            /*
+             * 目的：任务类型有明确业务语义，优先使用任务配置模型
+             */
             request.setTaskType(decision.getTaskType());
             return chatByTaskType(request);
         }
         selectedModel = decision.getSelectedModel();
 
-        // 执行调用
+        /*
+         * 目的：统一走核心执行逻辑，保持日志与异常处理一致
+         */
         return executeCall(selectedModel, request, false);
     }
 
@@ -70,8 +77,9 @@ public class AIModelServiceImpl implements AIModelService {
      * 按任务类型调用
      * 保证任务语义优先并统一降级策略的处理路径
      *
-     * @param request 请求对象
-     * @return 调用结果
+     * 为什么：任务类型决定默认/兜底模型选择，避免误用模型
+     * 入参：聊天调用命令（包含任务类型）
+     * 出参：模型调用结果
      */
     @Override
     public AICallResult chatByTaskType(AICallCommand request) {
@@ -79,15 +87,21 @@ public class AIModelServiceImpl implements AIModelService {
         String taskType = request.getTaskType();
         log.info("开始处理 chatByTaskType 请求，taskType: {}, content: {}", taskType, content);
 
-        // 根据任务类型选择模型
+        /*
+         * 目的：按任务类型选择主模型与降级模型
+         */
         ModelSelectionResult selectionResult = modelSelector.selectModel(taskType);
         ModelConfig primaryModel = selectionResult.getPrimaryModel();
         List<ModelConfig> fallbackModels = selectionResult.getFallbackModels();
 
-        // 使用 FallbackHandler 执行带降级的调用
+        /*
+         * 目的：由降级处理器统一执行主备调用
+         */
         AICallResult response = fallbackHandler.executeWithFallback(primaryModel, fallbackModels, request);
 
-        // 记录调用日志
+        /*
+         * 目的：记录调用日志，保障任务链路可追溯
+         */
         recordCallLog(primaryModel, request, response);
 
         return response;
@@ -97,19 +111,18 @@ public class AIModelServiceImpl implements AIModelService {
      * 执行模型调用
      * 核心调用逻辑，包含异常处理和日志记录
      *
-     * @param modelConfig 模型配置
-     * @param request     请求对象
-     * @param isFallback  是否为降级调用
-     * @return 响应对象
+     * 为什么：统一模型执行流程，保证日志与异常处理一致
+     * 入参：模型配置、调用请求、是否降级
+     * 出参：调用响应
      */
     private AICallResult executeCall(ModelConfig modelConfig, AICallCommand request, boolean isFallback) {
-        /**
-         * 组装调用日志基础信息，保证失败场景也可追溯。
+        /*
+         * 目的：提前构建日志基础信息，失败场景也可追溯
          */
         CallLog callLog = buildCallLog(modelConfig, request);
 
-        /**
-         * 执行模型调用，统一通过执行器隔离模型实现细节。
+        /*
+         * 目的：统一通过执行器隔离模型实现细节
          */
         ModelCallContext context = ModelCallContext.builder()
                 .model(modelConfig)
@@ -120,14 +133,14 @@ public class AIModelServiceImpl implements AIModelService {
             response = buildFallbackResponse(modelConfig, isFallback);
         }
 
-        /**
-         * 兜底处理响应数据，避免空值影响日志记录。
+        /*
+         * 目的：兜底处理响应数据，避免空值影响日志记录
          */
         Boolean success = response.getSuccess();
 
         if (Boolean.TRUE.equals(success)) {
-            /**
-             * 成功分支：记录成功日志并返回响应。
+            /*
+             * 目的：成功分支记录日志并返回响应
              */
             fillSuccessLog(callLog, response, isFallback);
             saveCallLog(callLog);
@@ -139,8 +152,8 @@ public class AIModelServiceImpl implements AIModelService {
             return response;
         }
 
-        /**
-         * 失败分支：记录失败日志并返回响应。
+        /*
+         * 目的：失败分支记录日志并返回响应
          */
         fillFailureLog(callLog, response);
         saveCallLog(callLog);
@@ -154,6 +167,10 @@ public class AIModelServiceImpl implements AIModelService {
 
     /**
      * 组装调用日志基础信息，确保请求可追溯。
+     *
+     * 为什么：记录基础请求信息，便于故障排查
+     * 入参：模型配置、请求对象
+     * 出参：日志实体
      */
     private CallLog buildCallLog(ModelConfig modelConfig, AICallCommand request) {
         Long modelId = modelConfig.getId();
@@ -169,6 +186,10 @@ public class AIModelServiceImpl implements AIModelService {
 
     /**
      * 构建兜底响应，避免执行器返回空结果。
+     *
+     * 为什么：确保上层调用不因空响应而异常
+     * 入参：模型配置、是否降级
+     * 出参：兜底响应
      */
     private AICallResult buildFallbackResponse(ModelConfig modelConfig, boolean isFallback) {
         return AICallResult.builder()
@@ -181,6 +202,10 @@ public class AIModelServiceImpl implements AIModelService {
 
     /**
      * 填充成功日志字段。
+     *
+     * 为什么：补齐成功调用的耗时与 token 使用数据
+     * 入参：日志实体、响应对象、是否降级
+     * 出参：无
      */
     private void fillSuccessLog(CallLog callLog, AICallResult response, boolean isFallback) {
         String responseContent = response.getContent();
@@ -195,6 +220,10 @@ public class AIModelServiceImpl implements AIModelService {
 
     /**
      * 填充失败日志字段。
+     *
+     * 为什么：记录失败原因与耗时用于排查
+     * 入参：日志实体、响应对象
+     * 出参：无
      */
     private void fillFailureLog(CallLog callLog, AICallResult response) {
         callLog.setResponseContent(null);
@@ -207,6 +236,10 @@ public class AIModelServiceImpl implements AIModelService {
 
     /**
      * 统一保存调用日志，避免重复逻辑。
+     *
+     * 为什么：统一日志持久化入口，便于扩展
+     * 入参：日志实体
+     * 出参：无
      */
     private void saveCallLog(CallLog callLog) {
         CallLogAggregate aggregate = CallLogAggregate.builder()
@@ -217,6 +250,10 @@ public class AIModelServiceImpl implements AIModelService {
 
     /**
      * 响应耗时兜底处理。
+     *
+     * 为什么：避免空耗时导致日志缺失
+     * 入参：响应对象
+     * 出参：耗时（毫秒）
      */
     private Long resolveResponseTime(AICallResult response) {
         Long responseTime = response.getResponseTime();
@@ -225,6 +262,10 @@ public class AIModelServiceImpl implements AIModelService {
 
     /**
      * token 统计兜底处理。
+     *
+     * 为什么：避免空 token 统计导致日志缺失
+     * 入参：响应对象
+     * 出参：token 数
      */
     private Integer resolveTokensUsed(AICallResult response) {
         Integer tokensUsed = response.getTokensUsed();
@@ -235,9 +276,9 @@ public class AIModelServiceImpl implements AIModelService {
      * 截断内容
      * 避免日志内容过长
      *
-     * @param content   原始内容
-     * @param maxLength 最大长度
-     * @return 截断后的内容
+     * 为什么：控制日志体积，避免存储膨胀
+     * 入参：原始内容、最大长度
+     * 出参：截断后的内容
      */
     private String truncateContent(String content, int maxLength) {
         if (content == null) {
@@ -252,9 +293,9 @@ public class AIModelServiceImpl implements AIModelService {
     /**
      * 记录调用日志
      *
-     * @param modelConfig 模型配置
-     * @param request     请求对象
-     * @param response    响应对象
+     * 为什么：统一保存调用日志，便于查询与审计
+     * 入参：模型配置、请求对象、响应对象
+     * 出参：无
      */
     private void recordCallLog(ModelConfig modelConfig, AICallCommand request, AICallResult response) {
         Long modelId = modelConfig.getId();

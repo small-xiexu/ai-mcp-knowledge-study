@@ -22,6 +22,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class OllamaModelProvider implements ModelProvider {
 
+    /**
+     * 构建 ChatModel
+     *
+     * 为什么：统一封装 Ollama SDK 构建过程
+     * 入参：模型配置
+     * 出参：ChatModel
+     */
     @Override
     public ChatModel createChatModel(ModelConfig config) {
         try {
@@ -30,6 +37,9 @@ public class OllamaModelProvider implements ModelProvider {
 
             log.info("创建 Ollama 模型 - baseUrl: {}, model: {}", baseUrl, modelName);
 
+            /*
+             * 目的：构建 Ollama API 与默认选项
+             */
             OllamaApi ollamaApi = OllamaApi.builder()
                     .baseUrl(baseUrl)
                     .build();
@@ -50,6 +60,10 @@ public class OllamaModelProvider implements ModelProvider {
 
     /**
      * 对外暴露 createChatClient 作为调用入口，便于上层复用。
+     *
+     * 为什么：统一创建 ChatClient，避免上层重复构建
+     * 入参：模型配置
+     * 出参：ChatClient
      */
     @Override
     public ChatClient createChatClient(ModelConfig config) {
@@ -61,6 +75,10 @@ public class OllamaModelProvider implements ModelProvider {
 
     /**
      * 对外暴露 getModelType 作为调用入口，便于上层复用。
+     *
+     * 为什么：工厂需要根据类型路由 Provider
+     * 入参：无
+     * 出参：模型类型
      */
     @Override
     public ModelType getModelType() {
@@ -69,6 +87,10 @@ public class OllamaModelProvider implements ModelProvider {
 
     /**
      * 对外暴露 isHealthy 作为调用入口，便于上层复用。
+     *
+     * 为什么：快速验证模型配置可用性
+     * 入参：模型配置
+     * 出参：是否健康
      */
     @Override
     public boolean isHealthy(ModelConfig config) {

@@ -23,11 +23,15 @@ public class ModelSelectionResult {
 
     /**
      * 主模型（首选模型）
+     *
+     * 为什么：作为主要执行模型
      */
     private ModelConfig primaryModel;
 
     /**
      * 备用模型列表
+     *
+     * 为什么：主模型失败时用于降级
      */
     private List<ModelConfig> fallbackModels;
 }

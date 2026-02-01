@@ -36,6 +36,13 @@ public class McpToolCatalogServiceImpl implements McpToolCatalogService {
         this.properties = properties;
     }
 
+    /**
+     * 构建工具提示词
+     *
+     * 为什么：减少频繁拼接带来的成本，使用缓存提升性能
+     * 入参：无
+     * 出参：工具提示词
+     */
     @Override
     public String buildToolPrompt() {
         ToolSnapshot cached = snapshot;
@@ -54,6 +61,13 @@ public class McpToolCatalogServiceImpl implements McpToolCatalogService {
         }
     }
 
+    /**
+     * 列出可用工具
+     *
+     * 为什么：为前端展示与提示词构建提供数据
+     * 入参：无
+     * 出参：工具列表
+     */
     @Override
     public List<McpToolInfo> listTools() {
         ToolCallback[] callbacks = toolCallbackProvider != null
@@ -81,6 +95,11 @@ public class McpToolCatalogServiceImpl implements McpToolCatalogService {
         return result;
     }
 
+    /**
+     * 刷新缓存快照
+     *
+     * 为什么：统一生成提示词并设置过期时间
+     */
     private ToolSnapshot refreshSnapshot(long now) {
         List<McpToolInfo> tools = listTools();
         List<String> lines = new ArrayList<>();
@@ -106,6 +125,11 @@ public class McpToolCatalogServiceImpl implements McpToolCatalogService {
         return new ToolSnapshot(prompt, expireAt);
     }
 
+    /**
+     * 工具提示词缓存快照
+     *
+     * 为什么：避免重复构建提示词
+     */
     private static class ToolSnapshot {
         private final String prompt;
         private final long expireAt;

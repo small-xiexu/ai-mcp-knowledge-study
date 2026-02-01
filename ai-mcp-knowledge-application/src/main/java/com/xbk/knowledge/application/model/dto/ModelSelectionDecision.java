@@ -22,24 +22,31 @@ public class ModelSelectionDecision {
 
     /**
      * 是否按任务类型分派
+     *
+     * 为什么：控制后续选择路径
      */
     private boolean useTaskType;
 
     /**
      * 任务类型（仅在按任务类型分派时使用）
+     *
+     * 为什么：用于按任务类型选择模型
      */
     private String taskType;
 
     /**
      * 直接选择的模型（仅在直接选择模型时使用）
+     *
+     * 为什么：显式指定模型时使用
      */
     private ModelConfig selectedModel;
 
     /**
      * 直接选择模型
      *
-     * @param modelConfig 模型配置
-     * @return 选择决策
+     * 为什么：构建直接选择模型的决策对象
+     * 入参：模型配置
+     * 出参：选择决策
      */
     public static ModelSelectionDecision byModel(ModelConfig modelConfig) {
         return ModelSelectionDecision.builder()
@@ -51,8 +58,9 @@ public class ModelSelectionDecision {
     /**
      * 按任务类型分派
      *
-     * @param taskType 任务类型
-     * @return 选择决策
+     * 为什么：构建按任务类型分派的决策对象
+     * 入参：任务类型
+     * 出参：选择决策
      */
     public static ModelSelectionDecision byTaskType(String taskType) {
         return ModelSelectionDecision.builder()

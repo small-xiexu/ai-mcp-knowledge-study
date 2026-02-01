@@ -23,6 +23,8 @@ public class TaskTypeAggregate {
 
     /**
      * 任务类型（聚合根）
+     *
+     * 为什么：保证任务类型配置的保存具有一致性边界
      */
     private TaskType taskType;
 }

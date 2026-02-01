@@ -26,20 +26,16 @@ public class RagTaskCleanupJob {
      * 清理过期任务
      * XXL-Job Handler: ragTaskCleanupHandler
      * 建议 Cron: 0 0 3 * * ? (每天凌晨 3 点执行)
+     *
+     * 为什么：固定在低峰期清理历史数据，减少对在线查询的影响。
      */
     @XxlJob("ragTaskCleanupHandler")
     public void cleanupExpiredTasks() {
-        log.info("开始清理过期任务...");
+        // 目的：保持任务表规模可控，避免影响查询性能
+        // 删除 30 天前的已完成任务
+        LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
+        int deletedCount = ragTaskRepository.deleteCompletedTasksBefore(thirtyDaysAgo);
 
-        try {
-            // 删除 30 天前的已完成任务
-            LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
-            int deletedCount = ragTaskRepository.deleteCompletedTasksBefore(thirtyDaysAgo);
-
-            log.info("清理完成，删除 {} 个过期任务", deletedCount);
-
-        } catch (Exception e) {
-            log.error("清理过期任务异常", e);
-        }
+        log.info("清理完成，删除 {} 个过期任务", deletedCount);
     }
 }

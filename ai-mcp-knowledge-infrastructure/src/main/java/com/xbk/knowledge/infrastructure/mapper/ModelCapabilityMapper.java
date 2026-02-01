@@ -18,32 +18,36 @@ public interface ModelCapabilityMapper extends BaseMapper<ModelCapability> {
     /**
      * 新增模型能力
      *
-     * @param capability 模型能力
-     * @return 影响行数
+     * 为什么：落库模型能力配置
+     * 入参：模型能力
+     * 出参：影响行数
      */
     int insertModelCapability(ModelCapability capability);
 
     /**
      * 更新模型能力
      *
-     * @param capability 模型能力
-     * @return 影响行数
+     * 为什么：更新模型能力字段
+     * 入参：模型能力
+     * 出参：影响行数
      */
     int updateModelCapability(ModelCapability capability);
 
     /**
      * 根据模型ID查询模型能力
      *
-     * @param modelId 模型ID
-     * @return 模型能力
+     * 为什么：按模型 ID 获取能力配置
+     * 入参：模型ID
+     * 出参：模型能力
      */
     ModelCapability findByModelId(@Param("modelId") Long modelId);
 
     /**
      * 根据模型ID删除模型能力
      *
-     * @param modelId 模型ID
-     * @return 影响行数
+     * 为什么：删除模型时清理能力记录
+     * 入参：模型ID
+     * 出参：影响行数
      */
     int deleteByModelId(@Param("modelId") Long modelId);
 }

@@ -49,11 +49,25 @@ public class RagAppServiceImpl implements RagAppService {
     private final TokenTextSplitter tokenTextSplitter;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    /**
+     * 查询全部 RAG 标签
+     *
+     * 为什么：前端展示标签列表用于筛选与选择
+     * 入参：无
+     * 出参：标签列表
+     */
     @Override
     public List<String> listRagTags() {
         return ragVectorStoreService.listTags();
     }
 
+    /**
+     * 删除 RAG 标签
+     *
+     * 为什么：清理标签下的向量数据，释放存储与检索资源
+     * 入参：标签名
+     * 出参：是否成功
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean deleteRagTag(String ragTag) {
@@ -62,17 +76,34 @@ public class RagAppServiceImpl implements RagAppService {
         return deleted >= 0;
     }
 
+    /**
+     * 统计标签向量数量
+     *
+     * 为什么：展示知识库规模，评估覆盖范围
+     * 入参：标签名
+     * 出参：向量数量
+     */
     @Override
     public long countByRagTag(String ragTag) {
         return ragVectorStoreService.countByTag(ragTag);
     }
 
+    /**
+     * 同步上传文件
+     *
+     * 为什么：适用于小批量文件的即时入库
+     * 入参：标签名、文件列表
+     * 出参：是否成功
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean uploadFiles(String ragTag, List<MultipartFile> files) {
         if (!StringUtils.hasText(ragTag) || CollectionUtils.isEmpty(files)) {
             return false;
         }
+        /*
+         * 目的：过滤空文件，避免后续处理异常
+         */
         List<MultipartFile> validFiles = files.stream()
                 .filter(file -> file != null && !file.isEmpty())
                 .collect(Collectors.toList());
@@ -80,6 +111,9 @@ public class RagAppServiceImpl implements RagAppService {
             return false;
         }
 
+        /*
+         * 目的：提前校验大小与格式，避免进入解析阶段后再失败
+         */
         for (MultipartFile file : validFiles) {
             String originalName = file.getOriginalFilename();
             if (file.getSize() > MAX_FILE_SIZE_BYTES) {
@@ -100,6 +134,9 @@ public class RagAppServiceImpl implements RagAppService {
                 if (CollectionUtils.isEmpty(documents)) {
                     continue;
                 }
+                /*
+                 * 目的：切分文档并添加标签元数据，以便检索时聚合
+                 */
                 List<Document> splitDocuments = tokenTextSplitter.apply(documents);
                 documents.forEach(doc -> doc.getMetadata().put("knowledge", ragTag));
                 splitDocuments.forEach(doc -> doc.getMetadata().put("knowledge", ragTag));
@@ -123,9 +160,9 @@ public class RagAppServiceImpl implements RagAppService {
     /**
      * 异步上传文件（支持进度跟踪）
      *
-     * @param ragTag 知识库标签
-     * @param files 文件列表
-     * @return 任务 ID
+     * 为什么：大文件或批量导入需要异步处理，避免阻塞接口
+     * 入参：标签名、文件列表
+     * 出参：任务 ID
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -134,7 +171,9 @@ public class RagAppServiceImpl implements RagAppService {
             throw new IllegalArgumentException("标签和文件不能为空");
         }
 
-        // 1. 验证文件
+        /*
+         * 目的：过滤空文件，避免后续处理异常
+         */
         List<MultipartFile> validFiles = files.stream()
                 .filter(file -> file != null && !file.isEmpty())
                 .collect(Collectors.toList());
@@ -143,6 +182,9 @@ public class RagAppServiceImpl implements RagAppService {
             throw new IllegalArgumentException("没有有效的文件");
         }
 
+        /*
+         * 目的：提前校验大小与格式，避免进入异步任务后失败
+         */
         for (MultipartFile file : validFiles) {
             String originalName = file.getOriginalFilename();
             if (file.getSize() > MAX_FILE_SIZE_BYTES) {
@@ -153,7 +195,9 @@ public class RagAppServiceImpl implements RagAppService {
             }
         }
 
-        // 2. 创建任务
+        /*
+         * 目的：落库任务用于进度跟踪与重试
+         */
         String taskId = UUID.randomUUID().toString();
         RagTask task = RagTask.builder()
                 .taskId(taskId)
@@ -165,19 +209,31 @@ public class RagAppServiceImpl implements RagAppService {
                 .build();
         ragTaskRepository.create(task);
 
-        // 3. 异步处理
+        /*
+         * 目的：交由任务处理器异步执行，避免阻塞请求线程
+         */
         ragTaskProcessor.processFilesAsync(taskId, ragTag, validFiles);
 
         log.info("文件上传任务已创建，taskId: {}, 文件数: {}", taskId, validFiles.size());
         return taskId;
     }
 
+    /**
+     * 分析 Git 仓库
+     *
+     * 为什么：直接从仓库构建知识库，减少手动上传步骤
+     * 入参：仓库地址、用户名、Token、标签名
+     * 出参：任务 ID
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String analyzeGitRepository(String repoUrl, String userName, String token, String ragTag) {
         String taskId = UUID.randomUUID().toString();
         String resolvedTag = StringUtils.hasText(ragTag) ? ragTag : resolveRepoName(repoUrl);
 
+        /*
+         * 目的：落库任务用于进度跟踪与状态展示
+         */
         RagTask task = RagTask.builder()
                 .taskId(taskId)
                 .type("GIT")
@@ -188,15 +244,32 @@ public class RagAppServiceImpl implements RagAppService {
                 .build();
         ragTaskRepository.create(task);
 
+        /*
+         * 目的：交由任务处理器异步执行，避免阻塞请求线程
+         */
         ragTaskProcessor.processGitRepository(taskId, repoUrl, userName, token, resolvedTag);
         return taskId;
     }
 
+    /**
+     * 查询任务
+     *
+     * 为什么：支持前端轮询任务状态
+     * 入参：任务 ID
+     * 出参：任务详情
+     */
     @Override
     public RagTask queryTask(String taskId) {
         return ragTaskRepository.findByTaskId(taskId);
     }
 
+    /**
+     * 取消任务
+     *
+     * 为什么：长任务可终止，节省计算资源
+     * 入参：任务 ID
+     * 出参：是否成功
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean cancelTask(String taskId) {
@@ -204,6 +277,9 @@ public class RagAppServiceImpl implements RagAppService {
         if (task == null) {
             return false;
         }
+        /*
+         * 目的：更新任务状态并清理进度信息
+         */
         task.setStatus(RagTaskStatus.CANCELLED);
         task.setProgress(0);
         task.setMessage("任务已取消");
@@ -211,16 +287,33 @@ public class RagAppServiceImpl implements RagAppService {
         return true;
     }
 
+    /**
+     * 分页查询任务
+     *
+     * 为什么：任务记录可能较多，分页避免接口过大
+     * 入参：偏移量、页大小
+     * 出参：分页结果
+     */
     @Override
     public PageResult<RagTask> queryTaskPage(int offset, int pageSize) {
         List<RagTask> tasks = ragTaskRepository.findPage(offset, pageSize);
         long total = ragTaskRepository.countAll();
+        /*
+         * 目的：修正分页参数，避免非法值导致异常
+         */
         int safePageSize = pageSize > 0 ? pageSize : 10;
         int safeOffset = Math.max(offset, 0);
         int pageNum = safeOffset / safePageSize + 1;
         return PageResult.of(tasks, total, pageNum, safePageSize);
     }
 
+    /**
+     * 重试任务
+     *
+     * 为什么：允许失败任务基于失败详情再次执行
+     * 入参：任务 ID
+     * 出参：新任务 ID
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String retryTask(String taskId) {
@@ -229,19 +322,22 @@ public class RagAppServiceImpl implements RagAppService {
             throw new IllegalArgumentException("任务不存在: " + taskId);
         }
 
-        // 只有失败或部分成功的任务才能重试
+        /*
+         * 目的：限制可重试状态，避免错误重试
+         */
         if (task.getStatus() != RagTaskStatus.FAILED &&
                 task.getStatus() != RagTaskStatus.COMPLETED) {
             throw new IllegalStateException("只有失败或部分成功的任务才能重试");
         }
 
-        // 检查是否有失败详情
+        /*
+         * 目的：基于失败详情重试，避免盲目重复处理
+         */
         String errorDetails = task.getErrorDetails();
         if (!StringUtils.hasText(errorDetails)) {
             throw new IllegalStateException("任务没有失败详情，无法重试");
         }
 
-        // 解析失败详情
         List<FileProcessError> errors;
         try {
             errors = objectMapper.readValue(errorDetails,
@@ -254,7 +350,9 @@ public class RagAppServiceImpl implements RagAppService {
             throw new IllegalStateException("没有失败的文件需要重试");
         }
 
-        // 创建新的重试任务
+        /*
+         * 目的：创建新的任务记录，保留重试链路
+         */
         String newTaskId = UUID.randomUUID().toString();
         int newRetryCount = (task.getRetryCount() == null ? 0 : task.getRetryCount()) + 1;
 
@@ -273,13 +371,19 @@ public class RagAppServiceImpl implements RagAppService {
         log.info("任务重试已创建，原任务: {}, 新任务: {}, 失败文件数: {}, 重试次数: {}",
                 taskId, newTaskId, errors.size(), newRetryCount);
 
-        // 注意：这里简化处理，实际应该从失败详情中恢复文件并重试
-        // 由于 MultipartFile 无法从错误详情中恢复，这里只是创建任务记录
-        // 实际使用时需要配合定时任务或其他机制来处理
-
+        /*
+         * 约束：目前只创建任务记录，实际重试由外部机制触发
+         */
         return newTaskId;
     }
 
+    /**
+     * 校验文件扩展名是否支持
+     *
+     * 为什么：限制解析器范围，避免不可控格式导致解析失败
+     * 入参：文件名
+     * 出参：是否支持
+     */
     private boolean isSupportedFile(String fileName) {
         if (!StringUtils.hasText(fileName)) {
             return false;
@@ -292,6 +396,13 @@ public class RagAppServiceImpl implements RagAppService {
         return SUPPORTED_EXTENSIONS.contains(ext);
     }
 
+    /**
+     * 解析仓库名称作为默认标签
+     *
+     * 为什么：未传标签时使用仓库名保证任务可识别
+     * 入参：仓库地址
+     * 出参：解析后的标签名
+     */
     private String resolveRepoName(String repoUrl) {
         if (!StringUtils.hasText(repoUrl)) {
             return "unknown";

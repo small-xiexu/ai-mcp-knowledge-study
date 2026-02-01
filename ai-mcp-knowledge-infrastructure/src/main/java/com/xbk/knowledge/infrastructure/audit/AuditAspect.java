@@ -43,6 +43,10 @@ public class AuditAspect {
 
     /**
      * 对外暴露 aroundCreateModel 作为调用入口，便于上层复用。
+     *
+     * 为什么：创建后记录审计，避免遗漏
+     * 入参：切点
+     * 出参：原方法返回值
      */
     @Around("execution(* com.xbk.knowledge.trigger.http.ModelConfigController.createModel(..))")
     public Object aroundCreateModel(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -54,6 +58,9 @@ public class AuditAspect {
                 ModelConfig newValue = modelConfigRepository
                         .findById(idQuery)
                         .orElse(null);
+                /*
+                 * 目的：记录新增前后差异，新增时旧值为空
+                 */
                 auditService.recordAudit(MODEL_CONFIG_TABLE, recordId, OPERATION_INSERT, null, newValue);
             } else {
                 log.warn("创建模型配置审计未记录，未解析到记录ID");
@@ -66,6 +73,10 @@ public class AuditAspect {
 
     /**
      * 对外暴露 aroundUpdateModel 作为调用入口，便于上层复用。
+     *
+     * 为什么：更新前后需要对比，记录变更内容
+     * 入参：切点
+     * 出参：原方法返回值
      */
     @Around("execution(* com.xbk.knowledge.trigger.http.ModelConfigController.updateModel(..))")
     public Object aroundUpdateModel(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -82,6 +93,9 @@ public class AuditAspect {
                     ModelConfig newValue = modelConfigRepository
                             .findById(idQuery)
                             .orElse(null);
+                    /*
+                     * 目的：记录更新前后差异
+                     */
                     auditService.recordAudit(MODEL_CONFIG_TABLE, recordId, OPERATION_UPDATE, oldValue, newValue);
                 } else {
                     log.warn("更新模型配置审计未记录，未解析到记录ID");
@@ -98,6 +112,10 @@ public class AuditAspect {
 
     /**
      * 对外暴露 aroundDeleteModel 作为调用入口，便于上层复用。
+     *
+     * 为什么：删除前记录旧值，便于审计回溯
+     * 入参：切点
+     * 出参：原方法返回值
      */
     @Around("execution(* com.xbk.knowledge.trigger.http.ModelConfigController.deleteModel(..))")
     public Object aroundDeleteModel(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -111,6 +129,9 @@ public class AuditAspect {
             Object result = joinPoint.proceed();
             try {
                 if (recordId != null) {
+                    /*
+                     * 目的：删除时只记录旧值
+                     */
                     auditService.recordAudit(MODEL_CONFIG_TABLE, recordId, OPERATION_DELETE, oldValue, null);
                 } else {
                     log.warn("删除模型配置审计未记录，未解析到记录ID");
@@ -127,6 +148,10 @@ public class AuditAspect {
 
     /**
      * 对外暴露 aroundCreateTaskType 作为调用入口，便于上层复用。
+     *
+     * 为什么：创建后记录审计，避免遗漏
+     * 入参：切点
+     * 出参：原方法返回值
      */
     @Around("execution(* com.xbk.knowledge.trigger.http.TaskTypeController.createTaskType(..))")
     public Object aroundCreateTaskType(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -138,6 +163,9 @@ public class AuditAspect {
                 TaskType newValue = taskTypeRepository
                         .findById(idQuery)
                         .orElse(null);
+                /*
+                 * 目的：记录新增前后差异，新增时旧值为空
+                 */
                 auditService.recordAudit(TASK_TYPE_TABLE, recordId, OPERATION_INSERT, null, newValue);
             } else {
                 log.warn("创建任务类型审计未记录，未解析到记录ID");
@@ -150,6 +178,10 @@ public class AuditAspect {
 
     /**
      * 对外暴露 aroundUpdateTaskType 作为调用入口，便于上层复用。
+     *
+     * 为什么：更新前后需要对比，记录变更内容
+     * 入参：切点
+     * 出参：原方法返回值
      */
     @Around("execution(* com.xbk.knowledge.trigger.http.TaskTypeController.updateTaskType(..))")
     public Object aroundUpdateTaskType(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -166,6 +198,9 @@ public class AuditAspect {
                     TaskType newValue = taskTypeRepository
                             .findById(idQuery)
                             .orElse(null);
+                    /*
+                     * 目的：记录更新前后差异
+                     */
                     auditService.recordAudit(TASK_TYPE_TABLE, recordId, OPERATION_UPDATE, oldValue, newValue);
                 } else {
                     log.warn("更新任务类型审计未记录，未解析到记录ID");
@@ -182,6 +217,10 @@ public class AuditAspect {
 
     /**
      * 对外暴露 aroundDeleteTaskType 作为调用入口，便于上层复用。
+     *
+     * 为什么：删除前记录旧值，便于审计回溯
+     * 入参：切点
+     * 出参：原方法返回值
      */
     @Around("execution(* com.xbk.knowledge.trigger.http.TaskTypeController.deleteTaskType(..))")
     public Object aroundDeleteTaskType(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -195,6 +234,9 @@ public class AuditAspect {
             Object result = joinPoint.proceed();
             try {
                 if (recordId != null) {
+                    /*
+                     * 目的：删除时只记录旧值
+                     */
                     auditService.recordAudit(TASK_TYPE_TABLE, recordId, OPERATION_DELETE, oldValue, null);
                 } else {
                     log.warn("删除任务类型审计未记录，未解析到记录ID");
@@ -209,6 +251,11 @@ public class AuditAspect {
         }
     }
 
+    /**
+     * 从返回结果解析记录 ID
+     *
+     * 为什么：审计需要记录ID用于定位实体
+     */
     private Long extractRecordId(Object result) {
         if (!(result instanceof Result<?> resultWrapper)) {
             return null;
@@ -227,6 +274,11 @@ public class AuditAspect {
         return null;
     }
 
+    /**
+     * 从方法入参解析记录 ID
+     *
+     * 为什么：删除/更新场景 ID 通常在请求参数中
+     */
     private Long extractRecordId(Object[] args) {
         if (args == null || args.length == 0) {
             return null;

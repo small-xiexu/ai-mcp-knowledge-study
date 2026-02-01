@@ -19,11 +19,15 @@ public class ModelTypeEnabledQuery {
 
     /**
      * 模型类型
+     *
+     * 为什么：用于按类型筛选
      */
     private ModelType modelType;
 
     /**
      * 是否启用
+     *
+     * 为什么：用于按启用状态筛选
      */
     private Boolean enabled;
 }

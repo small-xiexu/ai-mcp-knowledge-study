@@ -18,6 +18,8 @@ public class TaskTypeCodeQuery {
 
     /**
      * 任务类型编码
+     *
+     * 为什么：用于按编码定位任务类型
      */
     private String taskCode;
 }

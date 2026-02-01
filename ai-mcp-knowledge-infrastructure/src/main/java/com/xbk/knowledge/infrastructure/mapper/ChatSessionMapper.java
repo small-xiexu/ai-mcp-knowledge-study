@@ -21,55 +21,63 @@ public interface ChatSessionMapper extends BaseMapper<ChatSession> {
     /**
      * 新增会话
      *
-     * @param session 会话实体
-     * @return 影响行数
+     * 为什么：落库会话记录
+     * 入参：会话实体
+     * 出参：影响行数
      */
     int insertSession(ChatSession session);
 
     /**
      * 更新会话
      *
-     * @param session 会话实体
-     * @return 影响行数
+     * 为什么：更新会话元数据
+     * 入参：会话实体
+     * 出参：影响行数
      */
     int updateSession(ChatSession session);
 
     /**
      * 删除会话
      *
-     * @param sessionId 会话ID
-     * @return 影响行数
+     * 为什么：清理会话记录
+     * 入参：会话ID
+     * 出参：影响行数
      */
     int deleteById(Long sessionId);
 
     /**
      * 根据ID查询会话
      *
-     * @param sessionId 会话ID
-     * @return 会话实体
+     * 为什么：按唯一 ID 获取会话
+     * 入参：会话ID
+     * 出参：会话实体
      */
     ChatSession findById(Long sessionId);
 
     /**
      * 分页查询会话
      *
-     * @param query 分页条件
-     * @return 会话列表
+     * 为什么：控制单次返回数量
+     * 入参：分页条件
+     * 出参：会话列表
      */
     List<ChatSession> findPage(ChatSessionPageQuery query);
 
     /**
      * 统计会话总数
      *
-     * @return 总数
+     * 为什么：分页展示需要总数
+     * 入参：无
+     * 出参：总数
      */
     long countAll();
 
     /**
      * 删除过期会话
      *
-     * @param updatedBefore 截止时间
-     * @return 影响行数
+     * 为什么：清理历史会话
+     * 入参：截止时间
+     * 出参：影响行数
      */
     int deleteByUpdatedBefore(java.time.LocalDateTime updatedBefore);
 }

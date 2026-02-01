@@ -20,11 +20,15 @@ public class TimeRangeQuery {
 
     /**
      * 开始时间
+     *
+     * 为什么：限定查询时间范围
      */
     private LocalDateTime startTime;
 
     /**
      * 结束时间
+     *
+     * 为什么：限定查询时间范围
      */
     private LocalDateTime endTime;
 }

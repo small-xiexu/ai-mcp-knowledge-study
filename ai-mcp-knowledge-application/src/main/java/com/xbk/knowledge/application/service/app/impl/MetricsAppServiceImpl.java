@@ -28,7 +28,10 @@ public class MetricsAppServiceImpl implements MetricsAppService {
 
     /**
      * 统计调用次数指标
-     * 负责应用层用例编排，调用领域服务聚合调用统计
+     *
+     * 为什么：统一调用统计入口，便于后续扩展维度
+     * 入参：指标查询对象
+     * 出参：调用次数统计
      */
     @Override
     public CallMetrics collectCallMetrics(MetricsQuery query) {
@@ -37,7 +40,10 @@ public class MetricsAppServiceImpl implements MetricsAppService {
 
     /**
      * 统计成功率指标
-     * 负责应用层用例编排，调用领域服务聚合成功率统计
+     *
+     * 为什么：统一成功率统计入口，避免前端自行计算
+     * 入参：指标查询对象
+     * 出参：成功率统计
      */
     @Override
     public SuccessRate collectSuccessRate(MetricsQuery query) {
@@ -46,7 +52,10 @@ public class MetricsAppServiceImpl implements MetricsAppService {
 
     /**
      * 统计响应时间指标
-     * 负责应用层用例编排，调用领域服务聚合响应时间统计
+     *
+     * 为什么：统一响应时间统计入口，便于趋势分析
+     * 入参：指标查询对象
+     * 出参：响应时间统计
      */
     @Override
     public ResponseTime collectResponseTime(MetricsQuery query) {
@@ -55,7 +64,10 @@ public class MetricsAppServiceImpl implements MetricsAppService {
 
     /**
      * 统计模型使用分布
-     * 负责应用层用例编排，调用领域服务聚合模型使用统计
+     *
+     * 为什么：统一模型使用统计入口，便于资源规划
+     * 入参：模型使用查询对象
+     * 出参：模型使用分布
      */
     @Override
     public List<ModelUsage> collectModelUsage(ModelUsageQuery query) {

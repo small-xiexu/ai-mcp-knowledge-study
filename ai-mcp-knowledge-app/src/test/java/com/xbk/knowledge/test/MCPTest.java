@@ -311,7 +311,7 @@ public class MCPTest {
     @Test
     public void test_trigger_csdn_job() {
         log.info(">>> 手动触发 CSDN 定时任务开始");
-        mcpServerCSDNJob.exec();
+        mcpServerCSDNJob.mcpServerCSDNHandler();
         log.info(">>> 手动触发 CSDN 定时任务结束");
     }
 

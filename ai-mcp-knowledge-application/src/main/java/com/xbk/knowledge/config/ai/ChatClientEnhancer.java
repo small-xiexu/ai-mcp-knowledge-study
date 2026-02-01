@@ -50,6 +50,17 @@ public class ChatClientEnhancer {
      * @return 增强后的 ChatClient
      */
     public ChatClient enhance(ChatModel chatModel) {
+        return enhance(chatModel, new CallAdvisor[0]);
+    }
+
+    /**
+     * 创建增强后的 ChatClient（包含额外 Advisor）
+     *
+     * @param chatModel 具体模型实例
+     * @param extraAdvisors 额外 Advisor
+     * @return 增强后的 ChatClient
+     */
+    public ChatClient enhance(ChatModel chatModel, CallAdvisor... extraAdvisors) {
         ChatClient.Builder builder = ChatClient.builder(chatModel);
 
         if (toolCallbackProvider != null) {
@@ -62,11 +73,21 @@ public class ChatClientEnhancer {
             log.warn("⚠️ ToolCallbackProvider 为 null，MCP 工具未注入");
         }
 
+        List<CallAdvisor> mergedAdvisors = new java.util.ArrayList<>();
         if (advisors != null && !advisors.isEmpty()) {
-            CallAdvisor[] emptyAdvisors = new CallAdvisor[0];
-            CallAdvisor[] advisorArray = advisors.toArray(emptyAdvisors);
+            mergedAdvisors.addAll(advisors);
+        }
+        if (extraAdvisors != null) {
+            for (CallAdvisor extraAdvisor : extraAdvisors) {
+                if (extraAdvisor != null) {
+                    mergedAdvisors.add(extraAdvisor);
+                }
+            }
+        }
+        if (!mergedAdvisors.isEmpty()) {
+            CallAdvisor[] advisorArray = mergedAdvisors.toArray(new CallAdvisor[0]);
             builder.defaultAdvisors(advisorArray);
-            int advisorCount = advisors.size();
+            int advisorCount = mergedAdvisors.size();
             log.info("✅ 已注入 {} 个 Advisors", advisorCount);
         } else {
             log.warn("⚠️ Advisors 为空");

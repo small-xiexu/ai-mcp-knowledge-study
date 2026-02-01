@@ -24,11 +24,15 @@ public class ModelConfigAggregate {
 
     /**
      * 模型配置（聚合根）
+     *
+     * 为什么：聚合根控制模型配置生命周期
      */
     private ModelConfig modelConfig;
 
     /**
      * 模型能力（聚合内实体）
+     *
+     * 为什么：与模型配置保持一致性边界
      */
     private ModelCapability modelCapability;
 }

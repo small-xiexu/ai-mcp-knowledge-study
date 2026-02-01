@@ -2,6 +2,7 @@ package com.xbk.knowledge.infrastructure.chatmemory;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.xbk.knowledge.infrastructure.redis.key.ChatRedisKeys;
 import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.ai.chat.messages.AbstractMessage;
 import org.springframework.ai.chat.messages.AssistantMessage;
@@ -27,57 +28,98 @@ import java.util.stream.Collectors;
  */
 public class RedisChatMemoryRepository implements ChatMemoryRepository {
 
-    private static final String KEY_PREFIX = "chat:memory:";
-
+    /**
+     * Redis 读写入口
+     * 为什么：集中管理序列化后的会话内容
+     */
     private final StringRedisTemplate stringRedisTemplate;
+    /**
+     * JSON 序列化工具
+     * 为什么：仅持久化必要字段，减少存储体积
+     */
     private final ObjectMapper objectMapper;
+    /**
+     * 会话过期时间
+     * 为什么：对话记忆应有生命周期，避免无限增长
+     */
     private final Duration ttl;
 
     public RedisChatMemoryRepository(StringRedisTemplate stringRedisTemplate,
                                      ObjectMapper objectMapper,
                                      Duration ttl) {
+        // 目的：注入依赖与过期策略，确保统一的存储约束
         this.stringRedisTemplate = stringRedisTemplate;
         this.objectMapper = objectMapper;
         this.ttl = ttl;
     }
 
+    /**
+     * 查询所有会话 ID
+     *
+     * 为什么：用于后台清理或管理会话
+     * 入参：无
+     * 出参：会话 ID 列表
+     */
     @Override
     public List<String> findConversationIds() {
-        Set<String> keys = stringRedisTemplate.keys(KEY_PREFIX + "*");
+        // 目的：按前缀枚举会话 key，便于后台管理与清理
+        Set<String> keys = stringRedisTemplate.keys(ChatRedisKeys.CHAT_MEMORY_PREFIX + "*");
         if (keys.isEmpty()) {
             return Collections.emptyList();
         }
         return keys.stream()
-                .map(key -> key.substring(KEY_PREFIX.length()))
+                .map(key -> key.substring(ChatRedisKeys.CHAT_MEMORY_PREFIX.length()))
                 .collect(Collectors.toList());
     }
 
+    /**
+     * 查询会话消息
+     *
+     * 为什么：加载会话上下文用于多轮对话
+     * 入参：会话 ID
+     * 出参：消息列表
+     */
     @Override
     public List<Message> findByConversationId(String conversationId) {
+        // 目的：从 Redis 加载历史消息，恢复多轮对话上下文
+        // 约束：conversationId 为空时不做容错判断，保持调用方语义明确
         String key = buildKey(conversationId);
         String payload = stringRedisTemplate.opsForValue().get(key);
         if (payload == null || payload.isEmpty()) {
+            // 目的：没有缓存即返回空列表，避免上游出现空指针
             return Collections.emptyList();
         }
         try {
             List<RedisChatMessage> stored = objectMapper.readValue(payload, new TypeReference<List<RedisChatMessage>>() {});
             List<Message> messages = new ArrayList<>();
             for (RedisChatMessage message : stored) {
+                // 目的：按存储的角色还原消息类型，保持上下文语义一致
                 MessageType type = MessageType.fromValue(message.getType());
                 messages.add(toMessage(type, message.getContent()));
             }
             return messages;
         } catch (Exception e) {
+            // 目的：序列化失败时降级为空，避免影响对话主流程
             return Collections.emptyList();
         }
     }
 
+    /**
+     * 保存会话消息
+     *
+     * 为什么：持久化对话上下文并设置过期
+     * 入参：会话 ID、消息列表
+     * 出参：无
+     */
     @Override
     public void saveAll(String conversationId, List<Message> messages) {
+        // 目的：统一转为简化结构并写入 Redis，设置过期时间控制生命周期
+        // 约束：只持久化角色与文本内容，避免复杂对象序列化导致兼容问题
         String key = buildKey(conversationId);
         List<RedisChatMessage> payload = new ArrayList<>();
         for (Message message : messages) {
             if (message == null) {
+                // 目的：过滤空消息，避免写入无效数据
                 continue;
             }
             RedisChatMessage stored = new RedisChatMessage();
@@ -87,22 +129,46 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
         }
         try {
             String json = objectMapper.writeValueAsString(payload);
+            // 目的：写入并设置 TTL，确保过期自动清理
             stringRedisTemplate.opsForValue().set(key, json, ttl);
         } catch (Exception e) {
-            // ignore serialization errors to avoid影响主流程
+            // 目的：避免序列化异常影响主流程
         }
     }
 
+    /**
+     * 删除会话消息
+     *
+     * 为什么：会话清理时释放缓存
+     * 入参：会话 ID
+     * 出参：无
+     */
     @Override
     public void deleteByConversationId(String conversationId) {
+        // 目的：主动清理会话，释放存储资源
+        // 约束：删除不存在的 key 由 Redis 无副作用处理
         stringRedisTemplate.delete(buildKey(conversationId));
     }
 
+    /**
+     * 构建 Redis Key
+     *
+     * 为什么：统一 Key 前缀，避免冲突
+     */
     private String buildKey(String conversationId) {
-        return KEY_PREFIX + conversationId;
+        // 目的：统一 Key 格式，便于定位与删除
+        // 约束：前缀固定，保证 findConversationIds 能正确反向解析
+        return ChatRedisKeys.CHAT_MEMORY_PREFIX + conversationId;
     }
 
+    /**
+     * 将存储结构还原为消息对象
+     *
+     * 为什么：保持消息类型语义
+     */
     private Message toMessage(MessageType type, String content) {
+        // 目的：还原消息类型，保证上下文角色正确
+        // 约束：未识别的类型降级为 SystemMessage，避免抛错中断
         if (type == MessageType.USER) {
             return new UserMessage(content);
         }
@@ -115,7 +181,14 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
         return new SystemMessage(content);
     }
 
+    /**
+     * 提取消息内容
+     *
+     * 为什么：仅存储文本，避免复杂对象序列化
+     */
     private String resolveContent(Message message) {
+        // 目的：仅提取文本内容，避免复杂对象序列化
+        // 约束：非 AbstractMessage 返回 null，由上层决定是否存储空内容
         if (message instanceof AbstractMessage) {
             return ((AbstractMessage) message).getText();
         }

@@ -31,6 +31,7 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
     /**
      * 更新 MCP 客户端列表
      *
+     * 为什么：运行时连接变更后需要刷新工具回调
      * @param mcpClients MCP 客户端列表
      */
     public void updateClients(List<McpSyncClient> mcpClients) {
@@ -44,6 +45,7 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
     /**
      * 返回可用工具回调
      *
+     * 为什么：按需构建并缓存工具回调数组
      * @return 工具回调列表
      */
     @Override

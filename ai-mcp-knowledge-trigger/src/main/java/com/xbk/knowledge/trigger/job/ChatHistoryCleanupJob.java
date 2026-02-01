@@ -27,9 +27,12 @@ public class ChatHistoryCleanupJob {
      * 清理过期聊天历史
      * XXL-Job Handler: chatHistoryCleanupHandler
      * 建议 Cron: 0 0 3 * * ? (每天凌晨 3 点执行)
+     *
+     * 为什么：避免聊天历史无限增长导致存储成本与查询性能问题。
      */
     @XxlJob("chatHistoryCleanupHandler")
     public void cleanupExpiredChatHistory() {
+        // 目的：按配置保留窗口清理历史，保证策略可控
         int retentionDays = chatHistoryProperties.getRetentionDays();
         LocalDateTime cutoff = LocalDateTime.now().minusDays(retentionDays);
         int deletedSessions = chatHistoryCleanupAppService.cleanupExpired(cutoff);

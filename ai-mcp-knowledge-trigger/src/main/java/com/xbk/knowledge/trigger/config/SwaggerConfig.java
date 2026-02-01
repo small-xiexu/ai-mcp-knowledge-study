@@ -20,6 +20,8 @@ public class SwaggerConfig {
     /**
      * 配置 OpenAPI 文档信息
      *
+     * 为什么：统一接口描述入口，便于前端/测试快速发现接口变更。
+     *
      * @return OpenAPI 配置
      */
     @Bean

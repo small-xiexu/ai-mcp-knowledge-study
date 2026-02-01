@@ -17,39 +17,45 @@ public interface ChatMessageRepository {
     /**
      * 创建消息
      *
-     * @param message 消息实体
-     * @return 消息实体
+     * 为什么：持久化会话消息，支持历史记录
+     * 入参：消息实体
+     * 出参：持久化后的消息
      */
     ChatMessage create(ChatMessage message);
 
     /**
      * 分页查询会话消息
      *
-     * @param query 分页查询条件
-     * @return 消息列表
+     * 为什么：控制单次返回数量，避免响应过大
+     * 入参：分页查询条件
+     * 出参：消息列表
      */
     List<ChatMessage> findPage(ChatMessagePageQuery query);
 
     /**
      * 统计会话消息总数
      *
-     * @param sessionId 会话ID
-     * @return 总数
+     * 为什么：分页展示需要总数
+     * 入参：会话 ID
+     * 出参：总数
      */
     long countBySessionId(Long sessionId);
 
     /**
      * 删除会话下的全部消息
      *
-     * @param sessionId 会话ID
+     * 为什么：清理指定会话历史消息
+     * 入参：会话 ID
+     * 出参：无
      */
     void deleteBySessionId(Long sessionId);
 
     /**
      * 删除过期会话的消息
      *
-     * @param updatedBefore 截止时间
-     * @return 删除行数
+     * 为什么：清理历史消息，控制数据规模
+     * 入参：截止时间
+     * 出参：删除行数
      */
     int deleteBySessionUpdatedBefore(java.time.LocalDateTime updatedBefore);
 }

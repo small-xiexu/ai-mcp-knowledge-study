@@ -200,6 +200,116 @@ export interface ResponseTimeDTO {
 }
 
 /**
+ * XXL 任务列表项
+ */
+export interface XxlJob {
+  id: number
+  jobDesc: string
+  executorHandler: string
+  executorParam?: string
+  scheduleConf?: string
+  executorRouteStrategy?: string
+  triggerStatus?: number
+  author?: string
+  addTime?: string
+  updateTime?: string
+}
+
+/**
+ * XXL 任务详情
+ */
+export interface XxlJobDetail extends XxlJob {
+  jobGroup?: number
+  alarmEmail?: string
+  scheduleType?: string
+  misfireStrategy?: string
+  executorBlockStrategy?: string
+  executorTimeout?: number
+  executorFailRetryCount?: number
+  glueType?: string
+  childJobId?: string
+  triggerLastTime?: number
+  triggerNextTime?: number
+}
+
+/**
+ * XXL 任务创建请求
+ */
+export interface XxlJobCreateRequest {
+  jobDesc: string
+  author: string
+  alarmEmail?: string
+  scheduleType?: string
+  scheduleConf: string
+  misfireStrategy?: string
+  executorRouteStrategy?: string
+  executorHandler: string
+  executorParam?: string
+  executorBlockStrategy?: string
+  executorTimeout?: number
+  executorFailRetryCount?: number
+  glueType?: string
+  childJobId?: string
+}
+
+/**
+ * XXL 任务更新请求
+ */
+export interface XxlJobUpdateRequest extends XxlJobCreateRequest {
+  id: number
+}
+
+/**
+ * XXL 任务触发请求
+ */
+export interface XxlJobTriggerRequest {
+  id: number
+  executorParam?: string
+  addressList?: string
+}
+
+/**
+ * XXL 日志列表请求
+ */
+export interface XxlJobLogListRequest {
+  jobId: number
+  startTime?: string
+  endTime?: string
+  pageNum: number
+  pageSize: number
+}
+
+/**
+ * XXL 任务日志
+ */
+export interface XxlJobLog {
+  id: number
+  jobId: number
+  executorAddress?: string
+  executorHandler?: string
+  executorParam?: string
+  executorShardingParam?: string
+  executorFailRetryCount?: number
+  triggerTime?: string
+  triggerCode?: number
+  triggerMsg?: string
+  handleTime?: string
+  handleCode?: number
+  handleMsg?: string
+  alarmStatus?: number
+}
+
+/**
+ * XXL 日志详情
+ */
+export interface XxlJobLogDetail {
+  fromLineNum: number
+  toLineNum: number
+  logContent: string
+  end: boolean
+}
+
+/**
  * 模型使用分布
  */
 export interface ModelUsageDTO {

@@ -1,6 +1,5 @@
 package com.xbk.knowledge.test;
 
-import com.xbk.knowledge.Application;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.application.provider.ModelProviderFactory;
 import com.xbk.knowledge.trigger.job.MCPServerCSDNJob;
@@ -15,7 +14,6 @@ import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 
 import java.util.Map;
 import java.util.Collections;
@@ -362,7 +360,7 @@ public class OrchestrationMCPTest {
     @Test
     public void test_trigger_csdn_job() {
         log.info(">>> 手动触发 CSDN 定时任务开始");
-        mcpServerCSDNJob.exec();
+        mcpServerCSDNJob.mcpServerCSDNHandler();
         log.info(">>> 手动触发 CSDN 定时任务结束");
     }
 }

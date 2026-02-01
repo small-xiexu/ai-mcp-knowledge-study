@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 
 /**
  * 聊天会话管理 Controller
- * 负责会话与消息的增删改查
+ * 负责会话与消息的增删改查，作为 HTTP 适配层隔离前端协议与领域模型
  *
  * @author xiexu
  */
@@ -38,9 +38,16 @@ public class ChatSessionController {
 
     /**
      * 创建会话
+     *
+     * 为什么：会话是消息聚合的根，先创建会话再追加消息，保证消息归属清晰
+     * 入参：会话标题、模型、RAG 标签
+     * 出参：创建后的会话信息
      */
     @PostMapping
     public Result<ChatSessionResponse> createSession(@RequestBody ChatSessionCreateRequest request) {
+        /*
+         * 目的：将请求 DTO 转为领域实体，保持领域层不依赖接口层结构
+         */
         ChatSession session = ChatSession.builder()
                 .title(request.getTitle())
                 .modelId(request.getModelId())
@@ -52,6 +59,10 @@ public class ChatSessionController {
 
     /**
      * 更新会话
+     *
+     * 为什么：前端只允许修改标题、模型与标签，不在此处处理消息集合
+     * 入参：会话 ID + 更新字段
+     * 出参：更新后的会话信息
      */
     @PostMapping("/update")
     public Result<ChatSessionResponse> updateSession(@RequestBody ChatSessionUpdateRequest request) {
@@ -69,6 +80,10 @@ public class ChatSessionController {
 
     /**
      * 删除会话
+     *
+     * 为什么：由应用层统一处理会话级联逻辑（如消息清理）
+     * 入参：会话 ID
+     * 出参：删除结果
      */
     @PostMapping("/delete")
     public Result<Void> deleteSession(@RequestBody IdRequest request) {
@@ -79,6 +94,10 @@ public class ChatSessionController {
 
     /**
      * 查询会话详情
+     *
+     * 为什么：提供前端进入会话时的详情数据
+     * 入参：会话 ID
+     * 出参：会话详情
      */
     @PostMapping("/detail")
     public Result<ChatSessionResponse> getSession(@RequestBody IdRequest request) {
@@ -92,6 +111,10 @@ public class ChatSessionController {
 
     /**
      * 分页查询会话
+     *
+     * 为什么：统一分页协议，避免一次性拉取全部会话导致响应变大
+     * 入参：分页参数
+     * 出参：分页后的会话列表
      */
     @PostMapping("/list")
     public Result<PageResult<ChatSessionResponse>> listSessions(@RequestBody PageRequest request) {
@@ -106,10 +129,17 @@ public class ChatSessionController {
 
     /**
      * 追加消息
+     *
+     * 为什么：消息写入需要绑定会话 ID，保持会话上下文连续
+     * 入参：会话 ID + 消息内容
+     * 出参：保存后的消息
      */
     @PostMapping("/{id}/messages")
     public Result<ChatMessageResponse> appendMessage(@PathVariable("id") Long id,
                                                      @RequestBody ChatMessageCreateRequest request) {
+        /*
+         * 目的：从请求构建领域消息，防止接口层字段直接流入持久层
+         */
         ChatMessage message = ChatMessage.builder()
                 .sessionId(id)
                 .role(request.getRole())
@@ -125,6 +155,10 @@ public class ChatSessionController {
 
     /**
      * 分页查询会话消息
+     *
+     * 为什么：避免一次加载过多历史消息导致性能问题
+     * 入参：会话 ID + 分页参数
+     * 出参：分页后的消息列表
      */
     @PostMapping("/messages/list")
     public Result<PageResult<ChatMessageResponse>> listMessages(@RequestBody ChatMessagePageRequest request) {
@@ -142,6 +176,10 @@ public class ChatSessionController {
 
     /**
      * 清空会话消息
+     *
+     * 为什么：提供会话级清理能力，避免影响会话元数据
+     * 入参：会话 ID
+     * 出参：清理结果
      */
     @PostMapping("/messages/delete")
     public Result<Void> deleteMessages(@RequestBody IdRequest request) {
@@ -179,6 +217,10 @@ public class ChatSessionController {
         if (rawTags == null || rawTags.isEmpty()) {
             return Collections.emptyList();
         }
+        /*
+         * 目的：将存储的 JSON 字符串还原为标签列表，前端无需自行解析
+         * 约束：解析失败时回退为空列表，避免影响主流程
+         */
         try {
             return objectMapper.readValue(rawTags, new TypeReference<List<String>>() {});
         } catch (JsonProcessingException e) {
@@ -190,6 +232,10 @@ public class ChatSessionController {
         if (tags == null || tags.isEmpty()) {
             return "[]";
         }
+        /*
+         * 目的：存储时统一序列化为 JSON，便于数据库索引与查询
+         * 约束：序列化失败时回退为空数组，保持字段结构稳定
+         */
         try {
             return objectMapper.writeValueAsString(tags);
         } catch (JsonProcessingException e) {
@@ -199,7 +245,10 @@ public class ChatSessionController {
 
     /**
      * 会话消息分页查询请求
-     * 使用 POST 请求体传递分页参数
+     *
+     * 为什么：列表查询统一走 POST 以便扩展过滤字段且避免 URL 过长
+     * 入参：会话 ID + 分页参数
+     * 出参：用于应用层分页查询
      */
     private static class ChatMessagePageRequest extends PageRequest {
         /**

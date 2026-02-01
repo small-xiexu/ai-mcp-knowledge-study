@@ -36,7 +36,10 @@ public class TaskTypeServiceImpl implements ITaskTypeService {
 
     /**
      * 分页查询任务类型
-     * 统一分页口径并返回稳定的分页结构
+     *
+     * 为什么：统一分页口径，避免前端传参与仓储不一致
+     * 入参：分页查询对象
+     * 出参：分页结果
      */
     @Override
     public PageResult<TaskType> queryTaskTypePage(TaskTypePageQuery query) {
@@ -45,14 +48,20 @@ public class TaskTypeServiceImpl implements ITaskTypeService {
         }
         int offset = query.getOffset() == null ? 0 : query.getOffset();
         int pageSize = query.getPageSize() == null ? 10 : query.getPageSize();
-        // 查询分页数据
+        /*
+         * 目的：规范化分页参数，避免异常分页导致性能问题
+         */
         TaskTypePageQuery pageQuery = new TaskTypePageQuery(offset, pageSize);
         List<TaskType> taskTypes = taskTypeRepository.findPage(pageQuery);
 
-        // 查询总数
+        /*
+         * 目的：查询总数以支持分页组件
+         */
         long total = taskTypeRepository.countAll();
 
-        // 计算页码
+        /*
+         * 目的：将偏移量转换为页码以保持响应一致
+         */
         int pageNum = (offset / pageSize) + 1;
 
         return PageResult.of(taskTypes, total, pageNum, pageSize);
@@ -60,18 +69,26 @@ public class TaskTypeServiceImpl implements ITaskTypeService {
 
     /**
      * 查询所有任务类型
-     * 为配置选择提供完整列表，避免调用方自行拼装
+     *
+     * 为什么：提供完整列表用于配置选择
+     * 入参：无
+     * 出参：任务类型列表
      */
     @Override
     public List<TaskType> queryAllTaskTypes() {
-        // 使用一个较大的 pageSize 来获取所有数据
+        /*
+         * 约束：使用较大 pageSize 获取全量数据，适配小规模配置场景
+         */
         TaskTypePageQuery pageQuery = new TaskTypePageQuery(0, 1000);
         return taskTypeRepository.findPage(pageQuery);
     }
 
     /**
      * 根据 ID 查询任务类型
-     * 确保不存在时抛出领域异常，避免空对象传播
+     *
+     * 为什么：不存在时抛出领域异常，避免空对象传播
+     * 入参：ID 查询对象
+     * 出参：任务类型
      */
     @Override
     public TaskType queryTaskTypeById(IdQuery query) {
@@ -89,7 +106,10 @@ public class TaskTypeServiceImpl implements ITaskTypeService {
 
     /**
      * 根据任务代码查询任务类型
-     * 统一任务代码查询逻辑，保持业务语义一致
+     *
+     * 为什么：任务执行依赖代码定位类型
+     * 入参：任务代码查询对象
+     * 出参：任务类型
      */
     @Override
     public TaskType queryTaskTypeByCode(TaskTypeCodeQuery query) {
@@ -107,11 +127,16 @@ public class TaskTypeServiceImpl implements ITaskTypeService {
 
     /**
      * 创建任务类型
-     * 统一校验任务类型与首选模型合法性
+     *
+     * 为什么：创建时保证任务代码唯一与首选模型合法
+     * 入参：任务类型实体
+     * 出参：创建后的任务类型
      */
     @Override
     public TaskType createTaskType(TaskType taskType) {
-        // 检查任务类型代码是否已存在
+        /*
+         * 目的：校验任务类型代码唯一性
+         */
         String taskCode = taskType.getTaskCode();
         TaskTypeCodeQuery taskTypeCodeQuery = new TaskTypeCodeQuery(taskCode);
         if (taskTypeRepository
@@ -120,7 +145,9 @@ public class TaskTypeServiceImpl implements ITaskTypeService {
             throw new IllegalArgumentException("任务类型代码已存在：" + taskCode);
         }
 
-        // 检查首选模型是否存在
+        /*
+         * 目的：校验首选模型存在性，避免配置悬挂
+         */
         Long preferredModelId = taskType.getPreferredModelId();
         if (preferredModelId != null) {
             IdQuery preferredModelIdQuery = new IdQuery(preferredModelId);
@@ -130,12 +157,16 @@ public class TaskTypeServiceImpl implements ITaskTypeService {
             }
         }
 
-        // 设置创建时间和更新时间
+        /*
+         * 目的：补齐审计时间字段
+         */
         LocalDateTime now = LocalDateTime.now();
         taskType.setCreatedAt(now);
         taskType.setUpdatedAt(now);
 
-        // 保存到数据库
+        /*
+         * 目的：以聚合形式保存，保证一致性
+         */
         TaskTypeAggregate aggregate = TaskTypeAggregate.builder()
                 .taskType(taskType)
                 .build();
@@ -145,7 +176,10 @@ public class TaskTypeServiceImpl implements ITaskTypeService {
 
     /**
      * 更新任务类型
-     * 保证唯一性与首选模型合法性，避免配置悬挂
+     *
+     * 为什么：更新前校验唯一性与首选模型合法性
+     * 入参：任务类型实体
+     * 出参：更新后的任务类型
      */
     @Override
     public TaskType updateTaskType(TaskType taskType) {
@@ -153,7 +187,9 @@ public class TaskTypeServiceImpl implements ITaskTypeService {
             throw new IllegalArgumentException("更新操作必须提供任务类型 ID");
         }
 
-        // 查询现有配置
+        /*
+         * 目的：读取现有配置，确保更新基于最新数据
+         */
         Long taskTypeId = taskType.getId();
         IdQuery idQuery = new IdQuery(taskTypeId);
         String notFoundMessage = "任务类型不存在，id: " + taskTypeId;
@@ -162,7 +198,9 @@ public class TaskTypeServiceImpl implements ITaskTypeService {
                 .findById(idQuery)
                 .orElseThrow(exceptionSupplier);
 
-        // 检查任务类型代码是否与其他任务类型冲突
+        /*
+         * 目的：校验任务类型代码唯一性
+         */
         String taskCode = taskType.getTaskCode();
         TaskTypeCodeQuery taskTypeCodeQuery = new TaskTypeCodeQuery(taskCode);
         Consumer<TaskType> duplicateChecker = existing -> {
@@ -177,7 +215,9 @@ public class TaskTypeServiceImpl implements ITaskTypeService {
                 .findByTaskCode(taskTypeCodeQuery)
                 .ifPresent(duplicateChecker);
 
-        // 检查首选模型是否存在
+        /*
+         * 目的：校验首选模型存在性，避免配置悬挂
+         */
         Long preferredModelId = taskType.getPreferredModelId();
         if (preferredModelId != null) {
             IdQuery preferredModelIdQuery = new IdQuery(preferredModelId);
@@ -187,7 +227,9 @@ public class TaskTypeServiceImpl implements ITaskTypeService {
             }
         }
 
-        // 更新字段
+        /*
+         * 目的：覆盖可更新字段并刷新更新时间
+         */
         String taskName = taskType.getTaskName();
         String description = taskType.getDescription();
         String fallbackModelIds = taskType.getFallbackModelIds();
@@ -199,7 +241,9 @@ public class TaskTypeServiceImpl implements ITaskTypeService {
         existingTaskType.setFallbackModelIds(fallbackModelIds);
         existingTaskType.setUpdatedAt(updatedAt);
 
-        // 保存更新
+        /*
+         * 目的：以聚合形式保存，保证一致性
+         */
         TaskTypeAggregate aggregate = TaskTypeAggregate.builder()
                 .taskType(existingTaskType)
                 .build();
@@ -209,7 +253,10 @@ public class TaskTypeServiceImpl implements ITaskTypeService {
 
     /**
      * 删除任务类型
-     * 防止删除不存在的任务类型，保持操作语义清晰
+     *
+     * 为什么：防止删除不存在的任务类型，保持操作语义清晰
+     * 入参：ID 查询对象
+     * 出参：无
      */
     @Override
     public void deleteTaskType(IdQuery query) {
@@ -217,13 +264,17 @@ public class TaskTypeServiceImpl implements ITaskTypeService {
             throw new IllegalArgumentException("任务类型 ID 不能为空");
         }
         Long id = query.getId();
-        // 检查任务类型是否存在
+        /*
+         * 目的：先检查存在性，避免静默失败
+         */
         IdQuery idQuery = new IdQuery(id);
         if (!taskTypeRepository.existsById(idQuery)) {
             throw new NotFoundException("任务类型不存在，id: " + id);
         }
 
-        // 删除任务类型
+        /*
+         * 目的：执行删除，释放配置
+         */
         taskTypeRepository.deleteById(idQuery);
     }
 }

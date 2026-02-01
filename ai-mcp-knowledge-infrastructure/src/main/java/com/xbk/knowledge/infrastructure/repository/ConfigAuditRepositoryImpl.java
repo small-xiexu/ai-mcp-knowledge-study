@@ -28,6 +28,10 @@ public class ConfigAuditRepositoryImpl implements ConfigAuditRepository {
     /**
      * 保存配置审计
      * 统一补齐创建时间，保证审计可追溯
+     *
+     * 为什么：保证审计具备时间戳便于追溯
+     * 入参：审计聚合
+     * 出参：保存后的聚合
      */
     @Override
     public ConfigAuditAggregate save(ConfigAuditAggregate aggregate) {
@@ -39,6 +43,9 @@ public class ConfigAuditRepositoryImpl implements ConfigAuditRepository {
             LocalDateTime createdAt = LocalDateTime.now();
             audit.setCreatedAt(createdAt);
         }
+        /*
+         * 目的：统一落库入口，避免重复插入逻辑
+         */
         configAuditMapper.insertConfigAudit(audit);
         aggregate.setConfigAudit(audit);
         return aggregate;
@@ -47,6 +54,10 @@ public class ConfigAuditRepositoryImpl implements ConfigAuditRepository {
     /**
      * 按条件分页查询审计
      * 由上层控制排序字段，避免 SQL 注入风险
+     *
+     * 为什么：分页查询控制返回大小
+     * 入参：审计查询条件
+     * 出参：审计记录列表
      */
     @Override
     public List<ConfigAudit> findByConditions(AuditQuery query) {
@@ -59,6 +70,10 @@ public class ConfigAuditRepositoryImpl implements ConfigAuditRepository {
     /**
      * 统计审计记录总数
      * 用于分页统计
+     *
+     * 为什么：分页展示需要总数
+     * 入参：审计查询条件
+     * 出参：总数
      */
     @Override
     public long countByConditions(AuditQuery query) {
@@ -70,6 +85,10 @@ public class ConfigAuditRepositoryImpl implements ConfigAuditRepository {
 
     /**
      * 查询所有可用表名
+     *
+     * 为什么：提供筛选下拉数据源
+     * 入参：无
+     * 出参：表名列表
      */
     @Override
     public List<String> listTableNames() {

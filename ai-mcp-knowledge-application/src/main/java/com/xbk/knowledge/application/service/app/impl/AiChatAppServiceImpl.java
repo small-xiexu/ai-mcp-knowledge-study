@@ -64,9 +64,19 @@ public class AiChatAppServiceImpl implements AiChatAppService {
     private final McpToolCatalogService mcpToolCatalogService;
     private final ToolCallbackProvider toolCallbackProvider;
 
+    /**
+     * 同步对话
+     *
+     * 为什么：提供简单调用入口，便于同步场景接入
+     * 入参：对话调用命令
+     * 出参：调用结果
+     */
     @Override
     public AICallResult chat(AICallCommand command) {
         long startTime = System.currentTimeMillis();
+        /*
+         * 目的：统一模型、工具、提示词准备流程
+         */
         ModelConfig modelConfig = resolveChatModel(command);
         boolean toolEnabled = resolveToolEnabled(modelConfig);
         Prompt prompt = buildPrompt(command, toolEnabled);
@@ -82,6 +92,9 @@ public class AiChatAppServiceImpl implements AiChatAppService {
             Integer tokensUsed = resolveTokensUsed(usage);
             long responseTime = System.currentTimeMillis() - startTime;
 
+            /*
+             * 目的：保存对话记忆，支持多轮上下文
+             */
             appendChatMemory(conversationId, command.getContent(), content);
             CallLogAggregate aggregate = CallLogAggregate.builder()
                     .callLog(fillSuccessLog(callLog, content, tokensUsed, responseTime))
@@ -107,9 +120,19 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         }
     }
 
+    /**
+     * 流式对话
+     *
+     * 为什么：满足前端流式渲染与大模型逐字输出场景
+     * 入参：对话调用命令
+     * 出参：流式响应
+     */
     @Override
     public Flux<ChatResponse> streamChat(AICallCommand command) {
         long startTime = System.currentTimeMillis();
+        /*
+         * 目的：统一模型、工具、提示词准备流程
+         */
         ModelConfig modelConfig = resolveChatModel(command);
         boolean toolEnabled = resolveToolEnabled(modelConfig);
         Prompt prompt = buildPrompt(command, toolEnabled);
@@ -135,6 +158,9 @@ public class AiChatAppServiceImpl implements AiChatAppService {
                 .doOnComplete(() -> {
                     long responseTime = System.currentTimeMillis() - startTime;
                     Integer tokensUsed = usageStats.getTotalTokens();
+                    /*
+                     * 目的：流式完成后统一落库与记忆追加
+                     */
                     appendChatMemory(conversationId, command.getContent(), assistantBuffer.toString());
                     CallLogAggregate aggregate = CallLogAggregate.builder()
                             .callLog(fillSuccessLog(callLog, null, tokensUsed, responseTime))
@@ -143,6 +169,13 @@ public class AiChatAppServiceImpl implements AiChatAppService {
                 });
     }
 
+    /**
+     * 解析对话模型
+     *
+     * 为什么：允许显式模型优先，未指定时使用全局激活模型
+     * 入参：对话命令
+     * 出参：模型配置
+     */
     private ModelConfig resolveChatModel(AICallCommand command) {
         Long modelId = command.getModelId();
         if (modelId != null) {
@@ -155,6 +188,13 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         return activeChat;
     }
 
+    /**
+     * 解析 ChatClient
+     *
+     * 为什么：统一工具回调注入，避免业务侧重复装配
+     * 入参：模型配置、工具开关
+     * 出参：ChatClient 实例
+     */
     private ChatClient resolveChatClient(ModelConfig modelConfig, boolean toolEnabled) {
         ChatClient chatClient = modelProviderFactory.createChatClient(modelConfig);
         if (toolEnabled && toolCallbackProvider != null) {
@@ -165,6 +205,13 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         return chatClient;
     }
 
+    /**
+     * 构建提示词
+     *
+     * 为什么：统一拼装历史消息、工具提示与 RAG 上下文
+     * 入参：对话命令、工具开关
+     * 出参：Prompt 对象
+     */
     private Prompt buildPrompt(AICallCommand command, boolean toolEnabled) {
         String content = command.getContent();
         if (!StringUtils.hasText(content)) {
@@ -200,6 +247,9 @@ public class AiChatAppServiceImpl implements AiChatAppService {
             messages.add(new UserMessage(content));
             return new Prompt(messages);
         }
+        /*
+         * 目的：将检索到的文档注入系统提示，增强回答依据
+         */
         String documentText = documents.stream()
                 .map(Document::getText)
                 .collect(Collectors.joining("\n"));
@@ -210,6 +260,13 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         return new Prompt(messages);
     }
 
+    /**
+     * 构建工具提示词
+     *
+     * 为什么：提示模型可调用的工具能力
+     * 入参：无
+     * 出参：工具提示词
+     */
     private String resolveToolPrompt() {
         if (mcpToolCatalogService == null) {
             return "";
@@ -218,6 +275,13 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         return prompt != null ? prompt : "";
     }
 
+    /**
+     * 判断工具是否启用
+     *
+     * 为什么：配置未显式设置时默认开启工具能力
+     * 入参：模型配置
+     * 出参：是否启用
+     */
     private boolean resolveToolEnabled(ModelConfig modelConfig) {
         if (modelConfig == null || modelConfig.getToolEnabled() == null) {
             return true;
@@ -225,6 +289,13 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         return Boolean.TRUE.equals(modelConfig.getToolEnabled());
     }
 
+    /**
+     * 提取模型回复内容
+     *
+     * 为什么：统一处理空响应与空输出
+     * 入参：ChatResponse
+     * 出参：文本内容
+     */
     private String extractContent(ChatResponse response) {
         if (response == null || response.getResult() == null) {
             return "";
@@ -237,6 +308,13 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         return content != null ? content : "";
     }
 
+    /**
+     * 构建调用日志
+     *
+     * 为什么：为后续落库提供基础字段
+     * 入参：模型配置、调用命令
+     * 出参：日志实体
+     */
     private CallLog buildCallLog(ModelConfig modelConfig, AICallCommand command) {
         Long modelId = modelConfig.getId();
         String taskType = command.getTaskType();
@@ -257,6 +335,13 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         return callLog;
     }
 
+    /**
+     * 填充失败日志
+     *
+     * 为什么：记录错误信息与耗时便于排查
+     * 入参：日志实体、错误信息、耗时
+     * 出参：日志实体
+     */
     private CallLog fillFailureLog(CallLog callLog, String errorMessage, long responseTime) {
         callLog.setResponseContent(null);
         callLog.setTokensUsed(0);
@@ -267,6 +352,13 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         return callLog;
     }
 
+    /**
+     * 解析 token 使用量
+     *
+     * 为什么：兼容不同模型返回的 token 字段
+     * 入参：Usage
+     * 出参：token 数
+     */
     private Integer resolveTokensUsed(Usage usage) {
         if (usage == null) {
             return 0;
@@ -282,6 +374,13 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         return prompt + completion;
     }
 
+    /**
+     * 截断内容
+     *
+     * 为什么：控制日志体积，避免存储膨胀
+     * 入参：内容、最大长度
+     * 出参：截断内容
+     */
     private String truncateContent(String content, int maxLength) {
         if (content == null) {
             return null;
@@ -292,6 +391,13 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         return content.substring(0, maxLength) + "...";
     }
 
+    /**
+     * 记录流式返回的 token 使用
+     *
+     * 为什么：流式结果需要累积统计
+     * 入参：响应、统计容器
+     * 出参：无
+     */
     private void captureUsage(ChatResponse response, UsageStats usageStats) {
         if (response == null || response.getMetadata() == null) {
             return;
@@ -303,6 +409,13 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         usageStats.update(usage.getPromptTokens(), usage.getCompletionTokens(), usage.getTotalTokens());
     }
 
+    /**
+     * 追加流式输出内容
+     *
+     * 为什么：流式场景需要累计文本用于落库与记忆
+     * 入参：响应、缓存容器
+     * 出参：无
+     */
     private void appendStreamContent(ChatResponse response, StringBuilder buffer) {
         if (response == null || response.getResult() == null) {
             return;
@@ -314,6 +427,13 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         buffer.append(output.getText());
     }
 
+    /**
+     * 追加对话记忆
+     *
+     * 为什么：支持多轮对话上下文
+     * 入参：会话 ID、用户文本、助手文本
+     * 出参：无
+     */
     private void appendChatMemory(String conversationId, String userContent, String assistantContent) {
         if (!StringUtils.hasText(conversationId)) {
             return;
@@ -331,6 +451,13 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         chatMemory.add(conversationId, messages);
     }
 
+    /**
+     * 解析会话 ID
+     *
+     * 为什么：对话记忆以会话维度隔离
+     * 入参：对话命令
+     * 出参：会话 ID
+     */
     private String resolveConversationId(AICallCommand command) {
         if (command == null || command.getSessionId() == null) {
             return null;
@@ -338,11 +465,21 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         return String.valueOf(command.getSessionId());
     }
 
+    /**
+     * 流式 token 使用统计
+     *
+     * 为什么：流式响应在结束前无法一次性拿到完整 usage
+     */
     private static class UsageStats {
         private Integer promptTokens;
         private Integer completionTokens;
         private Integer totalTokens;
 
+        /**
+         * 更新统计值
+         *
+         * 为什么：响应可能分段返回，需累积最新值
+         */
         private void update(Integer promptTokens, Integer completionTokens, Integer totalTokens) {
             if (promptTokens != null) {
                 this.promptTokens = promptTokens;
@@ -355,6 +492,11 @@ public class AiChatAppServiceImpl implements AiChatAppService {
             }
         }
 
+        /**
+         * 获取总 token 数
+         *
+         * 为什么：兼容只返回部分字段的使用量
+         */
         private Integer getTotalTokens() {
             if (totalTokens != null) {
                 return totalTokens;

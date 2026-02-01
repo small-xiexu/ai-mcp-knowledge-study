@@ -37,11 +37,9 @@ public class AuditService {
      * 记录审计日志
      * 将写入流程集中在服务层，便于统一事务与序列化策略
      *
-     * @param tableName 表名
-     * @param recordId  记录ID
-     * @param operation 操作类型
-     * @param oldValue  旧值对象
-     * @param newValue  新值对象
+     * 为什么：统一审计写入与序列化策略
+     * 入参：表名、记录ID、操作类型、旧值、新值
+     * 出参：无
      */
     @Transactional(rollbackFor = Exception.class)
     public void recordAudit(String tableName, Long recordId, String operation, Object oldValue, Object newValue) {
@@ -50,6 +48,9 @@ public class AuditService {
             return;
         }
 
+        /*
+         * 目的：统一解析操作者并序列化数据
+         */
         String operator = resolveOperator();
         String oldValueJson = toJson(oldValue);
         String newValueJson = toJson(newValue);
@@ -70,6 +71,11 @@ public class AuditService {
         log.info("审计日志已记录，tableName: {}, recordId: {}, operation: {}, operator: {}", tableName, recordId, operation, operator);
     }
 
+    /**
+     * 解析操作人
+     *
+     * 为什么：从请求头获取操作者，缺省为 system
+     */
     private String resolveOperator() {
         RequestAttributes attributes = RequestContextHolder.getRequestAttributes();
         if (attributes instanceof ServletRequestAttributes servletRequestAttributes) {
@@ -82,6 +88,11 @@ public class AuditService {
         return DEFAULT_OPERATOR;
     }
 
+    /**
+     * 序列化为 JSON
+     *
+     * 为什么：审计记录统一存储 JSON 文本
+     */
     private String toJson(Object value) {
         if (value == null) {
             return null;

@@ -48,3 +48,16 @@ xxl:
       logretentiondays: 30
     # 执行器通讯TOKEN（与调度中心配置一致）
     accessToken: default_token
+  admin:
+    # 调度中心地址
+    base-url: http://127.0.0.1:9090/xxl-job-admin
+    # 登录账号
+    username: admin
+    # 登录密码
+    password: 123456
+    # 执行器 AppName
+    app-name: ai-rag-knowledge-executor
+    # Cookie 缓存秒数
+    cookie-ttl-seconds: 1800
+    # 任务下拉缓存秒数
+    job-cache-ttl-seconds: 600

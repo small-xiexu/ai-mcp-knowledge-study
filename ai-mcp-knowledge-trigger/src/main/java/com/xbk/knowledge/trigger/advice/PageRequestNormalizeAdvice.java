@@ -46,6 +46,8 @@ public class PageRequestNormalizeAdvice implements RequestBodyAdvice {
     /**
      * 读取请求体之后的钩子
      * 对分页请求统一执行参数修正
+     *
+     * 为什么：避免各接口重复校验分页边界，保证分页口径一致。
      */
     @Override
     public Object afterBodyRead(Object body,
@@ -53,6 +55,7 @@ public class PageRequestNormalizeAdvice implements RequestBodyAdvice {
                                 MethodParameter parameter,
                                 Type targetType,
         Class<? extends HttpMessageConverter<?>> converterType) {
+        // 约束：仅对 PageRequest 子类做归一化，避免误改其他请求体
         if (body instanceof PageRequest) {
             PageRequest pageRequest = (PageRequest) body;
             pageRequest.validate();

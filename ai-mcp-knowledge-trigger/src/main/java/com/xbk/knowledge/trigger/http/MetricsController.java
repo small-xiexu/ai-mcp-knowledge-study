@@ -50,6 +50,8 @@ public class MetricsController implements IMetricsService {
 
         /**
          * 对外暴露 getCallMetrics 作为调用入口，便于上层复用。
+         *
+         * 为什么：统一统计入口，避免调用方直接访问领域对象。
          */
         @Override
         @PostMapping("/calls")
@@ -82,6 +84,8 @@ public class MetricsController implements IMetricsService {
 
         /**
          * 对外暴露 getSuccessRate 作为调用入口，便于上层复用。
+         *
+         * 为什么：成功率计算口径集中管理，避免多处重复计算。
          */
         @Override
         @PostMapping("/success-rate")
@@ -112,6 +116,8 @@ public class MetricsController implements IMetricsService {
 
         /**
          * 对外暴露 getResponseTime 作为调用入口，便于上层复用。
+         *
+         * 为什么：响应耗时口径统一，便于趋势分析。
          */
         @Override
         @PostMapping("/response-time")
@@ -142,6 +148,8 @@ public class MetricsController implements IMetricsService {
 
         /**
          * 对外暴露 getModelUsage 作为调用入口，便于上层复用。
+         *
+         * 为什么：统一模型使用分布计算，避免各端自行统计。
          */
         @Override
         @PostMapping("/model-usage")

@@ -25,8 +25,9 @@ public abstract class AbstractGeminiProtocolAdapter {
     /**
      * 创建基于 Gemini 协议的 ChatModel
      *
-     * @param config 模型配置
-     * @return ChatModel
+     * 为什么：使用 OpenAI 兼容协议避免工具调用异常
+     * 入参：模型配置
+     * 出参：ChatModel
      */
     public ChatModel createChatModel(ModelConfig config) {
         String modelName = config.getModelName();

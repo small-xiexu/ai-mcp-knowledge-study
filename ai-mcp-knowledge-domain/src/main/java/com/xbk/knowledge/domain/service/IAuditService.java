@@ -17,15 +17,18 @@ public interface IAuditService {
     /**
      * 分页查询审计日志
      *
-     * @param query 审计查询条件
-     * @return 分页结果
+     * 为什么：统一审计查询入口，便于扩展筛选逻辑
+     * 入参：审计查询条件
+     * 出参：分页结果
      */
     PageResult<ConfigAudit> queryAuditPage(AuditQuery query);
 
     /**
      * 查询所有可用表名
      *
-     * @return 表名列表
+     * 为什么：提供筛选下拉数据源
+     * 入参：无
+     * 出参：表名列表
      */
     List<String> listTableNames();
 }

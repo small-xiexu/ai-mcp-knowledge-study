@@ -28,7 +28,10 @@ public class TaskTypeAppServiceImpl implements TaskTypeAppService {
 
     /**
      * 分页查询任务类型
-     * 负责应用层用例编排，调用领域服务获取分页结果
+     *
+     * 为什么：统一分页入口，隔离应用层与领域层协议
+     * 入参：分页查询对象
+     * 出参：分页结果
      */
     @Override
     public PageResult<TaskType> queryTaskTypePage(TaskTypePageQuery query) {
@@ -37,7 +40,10 @@ public class TaskTypeAppServiceImpl implements TaskTypeAppService {
 
     /**
      * 查询所有任务类型
-     * 负责应用层用例编排，调用领域服务返回任务类型列表
+     *
+     * 为什么：提供全量列表供下拉或配置使用
+     * 入参：无
+     * 出参：任务类型列表
      */
     @Override
     public List<TaskType> queryAllTaskTypes() {
@@ -46,7 +52,10 @@ public class TaskTypeAppServiceImpl implements TaskTypeAppService {
 
     /**
      * 根据 ID 查询任务类型
-     * 负责应用层用例编排，调用领域服务获取任务类型详情
+     *
+     * 为什么：统一详情查询入口，便于扩展校验
+     * 入参：ID 查询对象
+     * 出参：任务类型详情
      */
     @Override
     public TaskType queryTaskTypeById(IdQuery query) {
@@ -55,7 +64,10 @@ public class TaskTypeAppServiceImpl implements TaskTypeAppService {
 
     /**
      * 根据任务代码查询任务类型
-     * 负责应用层用例编排，调用领域服务获取任务类型信息
+     *
+     * 为什么：任务执行依赖代码定位类型
+     * 入参：任务代码查询对象
+     * 出参：任务类型详情
      */
     @Override
     public TaskType queryTaskTypeByCode(TaskTypeCodeQuery query) {
@@ -64,7 +76,10 @@ public class TaskTypeAppServiceImpl implements TaskTypeAppService {
 
     /**
      * 创建任务类型
-     * 负责应用层事务边界编排，确保创建操作一致性
+     *
+     * 为什么：由应用层控制事务边界，保证创建一致性
+     * 入参：任务类型实体
+     * 出参：创建后的任务类型
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -74,7 +89,10 @@ public class TaskTypeAppServiceImpl implements TaskTypeAppService {
 
     /**
      * 更新任务类型
-     * 负责应用层事务边界编排，确保更新操作一致性
+     *
+     * 为什么：由应用层控制事务边界，保证更新一致性
+     * 入参：任务类型实体
+     * 出参：更新后的任务类型
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -84,7 +102,10 @@ public class TaskTypeAppServiceImpl implements TaskTypeAppService {
 
     /**
      * 删除任务类型
-     * 负责应用层事务边界编排，确保删除操作一致性
+     *
+     * 为什么：由应用层控制事务边界，保证删除一致性
+     * 入参：ID 查询对象
+     * 出参：无
      */
     @Override
     @Transactional(rollbackFor = Exception.class)

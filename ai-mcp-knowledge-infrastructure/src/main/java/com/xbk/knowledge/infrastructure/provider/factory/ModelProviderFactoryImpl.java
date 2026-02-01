@@ -70,6 +70,8 @@ public class ModelProviderFactoryImpl implements ModelProviderFactory {
      * @param modelType 模型类型
      * @return ModelProvider 实例
      * @throws IllegalArgumentException 如果模型类型不支持
+     *
+     * 为什么：统一 Provider 路由逻辑，避免上层分散判断
      */
     @Override
     public ModelProvider getProvider(ModelType modelType) {
@@ -90,6 +92,8 @@ public class ModelProviderFactoryImpl implements ModelProviderFactory {
      *
      * @param config 模型配置
      * @return ChatClient 实例
+     *
+     * 为什么：统一在工厂层完成模型选择与创建
      */
     @Override
     public ChatClient createChatClient(ModelConfig config) {
@@ -115,6 +119,8 @@ public class ModelProviderFactoryImpl implements ModelProviderFactory {
      *
      * @param modelType 模型类型
      * @return 是否支持
+     *
+     * 为什么：供上层在调用前做能力探测
      */
     @Override
     public boolean isSupported(ModelType modelType) {

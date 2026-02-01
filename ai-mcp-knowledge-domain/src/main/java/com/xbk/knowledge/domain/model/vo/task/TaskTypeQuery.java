@@ -18,6 +18,8 @@ public class TaskTypeQuery {
 
     /**
      * 任务类型
+     *
+     * 为什么：用于按任务类型筛选推荐模型
      */
     private String taskType;
 }

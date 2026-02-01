@@ -43,12 +43,15 @@ public class TaskTypeController {
     /**
      * 查询所有任务类型（分页）
      *
-     * @param request 分页查询请求
-     * @return 分页结果
+     * 为什么：任务类型可能扩展，分页避免一次性加载过多数据
+     * 入参：分页查询请求
+     * 出参：分页结果
      */
     @PostMapping("/list")
     public Result<PageResult<TaskTypeResponse>> listTaskTypes(@Valid @RequestBody TaskTypeQueryRequest request) {
-        // 调用应用服务查询
+        /*
+         * 目的：将分页参数转换为领域查询对象
+         */
         int offset = request.getOffset();
         Integer pageSize = request.getPageSize();
         TaskTypePageQuery query = new TaskTypePageQuery(
@@ -57,6 +60,9 @@ public class TaskTypeController {
         );
         PageResult<TaskType> pageResult = taskTypeAppService.queryTaskTypePage(query);
 
+        /*
+         * 目的：统一分页转换逻辑，避免前端协议分散
+         */
         PageResult<TaskTypeResponse> result = PageResultConverter.convert(pageResult, this::convertToResponse);
 
         return Result.success(result);
@@ -65,17 +71,22 @@ public class TaskTypeController {
     /**
      * 根据 ID 查询任务类型
      *
-     * @param request ID 查询请求
-     * @return 任务类型
+     * 为什么：前端详情页需要单条记录
+     * 入参：ID 查询请求
+     * 出参：任务类型详情
      */
     @PostMapping("/get")
     public Result<TaskTypeResponse> getTaskType(@Valid @RequestBody IdRequest request) {
-        // 调用应用服务查询
+        /*
+         * 目的：通过应用层读取任务类型
+         */
         Long id = request.getId();
         IdQuery idQuery = new IdQuery(id);
         TaskType taskType = taskTypeAppService.queryTaskTypeById(idQuery);
 
-        // 转换为响应 DTO
+        /*
+         * 目的：输出层只暴露必要字段
+         */
         TaskTypeResponse response = convertToResponse(taskType);
         return Result.success(response);
     }
@@ -83,17 +94,22 @@ public class TaskTypeController {
     /**
      * 根据编码查询任务类型
      *
-     * @param request 任务类型代码请求
-     * @return 任务类型
+     * 为什么：任务执行时通常使用编码定位类型
+     * 入参：任务类型代码请求
+     * 出参：任务类型详情
      */
     @PostMapping("/get-by-code")
     public Result<TaskTypeResponse> getTaskTypeByCode(@Valid @RequestBody TaskTypeCodeRequest request) {
-        // 调用应用服务查询
+        /*
+         * 目的：按编码查询更适合内部路由
+         */
         String code = request.getCode();
         TaskTypeCodeQuery taskTypeCodeQuery = new TaskTypeCodeQuery(code);
         TaskType taskType = taskTypeAppService.queryTaskTypeByCode(taskTypeCodeQuery);
 
-        // 转换为响应 DTO
+        /*
+         * 目的：输出层只暴露必要字段
+         */
         TaskTypeResponse response = convertToResponse(taskType);
         return Result.success(response);
     }
@@ -101,18 +117,25 @@ public class TaskTypeController {
     /**
      * 创建任务类型
      *
-     * @param request 任务类型请求
-     * @return 创建的任务类型
+     * 为什么：统一由应用层校验并持久化
+     * 入参：任务类型请求
+     * 出参：创建的任务类型
      */
     @PostMapping("/create")
     public Result<TaskTypeResponse> createTaskType(@Valid @RequestBody TaskTypeRequest request) {
-        // 构建领域实体
+        /*
+         * 目的：构建领域对象，隔离接口层 DTO
+         */
         TaskType taskType = buildTaskTypeFromRequest(request);
 
-        // 调用应用服务创建
+        /*
+         * 目的：交由应用层执行创建逻辑
+         */
         TaskType savedTaskType = taskTypeAppService.createTaskType(taskType);
 
-        // 转换为响应 DTO
+        /*
+         * 目的：输出层只返回必要字段
+         */
         TaskTypeResponse response = convertToResponse(savedTaskType);
         return Result.success("任务类型创建成功", response);
     }
@@ -120,20 +143,27 @@ public class TaskTypeController {
     /**
      * 更新任务类型
      *
-     * @param request 任务类型请求（包含 ID）
-     * @return 更新后的任务类型
+     * 为什么：保持任务类型变更入口统一，便于审计
+     * 入参：任务类型请求（包含 ID）
+     * 出参：更新后的任务类型
      */
     @PostMapping("/update")
     public Result<TaskTypeResponse> updateTaskType(@Valid @RequestBody TaskTypeRequest request) {
-        // 构建领域实体
+        /*
+         * 目的：构建完整领域对象，保证字段映射一致
+         */
         TaskType taskType = buildTaskTypeFromRequest(request);
         Long id = request.getId();
         taskType.setId(id);
 
-        // 调用应用服务更新
+        /*
+         * 目的：交由应用层处理更新逻辑
+         */
         TaskType updatedTaskType = taskTypeAppService.updateTaskType(taskType);
 
-        // 转换为响应 DTO
+        /*
+         * 目的：输出层只返回必要字段
+         */
         TaskTypeResponse response = convertToResponse(updatedTaskType);
         return Result.success("任务类型更新成功", response);
     }
@@ -141,12 +171,15 @@ public class TaskTypeController {
     /**
      * 删除任务类型
      *
-     * @param request ID 查询请求
-     * @return 删除结果
+     * 为什么：清理不再使用的类型，避免误选
+     * 入参：ID 查询请求
+     * 出参：删除结果
      */
     @PostMapping("/delete")
     public Result<Void> deleteTaskType(@Valid @RequestBody IdRequest request) {
-        // 调用应用服务删除
+        /*
+         * 目的：交由应用层完成删除与校验
+         */
         Long id = request.getId();
         IdQuery idQuery = new IdQuery(id);
         taskTypeAppService.deleteTaskType(idQuery);
@@ -157,11 +190,15 @@ public class TaskTypeController {
     /**
      * 转换为响应 DTO
      *
-     * @param taskType 任务类型实体
-     * @return 响应 DTO
+     * 为什么：输出层补充首选模型名称，提升前端展示体验
+     * 入参：任务类型实体
+     * 出参：响应 DTO
      */
     private TaskTypeResponse convertToResponse(TaskType taskType) {
-        // 查询首选模型名称
+        /*
+         * 目的：补充模型名称以便前端直接展示
+         * 约束：模型不存在时降级为 null，不阻断主流程
+         */
         String preferredModelName = null;
         Long preferredModelId = taskType.getPreferredModelId();
         if (preferredModelId != null) {
@@ -197,6 +234,7 @@ public class TaskTypeController {
     /**
      * 从请求 DTO 构建领域实体
      *
+     * 为什么：保持领域对象构建逻辑集中，便于统一校验
      * @param request 请求 DTO
      * @return 领域实体
      */

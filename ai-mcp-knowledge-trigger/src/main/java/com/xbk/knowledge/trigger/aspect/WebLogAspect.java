@@ -53,22 +53,25 @@ public class WebLogAspect {
     /**
      * 环绕通知：记录请求和响应信息
      *
+     * 为什么：统一请求/响应日志结构，确保排障时可关联 traceId 与耗时。
+     *
      * @param joinPoint 连接点
      * @return 方法返回值
      * @throws Throwable 异常
      */
     @Around("webLog()")
     public Object doAround(ProceedingJoinPoint joinPoint) throws Throwable {
+        // 目的：统一耗时统计口径
         long startTime = TimeCostUtils.start();
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
 
-        // 获取请求信息
+        // 目的：获取请求上下文与 traceId，保证日志可追踪
         HttpServletRequest request = attributes != null ? attributes.getRequest() : null;
         String traceId = TraceIdUtils.getOrCreateTraceId();
 
         RequestContext requestContext = buildRequestContext(joinPoint, request);
 
-        // 必须在 finally 里记录日志，确保异常场景也能收集到请求上下文
+        // 约束：必须在 finally 里记录日志，确保异常场景也能收集到请求上下文
         Object result = null;
         Throwable exception = null;
         try {
@@ -86,6 +89,8 @@ public class WebLogAspect {
     /**
      * 构建请求上下文
      * 使用简化类名与方法名，避免日志过长且便于定位
+     *
+     * 为什么：保持日志字段稳定且可读，降低检索成本。
      */
     private RequestContext buildRequestContext(ProceedingJoinPoint joinPoint, HttpServletRequest request) {
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
@@ -110,6 +115,8 @@ public class WebLogAspect {
     /**
      * 记录请求与响应信息
      * 保持一条日志输出，便于 ELK 聚合检索
+     *
+     * 为什么：避免多条日志分散导致上下文难以拼接。
      *
      * @param requestContext 请求上下文
      * @param result    返回结果
@@ -145,6 +152,8 @@ public class WebLogAspect {
      * 避免日志过长，对大对象进行截断
      * 过滤 Servlet 原生对象，避免日志污染和序列化异常
      *
+     * 为什么：保证日志可解析且不会因大对象导致日志爆量。
+     *
      * @param args 参数数组
      * @return 格式化后的参数字符串
      */
@@ -170,6 +179,8 @@ public class WebLogAspect {
      * 避免日志过长，对大对象进行截断
      * 截断时保持 JSON 结构，方便下游解析
      *
+     * 为什么：兼顾可读性与机器可解析性。
+     *
      * @param result 返回结果
      * @return 格式化后的响应 JSON
      */
@@ -189,7 +200,7 @@ public class WebLogAspect {
         if (json.length() <= maxLength) {
             return json;
         }
-        // 采用统一包装，确保截断后仍是合法 JSON
+        // 约束：采用统一包装，确保截断后仍是合法 JSON
         TruncatedPayload payload = new TruncatedPayload(true, truncate(json, maxLength));
         return toJsonString(payload);
     }
@@ -206,12 +217,15 @@ public class WebLogAspect {
         if (query == null || query.isEmpty()) {
             return url.toString();
         }
+        // 目的：拼接查询参数，便于还原完整访问路径
         return url.append('?').append(query).toString();
     }
 
     /**
      * 对象转 JSON 字符串
      * 序列化失败时回退为 toString，避免影响主流程
+     *
+     * 为什么：日志记录不应影响接口主流程。
      *
      * @param obj 对象
      * @return JSON 字符串

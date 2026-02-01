@@ -18,6 +18,8 @@ public class ModelIdQuery {
 
     /**
      * 模型ID
+     *
+     * 为什么：用于按模型维度筛选
      */
     private Long modelId;
 }

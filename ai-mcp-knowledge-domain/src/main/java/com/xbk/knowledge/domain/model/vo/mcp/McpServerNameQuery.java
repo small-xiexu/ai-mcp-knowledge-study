@@ -18,6 +18,8 @@ public class McpServerNameQuery {
 
     /**
      * MCP Server 名称
+     *
+     * 为什么：用于唯一性校验与定位配置
      */
     private String serverName;
 }

@@ -19,6 +19,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class OpenAIModelProvider extends AbstractOpenAiProtocolAdapter implements ModelProvider {
 
+    /**
+     * 构建 ChatModel
+     *
+     * 为什么：统一捕获 SDK 异常并输出可读日志
+     * 入参：模型配置
+     * 出参：ChatModel
+     */
     @Override
     public ChatModel createChatModel(ModelConfig config) {
         try {
@@ -32,6 +39,10 @@ public class OpenAIModelProvider extends AbstractOpenAiProtocolAdapter implement
 
     /**
      * 对外暴露 createChatClient 作为调用入口，便于上层复用。
+     *
+     * 为什么：统一创建 ChatClient，避免上层重复构建
+     * 入参：模型配置
+     * 出参：ChatClient
      */
     @Override
     public ChatClient createChatClient(ModelConfig config) {
@@ -43,6 +54,10 @@ public class OpenAIModelProvider extends AbstractOpenAiProtocolAdapter implement
 
     /**
      * 对外暴露 getModelType 作为调用入口，便于上层复用。
+     *
+     * 为什么：工厂需要根据类型路由 Provider
+     * 入参：无
+     * 出参：模型类型
      */
     @Override
     public ModelType getModelType() {
@@ -51,11 +66,17 @@ public class OpenAIModelProvider extends AbstractOpenAiProtocolAdapter implement
 
     /**
      * 对外暴露 isHealthy 作为调用入口，便于上层复用。
+     *
+     * 为什么：快速验证模型配置可用性
+     * 入参：模型配置
+     * 出参：是否健康
      */
     @Override
     public boolean isHealthy(ModelConfig config) {
         try {
-            // 简单的健康检查：尝试创建客户端
+            /*
+             * 目的：通过创建模型验证配置有效性
+             */
             createChatModel(config);
             return true;
         } catch (Exception e) {

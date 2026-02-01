@@ -35,7 +35,10 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
 
     /**
      * 分页查询模型配置
-     * 负责应用层用例编排，调用领域服务获取分页结果
+     *
+     * 为什么：统一分页入口，隔离应用层与领域层的查询协议
+     * 入参：分页查询对象
+     * 出参：分页结果
      */
     @Override
     public PageResult<ModelConfig> queryModelConfigPage(ModelConfigPageQuery query) {
@@ -44,7 +47,10 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
 
     /**
      * 根据 ID 查询模型配置
-     * 负责应用层用例编排，调用领域服务获取模型详情
+     *
+     * 为什么：通过应用层统一入口获取详情，便于后续扩展校验
+     * 入参：ID 查询对象
+     * 出参：模型配置
      */
     @Override
     public ModelConfig queryModelConfigById(IdQuery query) {
@@ -53,7 +59,10 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
 
     /**
      * 创建模型配置
-     * 负责应用层事务边界编排，确保创建操作一致性
+     *
+     * 为什么：由应用层控制事务边界，保证创建一致性
+     * 入参：模型配置实体
+     * 出参：持久化后的模型配置
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -63,7 +72,10 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
 
     /**
      * 更新模型配置
-     * 负责应用层事务边界编排，确保更新操作一致性
+     *
+     * 为什么：由应用层控制事务边界，保证更新一致性
+     * 入参：模型配置实体
+     * 出参：更新后的模型配置
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -73,7 +85,10 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
 
     /**
      * 删除模型配置
-     * 负责应用层事务边界编排，确保删除操作一致性
+     *
+     * 为什么：由应用层控制事务边界，保证删除一致性
+     * 入参：ID 查询对象
+     * 出参：无
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -83,7 +98,10 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
 
     /**
      * 启用模型
-     * 负责应用层事务边界编排，确保启用操作一致性
+     *
+     * 为什么：由应用层控制事务边界，保证启用一致性
+     * 入参：ID 查询对象
+     * 出参：启用后的模型配置
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -93,7 +111,10 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
 
     /**
      * 禁用模型
-     * 负责应用层事务边界编排，确保禁用操作一致性
+     *
+     * 为什么：由应用层控制事务边界，保证禁用一致性
+     * 入参：ID 查询对象
+     * 出参：禁用后的模型配置
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -103,7 +124,10 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
 
     /**
      * 查询所有启用的模型
-     * 负责应用层用例编排，调用领域服务返回启用模型列表
+     *
+     * 为什么：提供启用模型集合供调度或推荐使用
+     * 入参：启用状态查询对象
+     * 出参：启用模型列表
      */
     @Override
     public List<ModelConfig> queryEnabledModels(EnabledQuery query) {
@@ -112,7 +136,10 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
 
     /**
      * 获取推荐模型
-     * 负责应用层用例编排，调用领域服务返回推荐模型
+     *
+     * 为什么：按任务类型推荐模型，统一由应用层协调
+     * 入参：任务类型查询对象
+     * 出参：推荐模型
      */
     @Override
     public ModelConfig getRecommendedModel(TaskTypeQuery query) {
@@ -121,7 +148,10 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
 
     /**
      * 获取当前激活的对话模型
-     * 使用激活配置表记录当前对话模型
+     *
+     * 为什么：激活模型由独立配置表维护，便于全局读取
+     * 入参：无
+     * 出参：当前激活的对话模型
      */
     @Override
     public ModelConfig getActiveChatModel() {
@@ -129,13 +159,19 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
         if (activation == null || activation.getChatModelId() == null) {
             return null;
         }
+        /*
+         * 目的：通过配置表反查当前激活模型
+         */
         IdQuery query = new IdQuery(activation.getChatModelId());
         return modelConfigService.queryModelConfigById(query);
     }
 
     /**
      * 获取当前激活的嵌入模型
-     * 使用激活配置表记录当前嵌入模型
+     *
+     * 为什么：激活模型由独立配置表维护，便于全局读取
+     * 入参：无
+     * 出参：当前激活的嵌入模型
      */
     @Override
     public ModelConfig getActiveEmbeddingModel() {
@@ -143,13 +179,19 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
         if (activation == null || activation.getEmbeddingModelId() == null) {
             return null;
         }
+        /*
+         * 目的：通过配置表反查当前激活模型
+         */
         IdQuery query = new IdQuery(activation.getEmbeddingModelId());
         return modelConfigService.queryModelConfigById(query);
     }
 
     /**
      * 激活对话模型
-     * 通过更新激活表保证同一时刻只有一个对话模型
+     *
+     * 为什么：通过激活表保证同一时刻只有一个对话模型
+     * 入参：ID 查询对象
+     * 出参：激活后的模型配置
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -158,6 +200,9 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
         if (modelConfig == null) {
             return null;
         }
+        /*
+         * 目的：保留当前嵌入模型配置，避免覆盖
+         */
         ModelActivation existing = modelActivationRepository.queryActivation();
         Long embeddingModelId = existing != null ? existing.getEmbeddingModelId() : null;
         ModelActivation activation = ModelActivation.builder()
@@ -170,7 +215,10 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
 
     /**
      * 激活嵌入模型
-     * 通过更新激活表保证同一时刻只有一个嵌入模型
+     *
+     * 为什么：通过激活表保证同一时刻只有一个嵌入模型
+     * 入参：ID 查询对象
+     * 出参：激活后的模型配置
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -183,6 +231,9 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
         if (modelType != ModelType.OPENAI && modelType != ModelType.OLLAMA) {
             throw new IllegalArgumentException("当前模型类型不支持作为嵌入模型");
         }
+        /*
+         * 目的：保留当前对话模型配置，避免覆盖
+         */
         ModelActivation existing = modelActivationRepository.queryActivation();
         Long chatModelId = existing != null ? existing.getChatModelId() : null;
         ModelActivation activation = ModelActivation.builder()
@@ -195,7 +246,10 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
 
     /**
      * 测试模型配置连接
-     * 通过 Provider 健康检查验证连接可用性
+     *
+     * 为什么：统一通过 Provider 检查健康度，避免不同调用方实现不一致
+     * 入参：模型配置
+     * 出参：健康检查结果
      */
     @Override
     public boolean testModelConnection(ModelConfig modelConfig) {

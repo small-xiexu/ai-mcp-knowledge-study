@@ -25,109 +25,126 @@ public interface ModelConfigMapper extends BaseMapper<ModelConfig> {
     /**
      * 新增模型配置
      *
-     * @param modelConfig 模型配置
-     * @return 影响行数
+     * 为什么：落库模型配置
+     * 入参：模型配置
+     * 出参：影响行数
      */
     int insertModelConfig(ModelConfig modelConfig);
 
     /**
      * 更新模型配置
      *
-     * @param modelConfig 模型配置
-     * @return 影响行数
+     * 为什么：更新模型配置字段
+     * 入参：模型配置
+     * 出参：影响行数
      */
     int updateModelConfig(ModelConfig modelConfig);
 
     /**
      * 删除模型配置
      *
-     * @param query ID 查询条件
-     * @return 影响行数
+     * 为什么：清理无效配置
+     * 入参：ID 查询条件
+     * 出参：影响行数
      */
     int deleteModelConfigById(IdQuery query);
 
     /**
      * 根据ID查询模型配置
      *
-     * @param query ID 查询条件
-     * @return 模型配置
+     * 为什么：按唯一 ID 获取配置
+     * 入参：ID 查询条件
+     * 出参：模型配置
      */
     ModelConfig findById(IdQuery query);
 
     /**
      * 根据ID查询模型配置（包含能力）
      *
-     * @param query ID 查询条件
-     * @return 模型配置
+     * 为什么：详情展示需要能力信息
+     * 入参：ID 查询条件
+     * 出参：模型配置
      */
     ModelConfig findByIdWithCapability(IdQuery query);
 
     /**
      * 根据模型名称查询模型配置
      *
-     * @param query 模型名称查询条件
-     * @return 模型配置
+     * 为什么：用于唯一性校验
+     * 入参：模型名称查询条件
+     * 出参：模型配置
      */
     ModelConfig findByModelName(ModelNameQuery query);
 
     /**
      * 根据模型类型和启用状态查询模型配置
      *
-     * @param query 模型类型与启用状态查询条件
-     * @return 模型配置列表
+     * 为什么：按类型与状态筛选
+     * 入参：模型类型与启用状态查询条件
+     * 出参：模型配置列表
      */
     List<ModelConfig> findByModelTypeAndEnabled(ModelTypeEnabledQuery query);
 
     /**
      * 根据启用状态查询模型配置
      *
-     * @param query 启用状态查询条件
-     * @return 模型配置列表
+     * 为什么：按启用状态筛选
+     * 入参：启用状态查询条件
+     * 出参：模型配置列表
      */
     List<ModelConfig> findByEnabled(EnabledQuery query);
 
     /**
      * 查询所有启用的模型配置
      *
-     * @return 模型配置列表
+     * 为什么：获取全量可用模型
+     * 入参：无
+     * 出参：模型配置列表
      */
     List<ModelConfig> findEnabledTrue();
 
     /**
      * 查询所有启用的模型配置，按优先级降序排序
      *
-     * @param query 启用状态查询条件
-     * @return 模型配置列表
+     * 为什么：用于优先级排序
+     * 入参：启用状态查询条件
+     * 出参：模型配置列表
      */
     List<ModelConfig> findByEnabledOrderByPriorityDesc(EnabledQuery query);
 
     /**
      * 查询所有启用的模型配置并加载能力
      *
-     * @return 模型配置列表
+     * 为什么：提供能力信息
+     * 入参：无
+     * 出参：模型配置列表
      */
     List<ModelConfig> findEnabledTrueWithCapability();
 
     /**
      * 根据ID列表查询启用的模型配置
      *
-     * @param query 模型ID列表查询条件
-     * @return 模型配置列表
+     * 为什么：按指定 ID 集合筛选可用模型
+     * 入参：模型ID列表查询条件
+     * 出参：模型配置列表
      */
     List<ModelConfig> findEnabledByIds(EnabledIdsQuery query);
 
     /**
      * 查询模型配置分页数据（包含能力）
      *
-     * @param query 分页查询条件
-     * @return 模型配置列表
+     * 为什么：分页展示需要能力信息
+     * 入参：分页查询条件
+     * 出参：模型配置列表
      */
     List<ModelConfig> findPageWithCapability(ModelConfigPageQuery query);
 
     /**
      * 统计模型配置总数
      *
-     * @return 总数
+     * 为什么：分页展示需要总数
+     * 入参：无
+     * 出参：总数
      */
     long countAll();
 }

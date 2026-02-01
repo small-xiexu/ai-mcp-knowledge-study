@@ -31,6 +31,10 @@ public class TaskTypeRepositoryImpl implements TaskTypeRepository {
     /**
      * 按任务编码查询
      * 用于唯一性校验与业务定位
+     *
+     * 为什么：编码用于唯一性校验
+     * 入参：任务编码查询条件
+     * 出参：任务类型
      */
     @Override
     public Optional<TaskType> findByTaskCode(TaskTypeCodeQuery query) {
@@ -44,6 +48,10 @@ public class TaskTypeRepositoryImpl implements TaskTypeRepository {
     /**
      * 按 ID 查询任务类型
      * 用于详情展示与编辑加载
+     *
+     * 为什么：按唯一 ID 定位任务类型
+     * 入参：ID 查询条件
+     * 出参：任务类型
      */
     @Override
     public Optional<TaskType> findById(IdQuery query) {
@@ -57,6 +65,10 @@ public class TaskTypeRepositoryImpl implements TaskTypeRepository {
     /**
      * 保存任务类型
      * 统一插入与更新逻辑并补齐时间戳
+     *
+     * 为什么：统一新增与更新入口
+     * 入参：任务类型聚合
+     * 出参：保存后的聚合
      */
     @Override
     public TaskTypeAggregate save(TaskTypeAggregate aggregate) {
@@ -87,6 +99,10 @@ public class TaskTypeRepositoryImpl implements TaskTypeRepository {
     /**
      * 判断任务类型是否存在
      * 用于删除与更新前置校验
+     *
+     * 为什么：避免更新/删除不存在的数据
+     * 入参：ID 查询条件
+     * 出参：是否存在
      */
     @Override
     public boolean existsById(IdQuery query) {
@@ -99,6 +115,10 @@ public class TaskTypeRepositoryImpl implements TaskTypeRepository {
     /**
      * 删除任务类型
      * 允许空 ID 直接返回，避免无效调用
+     *
+     * 为什么：清理无效配置
+     * 入参：ID 查询条件
+     * 出参：无
      */
     @Override
     public void deleteById(IdQuery query) {
@@ -111,6 +131,10 @@ public class TaskTypeRepositoryImpl implements TaskTypeRepository {
     /**
      * 分页查询任务类型
      * 用于配置管理列表展示
+     *
+     * 为什么：控制单次返回数量
+     * 入参：分页查询条件
+     * 出参：任务类型列表
      */
     @Override
     public List<TaskType> findPage(TaskTypePageQuery query) {
@@ -123,6 +147,10 @@ public class TaskTypeRepositoryImpl implements TaskTypeRepository {
     /**
      * 统计任务类型总数
      * 用于分页统计
+     *
+     * 为什么：分页展示需要总数
+     * 入参：无
+     * 出参：总数
      */
     @Override
     public long countAll() {

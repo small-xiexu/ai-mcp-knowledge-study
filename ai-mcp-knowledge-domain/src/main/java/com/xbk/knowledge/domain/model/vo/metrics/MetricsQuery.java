@@ -20,21 +20,29 @@ public class MetricsQuery {
 
     /**
      * 模型 ID（可选）
+     *
+     * 为什么：按模型维度统计
      */
     private Long modelId;
 
     /**
      * 任务类型（可选）
+     *
+     * 为什么：按任务类型维度统计
      */
     private String taskType;
 
     /**
      * 开始时间（可选）
+     *
+     * 为什么：限定统计时间范围
      */
     private LocalDateTime startTime;
 
     /**
      * 结束时间（可选）
+     *
+     * 为什么：限定统计时间范围
      */
     private LocalDateTime endTime;
 }

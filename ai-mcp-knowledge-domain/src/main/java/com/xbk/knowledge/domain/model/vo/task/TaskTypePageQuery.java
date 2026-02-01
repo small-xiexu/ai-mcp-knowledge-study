@@ -18,11 +18,15 @@ public class TaskTypePageQuery {
 
     /**
      * 偏移量
+     *
+     * 为什么：用于分页计算起始位置
      */
     private Integer offset;
 
     /**
      * 每页大小
+     *
+     * 为什么：控制单次返回数量
      */
     private Integer pageSize;
 }

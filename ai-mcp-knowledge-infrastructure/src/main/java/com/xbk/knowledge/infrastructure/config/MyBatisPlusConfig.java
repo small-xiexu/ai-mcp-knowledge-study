@@ -20,7 +20,9 @@ public class MyBatisPlusConfig {
      * MyBatis-Plus 拦截器链
      * 仅启用分页拦截器
      *
-     * @return 拦截器实例
+     * 为什么：统一分页能力，避免各处手写分页 SQL
+     * 入参：无
+     * 出参：拦截器实例
      */
     @Bean
     public MybatisPlusInterceptor mybatisPlusInterceptor() {

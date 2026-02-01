@@ -19,6 +19,8 @@ public class CallStatusQuery {
 
     /**
      * 调用状态
+     *
+     * 为什么：按成功/失败状态过滤
      */
     private CallStatus status;
 }

@@ -21,10 +21,14 @@ public abstract class AbstractOpenAiProtocolAdapter {
     /**
      * 创建基于 OpenAI 协议的 ChatModel
      *
-     * @param config 模型配置
-     * @return ChatModel
+     * 为什么：统一封装 OpenAI 协议模型创建逻辑
+     * 入参：模型配置
+     * 出参：ChatModel
      */
     public ChatModel createChatModel(ModelConfig config) {
+        /*
+         * 目的：规范化 baseUrl，避免路径重复
+         */
         String baseUrl = config.getBaseUrl();
         String normalizedBaseUrl = normalizeBaseUrl(baseUrl);
 
@@ -57,8 +61,9 @@ public abstract class AbstractOpenAiProtocolAdapter {
      * - /v1
      * - 末尾的斜杠
      *
-     * @param baseUrl 原始 baseUrl
-     * @return 规范化后的 baseUrl
+     * 为什么：避免 Spring AI 自动拼接导致重复路径
+     * 入参：原始 baseUrl
+     * 出参：规范化后的 baseUrl
      */
     protected String normalizeBaseUrl(String baseUrl) {
         if (baseUrl == null || baseUrl.isEmpty()) {

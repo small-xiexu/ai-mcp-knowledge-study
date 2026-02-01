@@ -24,7 +24,10 @@ public class AuditAppServiceImpl implements AuditAppService {
 
     /**
      * 分页查询审计日志
-     * 负责应用层用例编排，调用领域服务获取审计分页
+     *
+     * 为什么：统一审计查询入口，隔离应用层与领域层协议
+     * 入参：审计查询对象
+     * 出参：分页结果
      */
     @Override
     public PageResult<ConfigAudit> queryAuditPage(AuditQuery query) {
@@ -33,6 +36,10 @@ public class AuditAppServiceImpl implements AuditAppService {
 
     /**
      * 查询所有可用表名
+     *
+     * 为什么：提供筛选维度给前端
+     * 入参：无
+     * 出参：表名列表
      */
     @Override
     public List<String> listTableNames() {

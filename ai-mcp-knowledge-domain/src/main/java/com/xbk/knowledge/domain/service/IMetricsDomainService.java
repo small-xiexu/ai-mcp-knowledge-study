@@ -21,32 +21,36 @@ public interface IMetricsDomainService {
     /**
      * 统计调用次数指标
      *
-     * @param query 指标查询条件
-     * @return 调用次数统计
+     * 为什么：为监控面板提供基础统计数据
+     * 入参：指标查询条件
+     * 出参：调用次数统计
      */
     CallMetrics collectCallMetrics(MetricsQuery query);
 
     /**
      * 统计成功率指标
      *
-     * @param query 指标查询条件
-     * @return 成功率统计
+     * 为什么：为监控面板提供成功率统计
+     * 入参：指标查询条件
+     * 出参：成功率统计
      */
     SuccessRate collectSuccessRate(MetricsQuery query);
 
     /**
      * 统计响应时间指标
      *
-     * @param query 指标查询条件
-     * @return 响应时间统计
+     * 为什么：为监控面板提供响应时间统计
+     * 入参：指标查询条件
+     * 出参：响应时间统计
      */
     ResponseTime collectResponseTime(MetricsQuery query);
 
     /**
      * 统计模型使用分布
      *
-     * @param query 模型使用查询条件
-     * @return 模型使用分布列表
+     * 为什么：为监控面板提供模型使用分布
+     * 入参：模型使用查询条件
+     * 出参：模型使用分布列表
      */
     List<ModelUsage> collectModelUsage(ModelUsageQuery query);
 }

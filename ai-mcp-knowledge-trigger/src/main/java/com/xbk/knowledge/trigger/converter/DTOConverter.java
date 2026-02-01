@@ -22,6 +22,8 @@ public class DTOConverter {
 
     /**
      * API AIRequest -> 应用层 AICallCommand
+     *
+     * 为什么：接口层只做字段映射，避免引入业务逻辑导致边界污染。
      */
     public static AICallCommand toAppAICallCommand(AIRequest api) {
         if (api == null) {
@@ -52,6 +54,8 @@ public class DTOConverter {
 
     /**
      * 应用层 AICallResult -> API AIResponse
+     *
+     * 为什么：统一响应字段映射，保证对外返回结构稳定。
      */
     public static AIResponse toApiAIResponse(AICallResult result) {
         if (result == null) {
@@ -79,6 +83,8 @@ public class DTOConverter {
 
     /**
      * ModelCapability -> ModelCapabilityDTO
+     *
+     * 为什么：隔离领域对象与传输对象，避免泄漏内部模型结构。
      */
     public static ModelCapabilityDTO toApiModelCapability(ModelCapability capability) {
         if (capability == null) {

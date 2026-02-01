@@ -18,6 +18,8 @@ public class EnabledQuery {
 
     /**
      * 是否启用
+     *
+     * 为什么：统一承载启用状态筛选条件
      */
     private Boolean enabled;
 }

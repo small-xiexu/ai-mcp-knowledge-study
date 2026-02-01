@@ -64,11 +64,11 @@ Trigger → Application → Domain → Infrastructure
 - **Domain 只承载业务规则与模型**  
 - **Infrastructure 只做技术实现与适配**
 
-模块映射关系：
+模块映射关系（后端）：
 
 | DDD 层 | 模块 | 作用 |
 | --- | --- | --- |
-| Interface Adapter | `ai-mcp-knowledge-trigger` | Controller 接口、DTO 转换 |
+| Interface Adapter | `ai-mcp-knowledge-trigger` | HTTP Controller、定时任务、DTO 转换 |
 | Application | `ai-mcp-knowledge-application` | 用例编排、策略选择、事务边界 |
 | Domain | `ai-mcp-knowledge-domain` | 领域模型、领域服务、仓储接口 |
 | Infrastructure | `ai-mcp-knowledge-infrastructure` | 技术实现、第三方调用、持久化 |
@@ -77,6 +77,36 @@ Trigger → Application → Domain → Infrastructure
 - `ai-mcp-knowledge-api`：接口 DTO 定义（请求/响应模型）
 - `ai-mcp-knowledge-types`：通用类型、枚举、Result、TraceId
 - `ai-mcp-knowledge-app`：Spring Boot 启动与装配
+
+### 3.3 后端核心链路（精选）
+
+> 目标：从“调用入口 → 编排 → 领域规则 → 基础设施”看清关键流程与类的落点。
+
+1) **AI 调用主链路（模型选择 + 调用执行）**
+   - 入口：Trigger 层 `AI` Controller（`/api/ai/chat`）
+   - 编排：`AIModelServiceImpl`（Application）
+   - 选择：`ModelSelectionChain`（显式策略 → 任务类型 → 默认兜底）
+   - 执行：`ModelCallExecutor`（装饰器计时 + 默认执行器）
+   - 组装：`ChatClientAssemblyService` + `ChatClientEnhancer`
+   - 结果：调用日志写入 / 指标统计更新
+
+2) **MCP Server 配置链路（管理 + 运行时）**
+   - 配置管理：`McpServerConfigController` → `McpServerConfigAppServiceImpl`
+   - 领域规则：`IMcpServerConfigService`（Domain）
+   - 持久化：Infrastructure 仓储（MyBatis/Mapper）
+   - 运行时：`McpServerRuntimeService` 负责注册/更新/下线
+   - 启动引导：`McpServerRuntimeBootstrap` 启动后刷新启用配置
+
+3) **MCP CSDN 定时任务链路（文章发布 + 微信通知）**
+   - 入口：`MCPServerCSDNJob`（Trigger 定时任务）
+   - 组装：`ChatClientAssemblyService`（Application）
+   - 增强：`ChatClientEnhancer` 注入工具与 Advisors
+   - 记忆：`PromptChatMemoryAdvisor`（任务级会话记忆）
+   - 持久化：`ChatMemory` → `RedisChatMemoryRepository`（Redis + TTL）
+
+4) **Redis 记忆与 Key 治理**
+   - 记忆存储：`RedisChatMemoryRepository` 按 `ChatHistoryProperties.retentionDays` 设置 TTL
+   - Key 集中：`ChatRedisKeys` / `XxlJobRedisKeys` 统一管理 Redis Key
 
 ## 4. 术语落地：本项目里每个概念是什么
 
@@ -282,12 +312,14 @@ flowchart TB
 ## 8. DDD 与 MCP 的结合（本项目特色）
 
 在本项目中，MCP 工具调用属于“外部能力协同”，当前实现为：
-- **MCP 调用示例** 位于 Trigger 的定时任务中（`MCPServerCSDNJob`），直接编排 ChatClient 与工具调用
-- **MCP Tool 的具体实现** 仍属于 Infrastructure（外部系统适配）
-- **调用链路日志与审计** 属于 Domain 规则（存储模型）
+- **MCP 调用示例** 位于 Trigger 定时任务中（`MCPServerCSDNJob`），通过 `ChatClientAssemblyService` 组装模型与工具
+- **MCP Server 配置管理** 位于 Application + Domain（`McpServerConfigAppServiceImpl` / `IMcpServerConfigService`）
+- **运行时注册与热更新** 由 `McpServerRuntimeService` 承担，启动时由 `McpServerRuntimeBootstrap` 刷新
+- **工具回调注入** 在 `ChatClientEnhancer` 完成（ToolCallbackProvider + Advisors）
+- **任务级对话记忆** 在 Job 中显式注入 `PromptChatMemoryAdvisor`，并在任务结束时清理 Redis 会话
 
 说明：
-- 如需更严格的分层，可将 MCP 调用编排迁移到 Application，用 Trigger 仅做适配
+- 若需更严格分层，可将“定时任务的业务编排”进一步下沉到 Application，用 Trigger 仅保留触发入口
 
 ## 9. DDD 实战练习（建议按顺序完成）
 

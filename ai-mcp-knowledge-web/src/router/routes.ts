@@ -42,6 +42,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '任务策略', icon: 'List' }
       },
       {
+        path: 'xxl',
+        name: 'XxlAdmin',
+        component: () => import('@/views/xxl/index.vue'),
+        meta: { title: '任务中心', icon: 'Timer' }
+      },
+      {
         path: 'mcp-servers',
         name: 'McpServers',
         component: () => import('@/views/mcp/index.vue'),

@@ -31,47 +31,65 @@ public class ChatMessage {
 
     /**
      * 主键ID
+     *
+     * 为什么：用于持久化唯一标识
      */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
      * 会话ID
+     *
+     * 为什么：标识消息所属会话
      */
     private Long sessionId;
 
     /**
      * 消息角色(user/assistant)
+     *
+     * 为什么：区分消息来源
      */
     private String role;
 
     /**
      * 消息内容
+     *
+     * 为什么：记录对话内容
      */
     private String content;
 
     /**
      * 实际使用的模型ID
+     *
+     * 为什么：记录调用时使用的模型
      */
     private Long modelId;
 
     /**
      * 提示词 token 数
+     *
+     * 为什么：用于成本统计与限额控制
      */
     private Integer promptTokens;
 
     /**
      * 输出 token 数
+     *
+     * 为什么：用于成本统计与限额控制
      */
     private Integer completionTokens;
 
     /**
      * 总 token 数
+     *
+     * 为什么：便于统一统计
      */
     private Integer totalTokens;
 
     /**
      * 创建时间
+     *
+     * 为什么：用于时序分析与审计
      */
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;

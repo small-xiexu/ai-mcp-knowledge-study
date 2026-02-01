@@ -33,6 +33,10 @@ public class RagController {
 
     /**
      * 查询知识库标签列表
+     *
+     * 为什么：前端需要下拉选择已存在的标签
+     * 入参：无
+     * 出参：标签列表
      */
     @PostMapping("/tags")
     public Result<List<String>> listTags() {
@@ -42,6 +46,10 @@ public class RagController {
 
     /**
      * 删除知识库标签
+     *
+     * 为什么：释放不再使用的知识库标签与向量资源
+     * 入参：RAG 标签
+     * 出参：删除结果
      */
     @PostMapping("/delete")
     public Result<Boolean> deleteTag(@RequestParam("ragTag") String ragTag) {
@@ -51,6 +59,10 @@ public class RagController {
 
     /**
      * 统计标签向量数量
+     *
+     * 为什么：展示知识库规模，便于评估检索覆盖度
+     * 入参：RAG 标签
+     * 出参：向量数量
      */
     @PostMapping("/count")
     public Result<Long> countTag(@RequestParam("ragTag") String ragTag) {
@@ -60,6 +72,10 @@ public class RagController {
 
     /**
      * 上传知识库文件
+     *
+     * 为什么：允许同步导入文档，适合小文件或即时入库
+     * 入参：RAG 标签 + 文件列表
+     * 出参：上传结果
      */
     @PostMapping(value = "/upload", headers = "content-type=multipart/form-data")
     public Result<Boolean> uploadFile(@RequestParam("ragTag") String ragTag,
@@ -70,6 +86,10 @@ public class RagController {
 
     /**
      * 异步上传知识库文件
+     *
+     * 为什么：大文件或批量导入需要异步任务，避免阻塞接口
+     * 入参：RAG 标签 + 文件列表
+     * 出参：异步任务 ID
      */
     @PostMapping(value = "/upload/async", headers = "content-type=multipart/form-data")
     public Result<String> uploadFileAsync(@RequestParam("ragTag") String ragTag,
@@ -80,6 +100,10 @@ public class RagController {
 
     /**
      * 分析 Git 仓库
+     *
+     * 为什么：支持直接从仓库构建知识库，减少手动上传
+     * 入参：仓库地址、账号、Token、RAG 标签
+     * 出参：异步任务 ID
      */
     @PostMapping("/analyze")
     public Result<String> analyzeGitRepository(@Valid @RequestBody RagGitAnalyzeRequest request) {
@@ -94,6 +118,10 @@ public class RagController {
 
     /**
      * 查询任务进度
+     *
+     * 为什么：异步任务需要轮询进度展示
+     * 入参：任务 ID
+     * 出参：任务状态详情
      */
     @PostMapping("/task/progress")
     public Result<RagTaskResponse> queryTask(@Valid @RequestBody RagTaskIdRequest request) {
@@ -107,6 +135,10 @@ public class RagController {
 
     /**
      * 取消任务
+     *
+     * 为什么：长任务可被终止，节省资源
+     * 入参：任务 ID
+     * 出参：取消结果
      */
     @PostMapping("/task/cancel")
     public Result<Boolean> cancelTask(@Valid @RequestBody RagTaskIdRequest request) {
@@ -116,6 +148,10 @@ public class RagController {
 
     /**
      * 重试任务
+     *
+     * 为什么：失败任务可基于同一配置重新执行
+     * 入参：任务 ID
+     * 出参：新任务 ID
      */
     @PostMapping("/task/retry")
     public Result<String> retryTask(@Valid @RequestBody RagTaskIdRequest request) {
@@ -125,6 +161,10 @@ public class RagController {
 
     /**
      * 查询任务列表
+     *
+     * 为什么：前端展示最近任务与状态，需分页以控制响应大小
+     * 入参：分页请求
+     * 出参：任务列表分页结果
      */
     @PostMapping("/task/list")
     public Result<PageResult<RagTaskResponse>> listTasks(@Valid @RequestBody RagTaskQueryRequest request) {
@@ -137,6 +177,9 @@ public class RagController {
     }
 
     private RagTaskResponse toResponse(RagTask task) {
+        /*
+         * 目的：统一 DTO 映射入口，屏蔽领域实体细节
+         */
         return RagTaskResponse.builder()
                 .taskId(task.getTaskId())
                 .type(task.getType())

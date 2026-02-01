@@ -18,6 +18,10 @@ public class MyBatisMetaObjectHandler implements MetaObjectHandler {
 
     /**
      * 对外暴露 insertFill 作为调用入口，便于上层复用。
+     *
+     * 为什么：统一补齐创建/更新时间，避免各处重复设置
+     * 入参：元对象
+     * 出参：无
      */
     @Override
     public void insertFill(MetaObject metaObject) {
@@ -28,6 +32,10 @@ public class MyBatisMetaObjectHandler implements MetaObjectHandler {
 
     /**
      * 对外暴露 updateFill 作为调用入口，便于上层复用。
+     *
+     * 为什么：统一补齐更新时间，保持审计一致
+     * 入参：元对象
+     * 出参：无
      */
     @Override
     public void updateFill(MetaObject metaObject) {

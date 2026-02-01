@@ -37,12 +37,15 @@ public class AuditController {
     /**
      * 分页查询审计日志
      *
-     * @param request 查询参数
-     * @return 审计日志分页结果
+     * 为什么：审计数据量大，必须分页避免一次性拉取全量
+     * 入参：表名、分页、排序字段与顺序
+     * 出参：审计日志分页结果
      */
     @PostMapping("/list")
     public Result<PageResult<AuditResponse>> listAudits(@Valid @RequestBody AuditQueryRequest request) {
-        // 调用应用服务查询
+        /*
+         * 目的：将接口层请求转为领域查询对象，避免接口字段直接泄露到领域层
+         */
         String tableName = request.getTableName();
         int offset = request.getOffset();
         Integer pageSize = request.getPageSize();
@@ -57,6 +60,9 @@ public class AuditController {
         );
         PageResult<ConfigAudit> pageResult = auditAppService.queryAuditPage(query);
 
+        /*
+         * 目的：统一分页转换逻辑，确保输出与前端协议一致
+         */
         PageResult<AuditResponse> result = PageResultConverter.convert(pageResult, this::convertToResponse);
 
         return Result.success(result);
@@ -65,6 +71,8 @@ public class AuditController {
     /**
      * 查询所有可用表名
      *
+     * 为什么：前端筛选审计表时需要下拉数据源
+     * 入参：无
      * @return 表名列表
      */
     @PostMapping("/tables")
@@ -75,6 +83,8 @@ public class AuditController {
 
     /**
      * 转换为响应 DTO
+     *
+     * 为什么：输出层只暴露必要字段，避免领域实体直接暴露
      */
     private AuditResponse convertToResponse(ConfigAudit audit) {
         return new AuditResponse(

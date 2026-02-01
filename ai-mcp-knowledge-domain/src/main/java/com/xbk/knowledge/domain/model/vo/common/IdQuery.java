@@ -18,6 +18,8 @@ public class IdQuery {
 
     /**
      * 实体 ID
+     *
+     * 为什么：统一承载基于 ID 的查询条件
      */
     private Long id;
 }
