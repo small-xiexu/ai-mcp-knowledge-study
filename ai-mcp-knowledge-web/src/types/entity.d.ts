@@ -164,6 +164,9 @@ export interface RagTask {
   progress: number
   message?: string
   ragTag?: string
+  errorDetails?: string
+  retryCount?: number
+  parentTaskId?: string
   createdAt?: string
   updatedAt?: string
 }

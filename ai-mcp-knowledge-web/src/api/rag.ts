@@ -20,6 +20,18 @@ export const uploadRagFiles = (ragTag: string, files: File[]) => {
   })
 }
 
+export const uploadFilesAsync = (ragTag: string, files: File[]) => {
+  const formData = new FormData()
+  formData.append('ragTag', ragTag)
+  files.forEach(file => formData.append('file', file))
+  return request.post<string>('/ai/rag/upload/async', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
+}
+
+export const retryTask = (taskId: string) =>
+  request.post<string>('/ai/rag/task/retry', { taskId })
+
 export const analyzeGitRepository = (data: {
   repoUrl: string
   userName?: string

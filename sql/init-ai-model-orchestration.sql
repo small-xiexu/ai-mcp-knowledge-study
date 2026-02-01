@@ -188,11 +188,17 @@ CREATE TABLE ai_rag_task (
     progress INT DEFAULT 0 COMMENT '进度(0-100)',
     message VARCHAR(500) COMMENT '任务消息',
     rag_tag VARCHAR(100) COMMENT '知识库标签',
+    error_details TEXT COMMENT '失败详情（JSON格式）',
+    retry_count INT DEFAULT 0 COMMENT '任务级重试次数',
+    parent_task_id VARCHAR(64) COMMENT '父任务ID（重试任务）',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     UNIQUE KEY uk_task_id (task_id),
     INDEX idx_status (status),
-    INDEX idx_updated_at (updated_at)
+    INDEX idx_updated_at (updated_at),
+    INDEX idx_parent_task_id (parent_task_id),
+    INDEX idx_status_retry (status, retry_count),
+    INDEX idx_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='RAG 任务表';
 
 -- =====================================================

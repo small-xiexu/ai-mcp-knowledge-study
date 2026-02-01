@@ -66,6 +66,24 @@ public class RagTask {
     private String ragTag;
 
     /**
+     * 失败详情（JSON 格式）
+     * 存储失败文件的详细信息
+     */
+    private String errorDetails;
+
+    /**
+     * 任务级重试次数
+     * 仅用于任务级重试（手动重试或定时重试），不记录文件级重试次数
+     */
+    private Integer retryCount;
+
+    /**
+     * 父任务 ID
+     * 用于建立任务谱系，重试任务关联原任务
+     */
+    private String parentTaskId;
+
+    /**
      * 创建时间
      */
     @TableField(fill = FieldFill.INSERT)

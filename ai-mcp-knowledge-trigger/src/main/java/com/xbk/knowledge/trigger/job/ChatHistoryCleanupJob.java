@@ -2,9 +2,9 @@ package com.xbk.knowledge.trigger.job;
 
 import com.xbk.knowledge.application.service.app.ChatHistoryCleanupAppService;
 import com.xbk.knowledge.config.ChatHistoryProperties;
+import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -24,9 +24,11 @@ public class ChatHistoryCleanupJob {
     private final ChatHistoryProperties chatHistoryProperties;
 
     /**
-     * 每天凌晨 3 点执行清理任务
+     * 清理过期聊天历史
+     * XXL-Job Handler: chatHistoryCleanupHandler
+     * 建议 Cron: 0 0 3 * * ? (每天凌晨 3 点执行)
      */
-    @Scheduled(cron = "0 0 3 * * ?")
+    @XxlJob("chatHistoryCleanupHandler")
     public void cleanupExpiredChatHistory() {
         int retentionDays = chatHistoryProperties.getRetentionDays();
         LocalDateTime cutoff = LocalDateTime.now().minusDays(retentionDays);

@@ -1,9 +1,12 @@
 package com.xbk.knowledge.application.service.app.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xbk.knowledge.application.service.app.RagAppService;
 import com.xbk.knowledge.application.service.rag.RagTaskProcessor;
 import com.xbk.knowledge.application.service.rag.RagVectorStoreService;
 import com.xbk.knowledge.domain.model.entity.RagTask;
+import com.xbk.knowledge.domain.model.vo.FileProcessError;
 import com.xbk.knowledge.domain.repository.RagTaskRepository;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.enums.RagTaskStatus;
@@ -44,6 +47,7 @@ public class RagAppServiceImpl implements RagAppService {
     private final RagTaskRepository ragTaskRepository;
     private final RagTaskProcessor ragTaskProcessor;
     private final TokenTextSplitter tokenTextSplitter;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public List<String> listRagTags() {
@@ -116,6 +120,58 @@ public class RagAppServiceImpl implements RagAppService {
         return true;
     }
 
+    /**
+     * 异步上传文件（支持进度跟踪）
+     *
+     * @param ragTag 知识库标签
+     * @param files 文件列表
+     * @return 任务 ID
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public String uploadFilesAsync(String ragTag, List<MultipartFile> files) {
+        if (!StringUtils.hasText(ragTag) || CollectionUtils.isEmpty(files)) {
+            throw new IllegalArgumentException("标签和文件不能为空");
+        }
+
+        // 1. 验证文件
+        List<MultipartFile> validFiles = files.stream()
+                .filter(file -> file != null && !file.isEmpty())
+                .collect(Collectors.toList());
+
+        if (validFiles.isEmpty()) {
+            throw new IllegalArgumentException("没有有效的文件");
+        }
+
+        for (MultipartFile file : validFiles) {
+            String originalName = file.getOriginalFilename();
+            if (file.getSize() > MAX_FILE_SIZE_BYTES) {
+                throw new IllegalArgumentException("单文件大小超过 30MB: " + originalName);
+            }
+            if (!isSupportedFile(originalName)) {
+                throw new IllegalArgumentException("不支持的文件类型: " + originalName);
+            }
+        }
+
+        // 2. 创建任务
+        String taskId = UUID.randomUUID().toString();
+        RagTask task = RagTask.builder()
+                .taskId(taskId)
+                .type("FILE_UPLOAD")
+                .status(RagTaskStatus.PENDING)
+                .progress(0)
+                .message("任务已提交，共 " + validFiles.size() + " 个文件")
+                .ragTag(ragTag)
+                .build();
+        ragTaskRepository.create(task);
+
+        // 3. 异步处理
+        ragTaskProcessor.processFilesAsync(taskId, ragTag, validFiles);
+
+        log.info("文件上传任务已创建，taskId: {}, 文件数: {}", taskId, validFiles.size());
+        return taskId;
+    }
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String analyzeGitRepository(String repoUrl, String userName, String token, String ragTag) {
@@ -163,6 +219,65 @@ public class RagAppServiceImpl implements RagAppService {
         int safeOffset = Math.max(offset, 0);
         int pageNum = safeOffset / safePageSize + 1;
         return PageResult.of(tasks, total, pageNum, safePageSize);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public String retryTask(String taskId) {
+        RagTask task = ragTaskRepository.findByTaskId(taskId);
+        if (task == null) {
+            throw new IllegalArgumentException("任务不存在: " + taskId);
+        }
+
+        // 只有失败或部分成功的任务才能重试
+        if (task.getStatus() != RagTaskStatus.FAILED &&
+                task.getStatus() != RagTaskStatus.COMPLETED) {
+            throw new IllegalStateException("只有失败或部分成功的任务才能重试");
+        }
+
+        // 检查是否有失败详情
+        String errorDetails = task.getErrorDetails();
+        if (!StringUtils.hasText(errorDetails)) {
+            throw new IllegalStateException("任务没有失败详情，无法重试");
+        }
+
+        // 解析失败详情
+        List<FileProcessError> errors;
+        try {
+            errors = objectMapper.readValue(errorDetails,
+                    new TypeReference<List<FileProcessError>>() {});
+        } catch (Exception e) {
+            throw new IllegalStateException("解析失败详情失败", e);
+        }
+
+        if (errors.isEmpty()) {
+            throw new IllegalStateException("没有失败的文件需要重试");
+        }
+
+        // 创建新的重试任务
+        String newTaskId = UUID.randomUUID().toString();
+        int newRetryCount = (task.getRetryCount() == null ? 0 : task.getRetryCount()) + 1;
+
+        RagTask newTask = RagTask.builder()
+                .taskId(newTaskId)
+                .type(task.getType())
+                .status(RagTaskStatus.PENDING)
+                .progress(0)
+                .message("重试任务已提交，共 " + errors.size() + " 个文件")
+                .ragTag(task.getRagTag())
+                .retryCount(newRetryCount)
+                .parentTaskId(taskId)
+                .build();
+        ragTaskRepository.create(newTask);
+
+        log.info("任务重试已创建，原任务: {}, 新任务: {}, 失败文件数: {}, 重试次数: {}",
+                taskId, newTaskId, errors.size(), newRetryCount);
+
+        // 注意：这里简化处理，实际应该从失败详情中恢复文件并重试
+        // 由于 MultipartFile 无法从错误详情中恢复，这里只是创建任务记录
+        // 实际使用时需要配合定时任务或其他机制来处理
+
+        return newTaskId;
     }
 
     private boolean isSupportedFile(String fileName) {

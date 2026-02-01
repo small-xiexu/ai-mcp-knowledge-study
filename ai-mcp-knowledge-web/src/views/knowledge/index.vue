@@ -41,7 +41,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox, type UploadUserFile } from 'element-plus'
-import { listRagTags, countRagTag, deleteRagTag, uploadRagFiles } from '@/api/rag'
+import { listRagTags, countRagTag, deleteRagTag, uploadFilesAsync } from '@/api/rag'
 
 interface TagRow {
   tag: string
@@ -93,8 +93,9 @@ const handleUpload = async () => {
   uploading.value = true
   try {
     const files = fileList.value.map(item => item.raw as File).filter(Boolean)
-    await uploadRagFiles(ragTag.value.trim(), files)
-    ElMessage.success('上传成功')
+    const res = await uploadFilesAsync(ragTag.value.trim(), files)
+    const taskId = res.data.data
+    ElMessage.success(`上传任务已创建: ${taskId}，请在任务列表查看进度`)
     ragTag.value = ''
     fileList.value = []
     fetchTags()

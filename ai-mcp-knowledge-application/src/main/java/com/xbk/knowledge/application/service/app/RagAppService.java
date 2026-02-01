@@ -49,6 +49,15 @@ public interface RagAppService {
     boolean uploadFiles(String ragTag, List<MultipartFile> files);
 
     /**
+     * 异步上传知识库文件（支持进度跟踪）
+     *
+     * @param ragTag 标签
+     * @param files  文件
+     * @return 任务 ID
+     */
+    String uploadFilesAsync(String ragTag, List<MultipartFile> files);
+
+    /**
      * 提交 Git 仓库分析任务
      *
      * @param repoUrl 仓库地址
@@ -83,4 +92,12 @@ public interface RagAppService {
      * @return 分页结果
      */
     PageResult<RagTask> queryTaskPage(int offset, int pageSize);
+
+    /**
+     * 重试失败的任务
+     *
+     * @param taskId 任务 ID
+     * @return 新任务 ID
+     */
+    String retryTask(String taskId);
 }

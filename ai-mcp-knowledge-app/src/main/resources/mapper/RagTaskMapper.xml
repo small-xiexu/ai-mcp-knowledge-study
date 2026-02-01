@@ -12,6 +12,9 @@
         <result column="progress" property="progress"/>
         <result column="message" property="message"/>
         <result column="rag_tag" property="ragTag"/>
+        <result column="error_details" property="errorDetails"/>
+        <result column="retry_count" property="retryCount"/>
+        <result column="parent_task_id" property="parentTaskId"/>
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
@@ -24,6 +27,9 @@
             progress,
             message,
             rag_tag,
+            error_details,
+            retry_count,
+            parent_task_id,
             created_at,
             updated_at
         ) values (
@@ -33,6 +39,9 @@
             #{task.progress},
             #{task.message},
             #{task.ragTag},
+            #{task.errorDetails},
+            #{task.retryCount},
+            #{task.parentTaskId},
             #{task.createdAt},
             #{task.updatedAt}
         )
@@ -44,6 +53,9 @@
             progress = #{task.progress},
             message = #{task.message},
             rag_tag = #{task.ragTag},
+            error_details = #{task.errorDetails},
+            retry_count = #{task.retryCount},
+            parent_task_id = #{task.parentTaskId},
             updated_at = #{task.updatedAt}
         where id = #{task.id}
     </update>
@@ -57,6 +69,9 @@
             progress,
             message,
             rag_tag,
+            error_details,
+            retry_count,
+            parent_task_id,
             created_at,
             updated_at
         from ai_rag_task
@@ -73,6 +88,9 @@
             progress,
             message,
             rag_tag,
+            error_details,
+            retry_count,
+            parent_task_id,
             created_at,
             updated_at
         from ai_rag_task
@@ -84,5 +102,56 @@
         select count(1)
         from ai_rag_task
     </select>
+
+    <!-- 查询失败的任务 -->
+    <select id="findFailedTasksSince" resultMap="RagTaskMap">
+        select
+            id,
+            task_id,
+            type,
+            status,
+            progress,
+            message,
+            rag_tag,
+            error_details,
+            retry_count,
+            parent_task_id,
+            created_at,
+            updated_at
+        from ai_rag_task
+        where (status = 'FAILED' OR (status = 'COMPLETED' AND error_details IS NOT NULL))
+          AND created_at >= #{since}
+          AND (retry_count IS NULL OR retry_count &lt; 3)
+        order by created_at desc
+    </select>
+
+    <!-- 查询超时任务 -->
+    <select id="findProcessingTasksBefore" resultMap="RagTaskMap">
+        select
+            id,
+            task_id,
+            type,
+            status,
+            progress,
+            message,
+            rag_tag,
+            error_details,
+            retry_count,
+            parent_task_id,
+            created_at,
+            updated_at
+        from ai_rag_task
+        where status = 'PROCESSING'
+          AND updated_at &lt; #{before}
+        order by updated_at asc
+    </select>
+
+    <!-- 删除过期任务 -->
+    <delete id="deleteCompletedTasksBefore">
+        delete from ai_rag_task
+        where status = 'COMPLETED'
+          AND error_details IS NULL
+          AND created_at &lt; #{before}
+    </delete>
 
 </mapper>

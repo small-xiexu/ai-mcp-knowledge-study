@@ -51,4 +51,19 @@ public class RagTaskRepositoryImpl implements RagTaskRepository {
     public long countAll() {
         return ragTaskMapper.countAll();
     }
+
+    @Override
+    public List<RagTask> findFailedTasksSince(LocalDateTime since) {
+        return ragTaskMapper.findFailedTasksSince(since);
+    }
+
+    @Override
+    public List<RagTask> findProcessingTasksBefore(LocalDateTime before) {
+        return ragTaskMapper.findProcessingTasksBefore(before);
+    }
+
+    @Override
+    public int deleteCompletedTasksBefore(LocalDateTime before) {
+        return ragTaskMapper.deleteCompletedTasksBefore(before);
+    }
 }

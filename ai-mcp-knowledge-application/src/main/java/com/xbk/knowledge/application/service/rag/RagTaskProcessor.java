@@ -1,6 +1,9 @@
 package com.xbk.knowledge.application.service.rag;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xbk.knowledge.domain.model.entity.RagTask;
+import com.xbk.knowledge.domain.model.vo.FileProcessError;
 import com.xbk.knowledge.domain.repository.RagTaskRepository;
 import com.xbk.knowledge.types.enums.RagTaskStatus;
 import lombok.RequiredArgsConstructor;
@@ -11,21 +14,30 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.reader.tika.TikaDocumentReader;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.PathResource;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -37,7 +49,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class RagTaskProcessor {
 
     private static final int MAX_FILE_BYTES = 1024 * 1024;
@@ -45,6 +56,21 @@ public class RagTaskProcessor {
     private final RagVectorStoreService ragVectorStoreService;
     private final RagTaskRepository ragTaskRepository;
     private final TokenTextSplitter tokenTextSplitter;
+    private final ThreadPoolTaskExecutor ragTaskExecutor;
+    private final ObjectMapper objectMapper;
+
+    public RagTaskProcessor(
+            RagVectorStoreService ragVectorStoreService,
+            RagTaskRepository ragTaskRepository,
+            TokenTextSplitter tokenTextSplitter,
+            @Qualifier("ragTaskExecutor") ThreadPoolTaskExecutor ragTaskExecutor) {
+        this.ragVectorStoreService = ragVectorStoreService;
+        this.ragTaskRepository = ragTaskRepository;
+        this.tokenTextSplitter = tokenTextSplitter;
+        this.ragTaskExecutor = ragTaskExecutor;
+        this.objectMapper = new ObjectMapper();
+        this.objectMapper.findAndRegisterModules();
+    }
 
     /**
      * 异步处理 Git 仓库任务
@@ -156,6 +182,232 @@ public class RagTaskProcessor {
             } catch (Exception ignored) {
             }
         }
+    }
+
+    /**
+     * 异步处理文件上传任务（支持并行）
+     *
+     * @param taskId 任务 ID
+     * @param ragTag 知识库标签
+     * @param files 文件列表
+     */
+    @Async
+    public void processFilesAsync(String taskId, String ragTag, List<MultipartFile> files) {
+        try {
+            updateTask(taskId, RagTaskStatus.PROCESSING, 5, "开始处理文件...");
+
+            int totalFiles = files.size();
+            AtomicInteger processedFiles = new AtomicInteger(0);
+            AtomicInteger failedFiles = new AtomicInteger(0);
+
+            // 记录失败的文件
+            List<FileProcessError> errors = Collections.synchronizedList(new ArrayList<>());
+
+            // 并行处理文件
+            List<CompletableFuture<Void>> futures = files.stream()
+                    .map(file -> CompletableFuture.runAsync(() -> {
+                        try {
+                            // 检查是否取消
+                            if (isCancelled(taskId)) {
+                                return;
+                            }
+
+                            // 处理文件（带重试）
+                            processFileWithRetry(file, ragTag);
+
+                            // 更新进度（节流：每 10 个文件或进度变化 10% 时更新）
+                            int processed = processedFiles.incrementAndGet();
+                            int progress = 5 + (int) ((processed * 90.0) / totalFiles);
+                            if (processed % 10 == 0 || progress % 10 == 0) {
+                                updateTask(taskId, RagTaskStatus.PROCESSING, progress,
+                                        String.format("已处理: %d/%d", processed, totalFiles));
+                            }
+
+                        } catch (Exception e) {
+                            // 记录失败信息
+                            int failed = failedFiles.incrementAndGet();
+                            errors.add(FileProcessError.builder()
+                                    .fileName(file.getOriginalFilename())
+                                    .errorMessage(e.getMessage())
+                                    .stackTrace(getStackTrace(e))
+                                    .occurredAt(LocalDateTime.now())
+                                    .retryCount(3)
+                                    .build());
+
+                            log.error("文件处理失败（已重试 3 次）: {}", file.getOriginalFilename(), e);
+                        }
+                    }, ragTaskExecutor))
+                    .toList();
+
+            // 等待所有任务完成
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+            // 检查是否取消
+            if (isCancelled(taskId)) {
+                updateTask(taskId, RagTaskStatus.CANCELLED, 0, "任务已取消");
+                return;
+            }
+
+            // 更新最终状态
+            int processed = processedFiles.get();
+            int failed = failedFiles.get();
+
+            if (failed == 0) {
+                // 全部成功
+                updateTask(taskId, RagTaskStatus.COMPLETED, 100,
+                        String.format("处理完成，成功: %d", processed));
+            } else if (processed > 0) {
+                // 部分成功
+                updateTask(taskId, RagTaskStatus.COMPLETED, 100,
+                        String.format("处理完成，成功: %d, 失败: %d", processed, failed));
+
+                // 保存失败详情
+                saveFailureDetails(taskId, errors);
+            } else {
+                // 全部失败
+                updateTask(taskId, RagTaskStatus.FAILED, 0,
+                        String.format("处理失败，失败: %d", failed));
+
+                // 保存失败详情
+                saveFailureDetails(taskId, errors);
+            }
+
+        } catch (Exception e) {
+            log.error("文件上传任务失败, taskId: {}", taskId, e);
+            updateTask(taskId, RagTaskStatus.FAILED, 0, "任务失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 处理单个文件（支持自动重试）
+     *
+     * @param file 文件
+     * @param ragTag 标签
+     * @throws IOException 处理失败
+     */
+    private void processFileWithRetry(MultipartFile file, String ragTag) throws IOException {
+        int maxRetries = 3;
+        int retryCount = 0;
+        Exception lastException = null;
+
+        while (retryCount < maxRetries) {
+            try {
+                // 处理文件
+                processFile(file, ragTag);
+
+                // 成功，记录日志
+                if (retryCount > 0) {
+                    log.info("文件处理成功: {}, 重试次数: {}",
+                            file.getOriginalFilename(), retryCount);
+                }
+                return;
+
+            } catch (Exception e) {
+                lastException = e;
+                retryCount++;
+
+                if (retryCount < maxRetries) {
+                    // 计算退避时间（指数退避：2s、4s、8s）
+                    long backoffMs = (long) Math.pow(2, retryCount) * 1000;
+
+                    log.warn("文件处理失败，将在 {} 秒后重试 {}/{}: {}",
+                            backoffMs / 1000, retryCount, maxRetries,
+                            file.getOriginalFilename(), e.getMessage());
+
+                    try {
+                        Thread.sleep(backoffMs);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        throw new RuntimeException("重试被中断", ie);
+                    }
+                } else {
+                    log.error("文件处理失败，已达到最大重试次数 {}: {}",
+                            maxRetries, file.getOriginalFilename(), e.getMessage());
+                }
+            }
+        }
+
+        // 所有重试都失败
+        throw new RuntimeException(
+                String.format("文件处理失败，已重试 %d 次: %s",
+                        maxRetries, file.getOriginalFilename()),
+                lastException
+        );
+    }
+
+    /**
+     * 处理单个文件
+     */
+    private void processFile(MultipartFile file, String ragTag) throws IOException {
+        File tempFile = null;
+        try {
+            // 创建临时文件
+            tempFile = File.createTempFile("rag-upload-", ".tmp");
+            file.transferTo(tempFile);
+
+            // 解析文档
+            TikaDocumentReader reader = new TikaDocumentReader(tempFile.getAbsolutePath());
+            List<Document> documents = reader.get();
+
+            if (CollectionUtils.isEmpty(documents)) {
+                log.warn("文件解析结果为空: {}", file.getOriginalFilename());
+                return;
+            }
+
+            // 分块
+            List<Document> splitDocuments = tokenTextSplitter.apply(documents);
+
+            // 添加元数据
+            documents.forEach(doc -> doc.getMetadata().put("knowledge", ragTag));
+            splitDocuments.forEach(doc -> doc.getMetadata().put("knowledge", ragTag));
+
+            // 保存到向量库
+            ragVectorStoreService.saveDocuments(splitDocuments);
+
+            log.debug("文件处理成功: {}, 分块数: {}", file.getOriginalFilename(), splitDocuments.size());
+
+        } finally {
+            // 清理临时文件
+            if (tempFile != null && tempFile.exists()) {
+                boolean deleted = tempFile.delete();
+                if (!deleted) {
+                    log.warn("临时文件删除失败: {}", tempFile.getAbsolutePath());
+                }
+            }
+        }
+    }
+
+    /**
+     * 保存失败详情
+     */
+    private void saveFailureDetails(String taskId, List<FileProcessError> errors) {
+        if (errors.isEmpty()) {
+            return;
+        }
+
+        try {
+            // 将失败信息序列化为 JSON
+            String errorJson = objectMapper.writeValueAsString(errors);
+
+            // 保存到任务表的扩展字段
+            RagTask task = ragTaskRepository.findByTaskId(taskId);
+            if (task != null) {
+                task.setErrorDetails(errorJson);
+                ragTaskRepository.update(task);
+            }
+        } catch (JsonProcessingException e) {
+            log.error("序列化失败详情失败, taskId: {}", taskId, e);
+        }
+    }
+
+    /**
+     * 获取异常堆栈信息
+     */
+    private String getStackTrace(Exception e) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        e.printStackTrace(pw);
+        return sw.toString();
     }
 
     private void updateTask(String taskId, RagTaskStatus status, int progress, String message) {

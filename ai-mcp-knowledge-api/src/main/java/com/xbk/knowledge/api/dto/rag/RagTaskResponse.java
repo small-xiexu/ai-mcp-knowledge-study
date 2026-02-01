@@ -31,6 +31,9 @@ public class RagTaskResponse implements Serializable {
     private Integer progress;
     private String message;
     private String ragTag;
+    private String errorDetails;
+    private Integer retryCount;
+    private String parentTaskId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

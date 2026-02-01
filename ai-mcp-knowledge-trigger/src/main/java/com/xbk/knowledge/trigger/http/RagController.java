@@ -69,6 +69,16 @@ public class RagController {
     }
 
     /**
+     * 异步上传知识库文件
+     */
+    @PostMapping(value = "/upload/async", headers = "content-type=multipart/form-data")
+    public Result<String> uploadFileAsync(@RequestParam("ragTag") String ragTag,
+                                          @RequestParam("file") List<MultipartFile> files) {
+        String taskId = ragAppService.uploadFilesAsync(ragTag, files);
+        return Result.success("任务已创建", taskId);
+    }
+
+    /**
      * 分析 Git 仓库
      */
     @PostMapping("/analyze")
@@ -105,6 +115,15 @@ public class RagController {
     }
 
     /**
+     * 重试任务
+     */
+    @PostMapping("/task/retry")
+    public Result<String> retryTask(@Valid @RequestBody RagTaskIdRequest request) {
+        String newTaskId = ragAppService.retryTask(request.getTaskId());
+        return Result.success("重试任务已创建", newTaskId);
+    }
+
+    /**
      * 查询任务列表
      */
     @PostMapping("/task/list")
@@ -125,6 +144,9 @@ public class RagController {
                 .progress(task.getProgress())
                 .message(task.getMessage())
                 .ragTag(task.getRagTag())
+                .errorDetails(task.getErrorDetails())
+                .retryCount(task.getRetryCount())
+                .parentTaskId(task.getParentTaskId())
                 .createdAt(task.getCreatedAt())
                 .updatedAt(task.getUpdatedAt())
                 .build();

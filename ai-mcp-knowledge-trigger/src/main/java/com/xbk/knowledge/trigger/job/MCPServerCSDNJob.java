@@ -1,16 +1,19 @@
 package com.xbk.knowledge.trigger.job;
 
+import com.xbk.knowledge.application.provider.ModelProvider;
+import com.xbk.knowledge.application.provider.ModelProviderFactory;
+import com.xbk.knowledge.application.service.app.ModelConfigAppService;
+import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.types.trace.TraceIdUtils;
+import com.xxl.job.core.handler.annotation.XxlJob;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.PromptChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.api.CallAdvisor;
 import org.springframework.ai.chat.memory.InMemoryChatMemoryRepository;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
-import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.tool.ToolCallbackProvider;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -42,16 +45,13 @@ import java.util.function.Consumer;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class MCPServerCSDNJob {
 
-    @Autowired
-    private OpenAiChatModel openAiChatModel;
-
-    @Autowired
-    private ToolCallbackProvider tools;
-
-    @Autowired
-    private List<CallAdvisor> advisors;
+    private final ModelConfigAppService modelConfigAppService;
+    private final ModelProviderFactory modelProviderFactory;
+    private final ToolCallbackProvider tools;
+    private final List<CallAdvisor> advisors;
 
     /**
      * traceId 传递指令模板
@@ -64,11 +64,11 @@ public class MCPServerCSDNJob {
             """;
 
     /**
-     * 定时执行 CSDN 文章发布与微信通知
-     * <p>
-     * 触发时间：每天 10:00、11:00、15:00、16:00
+     * CSDN 文章发布与微信通知
+     * XXL-Job Handler: mcpServerCSDNHandler
+     * 建议 Cron: 0 0 10,11,15,16 * * ? (每天 10:00、11:00、15:00、16:00 执行)
      */
-    @Scheduled(cron = "0 0 10,11,15,16 * * ?")
+    @XxlJob("mcpServerCSDNHandler")
     public void exec() {
         TraceIdUtils
                 .TraceIdContext traceIdContext = TraceIdUtils
@@ -78,6 +78,12 @@ public class MCPServerCSDNJob {
         log.info("[{}] CSDN 定时任务开始执行", traceId);
 
         try {
+            ModelConfig activeChatModel = modelConfigAppService.getActiveChatModel();
+            if (activeChatModel == null || activeChatModel.getModelType() == null) {
+                log.warn("[{}] 未配置激活的对话模型，任务终止", traceId);
+                return;
+            }
+            ModelProvider provider = modelProviderFactory.getProvider(activeChatModel.getModelType());
             // 构建带记忆功能的 ChatClient
             InMemoryChatMemoryRepository chatMemoryRepository = new InMemoryChatMemoryRepository();
             MessageWindowChatMemory chatMemory = MessageWindowChatMemory.builder()
@@ -87,7 +93,7 @@ public class MCPServerCSDNJob {
 
             CallAdvisor promptAdvisor = PromptChatMemoryAdvisor.builder(chatMemory)
                     .build();
-            ChatClient.Builder builder = ChatClient.builder(openAiChatModel)
+            ChatClient.Builder builder = ChatClient.builder(provider.createChatModel(activeChatModel))
                     .defaultToolCallbacks(tools)
                     .defaultAdvisors(promptAdvisor);
 

@@ -36,6 +36,37 @@
 - ✅ 文本分块逻辑（TokenTextSplitter）
 - ✅ 前端接口（保持向后兼容）
 
+### 1.4 方案选择
+
+本方案提供两个实施选项，可根据项目需求选择：
+
+#### 方案对比
+
+| 对比项 | 方案 A：基础优化 | 方案 B：完整优化（推荐） |
+|--------|----------------|---------------------|
+| **核心功能** | ✅ 并行处理<br>✅ 异步任务<br>✅ 进度跟踪<br>✅ 三层重试 | ✅ 并行处理<br>✅ 异步任务<br>✅ 进度跟踪<br>✅ 三层重试<br>✅ 定时任务 |
+| **定时任务** | ❌ 不包含 | ✅ 超时任务处理<br>✅ 自动重试失败任务<br>✅ 清理过期任务 |
+| **开发时间** | 3.5 天 | 4 天（仅多 0.5 天） |
+| **代码量** | +370 行 | +630 行 |
+| **适用场景** | 快速上线，手动运维 | 生产环境，自动化运维 |
+| **可靠性** | ⭐⭐⭐⭐ 高 | ⭐⭐⭐⭐⭐ 极高 |
+| **运维成本** | 需要人工处理超时任务 | 系统自动处理异常 |
+
+#### 推荐建议
+
+**快速上线场景**：
+- 选择方案 A
+- 适合：POC、MVP、快速验证
+- 后续可升级到方案 B
+
+**生产环境场景**（推荐）：
+- 选择方案 B
+- 适合：正式上线、长期运行
+- 仅多 0.5 天开发时间，但收益巨大：
+  - 自动处理超时任务（避免进程崩溃导致任务卡死）
+  - 自动重试失败任务（提升成功率）
+  - 自动清理过期数据（节省存储空间）
+
 ## 二、当前实现分析
 
 ### 2.1 现有代码结构
@@ -202,6 +233,12 @@ flowchart TB
         User[用户上传文件]
     end
 
+    subgraph 定时任务层
+        AutoRetryJob[自动重试任务<br/>每天凌晨2点]
+        TimeoutJob[超时任务处理<br/>每小时]
+        CleanupJob[清理过期任务<br/>每天凌晨3点]
+    end
+
     subgraph 接口层
         Controller[RagController]
     end
@@ -241,9 +278,69 @@ flowchart TB
     Worker4 --> VectorDB
     Worker5 --> VectorDB
     TaskProcessor --> TaskDB
+
+    AutoRetryJob -.->|查询失败任务| TaskDB
+    AutoRetryJob -.->|调用重试| AppService
+    TimeoutJob -.->|查询超时任务| TaskDB
+    TimeoutJob -.->|标记失败| TaskDB
+    CleanupJob -.->|删除过期任务| TaskDB
+
+    style AutoRetryJob fill:#e1f5ff
+    style TimeoutJob fill:#fff3e0
+    style CleanupJob fill:#f3e5f5
 ```
 
-### 4.2 核心改造点
+**架构说明**：
+
+1. **用户层**：用户通过接口上传文件或分析 Git 仓库
+2. **定时任务层**（方案 B 新增）：
+   - **自动重试任务**：每天凌晨 2 点自动重试昨天失败的任务
+   - **超时任务处理**：每小时检查并标记超时任务（超过 2 小时）
+   - **清理过期任务**：每天凌晨 3 点删除 30 天前的已完成任务
+3. **接口层**：RagController 接收用户请求
+4. **应用层**：RagAppServiceImpl 创建任务，RagTaskProcessor 异步处理
+5. **任务执行层**：线程池并行处理文件（5 个核心线程，10 个最大线程）
+6. **存储层**：任务表记录任务状态，向量库存储文档向量
+
+### 4.2 定时任务流程图
+
+```mermaid
+sequenceDiagram
+    participant Scheduler as 定时调度器
+    participant AutoRetry as 自动重试任务
+    participant Timeout as 超时任务处理
+    participant Cleanup as 清理任务
+    participant TaskDB as 任务表
+    participant AppService as RagAppService
+
+    Note over Scheduler: 每天凌晨 2:00
+    Scheduler->>AutoRetry: 触发执行
+    AutoRetry->>TaskDB: 查询昨天失败的任务<br/>(retry_count < 3)
+    TaskDB-->>AutoRetry: 返回失败任务列表
+    loop 遍历失败任务
+        AutoRetry->>AppService: 调用 retryTask(taskId)
+        AppService->>TaskDB: 创建新的重试任务
+        AppService-->>AutoRetry: 返回新任务 ID
+    end
+    AutoRetry-->>Scheduler: 完成
+
+    Note over Scheduler: 每小时执行
+    Scheduler->>Timeout: 触发执行
+    Timeout->>TaskDB: 查询超过 2 小时的<br/>PROCESSING 任务
+    TaskDB-->>Timeout: 返回超时任务列表
+    loop 遍历超时任务
+        Timeout->>TaskDB: 标记为 FAILED<br/>message="任务超时"
+    end
+    Timeout-->>Scheduler: 完成
+
+    Note over Scheduler: 每天凌晨 3:00
+    Scheduler->>Cleanup: 触发执行
+    Cleanup->>TaskDB: 删除 30 天前的<br/>已完成任务
+    TaskDB-->>Cleanup: 返回删除数量
+    Cleanup-->>Scheduler: 完成
+```
+
+### 4.3 核心改造点
 
 #### 改造点 1：配置线程池
 
@@ -562,7 +659,7 @@ CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
 ## 五、失败重试机制
 
-### 5.1 三层重试机制
+### 5.1 四层重试机制
 
 ```mermaid
 flowchart TB
@@ -580,22 +677,44 @@ flowchart TB
     Success3 -->|否| Failed[标记失败]
     Failed --> Record[记录失败信息]
     Record --> Continue[继续处理其他文件]
+    Continue --> TaskComplete[任务完成<br/>状态: 部分成功]
+    TaskComplete --> UserRetry{用户手动重试?}
+    UserRetry -->|是| ManualRetry[立即重试失败文件]
+    UserRetry -->|否| WaitSchedule[等待定时任务]
+    WaitSchedule --> AutoRetry[凌晨2点自动重试]
+    ManualRetry --> Done
+    AutoRetry --> Done
 ```
 
-**层次 1：单个文件自动重试**
-- 最多重试 3 次
-- 指数退避（2 秒、4 秒、8 秒）
-- 失败后记录错误信息
+**层次 1：单个文件即时自动重试**
+- **触发时机**：文件处理失败时**立即**重试
+- **重试次数**：最多 3 次
+- **重试间隔**：指数退避（2 秒、4 秒、8 秒）
+- **用户感知**：无需等待，自动完成
+- **失败处理**：记录错误信息，继续处理其他文件
 
 **层次 2：任务级别容错**
-- 单个文件失败不影响整体任务
-- 记录所有失败文件的详细信息
-- 任务状态标记为"部分成功"
+- **机制**：单个文件失败不影响其他文件处理
+- **结果**：任务标记为"部分成功"（成功 X 个，失败 Y 个）
+- **记录**：保存所有失败文件的详细信息（文件名、错误信息、堆栈、重试次数）
 
-**层次 3：任务级别手动重试**
-- 用户可以手动重试失败的任务
-- 只重试失败的文件
-- 保留成功文件的结果
+**层次 3：用户手动重试（推荐）**
+- **触发方式**：用户**随时**可以调用接口重试
+- **接口**：`POST /api/rag/retry/{taskId}`
+- **特点**：只重试失败的文件，不重复处理成功的文件
+- **时机**：**立即**，不需要等到凌晨
+- **适用场景**：用户发现失败后立即重试
+
+**层次 4：定时任务自动重试（补充机制）**
+- **触发时机**：每天凌晨 2 点
+- **作用**：自动重试那些**用户没有手动重试**的失败任务
+- **限制**：最多自动重试 3 次（通过 retry_count 字段控制）
+- **适用场景**：用户忘记重试、下班后的失败任务等
+
+**重要说明**：
+- ✅ 用户可以**立即手动重试**，不需要等到凌晨
+- ✅ 定时任务只是**补充机制**，用于自动处理遗漏的失败任务
+- ✅ 手动重试和自动重试都只处理失败的文件，不会重复处理成功的文件
 
 ### 5.2 代码实现
 
@@ -1470,13 +1589,14 @@ public void testRetryTask_Success() {
 1. **并行处理**：使用线程池并行处理文件，性能提升 3-5 倍
 2. **异步任务**：文件上传支持异步处理，不阻塞用户操作
 3. **进度跟踪**：实时更新任务进度，提升用户体验
-4. **三层重试**：
-   - 单个文件自动重试 3 次（指数退避）
-   - 任务级别容错（部分失败不影响整体）
-   - 手动重试失败任务（只重试失败的文件）
-5. **定时任务**（可选）：
+4. **四层重试机制**：
+   - **层次 1**：单个文件即时自动重试 3 次（指数退避）
+   - **层次 2**：任务级别容错（部分失败不影响整体）
+   - **层次 3**：用户手动重试（随时可调用接口重试失败任务）
+   - **层次 4**：定时任务自动重试（每天凌晨补充重试）
+5. **定时任务**（方案 B）：
    - 超时任务自动处理（每小时检查）
-   - 失败任务自动重试（每天凌晨）
+   - 失败任务自动重试（每天凌晨，补充机制）
    - 过期任务自动清理（每天凌晨）
 6. **向后兼容**：保留原有同步接口，不影响现有功能
 

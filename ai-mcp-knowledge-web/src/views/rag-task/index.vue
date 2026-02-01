@@ -16,13 +16,31 @@
           </template>
         </el-table-column>
         <el-table-column prop="status" label="状态" width="120" />
+        <el-table-column label="重试次数" width="100">
+          <template #default="{ row }">
+            {{ row.retryCount || 0 }}
+          </template>
+        </el-table-column>
+        <el-table-column label="错误详情" width="120">
+          <template #default="{ row }">
+            <el-popover v-if="row.errorDetails" placement="left" width="500" trigger="hover">
+              <template #reference>
+                <el-tag type="danger" size="small" style="cursor: pointer">查看错误</el-tag>
+              </template>
+              <div style="max-height: 400px; overflow-y: auto">
+                <pre style="white-space: pre-wrap; word-wrap: break-word; font-size: 12px">{{ formatErrorDetails(row.errorDetails) }}</pre>
+              </div>
+            </el-popover>
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="message" label="状态说明" min-width="200" />
         <el-table-column label="更新时间" width="180">
           <template #default="{ row }">
             {{ formatDateTime(row.updatedAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="140">
+        <el-table-column label="操作" width="180">
           <template #default="{ row }">
             <el-button
               size="small"
@@ -31,6 +49,14 @@
               @click="handleCancel(row.taskId)"
             >
               取消
+            </el-button>
+            <el-button
+              size="small"
+              type="primary"
+              :disabled="row.status !== 'FAILED' && row.status !== 'PARTIAL_SUCCESS'"
+              @click="handleRetry(row.taskId)"
+            >
+              重试
             </el-button>
           </template>
         </el-table-column>
@@ -53,7 +79,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { cancelRagTask, listRagTasks } from '@/api/rag'
+import { cancelRagTask, listRagTasks, retryTask } from '@/api/rag'
 import type { RagTask } from '@/types/entity'
 
 const loading = ref(false)
@@ -100,6 +126,34 @@ const handleCancel = async (taskId: string) => {
     fetchData()
   } catch (error: any) {
     ElMessage.error(error.message || '取消失败')
+  }
+}
+
+const handleRetry = async (taskId: string) => {
+  try {
+    const res = await retryTask(taskId)
+    const newTaskId = res.data.data
+    ElMessage.success(`重试任务已创建: ${newTaskId}`)
+    fetchData()
+  } catch (error: any) {
+    ElMessage.error(error.message || '重试失败')
+  }
+}
+
+const formatErrorDetails = (errorDetails: string) => {
+  try {
+    const errors = JSON.parse(errorDetails)
+    if (Array.isArray(errors)) {
+      return errors.map((err, index) =>
+        `[${index + 1}] 文件: ${err.fileName}\n` +
+        `    错误: ${err.errorMessage}\n` +
+        `    时间: ${err.occurredAt}\n` +
+        `    重试: ${err.retryCount || 0} 次\n`
+      ).join('\n')
+    }
+    return errorDetails
+  } catch {
+    return errorDetails
   }
 }
 

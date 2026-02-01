@@ -4,6 +4,7 @@ import com.xbk.knowledge.domain.model.entity.RagTask;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -52,4 +53,28 @@ public interface RagTaskMapper {
      * @return 总数
      */
     long countAll();
+
+    /**
+     * 查询指定时间后失败的任务
+     *
+     * @param since 起始时间
+     * @return 失败任务列表
+     */
+    List<RagTask> findFailedTasksSince(@Param("since") LocalDateTime since);
+
+    /**
+     * 查询指定时间前仍处于 PROCESSING 状态的任务
+     *
+     * @param before 截止时间
+     * @return 超时任务列表
+     */
+    List<RagTask> findProcessingTasksBefore(@Param("before") LocalDateTime before);
+
+    /**
+     * 删除指定时间前的已完成任务
+     *
+     * @param before 截止时间
+     * @return 删除数量
+     */
+    int deleteCompletedTasksBefore(@Param("before") LocalDateTime before);
 }

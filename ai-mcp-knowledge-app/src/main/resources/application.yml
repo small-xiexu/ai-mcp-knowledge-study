@@ -31,3 +31,20 @@ mcp:
   tools:
     # 工具清单缓存秒数
     cache-seconds: 60
+
+xxl:
+  job:
+    # XXL-Job 执行器配置
+    executor:
+      # 执行器 AppName（与调度中心配置的执行器名称一致）
+      appname: ai-rag-knowledge-executor
+      # 执行器注册地址（调度中心地址）
+      admin-addresses: http://127.0.0.1:9090/xxl-job-admin
+      # 执行器端口（默认9999，多个执行器注意端口冲突）
+      port: 9999
+      # 执行器日志路径
+      logpath: /Users/sxie/xbk/ai-mcp-knowledge-study/logs/xxl-job
+      # 执行器日志保留天数
+      logretentiondays: 30
+    # 执行器通讯TOKEN（与调度中心配置一致）
+    accessToken: default_token
