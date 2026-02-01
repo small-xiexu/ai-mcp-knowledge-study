@@ -38,37 +38,6 @@
         )
     </insert>
 
-    <!-- 按表名与记录 ID 查询审计 -->
-    <select id="findByTableNameAndRecordId" resultMap="ConfigAuditMap">
-        select
-            id,
-            table_name,
-            record_id,
-            operation,
-            old_value,
-            new_value,
-            operator,
-            created_at
-        from ai_config_audit
-        where table_name = #{tableName}
-          and record_id = #{recordId}
-    </select>
-
-    <!-- 按操作人查询审计 -->
-    <select id="findByOperator" resultMap="ConfigAuditMap">
-        select
-            id,
-            table_name,
-            record_id,
-            operation,
-            old_value,
-            new_value,
-            operator,
-            created_at
-        from ai_config_audit
-        where operator = #{operator}
-    </select>
-
     <!-- 按条件分页查询审计，排序字段由上层白名单解析 -->
     <select id="findByConditions" resultMap="ConfigAuditMap">
         select
@@ -85,12 +54,6 @@
             <if test="tableName != null">
                 and table_name = #{tableName}
             </if>
-            <if test="recordId != null">
-                and record_id = #{recordId}
-            </if>
-            <if test="operator != null">
-                and operator = #{operator}
-            </if>
         </where>
         order by ${sortField} ${sortOrder}
         limit #{pageSize} offset #{offset}
@@ -104,13 +67,15 @@
             <if test="tableName != null">
                 and table_name = #{tableName}
             </if>
-            <if test="recordId != null">
-                and record_id = #{recordId}
-            </if>
-            <if test="operator != null">
-                and operator = #{operator}
-            </if>
         </where>
+    </select>
+
+    <!-- 查询所有可用表名 -->
+    <select id="listTableNames" resultType="string">
+        select distinct table_name
+        from ai_config_audit
+        where table_name is not null
+        order by table_name
     </select>
 
 </mapper>

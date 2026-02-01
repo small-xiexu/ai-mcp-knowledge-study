@@ -88,4 +88,42 @@ public interface ModelConfigAppService {
      * @return 推荐的模型配置
      */
     ModelConfig getRecommendedModel(TaskTypeQuery query);
+
+    /**
+     * 获取当前激活的对话模型
+     *
+     * @return 对话模型配置
+     */
+    ModelConfig getActiveChatModel();
+
+    /**
+     * 获取当前激活的嵌入模型
+     *
+     * @return 嵌入模型配置
+     */
+    ModelConfig getActiveEmbeddingModel();
+
+    /**
+     * 激活对话模型
+     *
+     * @param query 模型ID
+     * @return 激活后的模型配置
+     */
+    ModelConfig activateChatModel(IdQuery query);
+
+    /**
+     * 激活嵌入模型
+     *
+     * @param query 模型ID
+     * @return 激活后的模型配置
+     */
+    ModelConfig activateEmbeddingModel(IdQuery query);
+
+    /**
+     * 测试模型配置连接
+     *
+     * @param modelConfig 模型配置
+     * @return 是否可用
+     */
+    boolean testModelConnection(ModelConfig modelConfig);
 }

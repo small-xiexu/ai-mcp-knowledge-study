@@ -2,7 +2,9 @@ package com.xbk.knowledge.application.service.app.impl;
 
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.repository.ModelActivationRepository;
 import com.xbk.knowledge.domain.service.IModelConfigService;
+import com.xbk.knowledge.application.provider.ModelProviderFactory;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -21,7 +23,9 @@ public class ModelConfigAppServiceImplTest {
     @Test
     public void shouldDelegateCreateAndDelete() {
         IModelConfigService domainService = Mockito.mock(IModelConfigService.class);
-        ModelConfigAppServiceImpl appService = new ModelConfigAppServiceImpl(domainService);
+        ModelActivationRepository activationRepository = Mockito.mock(ModelActivationRepository.class);
+        ModelProviderFactory providerFactory = Mockito.mock(ModelProviderFactory.class);
+        ModelConfigAppServiceImpl appService = new ModelConfigAppServiceImpl(domainService, activationRepository, providerFactory);
 
         ModelConfig modelConfig = ModelConfig.builder().modelName("m1").build();
         appService.createModelConfig(modelConfig);

@@ -51,8 +51,6 @@ public class AuditServiceImplTest {
     public void shouldNormalizeSortAndTrimFields() {
         AuditQuery request = new AuditQuery(
                 "  audit_table ",
-                1L,
-                "  operator ",
                 0,
                 10,
                 "tableName",
@@ -68,7 +66,6 @@ public class AuditServiceImplTest {
 
         AuditQuery normalized = captor.getValue();
         assertEquals("audit_table", normalized.getTableName());
-        assertEquals("operator", normalized.getOperator());
         assertEquals("table_name", normalized.getSortField());
         assertEquals("ASC", normalized.getSortOrder());
         assertEquals(1, result.getPageNum());

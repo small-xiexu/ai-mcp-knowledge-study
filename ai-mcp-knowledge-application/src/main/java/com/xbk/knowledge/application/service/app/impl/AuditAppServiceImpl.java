@@ -7,6 +7,7 @@ import com.xbk.knowledge.domain.service.IAuditService;
 import com.xbk.knowledge.types.common.PageResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import java.util.List;
 
 /**
  * 审计日志应用服务实现
@@ -28,5 +29,13 @@ public class AuditAppServiceImpl implements AuditAppService {
     @Override
     public PageResult<ConfigAudit> queryAuditPage(AuditQuery query) {
         return auditService.queryAuditPage(query);
+    }
+
+    /**
+     * 查询所有可用表名
+     */
+    @Override
+    public List<String> listTableNames() {
+        return auditService.listTableNames();
     }
 }

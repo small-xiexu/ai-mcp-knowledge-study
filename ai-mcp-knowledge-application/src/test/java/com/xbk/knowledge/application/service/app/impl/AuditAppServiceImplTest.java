@@ -22,7 +22,7 @@ public class AuditAppServiceImplTest {
         IAuditService auditService = Mockito.mock(IAuditService.class);
         AuditAppServiceImpl appService = new AuditAppServiceImpl(auditService);
 
-        AuditQuery query = new AuditQuery(null, null, null, 0, 10, null, null);
+        AuditQuery query = new AuditQuery(null, 0, 10, null, null);
         appService.queryAuditPage(query);
 
         verify(auditService).queryAuditPage(query);

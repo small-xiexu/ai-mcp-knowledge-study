@@ -203,6 +203,7 @@ public class TestBeanConfig {
 
         ModelProvider provider = Mockito.mock(ModelProvider.class);
         Mockito.when(provider.createChatClient(Mockito.any(ModelConfig.class))).thenReturn(chatClient);
+        Mockito.when(provider.createChatModel(Mockito.any(ModelConfig.class))).thenReturn(openAiChatModel);
         Mockito.when(provider.getModelType()).thenReturn(ModelType.OPENAI);
         Mockito.when(provider.isHealthy(Mockito.any(ModelConfig.class))).thenReturn(true);
         Mockito.when(mock.getProvider(Mockito.any(ModelType.class))).thenReturn(provider);

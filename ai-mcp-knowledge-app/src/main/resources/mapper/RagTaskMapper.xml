@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.RagTaskMapper">
+
+    <resultMap id="RagTaskMap" type="com.xbk.knowledge.domain.model.entity.RagTask">
+        <id column="id" property="id"/>
+        <result column="task_id" property="taskId"/>
+        <result column="type" property="type"/>
+        <result column="status" property="status"/>
+        <result column="progress" property="progress"/>
+        <result column="message" property="message"/>
+        <result column="rag_tag" property="ragTag"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <insert id="insertTask" parameterType="com.xbk.knowledge.domain.model.entity.RagTask" useGeneratedKeys="true" keyProperty="id">
+        insert into ai_rag_task (
+            task_id,
+            type,
+            status,
+            progress,
+            message,
+            rag_tag,
+            created_at,
+            updated_at
+        ) values (
+            #{task.taskId},
+            #{task.type},
+            #{task.status},
+            #{task.progress},
+            #{task.message},
+            #{task.ragTag},
+            #{task.createdAt},
+            #{task.updatedAt}
+        )
+    </insert>
+
+    <update id="updateTask" parameterType="com.xbk.knowledge.domain.model.entity.RagTask">
+        update ai_rag_task
+        set status = #{task.status},
+            progress = #{task.progress},
+            message = #{task.message},
+            rag_tag = #{task.ragTag},
+            updated_at = #{task.updatedAt}
+        where id = #{task.id}
+    </update>
+
+    <select id="findByTaskId" resultMap="RagTaskMap">
+        select
+            id,
+            task_id,
+            type,
+            status,
+            progress,
+            message,
+            rag_tag,
+            created_at,
+            updated_at
+        from ai_rag_task
+        where task_id = #{taskId}
+        limit 1
+    </select>
+
+    <select id="findPage" resultMap="RagTaskMap">
+        select
+            id,
+            task_id,
+            type,
+            status,
+            progress,
+            message,
+            rag_tag,
+            created_at,
+            updated_at
+        from ai_rag_task
+        order by updated_at desc, id asc
+        limit #{limit} offset #{offset}
+    </select>
+
+    <select id="countAll" resultType="long">
+        select count(1)
+        from ai_rag_task
+    </select>
+
+</mapper>

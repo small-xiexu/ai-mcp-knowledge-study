@@ -9,7 +9,7 @@ import com.xbk.knowledge.api.dto.ai.ModelInfo;
 import com.xbk.knowledge.api.dto.ai.ModelRecommendRequest;
 import com.xbk.knowledge.application.model.dto.AICallCommand;
 import com.xbk.knowledge.application.model.dto.AICallResult;
-import com.xbk.knowledge.application.service.app.AIModelService;
+import com.xbk.knowledge.application.service.app.AiChatAppService;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
 import com.xbk.knowledge.domain.model.vo.task.TaskTypeQuery;
@@ -19,10 +19,15 @@ import com.xbk.knowledge.types.exception.BusinessException;
 import com.xbk.knowledge.types.enums.ModelType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.chat.messages.AssistantMessage;
+import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.http.MediaType;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -42,8 +47,8 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class AICallController implements IAICallService {
 
-    private final AIModelService aiModelService;
     private final ModelConfigAppService modelConfigAppService;
+    private final AiChatAppService aiChatAppService;
 
     /**
      * 通用 AI 调用接口
@@ -57,7 +62,7 @@ public class AICallController implements IAICallService {
     public Result<AIResponse> chat(@Valid @RequestBody AIRequest request) {
         try {
             AICallCommand command = DTOConverter.toAppAICallCommand(request);
-            AICallResult result = aiModelService.chat(command);
+            AICallResult result = aiChatAppService.chat(command);
             AIResponse response = DTOConverter.toApiAIResponse(result);
 
             return Result.success(response);
@@ -75,6 +80,24 @@ public class AICallController implements IAICallService {
             String responseMessage = "AI 调用失败：" + errorMessage;
             return Result.error(ResultCode.AI_CALL_FAILED, responseMessage, response);
         }
+    }
+
+    /**
+     * 流式 AI 对话
+     *
+     * @param request AI 请求
+     * @return SSE 响应
+     */
+    @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter stream(@Valid @RequestBody AIRequest request) {
+        SseEmitter emitter = new SseEmitter(0L);
+        AICallCommand command = DTOConverter.toAppAICallCommand(request);
+        aiChatAppService.streamChat(command).subscribe(
+                response -> sendChunk(emitter, response),
+                emitter::completeWithError,
+                emitter::complete
+        );
+        return emitter;
     }
 
     /**
@@ -138,5 +161,20 @@ public class AICallController implements IAICallService {
         modelInfo.setModelType(modelType);
 
         return Result.success(modelInfo);
+    }
+
+    private void sendChunk(SseEmitter emitter, ChatResponse response) {
+        try {
+            if (response == null || response.getResult() == null) {
+                return;
+            }
+            AssistantMessage output = response.getResult().getOutput();
+            if (output == null || output.getText() == null) {
+                return;
+            }
+            emitter.send(SseEmitter.event().data(output.getText()));
+        } catch (IOException e) {
+            emitter.completeWithError(e);
+        }
     }
 }

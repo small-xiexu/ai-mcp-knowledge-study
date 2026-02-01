@@ -273,7 +273,7 @@
             cap.updated_at as cap_updated_at
         from ai_model_config mc
         left join ai_model_capability cap on cap.model_id = mc.id
-        order by mc.priority desc, mc.created_at desc
+        order by mc.updated_at desc, mc.id asc
         limit #{pageSize} offset #{offset}
     </select>
 

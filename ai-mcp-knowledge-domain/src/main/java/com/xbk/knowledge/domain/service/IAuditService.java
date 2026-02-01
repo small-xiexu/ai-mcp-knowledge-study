@@ -3,6 +3,7 @@ package com.xbk.knowledge.domain.service;
 import com.xbk.knowledge.domain.model.entity.ConfigAudit;
 import com.xbk.knowledge.domain.model.vo.audit.AuditQuery;
 import com.xbk.knowledge.types.common.PageResult;
+import java.util.List;
 
 /**
  * 审计日志领域服务接口
@@ -20,4 +21,11 @@ public interface IAuditService {
      * @return 分页结果
      */
     PageResult<ConfigAudit> queryAuditPage(AuditQuery query);
+
+    /**
+     * 查询所有可用表名
+     *
+     * @return 表名列表
+     */
+    List<String> listTableNames();
 }

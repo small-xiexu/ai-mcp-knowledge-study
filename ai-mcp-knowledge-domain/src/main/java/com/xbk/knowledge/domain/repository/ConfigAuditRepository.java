@@ -24,22 +24,6 @@ public interface ConfigAuditRepository {
     ConfigAuditAggregate save(ConfigAuditAggregate aggregate);
 
     /**
-     * 按表名和记录ID查询审计日志
-     *
-     * @param query 表名与记录ID查询条件
-     * @return 审计日志列表
-     */
-    List<ConfigAudit> findByTableNameAndRecordId(AuditQuery query);
-
-    /**
-     * 按操作人查询审计日志
-     *
-     * @param query 操作人查询条件
-     * @return 审计日志列表
-     */
-    List<ConfigAudit> findByOperator(AuditQuery query);
-
-    /**
      * 按条件分页查询审计日志
      *
      * @param query 审计查询条件
@@ -54,4 +38,11 @@ public interface ConfigAuditRepository {
      * @return 总数
      */
     long countByConditions(AuditQuery query);
+
+    /**
+     * 查询所有可用表名
+     *
+     * @return 表名列表
+     */
+    List<String> listTableNames();
 }

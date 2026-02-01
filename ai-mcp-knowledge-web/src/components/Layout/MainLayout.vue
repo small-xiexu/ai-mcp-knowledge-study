@@ -18,10 +18,8 @@
           :key="route.path"
           :index="resolveMenuPath(route.path)"
         >
-          <router-link :to="resolveMenuPath(route.path)" class="menu-link">
-            <el-icon><component :is="route.meta?.icon" /></el-icon>
-            <span class="menu-title">{{ route.meta?.title }}</span>
-          </router-link>
+          <el-icon><component :is="route.meta?.icon" /></el-icon>
+          <span class="menu-title">{{ route.meta?.title }}</span>
         </el-menu-item>
       </el-menu>
     </el-aside>
@@ -130,15 +128,6 @@ const resolveMenuPath = (path?: string) => {
 .sidebar-menu :deep(.el-menu-item.is-active) {
   background-color: #409eff;
   color: #fff;
-}
-
-.menu-link {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  color: inherit;
-  text-decoration: none;
 }
 
 .menu-title {

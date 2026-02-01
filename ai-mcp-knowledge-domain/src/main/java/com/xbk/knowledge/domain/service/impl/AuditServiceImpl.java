@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -41,13 +42,9 @@ public class AuditServiceImpl implements IAuditService {
 
         // 规范化查询条件
         String normalizedTableName = normalizeText(query.getTableName());
-        String normalizedOperator = normalizeText(query.getOperator());
-
         // 查询分页数据
         AuditQuery normalizedQuery = new AuditQuery(
                 normalizedTableName,
-                query.getRecordId(),
-                normalizedOperator,
                 query.getOffset(),
                 query.getPageSize(),
                 sortColumn,
@@ -64,6 +61,15 @@ public class AuditServiceImpl implements IAuditService {
         int pageNum = (offset / pageSize) + 1;
 
         return PageResult.of(audits, total, pageNum, pageSize);
+    }
+
+    /**
+     * 查询所有可用表名
+     */
+    @Override
+    public List<String> listTableNames() {
+        List<String> tableNames = configAuditRepository.listTableNames();
+        return tableNames == null ? Collections.emptyList() : tableNames;
     }
 
     /**

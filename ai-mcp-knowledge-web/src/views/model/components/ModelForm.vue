@@ -20,6 +20,8 @@
           <el-option label="OpenAI" value="OPENAI" />
           <el-option label="Anthropic" value="ANTHROPIC" />
           <el-option label="Gemini" value="GEMINI" />
+          <el-option label="Ollama" value="OLLAMA" />
+          <el-option label="DeepSeek" value="DEEPSEEK" />
         </el-select>
       </el-form-item>
 
@@ -115,6 +117,19 @@ const rules: FormRules = {
   baseUrl: [{ required: true, message: '请输入 Base URL', trigger: 'blur' }]
 }
 
+const resetForm = () => {
+  formData.id = 0
+  formData.modelName = ''
+  formData.modelType = ''
+  formData.apiKey = ''
+  formData.baseUrl = ''
+  formData.priority = 0
+  formData.enabled = true
+  formData.capability.maxTokens = 4096
+  formData.capability.qualityScore = 80
+  formRef.value?.clearValidate()
+}
+
 // 监听 modelData 变化，填充表单
 watch(
   () => props.modelData,
@@ -139,19 +154,6 @@ watch(
   },
   { immediate: true }
 )
-
-const resetForm = () => {
-  formData.id = 0
-  formData.modelName = ''
-  formData.modelType = ''
-  formData.apiKey = ''
-  formData.baseUrl = ''
-  formData.priority = 0
-  formData.enabled = true
-  formData.capability.maxTokens = 4096
-  formData.capability.qualityScore = 80
-  formRef.value?.clearValidate()
-}
 
 const handleClose = () => {
   emit('update:visible', false)

@@ -5,14 +5,15 @@ import com.xbk.knowledge.api.dto.model.ModelConfigQueryRequest;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.common.PageResultConverter;
 import com.xbk.knowledge.types.common.Result;
+import com.xbk.knowledge.types.common.ResultCode;
 import com.xbk.knowledge.api.dto.model.ModelConfigRequest;
 import com.xbk.knowledge.api.dto.model.ModelConfigResponse;
 import com.xbk.knowledge.api.dto.model.ModelCapabilityRequest;
 import com.xbk.knowledge.api.dto.model.ModelCapabilityDTO;
 import com.xbk.knowledge.domain.model.entity.ModelCapability;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
-import com.xbk.knowledge.types.enums.ModelType;
 import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.types.enums.ModelType;
 import com.xbk.knowledge.domain.model.vo.model.ModelConfigPageQuery;
 import com.xbk.knowledge.application.service.app.ModelConfigAppService;
 import com.xbk.knowledge.trigger.converter.DTOConverter;
@@ -56,8 +57,16 @@ public class ModelConfigController {
         );
         PageResult<ModelConfig> pageResult = modelConfigAppService.queryModelConfigPage(query);
 
+        ModelConfig activeChatModel = modelConfigAppService.getActiveChatModel();
+        ModelConfig activeEmbeddingModel = modelConfigAppService.getActiveEmbeddingModel();
+        Long activeChatId = activeChatModel != null ? activeChatModel.getId() : null;
+        Long activeEmbeddingId = activeEmbeddingModel != null ? activeEmbeddingModel.getId() : null;
+
         // 转换为响应 DTO 并构建分页结果
-        PageResult<ModelConfigResponse> result = PageResultConverter.convert(pageResult, this::convertToResponse);
+        PageResult<ModelConfigResponse> result = PageResultConverter.convert(
+                pageResult,
+                modelConfig -> convertToResponse(modelConfig, activeChatId, activeEmbeddingId)
+        );
 
         return Result.success(result);
     }
@@ -74,9 +83,13 @@ public class ModelConfigController {
         Long id = request.getId();
         IdQuery idQuery = new IdQuery(id);
         ModelConfig modelConfig = modelConfigAppService.queryModelConfigById(idQuery);
+        ModelConfig activeChatModel = modelConfigAppService.getActiveChatModel();
+        ModelConfig activeEmbeddingModel = modelConfigAppService.getActiveEmbeddingModel();
+        Long activeChatId = activeChatModel != null ? activeChatModel.getId() : null;
+        Long activeEmbeddingId = activeEmbeddingModel != null ? activeEmbeddingModel.getId() : null;
 
         // 转换为响应 DTO
-        ModelConfigResponse response = convertToResponse(modelConfig);
+        ModelConfigResponse response = convertToResponse(modelConfig, activeChatId, activeEmbeddingId);
         return Result.success(response);
     }
 
@@ -95,7 +108,7 @@ public class ModelConfigController {
         ModelConfig savedModel = modelConfigAppService.createModelConfig(modelConfig);
 
         // 转换为响应 DTO
-        ModelConfigResponse response = convertToResponse(savedModel);
+        ModelConfigResponse response = convertToResponse(savedModel, null, null);
         return Result.success("模型配置创建成功", response);
     }
 
@@ -116,7 +129,7 @@ public class ModelConfigController {
         ModelConfig updatedModel = modelConfigAppService.updateModelConfig(modelConfig);
 
         // 转换为响应 DTO
-        ModelConfigResponse response = convertToResponse(updatedModel);
+        ModelConfigResponse response = convertToResponse(updatedModel, null, null);
         return Result.success("模型配置更新成功", response);
     }
 
@@ -150,7 +163,7 @@ public class ModelConfigController {
         ModelConfig updatedModel = modelConfigAppService.enableModel(idQuery);
 
         // 转换为响应 DTO
-        ModelConfigResponse response = convertToResponse(updatedModel);
+        ModelConfigResponse response = convertToResponse(updatedModel, null, null);
         return Result.success("模型启用成功", response);
     }
 
@@ -168,8 +181,95 @@ public class ModelConfigController {
         ModelConfig updatedModel = modelConfigAppService.disableModel(idQuery);
 
         // 转换为响应 DTO
-        ModelConfigResponse response = convertToResponse(updatedModel);
+        ModelConfigResponse response = convertToResponse(updatedModel, null, null);
         return Result.success("模型禁用成功", response);
+    }
+
+    /**
+     * 获取当前激活的对话模型
+     *
+     * @return 当前激活的对话模型
+     */
+    @PostMapping("/active-chat")
+    public Result<ModelConfigResponse> getActiveChatModel() {
+        ModelConfig modelConfig = modelConfigAppService.getActiveChatModel();
+        if (modelConfig == null) {
+            return Result.success(null);
+        }
+        ModelConfigResponse response = convertToResponse(modelConfig, modelConfig.getId(), null);
+        return Result.success(response);
+    }
+
+    /**
+     * 获取当前激活的嵌入模型
+     *
+     * @return 当前激活的嵌入模型
+     */
+    @PostMapping("/active-embedding")
+    public Result<ModelConfigResponse> getActiveEmbeddingModel() {
+        ModelConfig modelConfig = modelConfigAppService.getActiveEmbeddingModel();
+        if (modelConfig == null) {
+            return Result.success(null);
+        }
+        ModelConfigResponse response = convertToResponse(modelConfig, null, modelConfig.getId());
+        return Result.success(response);
+    }
+
+    /**
+     * 激活对话模型
+     *
+     * @param request ID 查询请求
+     * @return 激活后的模型配置
+     */
+    @PostMapping("/activate-chat")
+    public Result<ModelConfigResponse> activateChatModel(@Valid @RequestBody IdRequest request) {
+        Long id = request.getId();
+        IdQuery idQuery = new IdQuery(id);
+        ModelConfig modelConfig = modelConfigAppService.activateChatModel(idQuery);
+        if (modelConfig == null) {
+            return Result.error("未找到模型配置");
+        }
+        ModelConfigResponse response = convertToResponse(modelConfig, modelConfig.getId(), null);
+        return Result.success("对话模型激活成功", response);
+    }
+
+    /**
+     * 激活嵌入模型
+     *
+     * @param request ID 查询请求
+     * @return 激活后的模型配置
+     */
+    @PostMapping("/activate-embedding")
+    public Result<ModelConfigResponse> activateEmbeddingModel(@Valid @RequestBody IdRequest request) {
+        Long id = request.getId();
+        IdQuery idQuery = new IdQuery(id);
+        ModelConfig modelConfig = modelConfigAppService.activateEmbeddingModel(idQuery);
+        if (modelConfig == null) {
+            return Result.error("未找到模型配置");
+        }
+        ModelConfigResponse response = convertToResponse(modelConfig, null, modelConfig.getId());
+        return Result.success("嵌入模型激活成功", response);
+    }
+
+    /**
+     * 测试模型配置连接
+     *
+     * @param request ID 查询请求
+     * @return 测试结果
+     */
+    @PostMapping("/test")
+    public Result<Boolean> testModel(@Valid @RequestBody IdRequest request) {
+        Long id = request.getId();
+        IdQuery idQuery = new IdQuery(id);
+        ModelConfig modelConfig = modelConfigAppService.queryModelConfigById(idQuery);
+        if (modelConfig == null) {
+            return Result.error("未找到模型配置");
+        }
+        boolean result = modelConfigAppService.testModelConnection(modelConfig);
+        if (result) {
+            return Result.success("模型连接成功", true);
+        }
+        return Result.error(ResultCode.INTERNAL_ERROR, "模型连接失败", false);
     }
 
     /**
@@ -178,7 +278,7 @@ public class ModelConfigController {
      * @param modelConfig 模型配置实体
      * @return 响应 DTO
      */
-    private ModelConfigResponse convertToResponse(ModelConfig modelConfig) {
+    private ModelConfigResponse convertToResponse(ModelConfig modelConfig, Long activeChatId, Long activeEmbeddingId) {
         Long modelId = modelConfig.getId();
         String modelName = modelConfig.getModelName();
         ModelType modelType = modelConfig.getModelType();
@@ -189,6 +289,8 @@ public class ModelConfigController {
         ModelCapabilityDTO capability = DTOConverter.toApiModelCapability(modelCapability);
         LocalDateTime createdAt = modelConfig.getCreatedAt();
         LocalDateTime updatedAt = modelConfig.getUpdatedAt();
+        Boolean activeChat = activeChatId != null && activeChatId.equals(modelId);
+        Boolean activeEmbedding = activeEmbeddingId != null && activeEmbeddingId.equals(modelId);
         return ModelConfigResponse.builder()
                 .id(modelId)
                 .modelName(modelName)
@@ -199,6 +301,8 @@ public class ModelConfigController {
                 .capability(capability)
                 .createdAt(createdAt)
                 .updatedAt(updatedAt)
+                .activeChat(activeChat)
+                .activeEmbedding(activeEmbedding)
                 .build();
     }
 

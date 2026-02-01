@@ -70,4 +70,14 @@ public class ModelConfigResponse implements Serializable {
      * 更新时间
      */
     private LocalDateTime updatedAt;
+
+    /**
+     * 是否为当前激活的对话模型
+     */
+    private Boolean activeChat;
+
+    /**
+     * 是否为当前激活的嵌入模型
+     */
+    private Boolean activeEmbedding;
 }

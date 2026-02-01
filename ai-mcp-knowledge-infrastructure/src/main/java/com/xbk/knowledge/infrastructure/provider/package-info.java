@@ -1,5 +1,5 @@
 /**
- * 模型厂商适配实现（OpenAI/Gemini/Anthropic），封装 SDK 与客户端构建。
+ * 模型提供方实现
  *
  * @author xiexu
  */

@@ -4,30 +4,20 @@
       <!-- 搜索栏 -->
       <el-form :inline="true" :model="searchForm" class="search-form">
         <el-form-item label="表名">
-          <el-input
+          <el-select
             v-model="searchForm.tableName"
-            placeholder="请输入表名"
+            placeholder="请选择表名"
             clearable
-            style="width: 300px"
-          />
-        </el-form-item>
-        <el-form-item label="记录ID">
-          <el-input-number
-            v-model="searchForm.recordId"
-            :min="1"
-            :step="1"
-            placeholder="请输入记录ID"
-            style="width: 200px"
-            controls-position="right"
-          />
-        </el-form-item>
-        <el-form-item label="操作人">
-          <el-input
-            v-model="searchForm.operator"
-            placeholder="请输入操作人"
-            clearable
-            style="width: 200px"
-          />
+            filterable
+            style="width: 260px"
+          >
+            <el-option
+              v-for="name in tableOptions"
+              :key="name"
+              :label="name"
+              :value="name"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleSearch">
@@ -126,18 +116,17 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { getAuditLogList } from '@/api/audit'
+import { getAuditLogList, getAuditTableNames } from '@/api/audit'
 import type { ConfigAudit } from '@/types/entity'
 
 const loading = ref(false)
 const tableData = ref<ConfigAudit[]>([])
 const dialogVisible = ref(false)
 const currentLog = ref<ConfigAudit | null>(null)
+const tableOptions = ref<string[]>([])
 
 const searchForm = reactive({
-  tableName: '',
-  recordId: undefined as number | undefined,
-  operator: ''
+  tableName: ''
 })
 
 const pagination = reactive({
@@ -153,9 +142,7 @@ const fetchData = async () => {
     const res = await getAuditLogList({
       pageNum: pagination.pageNum,
       pageSize: pagination.pageSize,
-      tableName: searchForm.tableName || undefined,
-      recordId: searchForm.recordId || undefined,
-      operator: searchForm.operator || undefined
+      tableName: searchForm.tableName || undefined
     })
     tableData.value = res.data.data.records
     pagination.total = res.data.data.total
@@ -175,8 +162,6 @@ const handleSearch = () => {
 // 重置
 const handleReset = () => {
   searchForm.tableName = ''
-  searchForm.recordId = undefined
-  searchForm.operator = ''
   pagination.pageNum = 1
   fetchData()
 }
@@ -214,8 +199,18 @@ const handleCurrentChange = () => {
 }
 
 onMounted(() => {
+  fetchTableOptions()
   fetchData()
 })
+
+const fetchTableOptions = async () => {
+  try {
+    const res = await getAuditTableNames()
+    tableOptions.value = res.data.data || []
+  } catch (error: any) {
+    ElMessage.error(error.message || '获取表名列表失败')
+  }
+}
 </script>
 
 <style scoped>

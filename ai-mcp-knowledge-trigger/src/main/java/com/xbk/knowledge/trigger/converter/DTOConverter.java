@@ -8,6 +8,7 @@ import com.xbk.knowledge.application.model.dto.AICallResult;
 import com.xbk.knowledge.domain.model.entity.ModelCapability;
 import com.xbk.knowledge.types.enums.ModelSelectionStrategy;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -33,6 +34,8 @@ public class DTOConverter {
         Map<String, Object> parameters = api.getParameters();
         ModelSelectionStrategy strategy = api.getStrategy();
         Boolean streaming = api.getStreaming();
+        Long modelId = api.getModelId();
+        List<String> ragTags = api.getRagTags();
         return AICallCommand.builder()
                 .content(content)
                 .taskType(taskType)
@@ -40,6 +43,8 @@ public class DTOConverter {
                 .parameters(parameters)
                 .strategy(strategy)
                 .streaming(streaming)
+                .modelId(modelId)
+                .ragTags(ragTags)
                 .build();
     }
 

@@ -98,7 +98,7 @@
             created_at,
             updated_at
         from ai_task_type
-        order by created_at desc
+        order by updated_at desc, id asc
         limit #{pageSize} offset #{offset}
     </select>
 

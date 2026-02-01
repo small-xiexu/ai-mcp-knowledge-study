@@ -114,25 +114,6 @@ const rules: FormRules = {
   preferredModelId: [{ required: true, message: '请选择首选模型', trigger: 'change' }]
 }
 
-watch(
-  () => props.taskData,
-  (data) => {
-    if (data) {
-      isEdit.value = true
-      formData.id = data.id
-      formData.taskName = data.taskName
-      formData.taskCode = data.taskCode
-      formData.description = data.description || ''
-      formData.preferredModelId = data.preferredModelId
-      formData.fallbackModelIds = parseFallbackIds(data.fallbackModelIds)
-    } else {
-      isEdit.value = false
-      resetForm()
-    }
-  },
-  { immediate: true }
-)
-
 const parseFallbackIds = (fallbackModelIds?: string) => {
   if (!fallbackModelIds) return []
   return fallbackModelIds
@@ -152,6 +133,25 @@ const resetForm = () => {
   formData.fallbackModelIds = []
   formRef.value?.clearValidate()
 }
+
+watch(
+  () => props.taskData,
+  (data) => {
+    if (data) {
+      isEdit.value = true
+      formData.id = data.id
+      formData.taskName = data.taskName
+      formData.taskCode = data.taskCode
+      formData.description = data.description || ''
+      formData.preferredModelId = data.preferredModelId
+      formData.fallbackModelIds = parseFallbackIds(data.fallbackModelIds)
+    } else {
+      isEdit.value = false
+      resetForm()
+    }
+  },
+  { immediate: true }
+)
 
 const handleClose = () => {
   emit('update:visible', false)

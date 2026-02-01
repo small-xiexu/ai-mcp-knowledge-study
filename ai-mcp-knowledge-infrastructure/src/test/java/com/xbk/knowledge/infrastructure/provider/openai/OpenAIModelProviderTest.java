@@ -1,4 +1,4 @@
-package com.xbk.knowledge.infrastructure.provider;
+package com.xbk.knowledge.infrastructure.provider.openai;
 
 import org.junit.jupiter.api.Test;
 
@@ -19,7 +19,7 @@ public class OpenAIModelProviderTest {
     @Test
     public void shouldNormalizeBaseUrl() throws Exception {
         OpenAIModelProvider provider = new OpenAIModelProvider();
-        Method method = OpenAIModelProvider.class.getDeclaredMethod("normalizeBaseUrl", String.class);
+        Method method = provider.getClass().getSuperclass().getDeclaredMethod("normalizeBaseUrl", String.class);
         method.setAccessible(true);
 
         String trimmed = (String) method.invoke(provider, "http://localhost/v1/chat/completions");

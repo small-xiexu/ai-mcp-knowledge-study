@@ -15,7 +15,25 @@ const routes: RouteRecordRaw[] = [
         path: 'models',
         name: 'Models',
         component: () => import('@/views/model/index.vue'),
-        meta: { title: '模型管理', icon: 'Setting' }
+        meta: { title: 'LLM 配置', icon: 'Setting' }
+      },
+      {
+        path: 'ai-chat',
+        name: 'AiChat',
+        component: () => import('@/views/chat/index.vue'),
+        meta: { title: 'AI 对话', icon: 'ChatDotRound' }
+      },
+      {
+        path: 'knowledge',
+        name: 'Knowledge',
+        component: () => import('@/views/knowledge/index.vue'),
+        meta: { title: '知识库管理', icon: 'Collection' }
+      },
+      {
+        path: 'rag-tasks',
+        name: 'RagTasks',
+        component: () => import('@/views/rag-task/index.vue'),
+        meta: { title: '任务进度', icon: 'Clock' }
       },
       {
         path: 'tasks',
@@ -34,12 +52,6 @@ const routes: RouteRecordRaw[] = [
         name: 'Audit',
         component: () => import('@/views/audit/index.vue'),
         meta: { title: '审计日志', icon: 'Document' }
-      },
-      {
-        path: 'playground',
-        name: 'Playground',
-        component: () => import('@/views/playground/index.vue'),
-        meta: { title: '调试演练', icon: 'ChatDotRound' }
       }
     ]
   },

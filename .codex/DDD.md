@@ -43,7 +43,7 @@ Interface/Trigger  →  Application  →  Domain  →  Infrastructure
 
 ```mermaid
 flowchart TB
-  UI[UI/Web] --> TRIGGER[Interface/Trigger]
+  UI["UI/Web"] --> TRIGGER["Interface/Trigger"]
   TRIGGER --> APP[Application]
   APP --> DOMAIN[Domain]
   DOMAIN --> INFRA[Infrastructure]
@@ -226,14 +226,14 @@ classDiagram
 
 ```mermaid
 flowchart TB
-    A[FallbackHandler] --> B[FailoverExecutor]
-    B --> C[FailoverPlan]
-    C --> D[Candidate Iterator]
-    D --> E[ModelCallPipeline]
-    E --> F[LoggingPolicy]
-    E --> G[CircuitBreakerPolicy]
-    E --> H[RetryPolicy]
-    E --> I[DefaultModelCallExecutor]
+    A["FallbackHandler"] --> B["FailoverExecutor"]
+    B --> C["FailoverPlan"]
+    C --> D["Candidate Iterator"]
+    D --> E["ModelCallPipeline"]
+    E --> F["LoggingPolicy"]
+    E --> G["CircuitBreakerPolicy"]
+    E --> H["RetryPolicy"]
+    E --> I["DefaultModelCallExecutor"]
 ```
 
 ## 6. DDD 的“从 0 到 1”学习路径（结合本项目）
@@ -399,11 +399,11 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-  UI[Client/UI] -->|Command| CMD[Command API]
-  CMD --> W[Write Model]
+  UI["Client/UI"] -->|Command| CMD["Command API"]
+  CMD --> W["Write Model"]
   W --> DB[(Write DB)]
-  UI -->|Query| Q[Query API]
-  Q --> R[Read Model]
+  UI -->|Query| Q["Query API"]
+  Q --> R["Read Model"]
   R --> RD[(Read DB/Projection)]
   W -->|Events| R
 ```
@@ -431,19 +431,19 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-  subgraph Orchestration[模型编排上下文]
-    O1[模型选择/调用策略]
+  subgraph Orchestration["模型编排上下文"]
+    O1["模型选择/调用策略"]
   end
-  subgraph Config[配置管理上下文]
-    C1[模型配置/任务配置]
+  subgraph Config["配置管理上下文"]
+    C1["模型配置/任务配置"]
   end
-  subgraph Audit[审计与指标上下文]
-    A1[审计/指标/日志]
+  subgraph Audit["审计与指标上下文"]
+    A1["审计/指标/日志"]
   end
   Orchestration -->|读取配置| Config
   Orchestration -->|产生日志事件| Audit
   Config -->|变更审计| Audit
-  Orchestration -->|ACL 适配| External[外部模型/工具]
+  Orchestration -->|ACL 适配| External["外部模型/工具"]
 ```
 
 ## 15. 聚合设计（Aggregate Design）
@@ -467,14 +467,14 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-  subgraph Agg[Aggregate: ModelConfig]
-    Root[ModelConfig (聚合根)]
-    Cap[ModelCapability]
-    Rule[不变量/规则]
+  subgraph Agg["Aggregate: ModelConfig"]
+    Root["ModelConfig (聚合根)"]
+    Cap["ModelCapability"]
+    Rule["不变量/规则"]
     Root --> Cap
     Root --> Rule
   end
-  Other[其他聚合] -.事件/ID.-> Root
+  Other["其他聚合"] -.|"事件/ID"|.-> Root
 ```
 
 ## 16. 贫血模型 vs 充血模型
@@ -561,12 +561,12 @@ Event Storming 是一种**快速发现领域知识**的协作方法。
 
 ```mermaid
 flowchart LR
-  Actor[管理员] --> CMD[Command: UpdateModelConfig]
-  CMD --> AGG[Aggregate: ModelConfig]
-  AGG --> EVT[Event: ModelConfigUpdated]
-  EVT --> POL1[Policy: WriteAudit]
-  EVT --> POL2[Policy: RefreshCache]
-  EVT --> READ[Read Model Update]
+  Actor["管理员"] --> CMD["Command: UpdateModelConfig"]
+  CMD --> AGG["Aggregate: ModelConfig"]
+  AGG --> EVT["Event: ModelConfigUpdated"]
+  EVT --> POL1["Policy: WriteAudit"]
+  EVT --> POL2["Policy: RefreshCache"]
+  EVT --> READ["Read Model Update"]
 ```
 
 ## 22. 一致性与 CAP（DDD 必须理解的权衡）
@@ -644,12 +644,12 @@ Payload:
 
 ```mermaid
 flowchart LR
-  APP[Application Service] -->|事务| AGG[Aggregate/Domain]
+  APP["Application Service"] -->|事务| AGG["Aggregate/Domain"]
   AGG --> DB[(业务表)]
   AGG --> OUT[(Outbox 事件表)]
-  OUT --> PUB[Event Publisher]
-  PUB --> SUB1[订阅者: 审计]
-  PUB --> SUB2[订阅者: 指标]
+  OUT --> PUB["Event Publisher"]
+  PUB --> SUB1["订阅者: 审计"]
+  PUB --> SUB2["订阅者: 指标"]
 ```
 
 ## 25. 结尾：如何真正学会 DDD

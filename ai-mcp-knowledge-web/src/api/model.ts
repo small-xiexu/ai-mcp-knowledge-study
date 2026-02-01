@@ -43,3 +43,33 @@ export const enableModel = (id: number) =>
  */
 export const disableModel = (id: number) =>
   request.post<ModelConfig>('/models/disable', { id })
+
+/**
+ * 激活对话模型
+ */
+export const activateChatModel = (id: number) =>
+  request.post<ModelConfig>('/models/activate-chat', { id })
+
+/**
+ * 激活嵌入模型
+ */
+export const activateEmbeddingModel = (id: number) =>
+  request.post<ModelConfig>('/models/activate-embedding', { id })
+
+/**
+ * 获取当前激活对话模型
+ */
+export const getActiveChatModel = () =>
+  request.post<ModelConfig>('/models/active-chat')
+
+/**
+ * 获取当前激活嵌入模型
+ */
+export const getActiveEmbeddingModel = () =>
+  request.post<ModelConfig>('/models/active-embedding')
+
+/**
+ * 测试模型连接
+ */
+export const testModelConnection = (id: number) =>
+  request.post<boolean>('/models/test', { id })

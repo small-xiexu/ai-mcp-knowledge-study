@@ -2,6 +2,7 @@ package com.xbk.knowledge;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
@@ -9,6 +10,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * @author xiexu
  * @date 2026/1/17 08:27
  */
+@EnableAsync
 @EnableScheduling
 @SpringBootApplication
 public class Application {

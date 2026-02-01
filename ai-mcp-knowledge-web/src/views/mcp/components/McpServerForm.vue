@@ -37,36 +37,20 @@
       </el-form-item>
 
       <template v-if="isStdio">
-        <el-form-item label="命令" prop="command">
-          <el-input v-model="formData.command" placeholder="例如：java" />
-        </el-form-item>
-
-        <el-form-item label="参数">
+        <el-form-item label="JSON 配置" prop="commandJsonText">
           <el-input
-            v-model="formData.argsText"
-            placeholder="用逗号分隔，例如：-jar,/path/app.jar"
-          />
-          <div class="form-tip">
-            <el-button type="primary" link @click="fillArgsExample">填入示例</el-button>
-            <el-button type="primary" link @click="copyArgsExample">复制示例</el-button>
-            <span>示例：-jar,/path/mcp-server.jar,-Dspring.ai.mcp.server.stdio=true</span>
-          </div>
-        </el-form-item>
-
-        <el-form-item label="环境变量" prop="envText">
-          <el-input
-            v-model="formData.envText"
+            v-model="formData.commandJsonText"
             type="textarea"
-            :rows="3"
-            placeholder='JSON 对象，例如：{"KEY":"VALUE"}'
+            :rows="5"
+            placeholder='例如：{"command":"java","args":["-jar","/path/app.jar"],"env":{"KEY":"VALUE"}}'
           />
           <div class="form-tip">
-            <el-button type="primary" link @click="fillEnvExample">填入示例</el-button>
-            <el-button type="primary" link @click="copyEnvExample">复制示例</el-button>
-            <el-button type="primary" link @click="validateEnvJson">校验 JSON</el-button>
-            <span>示例：{"MCP_ENV":"dev","LOG_LEVEL":"INFO"}</span>
+            <el-button type="primary" link @click="fillCommandJsonExample">填入示例</el-button>
+            <el-button type="primary" link @click="copyCommandJsonExample">复制示例</el-button>
+            <span>示例：{"command":"java","args":["-Dspring.ai.mcp.server.stdio=true","-jar","/path/mcp-server.jar"],"env":{"MCP_ENV":"dev"}}</span>
           </div>
         </el-form-item>
+
       </template>
 
       <template v-else>
@@ -145,9 +129,7 @@ const formData = reactive({
   serverType: '',
   enabled: true,
   description: '',
-  command: '',
-  argsText: '',
-  envText: '',
+  commandJsonText: '',
   endpoint: '',
   sseEndpoint: '',
   headersText: '',
@@ -175,12 +157,15 @@ const validateJsonObject = (value: string, label: string) => {
 const rules: FormRules = {
   serverName: [{ required: true, message: '请输入名称', trigger: 'blur' }],
   serverType: [{ required: true, message: '请选择类型', trigger: 'change' }],
-  command: [
+  commandJsonText: [
     {
       validator: (_, value, callback) => {
-        if (isStdio.value && (!value || !value.trim())) {
-          callback(new Error('STDIO 模式需要填写命令'))
-          return
+        if (isStdio.value) {
+          const result = validateStdioJson(value)
+          if (result !== true) {
+            callback(new Error(result as string))
+            return
+          }
         }
         callback()
       },
@@ -211,19 +196,6 @@ const rules: FormRules = {
       trigger: 'blur'
     }
   ],
-  envText: [
-    {
-      validator: (_, value, callback) => {
-        const result = validateJsonObject(value, '环境变量')
-        if (result !== true) {
-          callback(new Error(result as string))
-          return
-        }
-        callback()
-      },
-      trigger: 'blur'
-    }
-  ],
   headersText: [
     {
       validator: (_, value, callback) => {
@@ -239,6 +211,22 @@ const rules: FormRules = {
   ]
 }
 
+const resetForm = () => {
+  formData.id = 0
+  formData.serverName = ''
+  formData.serverType = ''
+  formData.enabled = true
+  formData.description = ''
+  formData.commandJsonText = ''
+  formData.endpoint = ''
+  formData.sseEndpoint = ''
+  formData.headersText = ''
+  formData.connectTimeoutMs = undefined
+  formData.requestTimeoutMs = undefined
+  formData.initTimeoutMs = undefined
+  formRef.value?.clearValidate()
+}
+
 watch(
   () => props.configData,
   (data) => {
@@ -249,9 +237,17 @@ watch(
       formData.serverType = data.serverType
       formData.enabled = data.enabled
       formData.description = data.description || ''
-      formData.command = data.command || ''
-      formData.argsText = (data.args || []).join(',')
-      formData.envText = data.env ? JSON.stringify(data.env, null, 2) : ''
+      formData.commandJsonText = isStdio.value
+        ? JSON.stringify(
+          {
+            command: data.command || '',
+            args: data.args || [],
+            env: data.env || undefined
+          },
+          null,
+          2
+        )
+        : ''
       formData.endpoint = data.endpoint || ''
       formData.sseEndpoint = data.sseEndpoint || ''
       formData.headersText = data.headers ? JSON.stringify(data.headers, null, 2) : ''
@@ -269,33 +265,13 @@ watch(
 watch(
   () => formData.serverType,
   () => {
-    formData.command = ''
-    formData.argsText = ''
-    formData.envText = ''
+    formData.commandJsonText = ''
     formData.endpoint = ''
     formData.sseEndpoint = ''
     formData.headersText = ''
     formRef.value?.clearValidate()
   }
 )
-
-const resetForm = () => {
-  formData.id = 0
-  formData.serverName = ''
-  formData.serverType = ''
-  formData.enabled = true
-  formData.description = ''
-  formData.command = ''
-  formData.argsText = ''
-  formData.envText = ''
-  formData.endpoint = ''
-  formData.sseEndpoint = ''
-  formData.headersText = ''
-  formData.connectTimeoutMs = undefined
-  formData.requestTimeoutMs = undefined
-  formData.initTimeoutMs = undefined
-  formRef.value?.clearValidate()
-}
 
 const handleClose = () => {
   emit('update:visible', false)
@@ -311,27 +287,27 @@ const copyText = async (text: string) => {
   }
 }
 
-const fillArgsExample = () => {
-  formData.argsText = '-jar,/path/mcp-server.jar,-Dspring.ai.mcp.server.stdio=true'
-}
-
-const copyArgsExample = () => {
-  copyText('-jar,/path/mcp-server.jar,-Dspring.ai.mcp.server.stdio=true')
-}
-
-const fillEnvExample = () => {
-  formData.envText = JSON.stringify(
+const fillCommandJsonExample = () => {
+  formData.commandJsonText = JSON.stringify(
     {
-      MCP_ENV: 'dev',
-      LOG_LEVEL: 'INFO'
+      command: 'java',
+      args: [
+        '-Dspring.ai.mcp.server.stdio=true',
+        '-jar',
+        '/path/mcp-server.jar'
+      ],
+      env: {
+        MCP_ENV: 'dev',
+        LOG_LEVEL: 'INFO'
+      }
     },
     null,
     2
   )
 }
 
-const copyEnvExample = () => {
-  copyText('{"MCP_ENV":"dev","LOG_LEVEL":"INFO"}')
+const copyCommandJsonExample = () => {
+  copyText('{"command":"java","args":["-Dspring.ai.mcp.server.stdio=true","-jar","/path/mcp-server.jar"],"env":{"MCP_ENV":"dev","LOG_LEVEL":"INFO"}}')
 }
 
 const fillHeadersExample = () => {
@@ -365,21 +341,54 @@ const validateJsonContent = (text: string, label: string) => {
   }
 }
 
-const validateEnvJson = () => {
-  validateJsonContent(formData.envText, '环境变量')
-}
-
 const validateHeadersJson = () => {
   validateJsonContent(formData.headersText, 'Header')
 }
 
-const parseArgs = () => {
-  if (!formData.argsText) return undefined
-  const args = formData.argsText
-    .split(',')
-    .map(item => item.trim())
-    .filter(item => item)
-  return args.length > 0 ? args : undefined
+const validateStdioJson = (value: string) => {
+  if (!value || !value.trim()) {
+    return 'STDIO 模式需要填写 JSON 配置'
+  }
+  try {
+    const parsed = JSON.parse(value)
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      return 'JSON 配置需要是对象，例如：{"command":"java","args":["-jar","/path/app.jar"]}'
+    }
+    if (!parsed.command || typeof parsed.command !== 'string') {
+      return 'JSON 配置需要包含 command 字段'
+    }
+    if (parsed.args !== undefined && !Array.isArray(parsed.args)) {
+      return 'args 需要是数组，例如：["-jar","/path/app.jar"]'
+    }
+    if (parsed.env !== undefined) {
+      if (!parsed.env || typeof parsed.env !== 'object' || Array.isArray(parsed.env)) {
+        return 'env 需要是 JSON 对象，例如：{"KEY":"VALUE"}'
+      }
+    }
+    return true
+  } catch (error) {
+    return 'JSON 配置不是有效的 JSON'
+  }
+}
+
+const parseStdioJson = (value: string) => {
+  const result = validateStdioJson(value)
+  if (result !== true) {
+    ElMessage.error(result as string)
+    return null
+  }
+  const parsed = JSON.parse(value)
+  const args = Array.isArray(parsed.args)
+    ? parsed.args.map(item => String(item).trim()).filter(item => item)
+    : undefined
+  const env = parsed.env && typeof parsed.env === 'object' && !Array.isArray(parsed.env)
+    ? parsed.env as Record<string, string>
+    : undefined
+  return {
+    command: String(parsed.command).trim(),
+    args: args && args.length > 0 ? args : undefined,
+    env: env || undefined
+  }
 }
 
 const parseJsonMap = (text: string, label: string) => {
@@ -403,8 +412,8 @@ const handleSubmit = async () => {
   await formRef.value.validate(async (valid) => {
     if (!valid) return
 
-    const env = parseJsonMap(formData.envText, '环境变量')
-    if (env === null) return
+    const stdioConfig = isStdio.value ? parseStdioJson(formData.commandJsonText) : null
+    if (isStdio.value && stdioConfig === null) return
     const headers = parseJsonMap(formData.headersText, 'Header')
     if (headers === null) return
 
@@ -414,9 +423,9 @@ const handleSubmit = async () => {
       serverType: formData.serverType,
       enabled: formData.enabled,
       description: formData.description || undefined,
-      command: formData.command || undefined,
-      args: parseArgs(),
-      env: env || undefined,
+      command: stdioConfig ? stdioConfig.command : undefined,
+      args: stdioConfig ? stdioConfig.args : undefined,
+      env: stdioConfig ? stdioConfig.env : undefined,
       endpoint: formData.endpoint || undefined,
       sseEndpoint: formData.sseEndpoint || undefined,
       headers: headers || undefined,

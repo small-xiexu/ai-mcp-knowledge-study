@@ -1,4 +1,4 @@
-package com.xbk.knowledge.infrastructure.provider;
+package com.xbk.knowledge.infrastructure.provider.factory;
 
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.application.provider.ModelProvider;

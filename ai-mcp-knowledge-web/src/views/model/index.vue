@@ -25,6 +25,19 @@
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="modelName" label="模型名称" min-width="150" />
         <el-table-column prop="modelType" label="模型类型" width="120" />
+        <el-table-column prop="baseUrl" label="Base URL" min-width="220" />
+        <el-table-column label="对话激活" width="110">
+          <template #default="{ row }">
+            <el-tag v-if="row.activeChat" type="success">已激活</el-tag>
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="嵌入激活" width="110">
+          <template #default="{ row }">
+            <el-tag v-if="row.activeEmbedding" type="info">已激活</el-tag>
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
         <el-table-column label="状态" width="100">
           <template #default="{ row }">
             <el-tag :type="row.enabled ? 'success' : 'danger'">
@@ -42,30 +55,68 @@
             <span v-else>-</span>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="创建时间" width="180" />
-        <el-table-column label="操作" width="280" fixed="right">
+        <el-table-column label="创建时间" width="180">
           <template #default="{ row }">
-            <el-button
-              type="primary"
-              size="small"
-              @click="handleEdit(row)"
-            >
-              编辑
-            </el-button>
-            <el-button
-              :type="row.enabled ? 'warning' : 'success'"
-              size="small"
-              @click="handleToggleStatus(row)"
-            >
-              {{ row.enabled ? '禁用' : '启用' }}
-            </el-button>
-            <el-button
-              type="danger"
-              size="small"
-              @click="handleDelete(row)"
-            >
-              删除
-            </el-button>
+            {{ formatDateTime(row.createdAt) }}
+          </template>
+        </el-table-column>
+        <el-table-column label="更新时间" width="180">
+          <template #default="{ row }">
+            {{ formatDateTime(row.updatedAt) }}
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="320" fixed="right">
+          <template #default="{ row }">
+            <div class="action-row">
+              <el-space>
+                <el-button
+                  type="primary"
+                  size="small"
+                  @click="handleEdit(row)"
+                >
+                  编辑
+                </el-button>
+                <el-button
+                  :type="row.enabled ? 'warning' : 'success'"
+                  size="small"
+                  @click="handleToggleStatus(row)"
+                >
+                  {{ row.enabled ? '禁用' : '启用' }}
+                </el-button>
+                <el-button
+                  type="warning"
+                  size="small"
+                  @click="handleTestConnection(row)"
+                >
+                  测试连接
+                </el-button>
+              </el-space>
+            </div>
+            <div class="action-row">
+              <el-space>
+                <el-button
+                  type="success"
+                  size="small"
+                  @click="handleActivateChat(row)"
+                >
+                  激活对话
+                </el-button>
+                <el-button
+                  type="info"
+                  size="small"
+                  @click="handleActivateEmbedding(row)"
+                >
+                  激活嵌入
+                </el-button>
+                <el-button
+                  type="danger"
+                  size="small"
+                  @click="handleDelete(row)"
+                >
+                  删除
+                </el-button>
+              </el-space>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -95,7 +146,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getModelList, deleteModel, enableModel, disableModel } from '@/api/model'
+import { getModelList, deleteModel, enableModel, disableModel, activateChatModel, activateEmbeddingModel, testModelConnection } from '@/api/model'
 import ModelForm from './components/ModelForm.vue'
 import type { ModelConfig } from '@/types/entity'
 
@@ -110,13 +161,20 @@ const pagination = reactive({
   total: 0
 })
 
+const formatDateTime = (value?: string) => {
+  if (!value) return '-'
+  return value.replace('T', ' ')
+}
+
 // 获取模型列表
 const fetchData = async () => {
   loading.value = true
   try {
     const res = await getModelList({
       pageNum: pagination.pageNum,
-      pageSize: pagination.pageSize
+      pageSize: pagination.pageSize,
+      sortField: 'updatedAt',
+      sortOrder: 'DESC'
     })
     tableData.value = res.data.data.records
     pagination.total = res.data.data.total
@@ -178,6 +236,35 @@ const handleToggleStatus = async (row: ModelConfig) => {
   }
 }
 
+const handleActivateChat = async (row: ModelConfig) => {
+  try {
+    await activateChatModel(row.id)
+    ElMessage.success('对话模型激活成功')
+    fetchData()
+  } catch (error: any) {
+    ElMessage.error(error.message || '激活失败')
+  }
+}
+
+const handleActivateEmbedding = async (row: ModelConfig) => {
+  try {
+    await activateEmbeddingModel(row.id)
+    ElMessage.success('嵌入模型激活成功')
+    fetchData()
+  } catch (error: any) {
+    ElMessage.error(error.message || '激活失败')
+  }
+}
+
+const handleTestConnection = async (row: ModelConfig) => {
+  try {
+    await testModelConnection(row.id)
+    ElMessage.success('模型连接成功')
+  } catch (error: any) {
+    ElMessage.error(error.message || '模型连接失败')
+  }
+}
+
 // 分页大小变化
 const handleSizeChange = () => {
   pagination.pageNum = 1
@@ -206,5 +293,9 @@ onMounted(() => {
 
 .search-form {
   margin-bottom: 20px;
+}
+
+.action-row + .action-row {
+  margin-top: 6px;
 }
 </style>

@@ -1,52 +1,50 @@
-package com.xbk.knowledge.infrastructure.provider;
+package com.xbk.knowledge.infrastructure.provider.openai;
 
 import com.xbk.knowledge.application.provider.ModelProvider;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.types.enums.ModelType;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.anthropic.AnthropicChatModel;
-import org.springframework.ai.anthropic.AnthropicChatOptions;
-import org.springframework.ai.anthropic.api.AnthropicApi;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.ollama.OllamaChatModel;
+import org.springframework.ai.ollama.api.OllamaApi;
+import org.springframework.ai.ollama.api.OllamaChatOptions;
 import org.springframework.stereotype.Component;
 
 /**
- * Anthropic 模型提供者
- * 封装 Anthropic Claude 模型的创建和调用
+ * Ollama 模型提供者
+ * 封装 Ollama 模型的创建和调用
  *
  * 职责：模型调用实现，用于适配具体厂商 SDK
  * @author xiexu
  */
 @Slf4j
 @Component
-public class AnthropicModelProvider implements ModelProvider {
+public class OllamaModelProvider implements ModelProvider {
 
-    private ChatModel createChatModel(ModelConfig config) {
+    @Override
+    public ChatModel createChatModel(ModelConfig config) {
         try {
-            // 创建 Anthropic API 客户端
             String baseUrl = config.getBaseUrl();
-            String apiKey = config.getApiKey();
-            AnthropicApi anthropicApi = AnthropicApi.builder()
-                    .baseUrl(baseUrl)
-                    .apiKey(apiKey)
-                    .build();
-
-            // 创建聊天选项
             String modelName = config.getModelName();
-            AnthropicChatOptions options = AnthropicChatOptions.builder()
+
+            log.info("创建 Ollama 模型 - baseUrl: {}, model: {}", baseUrl, modelName);
+
+            OllamaApi ollamaApi = OllamaApi.builder()
+                    .baseUrl(baseUrl)
+                    .build();
+            OllamaChatOptions options = OllamaChatOptions.builder()
                     .model(modelName)
                     .build();
 
-            // 创建聊天模型
-            return AnthropicChatModel.builder()
-                    .anthropicApi(anthropicApi)
+            return OllamaChatModel.builder()
+                    .ollamaApi(ollamaApi)
                     .defaultOptions(options)
                     .build();
         } catch (Exception e) {
             String errorMessage = e.getMessage();
-            log.error("创建 Anthropic 模型失败: {}", errorMessage, e);
-            throw new RuntimeException("创建 Anthropic 模型失败", e);
+            log.error("创建 Ollama 模型失败: {}", errorMessage, e);
+            throw new RuntimeException("创建 Ollama 模型失败", e);
         }
     }
 
@@ -66,7 +64,7 @@ public class AnthropicModelProvider implements ModelProvider {
      */
     @Override
     public ModelType getModelType() {
-        return ModelType.ANTHROPIC;
+        return ModelType.OLLAMA;
     }
 
     /**
@@ -75,12 +73,11 @@ public class AnthropicModelProvider implements ModelProvider {
     @Override
     public boolean isHealthy(ModelConfig config) {
         try {
-            // 简单的健康检查：尝试创建客户端
             createChatModel(config);
             return true;
         } catch (Exception e) {
             String errorMessage = e.getMessage();
-            log.warn("Anthropic 模型健康检查失败: {}", errorMessage);
+            log.warn("Ollama 模型健康检查失败: {}", errorMessage);
             return false;
         }
     }

@@ -3,6 +3,7 @@ package com.xbk.knowledge.application.provider;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.types.enums.ModelType;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.model.ChatModel;
 
 /**
  * 模型提供者接口
@@ -20,6 +21,14 @@ public interface ModelProvider {
      * @return ChatClient 实例
      */
     ChatClient createChatClient(ModelConfig config);
+
+    /**
+     * 创建 ChatModel（用于流式调用）
+     *
+     * @param config 模型配置
+     * @return ChatModel 实例
+     */
+    ChatModel createChatModel(ModelConfig config);
 
     /**
      * 获取模型类型

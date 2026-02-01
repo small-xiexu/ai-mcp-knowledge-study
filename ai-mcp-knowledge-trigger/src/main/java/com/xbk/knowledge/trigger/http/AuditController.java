@@ -44,16 +44,12 @@ public class AuditController {
     public Result<PageResult<AuditResponse>> listAudits(@Valid @RequestBody AuditQueryRequest request) {
         // 调用应用服务查询
         String tableName = request.getTableName();
-        Long recordId = request.getRecordId();
-        String operator = request.getOperator();
         int offset = request.getOffset();
         Integer pageSize = request.getPageSize();
         String sortField = request.getSortField();
         String sortOrder = request.getSortOrder();
         AuditQuery query = new AuditQuery(
                 tableName,
-                recordId,
-                operator,
                 offset,
                 pageSize,
                 sortField,
@@ -64,6 +60,17 @@ public class AuditController {
         PageResult<AuditResponse> result = PageResultConverter.convert(pageResult, this::convertToResponse);
 
         return Result.success(result);
+    }
+
+    /**
+     * 查询所有可用表名
+     *
+     * @return 表名列表
+     */
+    @PostMapping("/tables")
+    public Result<List<String>> listTableNames() {
+        List<String> tableNames = auditAppService.listTableNames();
+        return Result.success(tableNames);
     }
 
     /**

@@ -1,0 +1,43 @@
+package com.xbk.knowledge.infrastructure.protocol;
+
+import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import org.springframework.ai.anthropic.AnthropicChatModel;
+import org.springframework.ai.anthropic.AnthropicChatOptions;
+import org.springframework.ai.anthropic.api.AnthropicApi;
+import org.springframework.ai.chat.model.ChatModel;
+
+/**
+ * Anthropic 协议抽象适配器
+ * 统一封装 Anthropic Claude 模型的构建逻辑
+ *
+ * 职责：协议层构建 ChatModel，供具体协议实现复用
+ *
+ * @author xiexu
+ */
+public abstract class AbstractAnthropicProtocolAdapter {
+
+    /**
+     * 创建基于 Anthropic 协议的 ChatModel
+     *
+     * @param config 模型配置
+     * @return ChatModel
+     */
+    public ChatModel createChatModel(ModelConfig config) {
+        String baseUrl = config.getBaseUrl();
+        String apiKey = config.getApiKey();
+        AnthropicApi anthropicApi = AnthropicApi.builder()
+                .baseUrl(baseUrl)
+                .apiKey(apiKey)
+                .build();
+
+        String modelName = config.getModelName();
+        AnthropicChatOptions options = AnthropicChatOptions.builder()
+                .model(modelName)
+                .build();
+
+        return AnthropicChatModel.builder()
+                .anthropicApi(anthropicApi)
+                .defaultOptions(options)
+                .build();
+    }
+}

@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -53,4 +54,15 @@ public class AICallCommand {
      * 是否启用流式输出（可选）
      */
     private Boolean streaming;
+
+    /**
+     * 指定模型ID（可选）
+     * 如果指定，将优先使用该模型
+     */
+    private Long modelId;
+
+    /**
+     * 知识库标签列表（可选）
+     */
+    private List<String> ragTags;
 }

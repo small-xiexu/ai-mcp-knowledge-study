@@ -4,7 +4,7 @@ import com.xbk.knowledge.api.dto.ai.AIRequest;
 import com.xbk.knowledge.api.dto.ai.AIResponse;
 import com.xbk.knowledge.api.dto.ai.ModelRecommendRequest;
 import com.xbk.knowledge.application.model.dto.AICallResult;
-import com.xbk.knowledge.application.service.app.AIModelService;
+import com.xbk.knowledge.application.service.app.AiChatAppService;
 import com.xbk.knowledge.application.service.app.ModelConfigAppService;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
@@ -35,16 +35,16 @@ public class AICallControllerTest {
      */
     @Test
     public void shouldReturnSuccessForChat() {
-        AIModelService aiModelService = Mockito.mock(AIModelService.class);
+        AiChatAppService aiChatAppService = Mockito.mock(AiChatAppService.class);
         ModelConfigAppService modelConfigAppService = Mockito.mock(ModelConfigAppService.class);
-        AICallController controller = new AICallController(aiModelService, modelConfigAppService);
+        AICallController controller = new AICallController(modelConfigAppService, aiChatAppService);
 
         AICallResult callResult = AICallResult.builder()
                 .success(true)
                 .content("ok")
                 .modelUsed("m1")
                 .build();
-        when(aiModelService.chat(any())).thenReturn(callResult);
+        when(aiChatAppService.chat(any())).thenReturn(callResult);
 
         Result<AIResponse> result = controller.chat(AIRequest.builder().content("hi").build());
 
@@ -57,11 +57,11 @@ public class AICallControllerTest {
      */
     @Test
     public void shouldReturnErrorWhenChatFails() {
-        AIModelService aiModelService = Mockito.mock(AIModelService.class);
+        AiChatAppService aiChatAppService = Mockito.mock(AiChatAppService.class);
         ModelConfigAppService modelConfigAppService = Mockito.mock(ModelConfigAppService.class);
-        AICallController controller = new AICallController(aiModelService, modelConfigAppService);
+        AICallController controller = new AICallController(modelConfigAppService, aiChatAppService);
 
-        when(aiModelService.chat(any())).thenThrow(new RuntimeException("boom"));
+        when(aiChatAppService.chat(any())).thenThrow(new RuntimeException("boom"));
 
         Result<AIResponse> result = controller.chat(AIRequest.builder().content("hi").build());
 
@@ -75,9 +75,9 @@ public class AICallControllerTest {
      */
     @Test
     public void shouldReturnAvailableModels() {
-        AIModelService aiModelService = Mockito.mock(AIModelService.class);
+        AiChatAppService aiChatAppService = Mockito.mock(AiChatAppService.class);
         ModelConfigAppService modelConfigAppService = Mockito.mock(ModelConfigAppService.class);
-        AICallController controller = new AICallController(aiModelService, modelConfigAppService);
+        AICallController controller = new AICallController(modelConfigAppService, aiChatAppService);
 
         ModelConfig model = ModelConfig.builder().id(1L).modelName("m1").modelType(ModelType.OPENAI).build();
         when(modelConfigAppService.queryEnabledModels(any(EnabledQuery.class))).thenReturn(Collections.<ModelConfig>singletonList(model));
@@ -93,9 +93,9 @@ public class AICallControllerTest {
      */
     @Test
     public void shouldReturnErrorWhenNoRecommendation() {
-        AIModelService aiModelService = Mockito.mock(AIModelService.class);
+        AiChatAppService aiChatAppService = Mockito.mock(AiChatAppService.class);
         ModelConfigAppService modelConfigAppService = Mockito.mock(ModelConfigAppService.class);
-        AICallController controller = new AICallController(aiModelService, modelConfigAppService);
+        AICallController controller = new AICallController(modelConfigAppService, aiChatAppService);
 
         when(modelConfigAppService.getRecommendedModel(any(TaskTypeQuery.class))).thenReturn(null);
 

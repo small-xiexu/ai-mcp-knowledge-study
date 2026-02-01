@@ -23,6 +23,8 @@ export interface ModelConfig {
   capability?: ModelCapability
   createdAt: string
   updatedAt: string
+  activeChat?: boolean
+  activeEmbedding?: boolean
 }
 
 /**
@@ -73,6 +75,8 @@ export interface AIRequest {
   parameters?: Record<string, any>
   strategy?: string
   streaming?: boolean
+  modelId?: number
+  ragTags?: string[]
 }
 
 /**
@@ -87,6 +91,77 @@ export interface AIResponse {
   errorMessage?: string
   fallback?: boolean
   retryCount?: number
+}
+
+/**
+ * 聊天会话
+ */
+export interface ChatSession {
+  id: number
+  title: string
+  modelId?: number
+  ragTags?: string[]
+  createdAt: string
+  updatedAt: string
+}
+
+/**
+ * 聊天消息
+ */
+export interface ChatMessage {
+  id: number
+  sessionId: number
+  role: string
+  content: string
+  modelId?: number
+  promptTokens?: number
+  completionTokens?: number
+  totalTokens?: number
+  createdAt: string
+}
+
+/**
+ * 会话创建请求
+ */
+export interface ChatSessionCreateRequest {
+  title?: string
+  modelId?: number
+  ragTags?: string[]
+}
+
+/**
+ * 会话更新请求
+ */
+export interface ChatSessionUpdateRequest {
+  title?: string
+  modelId?: number
+  ragTags?: string[]
+}
+
+/**
+ * 消息创建请求
+ */
+export interface ChatMessageCreateRequest {
+  role: string
+  content: string
+  modelId?: number
+  promptTokens?: number
+  completionTokens?: number
+  totalTokens?: number
+}
+
+/**
+ * RAG 任务
+ */
+export interface RagTask {
+  taskId: string
+  type: string
+  status: string
+  progress: number
+  message?: string
+  ragTag?: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 /**

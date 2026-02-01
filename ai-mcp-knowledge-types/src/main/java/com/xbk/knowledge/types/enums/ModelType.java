@@ -22,7 +22,17 @@ public enum ModelType {
     /**
      * Google Gemini 模型（Gemini 3 Flash 等）
      */
-    GEMINI("Gemini");
+    GEMINI("Gemini"),
+
+    /**
+     * Ollama 模型（本地/私有化大模型）
+     */
+    OLLAMA("Ollama"),
+
+    /**
+     * DeepSeek 模型（OpenAI 兼容接口）
+     */
+    DEEPSEEK("DeepSeek");
 
     /**
      * 模型类型显示名称

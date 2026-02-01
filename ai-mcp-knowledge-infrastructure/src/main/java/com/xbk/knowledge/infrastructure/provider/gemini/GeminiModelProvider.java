@@ -1,14 +1,12 @@
-package com.xbk.knowledge.infrastructure.provider;
+package com.xbk.knowledge.infrastructure.provider.gemini;
 
+import com.xbk.knowledge.infrastructure.protocol.AbstractGeminiProtocolAdapter;
 import com.xbk.knowledge.application.provider.ModelProvider;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.types.enums.ModelType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.ai.openai.OpenAiChatModel;
-import org.springframework.ai.openai.OpenAiChatOptions;
-import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.stereotype.Component;
 
 /**
@@ -25,32 +23,12 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-public class GeminiModelProvider implements ModelProvider {
+public class GeminiModelProvider extends AbstractGeminiProtocolAdapter implements ModelProvider {
 
-    private ChatModel createChatModel(ModelConfig config) {
+    @Override
+    public ChatModel createChatModel(ModelConfig config) {
         try {
-            String modelName = config.getModelName();
-            log.info("创建 Gemini 模型（通过 OpenAI 兼容协议）: {}", modelName);
-
-            // 使用 OpenAI 兼容协议调用 Gemini
-            // 这样可以避免 Spring AI 的 GoogleGenAiChatModel 的 bug
-            String baseUrl = config.getBaseUrl();
-            String apiKey = config.getApiKey();
-            OpenAiApi openAiApi = OpenAiApi.builder()
-                    .baseUrl(baseUrl)
-                    .apiKey(apiKey)
-                    .build();
-
-            // 创建聊天选项
-            OpenAiChatOptions options = OpenAiChatOptions.builder()
-                    .model(modelName)
-                    .build();
-
-            // 创建聊天模型
-            return OpenAiChatModel.builder()
-                    .openAiApi(openAiApi)
-                    .defaultOptions(options)
-                    .build();
+            return super.createChatModel(config);
         } catch (Exception e) {
             String errorMessage = e.getMessage();
             log.error("创建 Gemini 模型失败: {}", errorMessage, e);

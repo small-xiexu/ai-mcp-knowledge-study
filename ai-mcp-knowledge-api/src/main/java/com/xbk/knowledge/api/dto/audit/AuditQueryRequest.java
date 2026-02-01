@@ -21,14 +21,4 @@ public class AuditQueryRequest extends PageRequest {
      * 表名（可选）
      */
     private String tableName;
-
-    /**
-     * 记录 ID（可选）
-     */
-    private Long recordId;
-
-    /**
-     * 操作人（可选）
-     */
-    private String operator;
 }

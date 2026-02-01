@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.ChatSessionMapper">
+
+    <resultMap id="ChatSessionMap" type="com.xbk.knowledge.domain.model.entity.ChatSession">
+        <id column="id" property="id"/>
+        <result column="title" property="title"/>
+        <result column="model_id" property="modelId"/>
+        <result column="rag_tags" property="ragTags"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <insert id="insertSession" parameterType="com.xbk.knowledge.domain.model.entity.ChatSession" useGeneratedKeys="true" keyProperty="id">
+        insert into ai_chat_session (
+            title,
+            model_id,
+            rag_tags,
+            created_at,
+            updated_at
+        ) values (
+            #{session.title},
+            #{session.modelId},
+            #{session.ragTags},
+            #{session.createdAt},
+            #{session.updatedAt}
+        )
+    </insert>
+
+    <update id="updateSession" parameterType="com.xbk.knowledge.domain.model.entity.ChatSession">
+        update ai_chat_session
+        set title = #{session.title},
+            model_id = #{session.modelId},
+            rag_tags = #{session.ragTags},
+            updated_at = #{session.updatedAt}
+        where id = #{session.id}
+    </update>
+
+    <delete id="deleteById">
+        delete from ai_chat_session
+        where id = #{sessionId}
+    </delete>
+
+    <select id="findById" resultMap="ChatSessionMap">
+        select
+            id,
+            title,
+            model_id,
+            rag_tags,
+            created_at,
+            updated_at
+        from ai_chat_session
+        where id = #{sessionId}
+        limit 1
+    </select>
+
+    <select id="findPage" resultMap="ChatSessionMap">
+        select
+            id,
+            title,
+            model_id,
+            rag_tags,
+            created_at,
+            updated_at
+        from ai_chat_session
+        order by updated_at desc, id asc
+        limit #{query.pageSize} offset #{query.offset}
+    </select>
+
+    <select id="countAll" resultType="long">
+        select count(1)
+        from ai_chat_session
+    </select>
+
+</mapper>

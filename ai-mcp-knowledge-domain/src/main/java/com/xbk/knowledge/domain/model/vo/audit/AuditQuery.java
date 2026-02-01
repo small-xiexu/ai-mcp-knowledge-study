@@ -22,16 +22,6 @@ public class AuditQuery {
     private String tableName;
 
     /**
-     * 记录 ID（可选）
-     */
-    private Long recordId;
-
-    /**
-     * 操作人（可选）
-     */
-    private String operator;
-
-    /**
      * 偏移量
      */
     private Integer offset;

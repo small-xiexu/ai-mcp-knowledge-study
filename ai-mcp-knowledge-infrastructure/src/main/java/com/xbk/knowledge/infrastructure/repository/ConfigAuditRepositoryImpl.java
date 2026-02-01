@@ -45,30 +45,6 @@ public class ConfigAuditRepositoryImpl implements ConfigAuditRepository {
     }
 
     /**
-     * 按表名与记录 ID 查询审计
-     * 用于单条记录的变更追踪
-     */
-    @Override
-    public List<ConfigAudit> findByTableNameAndRecordId(AuditQuery query) {
-        if (query == null) {
-            return Collections.emptyList();
-        }
-        return configAuditMapper.findByTableNameAndRecordId(query);
-    }
-
-    /**
-     * 按操作人查询审计
-     * 用于人员维度的变更分析
-     */
-    @Override
-    public List<ConfigAudit> findByOperator(AuditQuery query) {
-        if (query == null) {
-            return Collections.emptyList();
-        }
-        return configAuditMapper.findByOperator(query);
-    }
-
-    /**
      * 按条件分页查询审计
      * 由上层控制排序字段，避免 SQL 注入风险
      */
@@ -90,5 +66,14 @@ public class ConfigAuditRepositoryImpl implements ConfigAuditRepository {
             return 0L;
         }
         return configAuditMapper.countByConditions(query);
+    }
+
+    /**
+     * 查询所有可用表名
+     */
+    @Override
+    public List<String> listTableNames() {
+        List<String> tableNames = configAuditMapper.listTableNames();
+        return tableNames == null ? Collections.emptyList() : tableNames;
     }
 }

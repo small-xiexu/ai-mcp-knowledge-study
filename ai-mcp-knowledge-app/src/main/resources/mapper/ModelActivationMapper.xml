@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.ModelActivationMapper">
+
+    <resultMap id="ModelActivationMap" type="com.xbk.knowledge.domain.model.entity.ModelActivation">
+        <id column="id" property="id"/>
+        <result column="chat_model_id" property="chatModelId"/>
+        <result column="embedding_model_id" property="embeddingModelId"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <select id="findActivation" resultMap="ModelActivationMap">
+        select
+            id,
+            chat_model_id,
+            embedding_model_id,
+            created_at,
+            updated_at
+        from ai_model_activation
+        limit 1
+    </select>
+
+    <insert id="insertActivation" parameterType="com.xbk.knowledge.domain.model.entity.ModelActivation">
+        insert into ai_model_activation (
+            chat_model_id,
+            embedding_model_id,
+            created_at,
+            updated_at
+        ) values (
+            #{activation.chatModelId},
+            #{activation.embeddingModelId},
+            #{activation.createdAt},
+            #{activation.updatedAt}
+        )
+    </insert>
+
+    <update id="updateActivation" parameterType="com.xbk.knowledge.domain.model.entity.ModelActivation">
+        update ai_model_activation
+        set chat_model_id = #{activation.chatModelId},
+            embedding_model_id = #{activation.embeddingModelId},
+            updated_at = #{activation.updatedAt}
+        where id = #{activation.id}
+    </update>
+
+</mapper>

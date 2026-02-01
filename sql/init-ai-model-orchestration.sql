@@ -130,6 +130,53 @@ CREATE TABLE ai_mcp_server_config (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='MCP Server 配置表';
 
 -- =====================================================
+-- 7. 模型激活配置表
+-- =====================================================
+CREATE TABLE ai_model_activation (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+    chat_model_id BIGINT COMMENT '当前激活的对话模型ID',
+    embedding_model_id BIGINT COMMENT '当前激活的向量模型ID',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    FOREIGN KEY (chat_model_id) REFERENCES ai_model_config(id) ON DELETE SET NULL,
+    FOREIGN KEY (embedding_model_id) REFERENCES ai_model_config(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='模型激活配置表';
+
+-- =====================================================
+-- 8. 聊天会话表
+-- =====================================================
+CREATE TABLE ai_chat_session (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+    title VARCHAR(200) NOT NULL COMMENT '会话标题',
+    model_id BIGINT COMMENT '会话默认模型ID',
+    rag_tags TEXT COMMENT '关联知识库标签(JSON)',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    INDEX idx_model_id (model_id),
+    INDEX idx_updated_at (updated_at),
+    FOREIGN KEY (model_id) REFERENCES ai_model_config(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='聊天会话表';
+
+-- =====================================================
+-- 9. 聊天消息表
+-- =====================================================
+CREATE TABLE ai_chat_message (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+    session_id BIGINT NOT NULL COMMENT '会话ID',
+    role VARCHAR(20) NOT NULL COMMENT '角色(user/assistant)',
+    content TEXT COMMENT '消息内容',
+    model_id BIGINT COMMENT '实际使用的模型ID',
+    prompt_tokens INT DEFAULT 0 COMMENT '提示词token数',
+    completion_tokens INT DEFAULT 0 COMMENT '输出token数',
+    total_tokens INT DEFAULT 0 COMMENT '总token数',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    INDEX idx_session_id (session_id),
+    INDEX idx_created_at (created_at),
+    FOREIGN KEY (session_id) REFERENCES ai_chat_session(id) ON DELETE CASCADE,
+    FOREIGN KEY (model_id) REFERENCES ai_model_config(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='聊天消息表';
+
+-- =====================================================
 -- 初始化数据：模型配置
 -- =====================================================
 INSERT INTO ai_model_config (model_name, model_type, api_key, base_url, enabled, priority) VALUES
@@ -156,6 +203,12 @@ INSERT INTO ai_task_type (task_name, task_code, description, preferred_model_id,
 ('对话', 'CONVERSATION', '日常对话、问答等任务', 1, '3,2'),
 ('总结', 'SUMMARIZATION', '文本摘要、总结等任务', 3, '2,1'),
 ('对接MCP', 'MCP_INTEGRATION', 'MCP协议对接任务', 2, '1,3');
+
+-- =====================================================
+-- 初始化数据：模型激活配置
+-- =====================================================
+INSERT INTO ai_model_activation (chat_model_id, embedding_model_id) VALUES
+(1, 1);
 
 -- =====================================================
 -- 完成
