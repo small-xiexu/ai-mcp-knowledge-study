@@ -58,4 +58,9 @@ public class ChatSessionRepositoryImpl implements ChatSessionRepository {
     public long countAll() {
         return chatSessionMapper.countAll();
     }
+
+    @Override
+    public int deleteByUpdatedBefore(LocalDateTime updatedBefore) {
+        return chatSessionMapper.deleteByUpdatedBefore(updatedBefore);
+    }
 }

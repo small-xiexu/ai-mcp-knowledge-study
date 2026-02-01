@@ -3,17 +3,19 @@
     <el-card>
       <div class="upload-section">
         <el-input v-model="ragTag" placeholder="请输入知识库标签" style="width: 240px" />
-        <el-upload
-          v-model:file-list="fileList"
-          :auto-upload="false"
-          :multiple="true"
-          :before-upload="beforeUpload"
-        >
-          <el-button type="primary">选择文件</el-button>
-        </el-upload>
-        <el-button type="success" :loading="uploading" @click="handleUpload">
-          上传
-        </el-button>
+        <div class="upload-actions">
+          <el-upload
+            v-model:file-list="fileList"
+            :auto-upload="false"
+            :multiple="true"
+            :before-upload="beforeUpload"
+          >
+            <el-button class="upload-action" type="primary">选择文件</el-button>
+          </el-upload>
+          <el-button class="upload-action" type="success" :loading="uploading" @click="handleUpload">
+            上传
+          </el-button>
+        </div>
       </div>
 
       <el-table
@@ -140,5 +142,23 @@ onMounted(() => {
   gap: 12px;
   margin-bottom: 16px;
   flex-wrap: wrap;
+}
+
+.upload-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.upload-actions :deep(.el-upload) {
+  display: inline-flex;
+  align-items: center;
+}
+
+.upload-section :deep(.upload-action) {
+  height: 32px;
+  width: 96px;
+  padding: 0 16px;
+  line-height: 32px;
 }
 </style>

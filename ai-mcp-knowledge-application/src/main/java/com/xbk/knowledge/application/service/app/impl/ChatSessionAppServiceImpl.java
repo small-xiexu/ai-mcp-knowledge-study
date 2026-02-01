@@ -9,6 +9,7 @@ import com.xbk.knowledge.domain.repository.ChatMessageRepository;
 import com.xbk.knowledge.domain.repository.ChatSessionRepository;
 import com.xbk.knowledge.types.common.PageResult;
 import lombok.RequiredArgsConstructor;
+import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +29,7 @@ public class ChatSessionAppServiceImpl implements ChatSessionAppService {
 
     private final ChatSessionRepository chatSessionRepository;
     private final ChatMessageRepository chatMessageRepository;
+    private final ChatMemoryRepository chatMemoryRepository;
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ChatSession createSession(ChatSession session) {
@@ -45,6 +47,9 @@ public class ChatSessionAppServiceImpl implements ChatSessionAppService {
     public void deleteSession(Long sessionId) {
         chatMessageRepository.deleteBySessionId(sessionId);
         chatSessionRepository.deleteById(sessionId);
+        if (sessionId != null) {
+            chatMemoryRepository.deleteByConversationId(String.valueOf(sessionId));
+        }
     }
 
     @Override

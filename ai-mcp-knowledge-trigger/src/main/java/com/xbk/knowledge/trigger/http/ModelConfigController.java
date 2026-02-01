@@ -284,6 +284,7 @@ public class ModelConfigController {
         ModelType modelType = modelConfig.getModelType();
         String baseUrl = modelConfig.getBaseUrl();
         Boolean enabled = modelConfig.getEnabled();
+        Boolean toolEnabled = modelConfig.getToolEnabled();
         Integer priority = modelConfig.getPriority();
         ModelCapability modelCapability = modelConfig.getCapability();
         ModelCapabilityDTO capability = DTOConverter.toApiModelCapability(modelCapability);
@@ -297,6 +298,7 @@ public class ModelConfigController {
                 .modelType(modelType)
                 .baseUrl(baseUrl)
                 .enabled(enabled)
+                .toolEnabled(toolEnabled)
                 .priority(priority)
                 .capability(capability)
                 .createdAt(createdAt)
@@ -318,6 +320,10 @@ public class ModelConfigController {
         String apiKey = request.getApiKey();
         String baseUrl = request.getBaseUrl();
         Boolean enabled = request.getEnabled();
+        Boolean toolEnabled = request.getToolEnabled();
+        if (toolEnabled == null) {
+            toolEnabled = true;
+        }
         Integer priority = request.getPriority();
         ModelConfig modelConfig = ModelConfig.builder()
                 .modelName(modelName)
@@ -325,6 +331,7 @@ public class ModelConfigController {
                 .apiKey(apiKey)
                 .baseUrl(baseUrl)
                 .enabled(enabled)
+                .toolEnabled(toolEnabled)
                 .priority(priority)
                 .build();
 

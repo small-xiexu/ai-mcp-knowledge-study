@@ -1,6 +1,6 @@
 package com.xbk.knowledge.test;
 
-import com.xbk.knowledge.config.TraceIdAdvisor;
+import com.xbk.knowledge.config.trace.TraceIdAdvisor;
 import com.xbk.knowledge.trigger.job.MCPServerCSDNJob;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Tag;

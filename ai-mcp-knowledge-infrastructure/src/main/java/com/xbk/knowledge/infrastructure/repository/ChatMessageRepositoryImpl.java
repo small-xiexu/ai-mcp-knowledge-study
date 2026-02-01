@@ -44,4 +44,9 @@ public class ChatMessageRepositoryImpl implements ChatMessageRepository {
     public void deleteBySessionId(Long sessionId) {
         chatMessageMapper.deleteBySessionId(sessionId);
     }
+
+    @Override
+    public int deleteBySessionUpdatedBefore(LocalDateTime updatedBefore) {
+        return chatMessageMapper.deleteBySessionUpdatedBefore(updatedBefore);
+    }
 }

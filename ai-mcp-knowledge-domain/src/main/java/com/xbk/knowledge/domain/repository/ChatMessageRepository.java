@@ -44,4 +44,12 @@ public interface ChatMessageRepository {
      * @param sessionId 会话ID
      */
     void deleteBySessionId(Long sessionId);
+
+    /**
+     * 删除过期会话的消息
+     *
+     * @param updatedBefore 截止时间
+     * @return 删除行数
+     */
+    int deleteBySessionUpdatedBefore(java.time.LocalDateTime updatedBefore);
 }

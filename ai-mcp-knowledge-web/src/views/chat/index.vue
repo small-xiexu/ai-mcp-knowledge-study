@@ -68,27 +68,27 @@
                 placeholder="选择知识库标签"
                 style="width: 300px; margin-left: 12px"
               >
-                <el-option
-                  v-for="tag in ragTags"
-                  :key="tag"
-                  :label="tag"
-                  :value="tag"
-                />
-              </el-select>
+              <el-option
+                v-for="tag in ragTags"
+                :key="tag"
+                :label="tag"
+                :value="tag"
+              />
+            </el-select>
             </div>
             <div class="right">
               <el-button @click="clearMessages">清空当前</el-button>
             </div>
           </div>
 
-          <div class="chat-body">
+          <div ref="chatBodyRef" class="chat-body">
             <div v-if="messages.length === 0" class="chat-placeholder">
               输入问题开始对话
             </div>
             <div v-for="msg in messages" :key="msg.id" class="chat-item" :class="msg.role">
               <div class="bubble">
                 <div class="role">{{ msg.role === 'user' ? '我' : 'AI' }}</div>
-                <div class="content">{{ msg.content }}</div>
+                <div class="content" v-html="renderMarkdown(msg.content)"></div>
               </div>
             </div>
           </div>
@@ -99,8 +99,10 @@
               type="textarea"
               :autosize="{ minRows: 3, maxRows: 6 }"
               placeholder="输入你的问题..."
+              @keydown.enter="handleSendShortcut"
             />
             <div class="actions">
+              <div class="send-tip">Cmd/Ctrl + Enter 发送，Enter 换行</div>
               <el-button type="primary" :loading="sending" @click="handleSend">
                 发送
               </el-button>
@@ -113,7 +115,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, ref, watch, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   chatStream,
@@ -138,11 +140,13 @@ const activeChatId = ref<number | null>(null)
 const input = ref('')
 const sending = ref(false)
 const messages = ref<ChatMessage[]>([])
+const chatBodyRef = ref<HTMLElement>()
 
 const formatChatTime = (value: string) => {
   if (!value) return '-'
   return value.replace('T', ' ')
 }
+
 
 const loadSessions = async () => {
   try {
@@ -160,6 +164,8 @@ const loadMessages = async (sessionId: number) => {
   try {
     const res = await listChatMessages(sessionId, 1, 200)
     messages.value = res.data.data.records || []
+    await nextTick()
+    scrollToBottom()
   } catch (error: any) {
     ElMessage.error(error.message || '获取消息失败')
   }
@@ -312,11 +318,14 @@ const handleSend = async () => {
     createdAt: new Date().toISOString()
   }
   messages.value.push(assistantMessage)
+  await nextTick()
+  scrollToBottom()
   sending.value = true
 
   const payload: AIRequest = {
     content: userContent,
     modelId: selectedModelId.value,
+    sessionId: currentChat.id,
     ragTags: selectedTags.value
   }
 
@@ -328,6 +337,12 @@ const handleSend = async () => {
     const reader = response.body.getReader()
     const decoder = new TextDecoder('utf-8')
     let buffer = ''
+    let currentEvent = 'message'
+    const usageInfo = {
+      promptTokens: null as number | null,
+      completionTokens: null as number | null,
+      totalTokens: null as number | null
+    }
 
     while (true) {
       const { value, done } = await reader.read()
@@ -337,11 +352,35 @@ const handleSend = async () => {
       buffer = lines.pop() || ''
       lines.forEach(line => {
         const trimmed = line.trim()
+        if (!trimmed) {
+          currentEvent = 'message'
+          return
+        }
+        if (trimmed.startsWith('event:')) {
+          currentEvent = trimmed.replace(/^event:\s?/, '') || 'message'
+          return
+        }
         if (!trimmed.startsWith('data:')) return
         const data = trimmed.replace(/^data:\s?/, '')
         if (!data) return
+        if (currentEvent === 'usage') {
+          try {
+            const usage = JSON.parse(data)
+            usageInfo.promptTokens = usage.promptTokens ?? usageInfo.promptTokens
+            usageInfo.completionTokens = usage.completionTokens ?? usageInfo.completionTokens
+            usageInfo.totalTokens = usage.totalTokens ?? usageInfo.totalTokens
+            assistantMessage.promptTokens = usageInfo.promptTokens || undefined
+            assistantMessage.completionTokens = usageInfo.completionTokens || undefined
+            assistantMessage.totalTokens = usageInfo.totalTokens || undefined
+          } catch {
+            // ignore invalid usage payload
+          }
+          return
+        }
         assistantMessage.content += data
       })
+      await nextTick()
+      scrollToBottom()
     }
   } catch (error: any) {
     ElMessage.error(error.message || '发送失败')
@@ -351,7 +390,10 @@ const handleSend = async () => {
         const saved = await appendChatMessage(currentChat.id, {
           role: 'assistant',
           content: assistantMessage.content,
-          modelId: selectedModelId.value
+          modelId: selectedModelId.value,
+          promptTokens: assistantMessage.promptTokens,
+          completionTokens: assistantMessage.completionTokens,
+          totalTokens: assistantMessage.totalTokens
         })
         const index = messages.value.findIndex(item => item.id === assistantMessage.id)
         if (index >= 0) {
@@ -362,6 +404,15 @@ const handleSend = async () => {
       }
     }
     sending.value = false
+    await nextTick()
+    scrollToBottom()
+  }
+}
+
+const handleSendShortcut = (event: KeyboardEvent) => {
+  if (event.metaKey || event.ctrlKey) {
+    event.preventDefault()
+    handleSend()
   }
 }
 
@@ -382,6 +433,118 @@ onMounted(() => {
   fetchTags()
   loadSessions()
 })
+
+const scrollToBottom = () => {
+  if (!chatBodyRef.value) return
+  chatBodyRef.value.scrollTop = chatBodyRef.value.scrollHeight
+}
+
+const escapeHtml = (content: string) => {
+  return content
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+const normalizeMarkdown = (content: string) => {
+  let normalized = content
+  normalized = normalized.replace(/```/g, '\n```\n')
+  normalized = normalized.replace(/(#{1,6})(\S)/g, '$1 $2')
+  normalized = normalized.replace(/(^|[^\n])(#{1,6}\s)/g, '$1\n$2')
+  normalized = normalized.replace(/(^|[^\n])(-{3,})/g, '$1\n$2')
+  normalized = normalized.replace(/(^|[^\n])([-*+]\s)/g, '$1\n$2')
+  normalized = normalized.replace(/(^|[^\n])(\d+\.\s)/g, '$1\n$2')
+  return normalized
+}
+
+const renderMarkdown = (content?: string) => {
+  if (!content) return ''
+  const normalized = normalizeMarkdown(content)
+  const escaped = escapeHtml(normalized)
+  const parts = escaped.split(/```/)
+  return parts
+    .map((part, index) => {
+      if (index % 2 === 1) {
+        return `<pre><code>${part}</code></pre>`
+      }
+      return renderInlineMarkdown(part)
+    })
+    .join('')
+}
+
+const renderInlineMarkdown = (content: string) => {
+  const lines = content.split(/\r?\n/)
+  let html = ''
+  let inUl = false
+  let inOl = false
+
+  const closeLists = () => {
+    if (inUl) {
+      html += '</ul>'
+      inUl = false
+    }
+    if (inOl) {
+      html += '</ol>'
+      inOl = false
+    }
+  }
+
+  const renderInline = (text: string) => {
+    return text
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+  }
+
+  lines.forEach((line) => {
+    const trimmed = line.trim()
+    if (!trimmed) {
+      closeLists()
+      return
+    }
+    if (/^###\s+/.test(trimmed)) {
+      closeLists()
+      html += `<h3>${renderInline(trimmed.replace(/^###\s+/, ''))}</h3>`
+      return
+    }
+    if (/^##\s+/.test(trimmed)) {
+      closeLists()
+      html += `<h2>${renderInline(trimmed.replace(/^##\s+/, ''))}</h2>`
+      return
+    }
+    if (/^#\s+/.test(trimmed)) {
+      closeLists()
+      html += `<h1>${renderInline(trimmed.replace(/^#\s+/, ''))}</h1>`
+      return
+    }
+    if (/^[-*+]\s+/.test(trimmed)) {
+      if (!inUl) {
+        closeLists()
+        html += '<ul>'
+        inUl = true
+      }
+      html += `<li>${renderInline(trimmed.replace(/^[-*+]\s+/, ''))}</li>`
+      return
+    }
+    if (/^\d+\.\s+/.test(trimmed)) {
+      if (!inOl) {
+        closeLists()
+        html += '<ol>'
+        inOl = true
+      }
+      html += `<li>${renderInline(trimmed.replace(/^\d+\.\s+/, ''))}</li>`
+      return
+    }
+    closeLists()
+    html += `<p>${renderInline(trimmed)}</p>`
+  })
+
+  closeLists()
+  return html
+}
 
 watch(selectedModelId, value => {
   const chat = chats.value.find(item => item.id === activeChatId.value)
@@ -421,6 +584,62 @@ watch(selectedTags, value => {
   padding-right: 12px;
   display: flex;
   flex-direction: column;
+}
+
+.content h1,
+.content h2,
+.content h3 {
+  margin: 8px 0;
+  font-weight: 600;
+}
+
+.content p {
+  margin: 6px 0;
+  line-height: 1.6;
+}
+
+.content ul,
+.content ol {
+  padding-left: 20px;
+  margin: 6px 0;
+}
+
+.content li {
+  margin: 4px 0;
+}
+
+.content pre {
+  background: #f6f8fa;
+  padding: 10px 12px;
+  border-radius: 6px;
+  overflow: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+}
+
+.content code {
+  background: #f2f4f7;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+}
+
+.content a {
+  color: #409eff;
+  text-decoration: underline;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.send-tip {
+  font-size: 12px;
+  color: #909399;
 }
 
 .sidebar-header {

@@ -1,0 +1,27 @@
+package com.xbk.knowledge.api.dto.mcp;
+
+import lombok.Data;
+
+/**
+ * MCP 工具信息响应
+ *
+ * @author xiexu
+ */
+@Data
+public class McpToolResponse {
+
+    /**
+     * 工具名称
+     */
+    private String name;
+
+    /**
+     * 工具描述
+     */
+    private String description;
+
+    /**
+     * 入参 Schema(JSON)
+     */
+    private String inputSchema;
+}

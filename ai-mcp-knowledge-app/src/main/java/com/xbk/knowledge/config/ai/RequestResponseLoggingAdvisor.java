@@ -1,4 +1,4 @@
-package com.xbk.knowledge.config;
+package com.xbk.knowledge.config.ai;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;

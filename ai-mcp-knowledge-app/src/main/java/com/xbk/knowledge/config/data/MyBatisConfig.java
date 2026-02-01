@@ -1,4 +1,4 @@
-package com.xbk.knowledge.config;
+package com.xbk.knowledge.config.data;
 
 import com.baomidou.mybatisplus.core.MybatisConfiguration;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;

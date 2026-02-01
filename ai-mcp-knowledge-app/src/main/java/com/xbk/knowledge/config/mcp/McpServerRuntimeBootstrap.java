@@ -1,4 +1,4 @@
-package com.xbk.knowledge.config;
+package com.xbk.knowledge.config.mcp;
 
 import com.xbk.knowledge.application.service.app.McpServerConfigAppService;
 import lombok.RequiredArgsConstructor;

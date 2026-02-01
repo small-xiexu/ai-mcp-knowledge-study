@@ -13,6 +13,11 @@ import java.util.List;
 public class ChatSessionUpdateRequest {
 
     /**
+     * 会话ID
+     */
+    private Long id;
+
+    /**
      * 会话标题
      */
     private String title;
@@ -26,4 +31,5 @@ public class ChatSessionUpdateRequest {
      * 关联知识库标签
      */
     private List<String> ragTags;
+
 }

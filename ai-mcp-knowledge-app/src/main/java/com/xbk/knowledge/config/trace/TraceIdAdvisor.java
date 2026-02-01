@@ -1,4 +1,4 @@
-package com.xbk.knowledge.config;
+package com.xbk.knowledge.config.trace;
 
 import com.xbk.knowledge.types.trace.TraceIdUtils;
 import lombok.extern.slf4j.Slf4j;

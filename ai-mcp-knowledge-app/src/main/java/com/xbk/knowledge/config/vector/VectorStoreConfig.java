@@ -1,4 +1,4 @@
-package com.xbk.knowledge.config;
+package com.xbk.knowledge.config.vector;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

@@ -52,6 +52,11 @@ public class ModelConfigResponse implements Serializable {
     private Boolean enabled;
 
     /**
+     * 是否启用工具调用
+     */
+    private Boolean toolEnabled;
+
+    /**
      * 优先级
      */
     private Integer priority;

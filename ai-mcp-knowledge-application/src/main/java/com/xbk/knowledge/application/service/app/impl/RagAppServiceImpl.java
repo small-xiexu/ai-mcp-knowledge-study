@@ -159,10 +159,10 @@ public class RagAppServiceImpl implements RagAppService {
     public PageResult<RagTask> queryTaskPage(int offset, int pageSize) {
         List<RagTask> tasks = ragTaskRepository.findPage(offset, pageSize);
         long total = ragTaskRepository.countAll();
-        return PageResult.<RagTask>builder()
-                .records(tasks)
-                .total(total)
-                .build();
+        int safePageSize = pageSize > 0 ? pageSize : 10;
+        int safeOffset = Math.max(offset, 0);
+        int pageNum = safeOffset / safePageSize + 1;
+        return PageResult.of(tasks, total, pageNum, safePageSize);
     }
 
     private boolean isSupportedFile(String fileName) {

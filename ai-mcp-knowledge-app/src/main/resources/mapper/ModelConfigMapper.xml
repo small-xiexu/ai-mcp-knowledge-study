@@ -12,6 +12,7 @@
         <result column="api_key" property="apiKey"/>
         <result column="base_url" property="baseUrl"/>
         <result column="enabled" property="enabled"/>
+        <result column="tool_enabled" property="toolEnabled"/>
         <result column="priority" property="priority"/>
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
@@ -45,6 +46,7 @@
             api_key,
             base_url,
             enabled,
+            tool_enabled,
             priority,
             created_at,
             updated_at
@@ -54,6 +56,7 @@
             #{apiKey},
             #{baseUrl},
             #{enabled},
+            #{toolEnabled},
             #{priority},
             #{createdAt},
             #{updatedAt}
@@ -67,6 +70,7 @@
             api_key = #{apiKey},
             base_url = #{baseUrl},
             enabled = #{enabled},
+            tool_enabled = #{toolEnabled},
             priority = #{priority},
             updated_at = #{updatedAt}
         where id = #{id}
@@ -85,6 +89,7 @@
             api_key,
             base_url,
             enabled,
+            tool_enabled,
             priority,
             created_at,
             updated_at
@@ -100,6 +105,7 @@
             mc.api_key,
             mc.base_url,
             mc.enabled,
+            mc.tool_enabled,
             mc.priority,
             mc.created_at,
             mc.updated_at,
@@ -126,6 +132,7 @@
             api_key,
             base_url,
             enabled,
+            tool_enabled,
             priority,
             created_at,
             updated_at
@@ -141,6 +148,7 @@
             api_key,
             base_url,
             enabled,
+            tool_enabled,
             priority,
             created_at,
             updated_at
@@ -157,6 +165,7 @@
             api_key,
             base_url,
             enabled,
+            tool_enabled,
             priority,
             created_at,
             updated_at
@@ -172,6 +181,7 @@
             api_key,
             base_url,
             enabled,
+            tool_enabled,
             priority,
             created_at,
             updated_at
@@ -203,6 +213,7 @@
             mc.api_key,
             mc.base_url,
             mc.enabled,
+            mc.tool_enabled,
             mc.priority,
             mc.created_at,
             mc.updated_at,
@@ -229,6 +240,7 @@
             api_key,
             base_url,
             enabled,
+            tool_enabled,
             priority,
             created_at,
             updated_at
@@ -258,6 +270,7 @@
             mc.api_key,
             mc.base_url,
             mc.enabled,
+            mc.tool_enabled,
             mc.priority,
             mc.created_at,
             mc.updated_at,

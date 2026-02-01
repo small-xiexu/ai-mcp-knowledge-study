@@ -61,6 +61,11 @@ public class ModelConfig {
     private Boolean enabled;
 
     /**
+     * 是否启用工具调用（0:禁用 1:启用）
+     */
+    private Boolean toolEnabled;
+
+    /**
      * 优先级（数字越大优先级越高）
      */
     private Integer priority;

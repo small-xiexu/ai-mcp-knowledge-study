@@ -21,21 +21,21 @@
             created_at,
             updated_at
         ) values (
-            #{session.title},
-            #{session.modelId},
-            #{session.ragTags},
-            #{session.createdAt},
-            #{session.updatedAt}
+            #{title},
+            #{modelId},
+            #{ragTags},
+            #{createdAt},
+            #{updatedAt}
         )
     </insert>
 
     <update id="updateSession" parameterType="com.xbk.knowledge.domain.model.entity.ChatSession">
         update ai_chat_session
-        set title = #{session.title},
-            model_id = #{session.modelId},
-            rag_tags = #{session.ragTags},
-            updated_at = #{session.updatedAt}
-        where id = #{session.id}
+        set title = #{title},
+            model_id = #{modelId},
+            rag_tags = #{ragTags},
+            updated_at = #{updatedAt}
+        where id = #{id}
     </update>
 
     <delete id="deleteById">
@@ -66,12 +66,17 @@
             updated_at
         from ai_chat_session
         order by updated_at desc, id asc
-        limit #{query.pageSize} offset #{query.offset}
+        limit #{pageSize} offset #{offset}
     </select>
 
     <select id="countAll" resultType="long">
         select count(1)
         from ai_chat_session
     </select>
+
+    <delete id="deleteByUpdatedBefore">
+        delete from ai_chat_session
+        where updated_at &lt; #{updatedBefore}
+    </delete>
 
 </mapper>

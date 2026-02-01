@@ -27,14 +27,14 @@
             total_tokens,
             created_at
         ) values (
-            #{message.sessionId},
-            #{message.role},
-            #{message.content},
-            #{message.modelId},
-            #{message.promptTokens},
-            #{message.completionTokens},
-            #{message.totalTokens},
-            #{message.createdAt}
+            #{sessionId},
+            #{role},
+            #{content},
+            #{modelId},
+            #{promptTokens},
+            #{completionTokens},
+            #{totalTokens},
+            #{createdAt}
         )
     </insert>
 
@@ -50,9 +50,9 @@
             total_tokens,
             created_at
         from ai_chat_message
-        where session_id = #{query.sessionId}
+        where session_id = #{sessionId}
         order by id asc
-        limit #{query.pageSize} offset #{query.offset}
+        limit #{pageSize} offset #{offset}
     </select>
 
     <select id="countBySessionId" resultType="long">
@@ -64,6 +64,15 @@
     <delete id="deleteBySessionId">
         delete from ai_chat_message
         where session_id = #{sessionId}
+    </delete>
+
+    <delete id="deleteBySessionUpdatedBefore">
+        delete from ai_chat_message
+        where session_id in (
+            select id
+            from ai_chat_session
+            where updated_at &lt; #{updatedBefore}
+        )
     </delete>
 
 </mapper>

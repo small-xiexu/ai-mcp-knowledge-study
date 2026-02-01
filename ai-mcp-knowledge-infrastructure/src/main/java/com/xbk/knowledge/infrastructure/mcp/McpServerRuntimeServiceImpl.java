@@ -38,7 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
 
     private static final int DEFAULT_CONNECT_TIMEOUT_MS = 10000;
-    private static final int DEFAULT_REQUEST_TIMEOUT_MS = 60000;
+    private static final int DEFAULT_REQUEST_TIMEOUT_MS = 30000;
     private static final int DEFAULT_INIT_TIMEOUT_MS = 60000;
 
     private final ObjectMapper objectMapper;

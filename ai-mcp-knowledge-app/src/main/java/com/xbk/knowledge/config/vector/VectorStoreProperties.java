@@ -1,4 +1,4 @@
-package com.xbk.knowledge.config;
+package com.xbk.knowledge.config.vector;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

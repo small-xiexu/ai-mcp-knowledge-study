@@ -19,6 +19,7 @@ export interface ModelConfig {
   modelType: string
   baseUrl: string
   enabled: boolean
+  toolEnabled?: boolean
   priority: number
   capability?: ModelCapability
   createdAt: string
@@ -49,6 +50,7 @@ export interface ModelConfigRequest {
   apiKey: string
   baseUrl: string
   enabled?: boolean
+  toolEnabled?: boolean
   priority?: number
   capability?: ModelCapabilityRequest
 }
@@ -76,6 +78,7 @@ export interface AIRequest {
   strategy?: string
   streaming?: boolean
   modelId?: number
+  sessionId?: number
   ragTags?: string[]
 }
 
@@ -133,6 +136,7 @@ export interface ChatSessionCreateRequest {
  * 会话更新请求
  */
 export interface ChatSessionUpdateRequest {
+  id?: number
   title?: string
   modelId?: number
   ragTags?: string[]

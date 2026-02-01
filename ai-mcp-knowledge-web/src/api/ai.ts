@@ -23,8 +23,11 @@ export const chatStream = (data: AIRequest) =>
   fetch('/api/ai/stream', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Accept': 'text/event-stream',
+      'Cache-Control': 'no-cache'
     },
+    cache: 'no-store',
     body: JSON.stringify(data)
   })
 
@@ -50,25 +53,25 @@ export const createChatSession = (data: ChatSessionCreateRequest) =>
  * 更新会话
  */
 export const updateChatSession = (id: number, data: ChatSessionUpdateRequest) =>
-  request.put<ChatSession>(`/ai/sessions/${id}`, data)
+  request.post<ChatSession>('/ai/sessions/update', { ...data, id })
 
 /**
  * 删除会话
  */
 export const deleteChatSession = (id: number) =>
-  request.delete<void>(`/ai/sessions/${id}`)
+  request.post<void>('/ai/sessions/delete', { id })
 
 /**
  * 查询会话详情
  */
 export const getChatSession = (id: number) =>
-  request.get<ChatSession>(`/ai/sessions/${id}`)
+  request.post<ChatSession>('/ai/sessions/detail', { id })
 
 /**
  * 分页查询会话
  */
 export const listChatSessions = (pageNum = 1, pageSize = 20) =>
-  request.get('/ai/sessions', { params: { pageNum, pageSize } })
+  request.post('/ai/sessions/list', { pageNum, pageSize })
 
 /**
  * 追加消息
@@ -80,10 +83,10 @@ export const appendChatMessage = (sessionId: number, data: ChatMessageCreateRequ
  * 分页查询消息
  */
 export const listChatMessages = (sessionId: number, pageNum = 1, pageSize = 50) =>
-  request.get(`/ai/sessions/${sessionId}/messages`, { params: { pageNum, pageSize } })
+  request.post('/ai/sessions/messages/list', { sessionId, pageNum, pageSize })
 
 /**
  * 清空会话消息
  */
 export const deleteChatMessages = (sessionId: number) =>
-  request.delete<void>(`/ai/sessions/${sessionId}/messages`)
+  request.post<void>('/ai/sessions/messages/delete', { id: sessionId })

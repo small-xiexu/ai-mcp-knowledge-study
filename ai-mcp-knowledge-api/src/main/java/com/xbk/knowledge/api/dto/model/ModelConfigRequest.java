@@ -63,6 +63,12 @@ public class ModelConfigRequest extends BaseRequest {
     private Boolean enabled = true;
 
     /**
+     * 是否启用工具调用
+     */
+    @Builder.Default
+    private Boolean toolEnabled = true;
+
+    /**
      * 优先级（数字越大优先级越高）
      */
     @Builder.Default

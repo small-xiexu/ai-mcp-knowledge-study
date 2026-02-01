@@ -1,4 +1,4 @@
-package com.xbk.knowledge.config;
+package com.xbk.knowledge.config.ai;
 
 import com.xbk.knowledge.types.trace.TraceIdUtils;
 import com.xbk.knowledge.types.time.TimeCostUtils;

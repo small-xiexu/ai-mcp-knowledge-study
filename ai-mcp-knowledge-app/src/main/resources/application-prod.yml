@@ -3,6 +3,12 @@ server:
   port: 8090
 
 spring:
+  data:
+    redis:
+      # Redis 地址（按生产环境修改）
+      host: localhost
+      # Redis 端口
+      port: 6379
   datasource:
     mysql:
       # 生产环境数据库配置（请按实际环境调整）
@@ -56,24 +62,6 @@ spring:
         connection-timeout: 30000
         # 连接测试 SQL
         connection-test-query: SELECT 1
-  ai:
-    ollama:
-      # Ollama 服务地址
-      base-url: http://192.168.1.109:11434
-      embedding:
-        options:
-          num-batch: 512
-        model: nomic-embed-text
-    openai:
-      # OpenAI 兼容服务地址
-      base-url: https://pro-share-aws-api.zcyai.com/
-      # 建议用环境变量或外部配置替换真实密钥
-      api-key: sk-eEyfxptPgbfXd3Z164260740E0494161Bd8**找小傅哥申请
-      embedding-model: text-embedding-ada-002
-    rag:
-      # 默认嵌入模型（可选：nomic-embed-text / text-embedding-ada-002）
-      embed: nomic-embed-text
-
 
 # Redis
 redis:

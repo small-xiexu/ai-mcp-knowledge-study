@@ -68,6 +68,12 @@ public class AIRequest {
     private Long modelId;
 
     /**
+     * 会话ID（可选）
+     * 用于对话上下文记忆
+     */
+    private Long sessionId;
+
+    /**
      * 知识库标签列表（可选）
      * 用于 RAG 检索过滤
      */

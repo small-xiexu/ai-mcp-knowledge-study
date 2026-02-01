@@ -15,3 +15,19 @@ mybatis-plus:
   configuration:
     # 自动将下划线字段映射为驼峰属性
     map-underscore-to-camel-case: true
+
+logging:
+  # 默认日志输出目录
+  path: /Users/sxie/xbk/ai-mcp-knowledge-study/logs/app
+
+chat:
+  history:
+    # 聊天记录保留天数
+    retention-days: 7
+    # 上下文窗口大小
+    memory-window-size: 20
+
+mcp:
+  tools:
+    # 工具清单缓存秒数
+    cache-seconds: 60

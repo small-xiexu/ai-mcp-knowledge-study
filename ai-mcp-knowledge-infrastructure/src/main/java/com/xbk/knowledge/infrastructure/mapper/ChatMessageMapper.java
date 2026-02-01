@@ -49,4 +49,12 @@ public interface ChatMessageMapper extends BaseMapper<ChatMessage> {
      * @return 影响行数
      */
     int deleteBySessionId(Long sessionId);
+
+    /**
+     * 删除过期会话的消息
+     *
+     * @param updatedBefore 截止时间
+     * @return 影响行数
+     */
+    int deleteBySessionUpdatedBefore(java.time.LocalDateTime updatedBefore);
 }

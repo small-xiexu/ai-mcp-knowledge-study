@@ -109,6 +109,7 @@ public class RagController {
      */
     @PostMapping("/task/list")
     public Result<PageResult<RagTaskResponse>> listTasks(@Valid @RequestBody RagTaskQueryRequest request) {
+        request.validate();
         int offset = request.getOffset();
         int pageSize = request.getPageSize();
         PageResult<RagTask> page = ragAppService.queryTaskPage(offset, pageSize);

@@ -59,4 +59,12 @@ public interface ChatSessionRepository {
      * @return 总数
      */
     long countAll();
+
+    /**
+     * 删除过期会话
+     *
+     * @param updatedBefore 截止时间
+     * @return 删除行数
+     */
+    int deleteByUpdatedBefore(java.time.LocalDateTime updatedBefore);
 }

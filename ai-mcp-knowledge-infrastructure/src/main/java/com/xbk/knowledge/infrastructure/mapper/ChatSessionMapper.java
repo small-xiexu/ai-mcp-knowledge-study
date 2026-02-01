@@ -64,4 +64,12 @@ public interface ChatSessionMapper extends BaseMapper<ChatSession> {
      * @return 总数
      */
     long countAll();
+
+    /**
+     * 删除过期会话
+     *
+     * @param updatedBefore 截止时间
+     * @return 影响行数
+     */
+    int deleteByUpdatedBefore(java.time.LocalDateTime updatedBefore);
 }

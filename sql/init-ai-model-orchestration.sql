@@ -24,6 +24,7 @@ CREATE TABLE ai_model_config (
     api_key VARCHAR(500) NOT NULL COMMENT 'API密钥',
     base_url VARCHAR(500) NOT NULL COMMENT 'API地址',
     enabled TINYINT(1) DEFAULT 1 COMMENT '是否启用(0:禁用 1:启用)',
+    tool_enabled TINYINT(1) DEFAULT 1 COMMENT '是否启用工具调用(0:禁用 1:启用)',
     priority INT DEFAULT 0 COMMENT '优先级(数值越大越优先；用于默认/扩展策略排序，是否生效取决于策略实现)',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
@@ -177,12 +178,30 @@ CREATE TABLE ai_chat_message (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='聊天消息表';
 
 -- =====================================================
+-- 10. RAG 任务表
+-- =====================================================
+CREATE TABLE ai_rag_task (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+    task_id VARCHAR(64) NOT NULL COMMENT '任务ID',
+    type VARCHAR(32) NOT NULL COMMENT '任务类型',
+    status VARCHAR(32) NOT NULL COMMENT '任务状态',
+    progress INT DEFAULT 0 COMMENT '进度(0-100)',
+    message VARCHAR(500) COMMENT '任务消息',
+    rag_tag VARCHAR(100) COMMENT '知识库标签',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    UNIQUE KEY uk_task_id (task_id),
+    INDEX idx_status (status),
+    INDEX idx_updated_at (updated_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='RAG 任务表';
+
+-- =====================================================
 -- 初始化数据：模型配置
 -- =====================================================
-INSERT INTO ai_model_config (model_name, model_type, api_key, base_url, enabled, priority) VALUES
-('GPT-4', 'OPENAI', 'sk-1256419209eb47ccbabaa98abccfe4c8', 'http://127.0.0.1:8045', 1, 90),
-('Claude-3.5-Sonnet', 'ANTHROPIC', 'sk-ant-api-key-placeholder', 'https://api.anthropic.com', 1, 95),
-('Gemini-3-Flash', 'GEMINI', 'sk-1256419209eb47ccbabaa98abccfe4c8', 'http://127.0.0.1:8045', 1, 85);
+INSERT INTO ai_model_config (model_name, model_type, api_key, base_url, enabled, tool_enabled, priority) VALUES
+('GPT-4', 'OPENAI', 'sk-1256419209eb47ccbabaa98abccfe4c8', 'http://127.0.0.1:8045', 1, 1, 90),
+('Claude-3.5-Sonnet', 'ANTHROPIC', 'sk-ant-api-key-placeholder', 'https://api.anthropic.com', 1, 1, 95),
+('Gemini-3-Flash', 'GEMINI', 'sk-1256419209eb47ccbabaa98abccfe4c8', 'http://127.0.0.1:8045', 1, 1, 85);
 
 -- =====================================================
 -- 初始化数据：模型能力

@@ -3,6 +3,12 @@ server:
   port: 8090
 
 spring:
+  data:
+    redis:
+      # Redis 地址（本机 Docker）
+      host: localhost
+      # Redis 端口
+      port: 6379
   datasource:
     mysql:
       # 数据库驱动（MySQL）
@@ -44,44 +50,6 @@ spring:
       # 数据库地址（请根据本机环境调整）
       url: jdbc:postgresql://localhost:5432/ai-rag-knowledge
       type: com.zaxxer.hikari.HikariDataSource
-  ai:
-    mcp:
-      client:
-        # MCP Client 超时时间（与外部工具交互时可能较长）
-        request-timeout: 360s
-    google:
-      genai:
-        # Google GenAI SDK 模式的代理服务
-        base-url: http://127.0.0.1:8045
-        # 请替换为你自己的 API Key
-        api-key: sk-1256419209eb47ccbabaa98abccfe4c8
-        chat:
-          options:
-            # 默认模型
-            model: gemini-3-flash
-    openai:
-      # OpenAI 兼容接口代理地址
-      base-url: http://127.0.0.1:8045
-      # 请替换为你自己的 API Key
-      api-key: sk-1256419209eb47ccbabaa98abccfe4c8
-      chat:
-        options:
-          # 默认模型
-          model: gemini-3-flash
-      embedding-model: text-embedding-ada-002
-      embedding:
-        options:
-          # 向量批次大小（根据 GPU/内存调整）
-          num-batch: 1536
-    ollama:
-      # 本地/私有化模型服务地址
-      base-url: http://1b349d2280564f15a7ef-deepseek-r1-llm-api.gcs-xy1a.jdcloud.com/
-      embedding-model: nomic-embed-text
-      embedding:
-        options:
-          # 向量批次大小（根据 GPU/内存调整）
-          num-batch: 768
-
 # 向量存储表名配置
 vector:
   store:

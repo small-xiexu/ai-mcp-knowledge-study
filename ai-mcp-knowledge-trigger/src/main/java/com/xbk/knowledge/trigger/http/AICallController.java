@@ -21,14 +21,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.metadata.Usage;
 import org.springframework.http.MediaType;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.function.Function;
@@ -89,13 +93,24 @@ public class AICallController implements IAICallService {
      * @return SSE 响应
      */
     @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter stream(@Valid @RequestBody AIRequest request) {
+    public SseEmitter stream(@Valid @RequestBody AIRequest request, HttpServletResponse httpResponse) {
+        httpResponse.setCharacterEncoding("UTF-8");
+        httpResponse.setHeader("Cache-Control", "no-cache");
+        httpResponse.setHeader("Connection", "keep-alive");
+        httpResponse.setHeader("X-Accel-Buffering", "no");
         SseEmitter emitter = new SseEmitter(0L);
         AICallCommand command = DTOConverter.toAppAICallCommand(request);
+        UsageStats usageStats = new UsageStats();
         aiChatAppService.streamChat(command).subscribe(
-                response -> sendChunk(emitter, response),
+                chatResponse -> {
+                    captureUsage(chatResponse, usageStats);
+                    sendChunk(emitter, chatResponse);
+                },
                 emitter::completeWithError,
-                emitter::complete
+                () -> {
+                    sendUsage(emitter, usageStats);
+                    emitter.complete();
+                }
         );
         return emitter;
     }
@@ -175,6 +190,72 @@ public class AICallController implements IAICallService {
             emitter.send(SseEmitter.event().data(output.getText()));
         } catch (IOException e) {
             emitter.completeWithError(e);
+        }
+    }
+
+    private void captureUsage(ChatResponse response, UsageStats usageStats) {
+        if (response == null || response.getMetadata() == null) {
+            return;
+        }
+        Usage usage = response.getMetadata().getUsage();
+        if (usage == null) {
+            return;
+        }
+        usageStats.update(usage.getPromptTokens(), usage.getCompletionTokens(), usage.getTotalTokens());
+    }
+
+    private void sendUsage(SseEmitter emitter, UsageStats usageStats) {
+        if (!usageStats.hasData()) {
+            return;
+        }
+        try {
+            Map<String, Integer> payload = new HashMap<>();
+            payload.put("promptTokens", usageStats.getPromptTokens());
+            payload.put("completionTokens", usageStats.getCompletionTokens());
+            payload.put("totalTokens", usageStats.getTotalTokens());
+            emitter.send(SseEmitter.event().name("usage").data(payload));
+        } catch (IOException e) {
+            emitter.completeWithError(e);
+        }
+    }
+
+    /**
+     * 流式统计 usage 快照
+     * 仅保存最新的 token 统计值，便于在流结束时回传
+     *
+     * @author xiexu
+     */
+    private static class UsageStats {
+        private Integer promptTokens;
+        private Integer completionTokens;
+        private Integer totalTokens;
+
+        private void update(Integer promptTokens, Integer completionTokens, Integer totalTokens) {
+            if (promptTokens != null) {
+                this.promptTokens = promptTokens;
+            }
+            if (completionTokens != null) {
+                this.completionTokens = completionTokens;
+            }
+            if (totalTokens != null) {
+                this.totalTokens = totalTokens;
+            }
+        }
+
+        private boolean hasData() {
+            return promptTokens != null || completionTokens != null || totalTokens != null;
+        }
+
+        private Integer getPromptTokens() {
+            return promptTokens;
+        }
+
+        private Integer getCompletionTokens() {
+            return completionTokens;
+        }
+
+        private Integer getTotalTokens() {
+            return totalTokens;
         }
     }
 }

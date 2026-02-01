@@ -26,4 +26,5 @@ public class ChatSessionCreateRequest {
      * 关联知识库标签
      */
     private List<String> ragTags;
+
 }

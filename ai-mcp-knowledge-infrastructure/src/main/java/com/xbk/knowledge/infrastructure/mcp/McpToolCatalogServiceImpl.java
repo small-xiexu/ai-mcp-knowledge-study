@@ -1,0 +1,126 @@
+package com.xbk.knowledge.infrastructure.mcp;
+
+import com.xbk.knowledge.application.model.dto.McpToolInfo;
+import com.xbk.knowledge.application.service.mcp.McpToolCatalogService;
+import com.xbk.knowledge.config.McpToolProperties;
+import org.springframework.ai.tool.ToolCallback;
+import org.springframework.ai.tool.ToolCallbackProvider;
+import org.springframework.ai.tool.definition.ToolDefinition;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+/**
+ * MCP 工具目录服务实现
+ * 提供可读的工具清单并缓存一定时间
+ *
+ * @author xiexu
+ */
+@Service
+public class McpToolCatalogServiceImpl implements McpToolCatalogService {
+
+    private static final String TOOL_PROMPT_HEADER = "可用工具列表：";
+
+    private final ToolCallbackProvider toolCallbackProvider;
+    private final McpToolProperties properties;
+    private volatile ToolSnapshot snapshot;
+
+    public McpToolCatalogServiceImpl(ToolCallbackProvider toolCallbackProvider,
+                                     McpToolProperties properties) {
+        this.toolCallbackProvider = toolCallbackProvider;
+        this.properties = properties;
+    }
+
+    @Override
+    public String buildToolPrompt() {
+        ToolSnapshot cached = snapshot;
+        long now = Instant.now().toEpochMilli();
+        if (cached != null && now < cached.getExpireAt()) {
+            return cached.getPrompt();
+        }
+        synchronized (this) {
+            ToolSnapshot refreshed = snapshot;
+            if (refreshed != null && now < refreshed.getExpireAt()) {
+                return refreshed.getPrompt();
+            }
+            ToolSnapshot newSnapshot = refreshSnapshot(now);
+            snapshot = newSnapshot;
+            return newSnapshot.getPrompt();
+        }
+    }
+
+    @Override
+    public List<McpToolInfo> listTools() {
+        ToolCallback[] callbacks = toolCallbackProvider != null
+                ? toolCallbackProvider.getToolCallbacks()
+                : new ToolCallback[0];
+        if (callbacks == null || callbacks.length == 0) {
+            return Collections.emptyList();
+        }
+        List<McpToolInfo> result = new ArrayList<>();
+        for (ToolCallback callback : callbacks) {
+            if (callback == null) {
+                continue;
+            }
+            ToolDefinition definition = callback.getToolDefinition();
+            if (definition == null || !StringUtils.hasText(definition.name())) {
+                continue;
+            }
+            McpToolInfo info = McpToolInfo.builder()
+                    .name(definition.name())
+                    .description(StringUtils.hasText(definition.description()) ? definition.description() : "暂无描述")
+                    .inputSchema(definition.inputSchema())
+                    .build();
+            result.add(info);
+        }
+        return result;
+    }
+
+    private ToolSnapshot refreshSnapshot(long now) {
+        List<McpToolInfo> tools = listTools();
+        List<String> lines = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(tools)) {
+            for (McpToolInfo tool : tools) {
+                if (tool == null || !StringUtils.hasText(tool.getName())) {
+                    continue;
+                }
+                String safeDescription = StringUtils.hasText(tool.getDescription()) ? tool.getDescription() : "暂无描述";
+                lines.add("- " + tool.getName() + ": " + safeDescription);
+            }
+        }
+        String prompt = "";
+        if (!CollectionUtils.isEmpty(lines)) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(TOOL_PROMPT_HEADER).append("\n");
+            for (String line : lines) {
+                builder.append(line).append("\n");
+            }
+            prompt = builder.toString().trim();
+        }
+        long expireAt = now + properties.getCacheSeconds() * 1000L;
+        return new ToolSnapshot(prompt, expireAt);
+    }
+
+    private static class ToolSnapshot {
+        private final String prompt;
+        private final long expireAt;
+
+        private ToolSnapshot(String prompt, long expireAt) {
+            this.prompt = prompt;
+            this.expireAt = expireAt;
+        }
+
+        private String getPrompt() {
+            return prompt;
+        }
+
+        private long getExpireAt() {
+            return expireAt;
+        }
+    }
+}

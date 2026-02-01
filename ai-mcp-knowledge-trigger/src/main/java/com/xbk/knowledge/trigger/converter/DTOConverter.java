@@ -35,6 +35,7 @@ public class DTOConverter {
         ModelSelectionStrategy strategy = api.getStrategy();
         Boolean streaming = api.getStreaming();
         Long modelId = api.getModelId();
+        Long sessionId = api.getSessionId();
         List<String> ragTags = api.getRagTags();
         return AICallCommand.builder()
                 .content(content)
@@ -44,6 +45,7 @@ public class DTOConverter {
                 .strategy(strategy)
                 .streaming(streaming)
                 .modelId(modelId)
+                .sessionId(sessionId)
                 .ragTags(ragTags)
                 .build();
     }

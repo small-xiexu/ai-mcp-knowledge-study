@@ -13,6 +13,7 @@
     >
       <el-form-item label="模型名称" prop="modelName">
         <el-input v-model="formData.modelName" placeholder="请输入模型名称" />
+        <div class="form-hint">需与接口请求体里的 model 字段保持一致，例如 gpt-4o</div>
       </el-form-item>
 
       <el-form-item label="模型类型" prop="modelType">
@@ -32,10 +33,17 @@
           placeholder="请输入 API Key"
           show-password
         />
+        <div class="form-hint">从模型服务商获取的密钥，将用于调用其接口</div>
       </el-form-item>
 
       <el-form-item label="Base URL" prop="baseUrl">
         <el-input v-model="formData.baseUrl" placeholder="请输入 Base URL" />
+        <div class="form-hint">填写完整接口域名，例如 https://apis.itedus.cn</div>
+      </el-form-item>
+
+      <el-form-item label="工具调用">
+        <el-switch v-model="formData.toolEnabled" />
+        <div class="form-hint">关闭后该模型不会参与 MCP 工具调用</div>
       </el-form-item>
 
       <el-form-item label="优先级" prop="priority">
@@ -104,6 +112,7 @@ const formData = reactive({
   baseUrl: '',
   priority: 0,
   enabled: true,
+  toolEnabled: true,
   capability: {
     maxTokens: 4096,
     qualityScore: 80
@@ -125,6 +134,7 @@ const resetForm = () => {
   formData.baseUrl = ''
   formData.priority = 0
   formData.enabled = true
+  formData.toolEnabled = true
   formData.capability.maxTokens = 4096
   formData.capability.qualityScore = 80
   formRef.value?.clearValidate()
@@ -143,6 +153,7 @@ watch(
       formData.baseUrl = data.baseUrl || ''
       formData.priority = data.priority
       formData.enabled = data.enabled
+      formData.toolEnabled = data.toolEnabled !== false
       if (data.capability) {
         formData.capability.maxTokens = data.capability.maxInputTokens || 4096
         formData.capability.qualityScore = data.capability.qualityScore || 80
@@ -175,6 +186,7 @@ const handleSubmit = async () => {
         apiKey: formData.apiKey,
         baseUrl: formData.baseUrl,
         enabled: formData.enabled,
+        toolEnabled: formData.toolEnabled,
         priority: formData.priority,
         capability: {
           maxTokens: formData.capability.maxTokens,
@@ -200,3 +212,12 @@ const handleSubmit = async () => {
   })
 }
 </script>
+
+<style scoped>
+.form-hint {
+  margin-top: 6px;
+  color: #8c8c8c;
+  font-size: 12px;
+  line-height: 1.4;
+}
+</style>

@@ -153,6 +153,22 @@ public class MetricsDomainServiceImpl implements IMetricsDomainService {
             result.setSuccessRate(0.0);
             return result;
         }
+        Long totalCalls = successRate.getTotalCalls();
+        Long successCalls = successRate.getSuccessCalls();
+        if (totalCalls == null) {
+            totalCalls = 0L;
+            successRate.setTotalCalls(totalCalls);
+        }
+        if (successCalls == null) {
+            successCalls = 0L;
+            successRate.setSuccessCalls(successCalls);
+        }
+        if (totalCalls > 0) {
+            double rate = successCalls * 100.0 / totalCalls;
+            successRate.setSuccessRate(rate);
+        } else {
+            successRate.setSuccessRate(0.0);
+        }
         return successRate;
     }
 

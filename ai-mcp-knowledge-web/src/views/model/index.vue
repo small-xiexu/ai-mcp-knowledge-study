@@ -45,6 +45,13 @@
             </el-tag>
           </template>
         </el-table-column>
+        <el-table-column label="工具调用" width="110">
+          <template #default="{ row }">
+            <el-tag :type="row.toolEnabled ? 'success' : 'info'">
+              {{ row.toolEnabled ? '启用' : '关闭' }}
+            </el-tag>
+          </template>
+        </el-table-column>
         <el-table-column prop="priority" label="优先级" width="100" />
         <el-table-column label="模型能力" min-width="200">
           <template #default="{ row }">

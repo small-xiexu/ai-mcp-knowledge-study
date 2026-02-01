@@ -8,6 +8,8 @@ import com.xbk.knowledge.api.dto.ai.ChatSessionUpdateRequest;
 import com.xbk.knowledge.application.service.app.ChatSessionAppService;
 import com.xbk.knowledge.domain.model.entity.ChatMessage;
 import com.xbk.knowledge.domain.model.entity.ChatSession;
+import com.xbk.knowledge.api.dto.common.IdRequest;
+import com.xbk.knowledge.types.common.PageRequest;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.common.Result;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -51,9 +53,9 @@ public class ChatSessionController {
     /**
      * 更新会话
      */
-    @PutMapping("/{id}")
-    public Result<ChatSessionResponse> updateSession(@PathVariable("id") Long id,
-                                                     @RequestBody ChatSessionUpdateRequest request) {
+    @PostMapping("/update")
+    public Result<ChatSessionResponse> updateSession(@RequestBody ChatSessionUpdateRequest request) {
+        Long id = request.getId();
         ChatSession existing = chatSessionAppService.getSession(id);
         if (existing == null) {
             return Result.error(404, "会话不存在");
@@ -68,8 +70,9 @@ public class ChatSessionController {
     /**
      * 删除会话
      */
-    @DeleteMapping("/{id}")
-    public Result<Void> deleteSession(@PathVariable("id") Long id) {
+    @PostMapping("/delete")
+    public Result<Void> deleteSession(@RequestBody IdRequest request) {
+        Long id = request.getId();
         chatSessionAppService.deleteSession(id);
         return Result.success(null);
     }
@@ -77,8 +80,9 @@ public class ChatSessionController {
     /**
      * 查询会话详情
      */
-    @GetMapping("/{id}")
-    public Result<ChatSessionResponse> getSession(@PathVariable("id") Long id) {
+    @PostMapping("/detail")
+    public Result<ChatSessionResponse> getSession(@RequestBody IdRequest request) {
+        Long id = request.getId();
         ChatSession session = chatSessionAppService.getSession(id);
         if (session == null) {
             return Result.error(404, "会话不存在");
@@ -89,10 +93,9 @@ public class ChatSessionController {
     /**
      * 分页查询会话
      */
-    @GetMapping
-    public Result<PageResult<ChatSessionResponse>> listSessions(@RequestParam(value = "pageNum", defaultValue = "1") int pageNum,
-                                                                @RequestParam(value = "pageSize", defaultValue = "20") int pageSize) {
-        PageResult<ChatSession> page = chatSessionAppService.listSessions(pageNum, pageSize);
+    @PostMapping("/list")
+    public Result<PageResult<ChatSessionResponse>> listSessions(@RequestBody PageRequest request) {
+        PageResult<ChatSession> page = chatSessionAppService.listSessions(request.getPageNum(), request.getPageSize());
         List<ChatSessionResponse> records = page.getRecords()
                 .stream()
                 .map(this::toSessionResponse)
@@ -123,11 +126,12 @@ public class ChatSessionController {
     /**
      * 分页查询会话消息
      */
-    @GetMapping("/{id}/messages")
-    public Result<PageResult<ChatMessageResponse>> listMessages(@PathVariable("id") Long id,
-                                                                @RequestParam(value = "pageNum", defaultValue = "1") int pageNum,
-                                                                @RequestParam(value = "pageSize", defaultValue = "50") int pageSize) {
-        PageResult<ChatMessage> page = chatSessionAppService.listMessages(id, pageNum, pageSize);
+    @PostMapping("/messages/list")
+    public Result<PageResult<ChatMessageResponse>> listMessages(@RequestBody ChatMessagePageRequest request) {
+        PageResult<ChatMessage> page = chatSessionAppService.listMessages(
+                request.getSessionId(),
+                request.getPageNum(),
+                request.getPageSize());
         List<ChatMessageResponse> records = page.getRecords()
                 .stream()
                 .map(this::toMessageResponse)
@@ -139,8 +143,9 @@ public class ChatSessionController {
     /**
      * 清空会话消息
      */
-    @DeleteMapping("/{id}/messages")
-    public Result<Void> deleteMessages(@PathVariable("id") Long id) {
+    @PostMapping("/messages/delete")
+    public Result<Void> deleteMessages(@RequestBody IdRequest request) {
+        Long id = request.getId();
         chatSessionAppService.deleteMessages(id);
         return Result.success(null);
     }
@@ -189,6 +194,25 @@ public class ChatSessionController {
             return objectMapper.writeValueAsString(tags);
         } catch (JsonProcessingException e) {
             return "[]";
+        }
+    }
+
+    /**
+     * 会话消息分页查询请求
+     * 使用 POST 请求体传递分页参数
+     */
+    private static class ChatMessagePageRequest extends PageRequest {
+        /**
+         * 会话ID
+         */
+        private Long sessionId;
+
+        public Long getSessionId() {
+            return sessionId;
+        }
+
+        public void setSessionId(Long sessionId) {
+            this.sessionId = sessionId;
         }
     }
 }
