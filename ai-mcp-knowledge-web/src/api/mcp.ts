@@ -49,3 +49,9 @@ export const disableMcpServer = (id: number) =>
  */
 export const refreshMcpServers = () =>
   request.post<void>('/mcp/servers/refresh')
+
+/**
+ * 刷新指定 MCP Server 运行时连接
+ */
+export const refreshMcpServer = (id: number) =>
+  request.post<void>('/mcp/servers/refresh-one', { id })

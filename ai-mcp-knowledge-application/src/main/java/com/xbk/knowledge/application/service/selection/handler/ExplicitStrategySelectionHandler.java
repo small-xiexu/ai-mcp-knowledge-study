@@ -45,10 +45,7 @@ public class ExplicitStrategySelectionHandler extends AbstractModelSelectionHand
             return next().select(request);
         }
         ModelSelectionStrategy strategy = request.getStrategy();
-        /**
-         * 显式策略属于强约束配置，命中后必须严格执行。
-         * 目前仅支持质量优先，其他策略视为未实现并直接报错，避免静默降级。
-         */
+        
         if (strategy == ModelSelectionStrategy.QUALITY_PRIORITY) {
             ModelConfig selectedModel = modelSelector.selectByQualityPriority();
             return ModelSelectionDecision.byModel(selectedModel);

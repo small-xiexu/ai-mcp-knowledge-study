@@ -55,7 +55,7 @@ public class PageRequestNormalizeAdvice implements RequestBodyAdvice {
                                 MethodParameter parameter,
                                 Type targetType,
         Class<? extends HttpMessageConverter<?>> converterType) {
-        // 约束：仅对 PageRequest 子类做归一化，避免误改其他请求体
+        
         if (body instanceof PageRequest) {
             PageRequest pageRequest = (PageRequest) body;
             pageRequest.validate();

@@ -68,13 +68,13 @@ public class MCPServerCSDNJob {
                 .builder(chatMemory)
                 .conversationId(conversationId)
                 .build();
-        // 目的：统一从应用层组装 ChatClient，避免重复配置模型与工具
+        
         ChatClient chatClient = chatClientAssemblyService
                 .buildDefaultChatClient(memoryAdvisor);
         String systemPrompt = String
                 .format(TRACE_ID_SYSTEM_PROMPT, conversationId);
 
-        // 约束：生成内容需包含结构化输出，确保可直接发布
+        
         String publishPrompt = """
                 我需要你帮我生成一篇文章，要求如下：
                 1. 场景为 AI 学习与实战系列文章
@@ -98,7 +98,7 @@ public class MCPServerCSDNJob {
                     .content();
             log.info("CSDN 文章发布结果: {}", publishResult);
 
-            // 目的：复用上一轮上下文结果进行通知，避免二次发布
+            
             String noticePrompt = """
                     根据上一轮对话中已发布的文章信息，进行微信公众号消息通知：
                     - 平台：CSDN

@@ -88,14 +88,10 @@ public final class TraceIdUtils {
     @AllArgsConstructor
     public static class TraceIdContext {
 
-        /**
-         * traceId
-         */
+        
         private final String traceId;
 
-        /**
-         * 是否本次生成
-         */
+        
         private final boolean generated;
     }
 }

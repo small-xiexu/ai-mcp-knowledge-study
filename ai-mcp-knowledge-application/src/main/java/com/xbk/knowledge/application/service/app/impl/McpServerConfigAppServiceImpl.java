@@ -55,27 +55,20 @@ public class McpServerConfigAppServiceImpl implements McpServerConfigAppService 
     /**
      * 创建 MCP Server 配置
      *
-     * 为什么：创建后需要同步运行时注册以立即生效
+     * 为什么：创建后由用户手动触发运行时刷新，避免初始化失败导致保存回滚
      * 入参：配置实体
      * 出参：持久化后的配置
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public McpServerConfig createMcpServerConfig(McpServerConfig config) {
-        McpServerConfig savedConfig = mcpServerConfigService.createMcpServerConfig(config);
-        if (Boolean.TRUE.equals(savedConfig.getEnabled())) {
-            /*
-             * 目的：启用状态下立即注册运行时连接
-             */
-            mcpServerRuntimeService.registerOrUpdate(savedConfig);
-        }
-        return savedConfig;
+        return mcpServerConfigService.createMcpServerConfig(config);
     }
 
     /**
      * 更新 MCP Server 配置
      *
-     * 为什么：配置变更需要同步运行时连接状态
+     * 为什么：配置变更后由用户手动触发运行时刷新，避免初始化失败导致保存回滚
      * 入参：配置实体
      * 出参：更新后的配置
      */
@@ -83,12 +76,7 @@ public class McpServerConfigAppServiceImpl implements McpServerConfigAppService 
     @Transactional(rollbackFor = Exception.class)
     public McpServerConfig updateMcpServerConfig(McpServerConfig config) {
         McpServerConfig savedConfig = mcpServerConfigService.updateMcpServerConfig(config);
-        if (Boolean.TRUE.equals(savedConfig.getEnabled())) {
-            /*
-             * 目的：启用状态下刷新运行时连接
-             */
-            mcpServerRuntimeService.registerOrUpdate(savedConfig);
-        } else {
+        if (!Boolean.TRUE.equals(savedConfig.getEnabled())) {
             Long id = savedConfig.getId();
             /*
              * 目的：禁用后释放运行时资源
@@ -118,18 +106,14 @@ public class McpServerConfigAppServiceImpl implements McpServerConfigAppService 
     /**
      * 启用 MCP Server
      *
-     * 为什么：启用后需要注册运行时连接
+     * 为什么：启用后由用户手动触发运行时刷新，避免初始化失败导致启用回滚
      * 入参：ID 查询对象
      * 出参：启用后的配置
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public McpServerConfig enableMcpServer(IdQuery query) {
-        McpServerConfig savedConfig = mcpServerConfigService.enableMcpServer(query);
-        if (savedConfig != null) {
-            mcpServerRuntimeService.registerOrUpdate(savedConfig);
-        }
-        return savedConfig;
+        return mcpServerConfigService.enableMcpServer(query);
     }
 
     /**
@@ -172,5 +156,31 @@ public class McpServerConfigAppServiceImpl implements McpServerConfigAppService 
     public void refreshEnabledServers() {
         List<McpServerConfig> enabledConfigs = mcpServerConfigService.queryEnabledServers(new EnabledQuery(true));
         mcpServerRuntimeService.refresh(enabledConfigs);
+    }
+
+    /**
+     * 刷新指定 MCP Server 运行时连接
+     *
+     * 为什么：单条配置变更时避免全量刷新影响其它连接
+     * 入参：ID 查询对象
+     * 出参：无
+     */
+    @Override
+    public void refreshServer(IdQuery query) {
+        McpServerConfig config = mcpServerConfigService.queryMcpServerConfigById(query);
+        if (config == null || config.getId() == null) {
+            return;
+        }
+        if (Boolean.TRUE.equals(config.getEnabled())) {
+            /*
+             * 目的：单条刷新重建运行时连接
+             */
+            mcpServerRuntimeService.registerOrUpdate(config);
+        } else {
+            /*
+             * 目的：禁用配置不应维持运行时连接
+             */
+            mcpServerRuntimeService.unregister(config.getId());
+        }
     }
 }

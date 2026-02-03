@@ -22,9 +22,18 @@
                 placeholder="请选择策略"
                 style="width: 100%"
               >
-                <el-option label="质量优先" value="QUALITY_PRIORITY" />
-                <el-option label="速度优先" value="SPEED_PRIORITY" />
-                <el-option label="成本优先" value="COST_PRIORITY" />
+                <el-option
+                  label="质量优先"
+                  value="QUALITY_PRIORITY"
+                />
+                <el-option
+                  label="速度优先"
+                  value="SPEED_PRIORITY"
+                />
+                <el-option
+                  label="成本优先"
+                  value="COST_PRIORITY"
+                />
               </el-select>
             </el-form-item>
 
@@ -47,7 +56,10 @@
           </template>
 
           <!-- 消息列表 -->
-          <div class="message-list" ref="messageListRef">
+          <div
+            ref="messageListRef"
+            class="message-list"
+          >
             <div
               v-for="(message, index) in messages"
               :key="index"
@@ -57,10 +69,20 @@
                 <div class="message-role">
                   {{ message.role === 'user' ? '用户' : 'AI' }}
                 </div>
-                <div class="message-text">{{ message.content }}</div>
-                <div v-if="message.meta" class="message-meta">
-                  <el-tag size="small">模型: {{ message.meta.modelUsed }}</el-tag>
-                  <el-tag size="small" type="info">
+                <div class="message-text">
+                  {{ message.content }}
+                </div>
+                <div
+                  v-if="message.meta"
+                  class="message-meta"
+                >
+                  <el-tag size="small">
+                    模型: {{ message.meta.modelUsed }}
+                  </el-tag>
+                  <el-tag
+                    size="small"
+                    type="info"
+                  >
                     响应时间: {{ message.meta.responseTime }}ms
                   </el-tag>
                   <el-tag
@@ -74,11 +96,18 @@
               </div>
             </div>
 
-            <div v-if="loading" class="message-item assistant">
+            <div
+              v-if="loading"
+              class="message-item assistant"
+            >
               <div class="message-content">
-                <div class="message-role">AI</div>
+                <div class="message-role">
+                  AI
+                </div>
                 <div class="message-text">
-                  <el-icon class="is-loading"><Loading /></el-icon>
+                  <el-icon class="is-loading">
+                    <Loading />
+                  </el-icon>
                   正在思考...
                 </div>
               </div>
@@ -165,7 +194,7 @@ const handleSend = async () => {
       taskType: config.taskType || undefined
     })
 
-    const data = res.data.data
+    const data = res.data
 
     const assistantMessage: Message = {
       role: 'assistant',

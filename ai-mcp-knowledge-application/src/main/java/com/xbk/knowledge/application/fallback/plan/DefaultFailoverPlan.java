@@ -43,10 +43,7 @@ public class DefaultFailoverPlan implements FailoverPlan {
     @Override
     public FailoverCandidate next() {
         ModelConfig model = candidates.get(index);
-        /**
-         * 通过索引判断是否为备用模型：
-         * index == 0 代表主模型，其余为降级候选。
-         */
+        
         boolean isFallback = index > 0;
         index++;
         return FailoverCandidate.builder()

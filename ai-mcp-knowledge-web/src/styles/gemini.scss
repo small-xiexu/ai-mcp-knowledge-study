@@ -1,0 +1,342 @@
+/* Global Gemini Design System (2024 Reference) */
+
+:root {
+  --gemini-bg-primary: #131314;
+  /* Main background */
+  --gemini-surface-bright: #1e1f20;
+  /* Secondary surface/cards */
+  --gemini-surface-dim: #0e0e10;
+  /* Darker background for depth */
+  --gemini-text-primary: #e3e3e3;
+  /* Main text */
+  --gemini-text-secondary: #c4c7c5;
+  /* Secondary/helper text */
+  --gemini-border: #3c4043;
+  /* Standard borders */
+  --gemini-accent: #8ab4f8;
+  /* Google Blue */
+  --gemini-accent-hover: #aecbfa;
+  --gemini-indicator: #c2e7ff;
+  /* Active indicators */
+  --gemini-danger: #f28b82;
+  --gemini-success: #81c995;
+  --gemini-warning: #fdd663;
+  --gemini-font: "Google Sans", "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Page Container */
+.gemini-container {
+  width: 100%;
+  min-height: 100%;
+  padding: 24px;
+  background-color: var(--gemini-bg-primary);
+  color: var(--gemini-text-primary);
+  box-sizing: border-box;
+}
+
+/* Page Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+
+  h2,
+  .page-title {
+    font-size: 24px;
+    font-weight: 500;
+    color: var(--gemini-text-primary);
+    margin: 0;
+  }
+
+  p,
+  .subtitle {
+    margin-top: 4px;
+    color: var(--gemini-text-secondary);
+    font-size: 14px;
+  }
+}
+
+/* Glassmorphism Card */
+.gemini-card {
+  background: var(--gemini-card-bg);
+  border: 1px solid var(--gemini-border);
+  border-radius: 16px;
+  padding: 0;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  margin-bottom: 24px;
+
+  .el-card__header {
+    border-bottom: 1px solid var(--gemini-border);
+    padding: 16px 24px;
+    color: var(--gemini-text-primary);
+    font-weight: 500;
+  }
+
+  .el-card__body {
+    padding: 24px;
+    color: var(--gemini-text-primary);
+  }
+}
+
+/* Transparent Table */
+/* Transparent Table */
+.gemini-table {
+  background: transparent !important;
+  --el-table-border-color: var(--gemini-border);
+  --el-table-header-bg-color: transparent;
+  --el-table-bg-color: transparent;
+  --el-table-tr-bg-color: transparent;
+  --el-table-row-hover-bg-color: rgba(138, 180, 248, 0.08);
+
+  /* Headers */
+  th.el-table__cell {
+    background: transparent !important;
+    color: var(--gemini-text-secondary);
+    border-bottom: 1px solid var(--gemini-border) !important;
+    font-weight: 500;
+  }
+
+  /* Cells */
+  td.el-table__cell {
+    background: transparent !important;
+    color: var(--gemini-text-primary);
+    border-bottom: 1px solid var(--gemini-border) !important;
+    transition: background-color 0.3s;
+  }
+
+  /* Remove side borders */
+  .el-table__inner-wrapper::before {
+    display: none;
+  }
+
+  /* Robust fixed column handling */
+  .el-table__fixed-right,
+  .el-table__fixed {
+    background-color: transparent !important;
+  }
+
+  /* Target fixed cells specifically with higher specificity */
+  tr th.el-table__cell.is-fixed-right,
+  tr td.el-table__cell.is-fixed-right,
+  tr th.el-table__cell.is-fixed-left,
+  tr td.el-table__cell.is-fixed-left,
+  tr th.el-table-fixed-column--right,
+  tr td.el-table-fixed-column--right,
+  tr th.el-table-fixed-column--left,
+  tr td.el-table-fixed-column--left {
+    background-color: #1e1f20 !important;
+    /* Solid dark color */
+    opacity: 1 !important;
+    z-index: 10 !important;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2) !important;
+    /* Shadow to separate */
+  }
+
+  /* Patch for the corner */
+  .el-table__fixed-right-patch {
+    background-color: #1e1f20 !important;
+  }
+}
+
+/* Form Elements */
+.gemini-input .el-input__wrapper,
+.gemini-select .el-input__wrapper,
+.gemini-input-number .el-input__wrapper {
+  background-color: var(--gemini-input-bg) !important;
+  box-shadow: 0 0 0 1px var(--gemini-border) inset !important;
+
+  &.is-focus {
+    box-shadow: 0 0 0 2px var(--gemini-accent) inset !important;
+  }
+}
+
+.gemini-input .el-input__inner,
+.gemini-select .el-input__inner,
+.gemini-input-number .el-input__inner {
+  color: var(--gemini-text-primary) !important;
+}
+
+/* Dialog Global Override */
+.gemini-dialog {
+  background: rgba(32, 33, 36, 0.95) !important;
+  border: 1px solid var(--gemini-border) !important;
+  border-radius: 16px !important;
+  backdrop-filter: blur(20px);
+
+  .el-dialog__header {
+    color: var(--gemini-text-primary);
+  }
+
+  .el-dialog__title {
+    color: var(--gemini-text-primary);
+  }
+
+  .el-dialog__body {
+    color: var(--gemini-text-primary);
+  }
+}
+
+/* Buttons */
+.gemini-btn-primary {
+  background: var(--gemini-accent) !important;
+  border: none !important;
+  border-radius: 20px !important;
+  color: #202124 !important;
+  font-weight: 500 !important;
+
+  &:hover {
+    background: var(--gemini-accent-hover) !important;
+  }
+}
+
+.gemini-btn-secondary {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid var(--gemini-border) !important;
+  border-radius: 20px !important;
+  color: var(--gemini-text-primary) !important;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-color: var(--gemini-text-secondary) !important;
+  }
+}
+
+/* Global Poppers (Dropdowns, Selects, Tooltips) */
+.el-popper.is-dark,
+.el-popper,
+.gemini-dropdown,
+.gemini-select-dropdown {
+  background: #1e1f20 !important;
+  border: 1px solid var(--gemini-border) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+  backdrop-filter: blur(10px);
+  color: #e3e3e3 !important;
+  /* Force high contrast white text */
+  padding: 8px 12px !important;
+  font-size: 13px !important;
+  line-height: 1.4 !important;
+
+  /* Reset padding for menus which have their own padding logic */
+  &.el-dropdown__popper,
+  &.el-select__popper {
+    padding: 0 !important;
+  }
+
+  .el-dropdown-menu,
+  .el-select-dropdown__list {
+    background: transparent !important;
+    padding: 6px !important;
+  }
+
+  .el-dropdown-menu__item,
+  .el-select-dropdown__item {
+    color: #e3e3e3 !important;
+    border-radius: 6px !important;
+    margin: 2px 0 !important;
+    padding: 8px 16px !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+    display: flex !important;
+    align-items: center !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    position: relative !important;
+
+    &:hover,
+    &.is-hovering,
+    &.hover {
+      background-color: rgba(138, 180, 248, 0.1) !important;
+      color: var(--gemini-accent) !important;
+    }
+
+    &.selected,
+    &.is-selected {
+      background-color: rgba(138, 180, 248, 0.15) !important;
+      color: var(--gemini-accent) !important;
+      font-weight: 500;
+    }
+  }
+
+  .el-popper__arrow::before {
+    background: #1e1f20 !important;
+    border: 1px solid var(--gemini-border) !important;
+  }
+}
+
+/* Drawer */
+.gemini-drawer {
+  background-color: var(--gemini-bg-primary) !important;
+
+  .el-drawer__header {
+    color: var(--gemini-text-primary) !important;
+    border-bottom: 1px solid var(--gemini-border);
+    margin-bottom: 0;
+    padding: 20px;
+  }
+
+  .el-drawer__body {
+    padding: 24px;
+  }
+}
+
+/* Global Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+}
+
+/* Pagination Refinements */
+.pagination-container {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 24px 24px;
+}
+
+.el-pagination {
+  --el-pagination-bg-color: transparent;
+  --el-pagination-button-bg-color: rgba(255, 255, 255, 0.05);
+  --el-pagination-hover-color: var(--gemini-accent);
+
+  button,
+  .el-pager li {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border-radius: 8px !important;
+    margin: 0 4px !important;
+    color: var(--gemini-text-secondary) !important;
+    border: 1px solid transparent !important;
+    transition: all 0.2s !important;
+
+    &:hover {
+      color: var(--gemini-accent) !important;
+      background-color: rgba(255, 255, 255, 0.1) !important;
+      border-color: rgba(138, 180, 248, 0.3) !important;
+    }
+
+    &.is-active {
+      background-color: var(--gemini-accent) !important;
+      color: #131314 !important;
+      font-weight: 600 !important;
+    }
+  }
+
+  .el-pagination__total,
+  .el-pagination__jump {
+    color: var(--gemini-text-secondary) !important;
+  }
+}

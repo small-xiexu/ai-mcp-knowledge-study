@@ -13,14 +13,18 @@
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
+    "@types/highlight.js": "^9.12.4",
     "axios": "^1.6.5",
     "echarts": "^5.4.3",
     "element-plus": "^2.5.0",
+    "highlight.js": "^11.11.1",
+    "markdown-it": "^14.1.0",
     "pinia": "^2.1.7",
     "vue": "^3.4.0",
     "vue-router": "^4.2.5"
   },
   "devDependencies": {
+    "@types/markdown-it": "^14.1.2",
     "@typescript-eslint/eslint-plugin": "^6.18.1",
     "@typescript-eslint/parser": "^6.18.1",
     "@vitejs/plugin-vue": "^5.0.0",

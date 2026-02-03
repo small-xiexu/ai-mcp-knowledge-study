@@ -1,13 +1,17 @@
 package com.xbk.knowledge.application.service.app.impl;
 
 import com.xbk.knowledge.application.service.app.ChatSessionAppService;
+import com.xbk.knowledge.application.service.app.ModelConfigAppService;
 import com.xbk.knowledge.domain.model.entity.ChatMessage;
 import com.xbk.knowledge.domain.model.entity.ChatSession;
+import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.model.vo.chat.ChatMessagePageQuery;
 import com.xbk.knowledge.domain.model.vo.chat.ChatSessionPageQuery;
+import com.xbk.knowledge.domain.model.vo.common.IdQuery;
 import com.xbk.knowledge.domain.repository.ChatMessageRepository;
 import com.xbk.knowledge.domain.repository.ChatSessionRepository;
 import com.xbk.knowledge.types.common.PageResult;
+import com.xbk.knowledge.types.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.stereotype.Service;
@@ -30,6 +34,7 @@ public class ChatSessionAppServiceImpl implements ChatSessionAppService {
     private final ChatSessionRepository chatSessionRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final ChatMemoryRepository chatMemoryRepository;
+    private final ModelConfigAppService modelConfigAppService;
 
     /**
      * 创建会话
@@ -54,6 +59,22 @@ public class ChatSessionAppServiceImpl implements ChatSessionAppService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ChatSession updateSession(ChatSession session) {
+        /*
+         * 目的：首次消息发送后锁定模型，避免会话中途切换模型
+         */
+        if (session != null && session.getId() != null) {
+            ChatSession existing = chatSessionRepository.findById(session.getId());
+            if (existing != null && existing.getModelId() != null) {
+                Long requestedModelId = session.getModelId();
+                if (!existing.getModelId().equals(requestedModelId)) {
+                    long messageCount = chatMessageRepository.countBySessionId(session.getId());
+                    if (messageCount > 0) {
+                        String message = buildModelLockMessage(existing.getModelId());
+                        throw new BusinessException(message);
+                    }
+                }
+            }
+        }
         return chatSessionRepository.update(session);
     }
 
@@ -153,4 +174,20 @@ public class ChatSessionAppServiceImpl implements ChatSessionAppService {
         chatMessageRepository.deleteBySessionId(sessionId);
     }
 
+    private String buildModelLockMessage(Long modelId) {
+        String modelName = resolveModelName(modelId);
+        String displayName = modelName != null ? modelName : String.valueOf(modelId);
+        return "该会话已绑定模型【" + displayName + "】，为保证对话一致性不可切换模型。如需切换，请新建会话。";
+    }
+
+    private String resolveModelName(Long modelId) {
+        if (modelId == null) {
+            return null;
+        }
+        ModelConfig modelConfig = modelConfigAppService.queryModelConfigById(new IdQuery(modelId));
+        if (modelConfig == null) {
+            return null;
+        }
+        return modelConfig.getModelName();
+    }
 }

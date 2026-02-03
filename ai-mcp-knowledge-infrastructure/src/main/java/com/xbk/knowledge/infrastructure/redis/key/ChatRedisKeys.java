@@ -15,6 +15,6 @@ public final class ChatRedisKeys {
     public static final String CHAT_MEMORY_PREFIX = "chat:memory:";
 
     private ChatRedisKeys() {
-        // 目的：工具类不允许实例化
+        
     }
 }

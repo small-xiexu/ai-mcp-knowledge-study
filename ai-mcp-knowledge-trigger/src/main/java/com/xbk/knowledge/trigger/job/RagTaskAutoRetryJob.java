@@ -36,7 +36,7 @@ public class RagTaskAutoRetryJob {
      */
     @XxlJob("ragTaskAutoRetryHandler")
     public void autoRetryFailedTasks() {
-        // 目的：只重试最近失败任务，避免对历史数据产生无意义压力
+        
         // 查询昨天失败的任务（状态为 FAILED 或 COMPLETED 但有失败详情）
         LocalDateTime yesterday = LocalDateTime.now().minusDays(1);
         List<RagTask> failedTasks = ragTaskRepository.findFailedTasksSince(yesterday);
@@ -48,14 +48,14 @@ public class RagTaskAutoRetryJob {
 
         log.info("找到 {} 个失败任务，开始重试", failedTasks.size());
 
-        // 约束：逐个重试，失败不影响后续任务
+        
         int successCount = 0;
         int skipCount = 0;
         int failCount = 0;
 
         for (RagTask task : failedTasks) {
             try {
-                // 目的：限制自动重试次数，避免死循环与资源浪费
+                
                 // 检查重试次数（最多自动重试 3 次）
                 Integer retryCount = task.getRetryCount();
                 if (retryCount != null && retryCount >= 3) {
@@ -64,7 +64,7 @@ public class RagTaskAutoRetryJob {
                     continue;
                 }
 
-                // 约束：缺少失败详情无法定位问题，直接跳过
+                
                 // 检查是否有失败详情
                 if (!StringUtils.hasText(task.getErrorDetails())) {
                     log.warn("任务 {} 没有失败详情，跳过", task.getTaskId());

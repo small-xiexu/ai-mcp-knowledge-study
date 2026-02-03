@@ -3,6 +3,8 @@
     :model-value="visible"
     :title="isEdit ? '编辑任务类型' : '新增任务类型'"
     width="600px"
+    class="gemini-dialog"
+    align-center
     @close="handleClose"
   >
     <el-form
@@ -11,12 +13,26 @@
       :rules="rules"
       label-width="120px"
     >
-      <el-form-item label="任务名称" prop="taskName">
-        <el-input v-model="formData.taskName" placeholder="请输入任务名称" />
+      <el-form-item
+        label="任务名称"
+        prop="taskName"
+      >
+        <el-input
+          v-model="formData.taskName"
+          placeholder="请输入任务名称"
+          class="gemini-input"
+        />
       </el-form-item>
 
-      <el-form-item label="任务编码" prop="taskCode">
-        <el-input v-model="formData.taskCode" placeholder="请输入任务编码" />
+      <el-form-item
+        label="任务编码"
+        prop="taskCode"
+      >
+        <el-input
+          v-model="formData.taskCode"
+          placeholder="请输入任务编码"
+          class="gemini-input"
+        />
       </el-form-item>
 
       <el-form-item label="任务描述">
@@ -25,14 +41,20 @@
           type="textarea"
           :rows="3"
           placeholder="请输入任务描述（选填）"
+          class="gemini-input"
         />
       </el-form-item>
 
-      <el-form-item label="首选模型" prop="preferredModelId">
+      <el-form-item
+        label="首选模型"
+        prop="preferredModelId"
+      >
         <el-select
           v-model="formData.preferredModelId"
           placeholder="请选择首选模型"
           style="width: 100%"
+          class="gemini-select"
+          popper-class="gemini-select-dropdown"
         >
           <el-option
             v-for="model in modelOptions"
@@ -50,6 +72,8 @@
           filterable
           placeholder="请选择备用模型（选填）"
           style="width: 100%"
+          class="gemini-select"
+          popper-class="gemini-select-dropdown"
         >
           <el-option
             v-for="model in modelOptions"
@@ -62,10 +86,19 @@
     </el-form>
 
     <template #footer>
-      <el-button @click="handleClose">取消</el-button>
-      <el-button type="primary" :loading="loading" @click="handleSubmit">
-        确定
-      </el-button>
+      <div class="dialog-footer">
+        <el-button @click="handleClose" text class="cancel-btn">
+          取消
+        </el-button>
+        <el-button
+          type="primary"
+          :loading="loading"
+          class="gemini-btn-primary"
+          @click="handleSubmit"
+        >
+          确定
+        </el-button>
+      </div>
     </template>
   </el-dialog>
 </template>

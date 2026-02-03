@@ -10,9 +10,12 @@ import com.xbk.knowledge.application.service.rag.RagVectorStoreService;
 import com.xbk.knowledge.domain.model.aggregate.call.CallLogAggregate;
 import com.xbk.knowledge.domain.model.entity.CallLog;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.model.entity.ChatSession;
 import com.xbk.knowledge.domain.repository.CallLogRepository;
+import com.xbk.knowledge.domain.repository.ChatSessionRepository;
 import com.xbk.knowledge.domain.model.vo.common.IdQuery;
 import com.xbk.knowledge.types.enums.CallStatus;
+import com.xbk.knowledge.types.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.memory.ChatMemory;
@@ -60,6 +63,7 @@ public class AiChatAppServiceImpl implements AiChatAppService {
     private final ModelProviderFactory modelProviderFactory;
     private final RagVectorStoreService ragVectorStoreService;
     private final CallLogRepository callLogRepository;
+    private final ChatSessionRepository chatSessionRepository;
     private final ChatMemory chatMemory;
     private final McpToolCatalogService mcpToolCatalogService;
     private final ToolCallbackProvider toolCallbackProvider;
@@ -177,6 +181,7 @@ public class AiChatAppServiceImpl implements AiChatAppService {
      * 出参：模型配置
      */
     private ModelConfig resolveChatModel(AICallCommand command) {
+        enforceSessionModelBinding(command);
         Long modelId = command.getModelId();
         if (modelId != null) {
             return modelConfigAppService.queryModelConfigById(new IdQuery(modelId));
@@ -186,6 +191,49 @@ public class AiChatAppServiceImpl implements AiChatAppService {
             throw new IllegalStateException("未配置激活的对话模型");
         }
         return activeChat;
+    }
+
+    private void enforceSessionModelBinding(AICallCommand command) {
+        if (command == null) {
+            return;
+        }
+        Long sessionId = command.getSessionId();
+        if (sessionId == null) {
+            return;
+        }
+        ChatSession session = chatSessionRepository.findById(sessionId);
+        if (session == null || session.getModelId() == null) {
+            return;
+        }
+        Long sessionModelId = session.getModelId();
+        Long requestModelId = command.getModelId();
+        if (requestModelId != null && !sessionModelId.equals(requestModelId)) {
+            String message = buildModelLockMessage(sessionModelId);
+            throw new BusinessException(message);
+        }
+        if (requestModelId == null) {
+            /*
+             * 目的：会话已绑定模型时，强制使用会话模型
+             */
+            command.setModelId(sessionModelId);
+        }
+    }
+
+    private String buildModelLockMessage(Long modelId) {
+        String modelName = resolveModelName(modelId);
+        String displayName = modelName != null ? modelName : String.valueOf(modelId);
+        return "该会话已绑定模型【" + displayName + "】，为保证对话一致性不可切换模型。如需切换，请新建会话。";
+    }
+
+    private String resolveModelName(Long modelId) {
+        if (modelId == null) {
+            return null;
+        }
+        ModelConfig modelConfig = modelConfigAppService.queryModelConfigById(new IdQuery(modelId));
+        if (modelConfig == null) {
+            return null;
+        }
+        return modelConfig.getModelName();
     }
 
     /**
@@ -475,11 +523,7 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         private Integer completionTokens;
         private Integer totalTokens;
 
-        /**
-         * 更新统计值
-         *
-         * 为什么：响应可能分段返回，需累积最新值
-         */
+        
         private void update(Integer promptTokens, Integer completionTokens, Integer totalTokens) {
             if (promptTokens != null) {
                 this.promptTokens = promptTokens;
@@ -492,11 +536,7 @@ public class AiChatAppServiceImpl implements AiChatAppService {
             }
         }
 
-        /**
-         * 获取总 token 数
-         *
-         * 为什么：兼容只返回部分字段的使用量
-         */
+        
         private Integer getTotalTokens() {
             if (totalTokens != null) {
                 return totalTokens;

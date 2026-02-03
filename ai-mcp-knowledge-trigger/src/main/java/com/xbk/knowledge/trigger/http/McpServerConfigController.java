@@ -173,6 +173,21 @@ public class McpServerConfigController {
         return Result.success("MCP Server 刷新成功", null);
     }
 
+    /**
+     * 刷新指定 MCP Server 运行时连接
+     *
+     * 为什么：单条刷新避免影响其它运行中配置
+     * 入参：ID 查询请求
+     * 出参：操作结果
+     */
+    @PostMapping("/refresh-one")
+    public Result<Void> refreshConfig(@Valid @RequestBody IdRequest request) {
+        Long id = request.getId();
+        IdQuery idQuery = new IdQuery(id);
+        mcpServerConfigAppService.refreshServer(idQuery);
+        return Result.success("MCP Server 刷新成功", null);
+    }
+
     private McpServerConfig buildFromRequest(McpServerConfigRequest request) {
         /*
          * 目的：统一构建领域对象，保证入参映射可维护

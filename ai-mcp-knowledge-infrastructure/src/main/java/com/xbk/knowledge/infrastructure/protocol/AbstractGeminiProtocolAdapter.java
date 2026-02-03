@@ -34,9 +34,15 @@ public abstract class AbstractGeminiProtocolAdapter {
         log.info("创建 Gemini 模型（通过 OpenAI 兼容协议）: {}", modelName);
 
         String baseUrl = config.getBaseUrl();
+        /*
+         * 目的：规范化 baseUrl，避免路径重复导致 404
+         */
+        String normalizedBaseUrl = normalizeBaseUrl(baseUrl);
+        log.info("创建 Gemini 兼容协议模型 - 原始 baseUrl: {}, 规范化后: {}", baseUrl, normalizedBaseUrl);
+
         String apiKey = config.getApiKey();
         OpenAiApi openAiApi = OpenAiApi.builder()
-                .baseUrl(baseUrl)
+                .baseUrl(normalizedBaseUrl)
                 .apiKey(apiKey)
                 .build();
 
@@ -48,5 +54,52 @@ public abstract class AbstractGeminiProtocolAdapter {
                 .openAiApi(openAiApi)
                 .defaultOptions(options)
                 .build();
+    }
+
+    /**
+     * 规范化 baseUrl
+     * 自动去除可能导致路径重复的后缀，确保与 OpenAiApi 兼容
+     *
+     * OpenAiApi 会自动在 baseUrl 后拼接 /v1/chat/completions
+     * 因此需要去除用户可能传入的以下后缀：
+     * - /v1/chat/completions
+     * - /v1
+     * - 末尾的斜杠
+     *
+     * 为什么：避免自动拼接导致重复路径
+     * 入参：原始 baseUrl
+     * 出参：规范化后的 baseUrl
+     */
+    protected String normalizeBaseUrl(String baseUrl) {
+        if (baseUrl == null || baseUrl.isEmpty()) {
+            return baseUrl;
+        }
+
+        String normalized = baseUrl.trim();
+        while (normalized.endsWith("/")) {
+            int length = normalized.length();
+            normalized = normalized.substring(0, length - 1);
+        }
+
+        /*
+         * 目的：兜底处理多余的 /v1 段，避免形成 /v1/v1/chat/completions
+         */
+        while (normalized.contains("/v1/v1")) {
+            normalized = normalized.replace("/v1/v1", "/v1");
+        }
+
+        if (normalized.endsWith("/v1/chat/completions")) {
+            int length = normalized.length();
+            int suffixLength = "/v1/chat/completions".length();
+            normalized = normalized.substring(0, length - suffixLength);
+            log.info("检测到 baseUrl 包含 /v1/chat/completions 后缀，已自动去除。原始: {}, 规范化后: {}", baseUrl, normalized);
+        } else if (normalized.endsWith("/v1")) {
+            int length = normalized.length();
+            int suffixLength = "/v1".length();
+            normalized = normalized.substring(0, length - suffixLength);
+            log.info("检测到 baseUrl 包含 /v1 后缀，已自动去除。原始: {}, 规范化后: {}", baseUrl, normalized);
+        }
+
+        return normalized;
     }
 }

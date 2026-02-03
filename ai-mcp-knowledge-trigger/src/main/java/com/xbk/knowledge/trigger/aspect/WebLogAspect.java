@@ -61,17 +61,17 @@ public class WebLogAspect {
      */
     @Around("webLog()")
     public Object doAround(ProceedingJoinPoint joinPoint) throws Throwable {
-        // 目的：统一耗时统计口径
+        
         long startTime = TimeCostUtils.start();
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
 
-        // 目的：获取请求上下文与 traceId，保证日志可追踪
+        
         HttpServletRequest request = attributes != null ? attributes.getRequest() : null;
         String traceId = TraceIdUtils.getOrCreateTraceId();
 
         RequestContext requestContext = buildRequestContext(joinPoint, request);
 
-        // 约束：必须在 finally 里记录日志，确保异常场景也能收集到请求上下文
+        
         Object result = null;
         Throwable exception = null;
         try {
@@ -200,7 +200,7 @@ public class WebLogAspect {
         if (json.length() <= maxLength) {
             return json;
         }
-        // 约束：采用统一包装，确保截断后仍是合法 JSON
+        
         TruncatedPayload payload = new TruncatedPayload(true, truncate(json, maxLength));
         return toJsonString(payload);
     }
@@ -217,7 +217,7 @@ public class WebLogAspect {
         if (query == null || query.isEmpty()) {
             return url.toString();
         }
-        // 目的：拼接查询参数，便于还原完整访问路径
+        
         return url.append('?').append(query).toString();
     }
 
@@ -267,9 +267,7 @@ public class WebLogAspect {
      * @author xiexu
      */
     private static class RequestContext {
-        /**
-         * 仅存储日志所需的请求信息，避免不必要的对象引用
-         */
+        
         private final String controller;
         private final String method;
         private final String requestUri;
@@ -293,9 +291,7 @@ public class WebLogAspect {
      */
     @Getter
     private static class TruncatedPayload {
-        /**
-         * 通过固定字段标识截断，便于日志平台识别
-         */
+        
         private final boolean truncated;
         private final String value;
 

@@ -84,4 +84,11 @@ public interface McpServerConfigAppService {
      * 刷新启用的 MCP Server 运行时连接
      */
     void refreshEnabledServers();
+
+    /**
+     * 刷新指定 MCP Server 运行时连接
+     *
+     * @param query ID 查询条件
+     */
+    void refreshServer(IdQuery query);
 }

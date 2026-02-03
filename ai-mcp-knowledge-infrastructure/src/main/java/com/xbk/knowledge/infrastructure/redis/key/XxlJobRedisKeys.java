@@ -27,6 +27,6 @@ public final class XxlJobRedisKeys {
     public static final String JOB_CACHE_PREFIX = "xxl:admin:jobs:all:";
 
     private XxlJobRedisKeys() {
-        // 目的：工具类不允许实例化
+        
     }
 }

@@ -26,11 +26,7 @@ public abstract class AbstractFailoverExecutor implements FailoverExecutor {
      */
     @Override
     public AICallResult execute(ModelConfig primary, List<ModelConfig> fallbacks, AICallCommand request) {
-        /**
-         * 模板方法入口：
-         * 统一控制“构建计划 -> 迭代候选 -> 执行调用 -> 返回结果”的流程，
-         * 避免在业务调用处出现显式循环与状态判断。
-         */
+        
         FailoverPlan plan = buildPlan(primary, fallbacks, request);
 
         String primaryName = plan.getPrimaryName();

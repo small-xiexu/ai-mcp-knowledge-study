@@ -111,42 +111,27 @@ public class CircuitBreaker {
      */
     @Data
     public static class CircuitState {
-        /**
-         * 连续失败次数
-         */
+        
         private int consecutiveFailures = 0;
 
-        /**
-         * 是否打开（熔断）
-         */
+        
         private boolean open = false;
 
-        /**
-         * 打开时间（用于计算恢复时间）
-         */
+        
         private long openTime = 0;
 
-        /**
-         * 记录成功调用
-         * 重置失败计数，关闭熔断器
-         */
+        
         public void recordSuccess() {
             this.consecutiveFailures = 0;
             this.open = false;
         }
 
-        /**
-         * 记录失败调用
-         * 增加失败计数
-         */
+        
         public void recordFailure() {
             this.consecutiveFailures++;
         }
 
-        /**
-         * 打开熔断器
-         * 记录打开时间
-         */
+        
         public void open() {
             this.open = true;
             this
@@ -154,10 +139,7 @@ public class CircuitBreaker {
                     .currentTimeMillis();
         }
 
-        /**
-         * 进入半开状态
-         * 允许尝试一次调用，如果成功则关闭熔断器
-         */
+        
         public void halfOpen() {
             this.open = false;
             // 保持失败计数，如果再次失败会立即熔断

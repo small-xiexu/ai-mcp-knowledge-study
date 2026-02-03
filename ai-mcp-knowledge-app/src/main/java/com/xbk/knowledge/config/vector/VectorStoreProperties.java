@@ -29,9 +29,7 @@ public class VectorStoreProperties {
     @Data
     public static class Store {
 
-        /**
-         * 向量表名
-         */
+        
         private String tableName;
     }
 }

@@ -47,6 +47,11 @@ public class ModelConfigResponse implements Serializable {
     private String baseUrl;
 
     /**
+     * API Key
+     */
+    private String apiKey;
+
+    /**
      * 是否启用
      */
     private Boolean enabled;

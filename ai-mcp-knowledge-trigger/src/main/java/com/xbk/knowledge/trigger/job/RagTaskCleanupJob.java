@@ -31,7 +31,7 @@ public class RagTaskCleanupJob {
      */
     @XxlJob("ragTaskCleanupHandler")
     public void cleanupExpiredTasks() {
-        // 目的：保持任务表规模可控，避免影响查询性能
+        
         // 删除 30 天前的已完成任务
         LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
         int deletedCount = ragTaskRepository.deleteCompletedTasksBefore(thirtyDaysAgo);

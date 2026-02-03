@@ -44,9 +44,7 @@ public class RetryPolicyTest {
             this.index = 0;
         }
 
-        /**
-         * 对外暴露 apply 作为调用入口，便于上层复用。
-         */
+        
         @Override
         public ModelCallOutcome apply(ModelCallContext context) {
             if (index >= outcomes.size()) {

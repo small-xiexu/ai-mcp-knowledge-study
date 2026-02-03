@@ -7,25 +7,64 @@
         border
         style="width: 100%"
       >
-        <el-table-column prop="taskId" label="任务ID" min-width="220" />
-        <el-table-column prop="type" label="类型" width="100" />
-        <el-table-column prop="ragTag" label="知识库标签" min-width="160" />
-        <el-table-column label="进度" width="200">
+        <el-table-column
+          prop="taskId"
+          label="任务ID"
+          min-width="220"
+        />
+        <el-table-column
+          prop="type"
+          label="类型"
+          width="100"
+        />
+        <el-table-column
+          prop="ragTag"
+          label="知识库标签"
+          min-width="160"
+        />
+        <el-table-column
+          label="进度"
+          width="200"
+        >
           <template #default="{ row }">
-            <el-progress :percentage="row.progress || 0" :status="progressStatus(row.status)" />
+            <el-progress
+              :percentage="row.progress || 0"
+              :status="progressStatus(row.status)"
+            />
           </template>
         </el-table-column>
-        <el-table-column prop="status" label="状态" width="120" />
-        <el-table-column label="重试次数" width="100">
+        <el-table-column
+          prop="status"
+          label="状态"
+          width="120"
+        />
+        <el-table-column
+          label="重试次数"
+          width="100"
+        >
           <template #default="{ row }">
             {{ row.retryCount || 0 }}
           </template>
         </el-table-column>
-        <el-table-column label="错误详情" width="120">
+        <el-table-column
+          label="错误详情"
+          width="120"
+        >
           <template #default="{ row }">
-            <el-popover v-if="row.errorDetails" placement="left" width="500" trigger="hover">
+            <el-popover
+              v-if="row.errorDetails"
+              placement="left"
+              width="500"
+              trigger="hover"
+            >
               <template #reference>
-                <el-tag type="danger" size="small" style="cursor: pointer">查看错误</el-tag>
+                <el-tag
+                  type="danger"
+                  size="small"
+                  style="cursor: pointer"
+                >
+                  查看错误
+                </el-tag>
               </template>
               <div style="max-height: 400px; overflow-y: auto">
                 <pre style="white-space: pre-wrap; word-wrap: break-word; font-size: 12px">{{ formatErrorDetails(row.errorDetails) }}</pre>
@@ -34,13 +73,23 @@
             <span v-else>-</span>
           </template>
         </el-table-column>
-        <el-table-column prop="message" label="状态说明" min-width="200" />
-        <el-table-column label="更新时间" width="180">
+        <el-table-column
+          prop="message"
+          label="状态说明"
+          min-width="200"
+        />
+        <el-table-column
+          label="更新时间"
+          width="180"
+        >
           <template #default="{ row }">
             {{ formatDateTime(row.updatedAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="180">
+        <el-table-column
+          label="操作"
+          width="180"
+        >
           <template #default="{ row }">
             <el-button
               size="small"
@@ -110,8 +159,8 @@ const fetchData = async () => {
       pageNum: pagination.pageNum,
       pageSize: pagination.pageSize
     })
-    tableData.value = res.data.data.records || []
-    pagination.total = res.data.data.total || 0
+    tableData.value = res.data.records || []
+    pagination.total = res.data.total || 0
   } catch (error: any) {
     ElMessage.error(error.message || '获取任务列表失败')
   } finally {
@@ -132,7 +181,7 @@ const handleCancel = async (taskId: string) => {
 const handleRetry = async (taskId: string) => {
   try {
     const res = await retryTask(taskId)
-    const newTaskId = res.data.data
+    const newTaskId = res.data
     ElMessage.success(`重试任务已创建: ${newTaskId}`)
     fetchData()
   } catch (error: any) {

@@ -1,145 +1,213 @@
 <template>
-  <div class="model-management">
-    <el-card>
+  <div class="model-management-container">
+    <div class="page-header">
+      <h2 class="page-title">LLM 模型配置</h2>
+      <el-button
+        type="primary"
+        class="add-btn"
+        @click="handleAdd"
+      >
+        <el-icon><Plus /></el-icon>
+        新增模型
+      </el-button>
+    </div>
+
+    <div class="gemini-card">
       <!-- 搜索栏 -->
-      <el-form :inline="true" class="search-form">
-        <el-form-item>
-          <el-button type="primary" @click="fetchData">
-            <el-icon><Refresh /></el-icon>
-            刷新
-          </el-button>
-          <el-button type="success" @click="handleAdd">
-            <el-icon><Plus /></el-icon>
-            新增模型
-          </el-button>
-        </el-form-item>
-      </el-form>
+      <div class="table-toolbar">
+        <el-button
+          class="refresh-btn"
+          circle
+          @click="fetchData"
+        >
+          <el-icon><Refresh /></el-icon>
+        </el-button>
+      </div>
 
       <!-- 表格 -->
       <el-table
         v-loading="loading"
         :data="tableData"
-        border
         style="width: 100%"
+        class="gemini-table"
+        :header-cell-style="{ background: 'transparent', color: '#9aa0a6', borderBottom: '1px solid #3c4043' }"
+        :cell-style="{ background: 'transparent', color: '#e8eaed', borderBottom: '1px solid #3c4043' }"
+        :row-class-name="tableRowClassName"
       >
-        <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="modelName" label="模型名称" min-width="150" />
-        <el-table-column prop="modelType" label="模型类型" width="120" />
-        <el-table-column prop="baseUrl" label="Base URL" min-width="220" />
-        <el-table-column label="对话激活" width="110">
+        <el-table-column
+          prop="id"
+          label="ID"
+          width="80"
+        />
+        <el-table-column
+          prop="modelName"
+          label="模型名称"
+          min-width="150"
+        >
           <template #default="{ row }">
-            <el-tag v-if="row.activeChat" type="success">已激活</el-tag>
-            <span v-else>-</span>
+            <span class="model-name-text">{{ row.modelName }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="嵌入激活" width="110">
+        <el-table-column
+          prop="modelType"
+          label="类型"
+          width="120"
+        >
           <template #default="{ row }">
-            <el-tag v-if="row.activeEmbedding" type="info">已激活</el-tag>
-            <span v-else>-</span>
+            <span class="model-type-badge">{{ row.modelType }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="状态" width="100">
+        <el-table-column
+          prop="baseUrl"
+          label="Base URL"
+          min-width="200"
+          show-overflow-tooltip
+        >
           <template #default="{ row }">
-            <el-tag :type="row.enabled ? 'success' : 'danger'">
-              {{ row.enabled ? '启用' : '禁用' }}
-            </el-tag>
+            <span class="url-text">{{ row.baseUrl }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="工具调用" width="110">
+        
+        <!-- 状态列合并展示 -->
+        <el-table-column
+          label="功能状态"
+          min-width="240"
+        >
           <template #default="{ row }">
-            <el-tag :type="row.toolEnabled ? 'success' : 'info'">
-              {{ row.toolEnabled ? '启用' : '关闭' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="priority" label="优先级" width="100" />
-        <el-table-column label="模型能力" min-width="200">
-          <template #default="{ row }">
-            <div v-if="row.capability">
-              <div>Tokens: {{ row.capability.maxInputTokens }}</div>
-              <div>Quality: {{ row.capability.qualityScore }}</div>
+            <div class="status-group">
+              <span 
+                class="status-dot-item" 
+                :class="{ active: row.activeChat }"
+                v-if="row.activeChat"
+              >
+                <span class="dot"></span>对话
+              </span>
+              <span 
+                class="status-dot-item" 
+                :class="{ active: row.activeEmbedding }"
+                v-if="row.activeEmbedding"
+              >
+                <span class="dot"></span>嵌入
+              </span>
+              <span 
+                class="status-dot-item" 
+                :class="{ active: row.toolEnabled }"
+                v-if="row.toolEnabled"
+              >
+                <span class="dot"></span>工具
+              </span>
             </div>
-            <span v-else>-</span>
           </template>
         </el-table-column>
-        <el-table-column label="创建时间" width="180">
+
+        <el-table-column
+          label="全局状态"
+          width="100"
+        >
           <template #default="{ row }">
-            {{ formatDateTime(row.createdAt) }}
+            <el-switch
+              v-model="row.enabled"
+              size="small"
+              class="gemini-switch"
+              style="--el-switch-on-color: #8ab4f8; --el-switch-off-color: #5f6368"
+              @change="handleToggleStatus(row)"
+            />
           </template>
         </el-table-column>
-        <el-table-column label="更新时间" width="180">
+
+        <el-table-column
+          prop="priority"
+          label="优先级"
+          width="80"
+          align="center"
+        />
+
+        <el-table-column
+          label="能力指标"
+          min-width="160"
+        >
           <template #default="{ row }">
-            {{ formatDateTime(row.updatedAt) }}
+            <div v-if="row.capability" class="capability-info">
+              <div class="cap-item">
+                <span class="label">Tokens</span>
+                <span class="val">{{ row.capability.maxInputTokens }}</span>
+              </div>
+              <div class="cap-item">
+                <span class="label">Quality</span>
+                <el-progress 
+                  :percentage="row.capability.qualityScore || 0" 
+                  :show-text="false" 
+                  :stroke-width="4"
+                  color="#8ab4f8"
+                  class="quality-progress"
+                />
+              </div>
+            </div>
+            <span v-else class="text-secondary">-</span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="320" fixed="right">
+
+        <el-table-column
+          label="操作"
+          width="120"
+          fixed="right"
+          align="right"
+        >
           <template #default="{ row }">
-            <div class="action-row">
-              <el-space>
+            <div class="action-buttons">
+              <el-button
+                type="primary"
+                link
+                class="action-btn"
+                @click="handleEdit(row)"
+              >
+                <el-icon><EditPen /></el-icon>
+              </el-button>
+              
+              <el-dropdown trigger="click" popper-class="gemini-dropdown">
                 <el-button
                   type="primary"
-                  size="small"
-                  @click="handleEdit(row)"
+                  link
+                  class="action-btn"
                 >
-                  编辑
+                  <el-icon><MoreFilled /></el-icon>
                 </el-button>
-                <el-button
-                  :type="row.enabled ? 'warning' : 'success'"
-                  size="small"
-                  @click="handleToggleStatus(row)"
-                >
-                  {{ row.enabled ? '禁用' : '启用' }}
-                </el-button>
-                <el-button
-                  type="warning"
-                  size="small"
-                  @click="handleTestConnection(row)"
-                >
-                  测试连接
-                </el-button>
-              </el-space>
-            </div>
-            <div class="action-row">
-              <el-space>
-                <el-button
-                  type="success"
-                  size="small"
-                  @click="handleActivateChat(row)"
-                >
-                  激活对话
-                </el-button>
-                <el-button
-                  type="info"
-                  size="small"
-                  @click="handleActivateEmbedding(row)"
-                >
-                  激活嵌入
-                </el-button>
-                <el-button
-                  type="danger"
-                  size="small"
-                  @click="handleDelete(row)"
-                >
-                  删除
-                </el-button>
-              </el-space>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item @click="handleTestConnection(row)">
+                      <el-icon><Connection /></el-icon>测试连接
+                    </el-dropdown-item>
+                    <el-dropdown-item @click="handleActivateChat(row)">
+                      <el-icon><ChatDotRound /></el-icon>设为对话模型
+                    </el-dropdown-item>
+                    <el-dropdown-item @click="handleActivateEmbedding(row)">
+                      <el-icon><Collection /></el-icon>设为嵌入模型
+                    </el-dropdown-item>
+                    <el-dropdown-item divided @click="handleDelete(row)">
+                      <span class="text-danger"><el-icon><Delete /></el-icon>删除模型</span>
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
             </div>
           </template>
         </el-table-column>
       </el-table>
 
       <!-- 分页 -->
-      <el-pagination
-        v-model:current-page="pagination.pageNum"
-        v-model:page-size="pagination.pageSize"
-        :total="pagination.total"
-        :page-sizes="[10, 20, 50, 100]"
-        layout="total, sizes, prev, pager, next, jumper"
-        style="margin-top: 20px; justify-content: flex-end"
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-      />
-    </el-card>
+      <div class="pagination-container">
+        <el-pagination
+          v-model:current-page="pagination.pageNum"
+          v-model:page-size="pagination.pageSize"
+          :total="pagination.total"
+          :page-sizes="[10, 20, 50]"
+          layout="total, prev, pager, next"
+          class="gemini-pagination"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
+      </div>
+    </div>
 
     <!-- 表单对话框 -->
     <ModelForm
@@ -153,7 +221,16 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getModelList, deleteModel, enableModel, disableModel, activateChatModel, activateEmbeddingModel, testModelConnection } from '@/api/model'
+import {
+  getModelList,
+  getModelById,
+  deleteModel,
+  enableModel,
+  disableModel,
+  activateChatModel,
+  activateEmbeddingModel,
+  testModelConnection
+} from '@/api/model'
 import ModelForm from './components/ModelForm.vue'
 import type { ModelConfig } from '@/types/entity'
 
@@ -168,10 +245,7 @@ const pagination = reactive({
   total: 0
 })
 
-const formatDateTime = (value?: string) => {
-  if (!value) return '-'
-  return value.replace('T', ' ')
-}
+
 
 // 获取模型列表
 const fetchData = async () => {
@@ -183,8 +257,8 @@ const fetchData = async () => {
       sortField: 'updatedAt',
       sortOrder: 'DESC'
     })
-    tableData.value = res.data.data.records
-    pagination.total = res.data.data.total
+    tableData.value = res.data.records
+    pagination.total = res.data.total
   } catch (error: any) {
     ElMessage.error(error.message || '获取模型列表失败')
   } finally {
@@ -199,9 +273,15 @@ const handleAdd = () => {
 }
 
 // 编辑
-const handleEdit = (row: ModelConfig) => {
-  currentModel.value = row
+const handleEdit = async (row: ModelConfig) => {
   dialogVisible.value = true
+  currentModel.value = null
+  try {
+    const res = await getModelById(row.id)
+    currentModel.value = res.data
+  } catch (error: any) {
+    ElMessage.error(error.message || '获取模型配置失败')
+  }
 }
 
 // 删除
@@ -209,11 +289,12 @@ const handleDelete = async (row: ModelConfig) => {
   try {
     await ElMessageBox.confirm(
       `确定要删除模型 "${row.modelName}" 吗？`,
-      '提示',
+      '确认删除',
       {
-        confirmButtonText: '确定',
+        confirmButtonText: '删除',
         cancelButtonText: '取消',
-        type: 'warning'
+        type: 'warning',
+        confirmButtonClass: 'el-button--danger'
       }
     )
 
@@ -227,18 +308,20 @@ const handleDelete = async (row: ModelConfig) => {
   }
 }
 
-// 切换状态
+// 切换状态 - 修改为直接调用API，switch组件会自动更新UI
 const handleToggleStatus = async (row: ModelConfig) => {
+  const originalState = !row.enabled // 记录原始状态以便回滚
   try {
     if (row.enabled) {
-      await disableModel(row.id)
-      ElMessage.success('禁用成功')
-    } else {
       await enableModel(row.id)
       ElMessage.success('启用成功')
+    } else {
+      await disableModel(row.id)
+      ElMessage.success('禁用成功')
     }
-    fetchData()
+    // 不刷新列表，保持当前页状态
   } catch (error: any) {
+    row.enabled = originalState // 恢复状态
     ElMessage.error(error.message || '操作失败')
   }
 }
@@ -288,21 +371,264 @@ const handleFormSuccess = () => {
   fetchData()
 }
 
+const tableRowClassName = () => {
+  return 'gemini-row';
+}
+
 onMounted(() => {
   fetchData()
 })
 </script>
 
-<style scoped>
-.model-management {
+<style scoped lang="scss">
+/* 整体容器：深色背景 */
+.model-management-container {
   width: 100%;
+  min-height: 100%;
+  padding: 24px;
+  background-color: #131314; /* Gemini Dark Background */
+  color: #e8eaed;
+  box-sizing: border-box;
 }
 
-.search-form {
-  margin-bottom: 20px;
+/* 顶部标题区 */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+
+  .page-title {
+    font-size: 24px;
+    font-weight: 500;
+    color: #e8eaed;
+    margin: 0;
+  }
+
+  .add-btn {
+    background: #8ab4f8;
+    border: none;
+    border-radius: 24px;
+    padding: 10px 24px;
+    font-weight: 500;
+    color: #202124;
+    transition: all 0.2s;
+
+    &:hover {
+      background: #aecbfa;
+      transform: translateY(-1px);
+    }
+  }
 }
 
-.action-row + .action-row {
-  margin-top: 6px;
+/* 卡片容器：Glassmorphism */
+.gemini-card {
+  background: rgba(32, 33, 36, 0.6);
+  border: 1px solid #3c4043;
+  border-radius: 16px;
+  padding: 0;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+/* 工具栏 */
+.table-toolbar {
+  padding: 16px 24px;
+  display: flex;
+  justify-content: flex-end;
+  border-bottom: 1px solid #3c4043;
+
+  .refresh-btn {
+    background: transparent;
+    border: 1px solid #5f6368;
+    color: #9aa0a6;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #e8eaed;
+    }
+  }
+}
+
+/* 表格样式 */
+.gemini-table {
+  background: transparent !important;
+  
+  :deep(.el-table__inner-wrapper::before) {
+    display: none; /*移除底部边框*/
+  }
+  
+  :deep(.el-table__row) {
+    transition: background 0.2s;
+    
+    &:hover {
+      background-color: rgba(138, 180, 248, 0.08) !important;
+    }
+  }
+}
+
+.model-name-text {
+  font-weight: 500;
+  color: #e8eaed;
+  font-size: 14px;
+}
+
+.model-type-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  background: rgba(138, 180, 248, 0.15);
+  color: #8ab4f8;
+  border-radius: 4px;
+  font-size: 12px;
+  border: 1px solid rgba(138, 180, 248, 0.3);
+}
+
+.url-text {
+  color: #9aa0a6;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 12px;
+}
+
+/* 状态样式 */
+.status-group {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.status-dot-item {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  color: #9aa0a6;
+  gap: 6px;
+  
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: #5f6368;
+  }
+  
+  &.active {
+    color: #e8eaed;
+    .dot {
+      background-color: #81c995;
+      box-shadow: 0 0 8px rgba(129, 201, 149, 0.4);
+    }
+  }
+}
+
+/* 能力指标 */
+.capability-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  
+  .cap-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #9aa0a6;
+    
+    .val {
+      color: #e8eaed;
+    }
+  }
+  
+  .quality-progress {
+    width: 60px;
+    :deep(.el-progress-bar__outer) {
+      background-color: #3c4043 !important;
+    }
+  }
+}
+
+.text-secondary {
+  color: #5f6368;
+}
+
+.text-danger {
+  color: #f28b82;
+}
+
+/* 操作按钮 */
+.action-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  
+  .action-btn {
+    color: #a8c7fa;
+    font-size: 16px;
+    padding: 4px;
+    
+    &:hover {
+      color: #d2e3fc;
+      background: rgba(168, 199, 250, 0.1);
+      border-radius: 50%;
+    }
+  }
+}
+
+/* 分页 */
+.pagination-container {
+  padding: 16px 24px;
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid #3c4043;
+}
+
+.gemini-pagination {
+  :deep(.el-pagination__total),
+  :deep(.el-pagination__jump) {
+    color: #9aa0a6;
+  }
+  
+  :deep(.btn-prev),
+  :deep(.btn-next) {
+    background: transparent;
+    color: #e8eaed;
+    
+    &:disabled {
+      color: #5f6368;
+    }
+  }
+  
+  :deep(.el-pager li) {
+    background: transparent;
+    color: #9aa0a6;
+    
+    &.is-active {
+      color: #8ab4f8;
+      font-weight: bold;
+    }
+    
+    &:hover {
+      color: #e8eaed;
+    }
+  }
+}
+</style>
+
+<style lang="scss">
+/* 全局覆盖 (用于 Dropdown 等) */
+.gemini-dropdown {
+  background: #202124 !important;
+  border: 1px solid #3c4043 !important;
+  
+  .el-dropdown-menu__item {
+    color: #e8eaed !important;
+    
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.05) !important;
+      color: #8ab4f8 !important;
+    }
+    
+    &.el-dropdown-menu__item--divided {
+      border-top-color: #3c4043 !important;
+    }
+  }
 }
 </style>

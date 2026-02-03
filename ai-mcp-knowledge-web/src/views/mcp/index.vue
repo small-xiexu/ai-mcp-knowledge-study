@@ -1,17 +1,31 @@
 <template>
-  <div class="mcp-management">
-    <el-card>
-      <el-form :inline="true" class="search-form">
+  <div class="gemini-container">
+    <el-card class="gemini-card">
+      <el-form
+        :inline="true"
+        class="search-form"
+      >
         <el-form-item>
-          <el-button type="primary" @click="fetchData">
+          <el-button
+            class="gemini-btn-secondary"
+            :loading="loading"
+            @click="fetchData"
+          >
             <el-icon><Refresh /></el-icon>
-            刷新
+            刷新列表
           </el-button>
-          <el-button type="warning" @click="handleRuntimeRefresh">
+          <el-button
+            class="gemini-btn-secondary warning-border"
+            @click="handleRuntimeRefresh"
+          >
             <el-icon><RefreshRight /></el-icon>
-            刷新连接
+            重启所有连接
           </el-button>
-          <el-button type="success" @click="handleAdd">
+          <el-button
+            type="primary"
+            class="gemini-btn-primary"
+            @click="handleAdd"
+          >
             <el-icon><Plus /></el-icon>
             新增 MCP
           </el-button>
@@ -21,67 +35,118 @@
       <el-table
         v-loading="loading"
         :data="tableData"
-        border
+        class="gemini-table"
         style="width: 100%"
       >
-        <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="serverName" label="名称" min-width="160" />
-        <el-table-column prop="serverType" label="类型" width="100" />
-        <el-table-column label="启用" width="90">
+        <el-table-column
+          prop="id"
+          label="ID"
+          width="80"
+        />
+        <el-table-column
+          prop="serverName"
+          label="名称"
+          min-width="160"
+        />
+        <el-table-column
+          prop="serverType"
+          label="类型"
+          width="100"
+        />
+        <el-table-column
+          label="启用"
+          width="90"
+        >
           <template #default="{ row }">
-            <el-tag :type="row.enabled ? 'success' : 'danger'">
+            <div class="status-indicator" :class="{ active: row.enabled }">
+              <span class="dot"></span>
               {{ row.enabled ? '启用' : '禁用' }}
-            </el-tag>
+            </div>
           </template>
         </el-table-column>
-        <el-table-column label="运行中" width="100">
+        <el-table-column
+          label="运行中"
+          width="100"
+        >
           <template #default="{ row }">
-            <el-tag :type="row.running ? 'success' : 'info'">
+            <el-tag :type="row.running ? 'success' : 'info'" effect="dark" style="background: rgba(255,255,255,0.1); border: none;">
               {{ row.running ? '运行中' : '未运行' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="连接信息" min-width="220">
+        <el-table-column
+          label="连接信息"
+          min-width="220"
+        >
           <template #default="{ row }">
-            <div v-if="row.serverType === 'STDIO'">
-              <div>命令：{{ row.command || '-' }}</div>
+            <div v-if="row.serverType === 'STDIO'" style="color: var(--gemini-text-secondary); font-size: 13px;">
+              <div>命令：<span style="color: var(--gemini-text-primary); font-family: monospace;">{{ row.command || '-' }}</span></div>
             </div>
-            <div v-else>
-              <div>地址：{{ row.endpoint || '-' }}</div>
-              <div v-if="row.sseEndpoint">SSE：{{ row.sseEndpoint }}</div>
+            <div v-else style="color: var(--gemini-text-secondary); font-size: 13px;">
+              <div>地址：<span style="color: var(--gemini-text-primary);">{{ row.endpoint || '-' }}</span></div>
+              <div v-if="row.sseEndpoint">
+                SSE：{{ row.sseEndpoint }}
+              </div>
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="创建时间" width="180" />
-        <el-table-column label="操作" width="280" fixed="right">
+        <el-table-column
+          prop="createdAt"
+          label="创建时间"
+          width="180"
+        />
+        <el-table-column
+          label="操作"
+          width="280"
+          fixed="right"
+        >
           <template #default="{ row }">
-            <el-button type="primary" size="small" @click="handleEdit(row)">
-              编辑
-            </el-button>
-            <el-button
-              :type="row.enabled ? 'warning' : 'success'"
-              size="small"
-              @click="handleToggleStatus(row)"
-            >
-              {{ row.enabled ? '禁用' : '启用' }}
-            </el-button>
-            <el-button type="danger" size="small" @click="handleDelete(row)">
-              删除
-            </el-button>
+            <div class="action-buttons">
+              <el-button
+                text
+                class="action-btn"
+                @click="handleEdit(row)"
+              >
+                编辑
+              </el-button>
+              <el-button
+                text
+                class="action-btn"
+                @click="handleRefresh(row)"
+              >
+                重置连接
+              </el-button>
+              <el-button
+                text
+                class="action-btn"
+                :class="row.enabled ? 'warning' : 'success'"
+                @click="handleToggleStatus(row)"
+              >
+                {{ row.enabled ? '禁用' : '启用' }}
+              </el-button>
+              <el-button
+                text
+                class="action-btn warning"
+                @click="handleDelete(row)"
+              >
+                删除
+              </el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
 
-      <el-pagination
-        v-model:current-page="pagination.pageNum"
-        v-model:page-size="pagination.pageSize"
-        :total="pagination.total"
-        :page-sizes="[10, 20, 50, 100]"
-        layout="total, sizes, prev, pager, next, jumper"
-        style="margin-top: 20px; justify-content: flex-end"
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-      />
+      <div class="pagination-container">
+        <el-pagination
+          v-model:current-page="pagination.pageNum"
+          v-model:page-size="pagination.pageSize"
+          :total="pagination.total"
+          :page-sizes="[10, 20, 50, 100]"
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
+      </div>
     </el-card>
 
     <McpServerForm
@@ -97,10 +162,12 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   getMcpServerList,
+  getMcpServerById,
   deleteMcpServer,
   enableMcpServer,
   disableMcpServer,
-  refreshMcpServers
+  refreshMcpServers,
+  refreshMcpServer
 } from '@/api/mcp'
 import McpServerForm from './components/McpServerForm.vue'
 import type { McpServerConfig } from '@/types/entity'
@@ -123,8 +190,8 @@ const fetchData = async () => {
       pageNum: pagination.pageNum,
       pageSize: pagination.pageSize
     })
-    tableData.value = res.data.data.records
-    pagination.total = res.data.data.total
+    tableData.value = res.data.records
+    pagination.total = res.data.total
   } catch (error: any) {
     ElMessage.error(error.message || '获取 MCP 配置失败')
   } finally {
@@ -147,9 +214,16 @@ const handleAdd = () => {
   dialogVisible.value = true
 }
 
-const handleEdit = (row: McpServerConfig) => {
-  currentConfig.value = row
+const handleEdit = async (row: McpServerConfig) => {
   dialogVisible.value = true
+  currentConfig.value = null
+
+  try {
+    const res = await getMcpServerById(row.id)
+    currentConfig.value = res.data
+  } catch (error: any) {
+    ElMessage.error(error.message || '获取 MCP 配置失败')
+  }
 }
 
 const handleDelete = async (row: McpServerConfig) => {
@@ -186,6 +260,16 @@ const handleToggleStatus = async (row: McpServerConfig) => {
     fetchData()
   } catch (error: any) {
     ElMessage.error(error.message || '操作失败')
+  }
+}
+
+const handleRefresh = async (row: McpServerConfig) => {
+  try {
+    await refreshMcpServer(row.id)
+    ElMessage.success('运行时连接已刷新')
+    fetchData()
+  } catch (error: any) {
+    ElMessage.error(error.message || '刷新失败')
   }
 }
 

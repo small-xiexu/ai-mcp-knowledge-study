@@ -1,13 +1,23 @@
 <template>
-  <div class="task-management">
-    <el-card>
-      <el-form :inline="true" class="search-form">
+  <div class="gemini-container">
+    <el-card class="gemini-card">
+      <el-form
+        :inline="true"
+        class="search-form"
+      >
         <el-form-item>
-          <el-button type="primary" @click="fetchData">
+          <el-button
+            class="gemini-btn-secondary"
+            @click="fetchData"
+          >
             <el-icon><Refresh /></el-icon>
             刷新
           </el-button>
-          <el-button type="success" @click="handleAdd">
+          <el-button
+            type="primary"
+            class="gemini-btn-primary"
+            @click="handleAdd"
+          >
             <el-icon><Plus /></el-icon>
             新增任务类型
           </el-button>
@@ -17,51 +27,92 @@
       <el-table
         v-loading="loading"
         :data="tableData"
-        border
+        class="gemini-table"
         style="width: 100%"
       >
-        <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="taskName" label="任务名称" min-width="160" />
-        <el-table-column prop="taskCode" label="任务编码" width="140" />
-        <el-table-column prop="preferredModelName" label="首选模型" width="160" />
-        <el-table-column label="备用模型" min-width="220">
+        <el-table-column
+          prop="id"
+          label="ID"
+          width="80"
+        />
+        <el-table-column
+          prop="taskName"
+          label="任务名称"
+          min-width="150"
+        />
+        <el-table-column
+          prop="taskCode"
+          label="任务编码"
+          min-width="150"
+        />
+        <el-table-column
+          label="首选模型"
+          min-width="150"
+        >
           <template #default="{ row }">
-            <span>{{ getFallbackNames(row.fallbackModelIds) }}</span>
+            {{ modelNameMap.get(row.preferredModelId) || row.preferredModelId }}
           </template>
         </el-table-column>
-        <el-table-column prop="description" label="描述" min-width="200" show-overflow-tooltip />
-        <el-table-column label="创建时间" width="180">
+        <el-table-column
+          label="备用模型"
+          min-width="200"
+          show-overflow-tooltip
+        >
+          <template #default="{ row }">
+            {{ getFallbackNames(row.fallbackModelIds) }}
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="description"
+          label="描述"
+          min-width="200"
+          show-overflow-tooltip
+        />
+        <el-table-column
+          label="创建时间"
+          width="180"
+        >
           <template #default="{ row }">
             {{ formatDateTime(row.createdAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="更新时间" width="180">
+        <el-table-column
+          label="操作"
+          width="200"
+          fixed="right"
+        >
           <template #default="{ row }">
-            {{ formatDateTime(row.updatedAt) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
-          <template #default="{ row }">
-            <el-button type="primary" size="small" @click="handleEdit(row)">
-              编辑
-            </el-button>
-            <el-button type="danger" size="small" @click="handleDelete(row)">
-              删除
-            </el-button>
+            <div class="action-buttons">
+              <el-button
+                text
+                class="action-btn"
+                @click="handleEdit(row)"
+              >
+                编辑
+              </el-button>
+              <el-button
+                text
+                class="action-btn warning"
+                @click="handleDelete(row)"
+              >
+                删除
+              </el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
 
-      <el-pagination
-        v-model:current-page="pagination.pageNum"
-        v-model:page-size="pagination.pageSize"
-        :total="pagination.total"
-        :page-sizes="[10, 20, 50, 100]"
-        layout="total, sizes, prev, pager, next, jumper"
-        style="margin-top: 20px; justify-content: flex-end"
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-      />
+      <div class="pagination-container">
+        <el-pagination
+          v-model:current-page="pagination.pageNum"
+          v-model:page-size="pagination.pageSize"
+          :total="pagination.total"
+          :page-sizes="[10, 20, 50, 100]"
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
+      </div>
     </el-card>
 
     <TaskForm
@@ -102,7 +153,7 @@ const pagination = reactive({
 const fetchModelOptions = async () => {
   try {
     const res = await getModelList({ pageNum: 1, pageSize: 100 })
-    const records = res.data.data.records as ModelConfig[]
+    const records = res.data.records as ModelConfig[]
     modelOptions.value = records.map(item => ({
       id: item.id,
       name: item.modelName
@@ -120,8 +171,8 @@ const fetchData = async () => {
       pageNum: pagination.pageNum,
       pageSize: pagination.pageSize
     })
-    tableData.value = res.data.data.records
-    pagination.total = res.data.data.total
+    tableData.value = res.data.records
+    pagination.total = res.data.total
   } catch (error: any) {
     ElMessage.error(error.message || '获取任务类型失败')
   } finally {
@@ -200,10 +251,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.task-management {
-  width: 100%;
-}
-
 .search-form {
   margin-bottom: 20px;
 }

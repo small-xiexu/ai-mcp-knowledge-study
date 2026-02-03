@@ -76,6 +76,13 @@ public abstract class AbstractOpenAiProtocolAdapter {
             normalized = normalized.substring(0, length - 1);
         }
 
+        /*
+         * 目的：兜底处理多余的 /v1 段，避免形成 /v1/v1/chat/completions
+         */
+        while (normalized.contains("/v1/v1")) {
+            normalized = normalized.replace("/v1/v1", "/v1");
+        }
+
         if (normalized.endsWith("/v1/chat/completions")) {
             int length = normalized.length();
             int suffixLength = "/v1/chat/completions".length();

@@ -17,6 +17,7 @@ export interface ModelConfig {
   id: number
   modelName: string
   modelType: string
+  apiKey?: string
   baseUrl: string
   enabled: boolean
   toolEnabled?: boolean

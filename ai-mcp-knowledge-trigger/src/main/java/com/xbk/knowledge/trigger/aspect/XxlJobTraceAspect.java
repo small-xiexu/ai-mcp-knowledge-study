@@ -37,27 +37,27 @@ public class XxlJobTraceAspect {
      */
     @Around("@annotation(xxlJob)")
     public Object aroundXxlJob(ProceedingJoinPoint joinPoint, XxlJob xxlJob) throws Throwable {
-        // 目的：确保任务执行期间总有 traceId，便于日志与告警关联
+        
         TraceIdUtils.TraceIdContext traceIdContext = TraceIdUtils.ensureTraceId();
         boolean generated = traceIdContext.isGenerated();
         String jobHandler = xxlJob.value();
         long startTime = System.currentTimeMillis();
-        // 约束：开始日志统一输出，避免各任务重复打印
+        
         log.info("XXL-Job 开始执行, handler: {}", jobHandler);
         try {
             Object result = joinPoint.proceed();
             long cost = System.currentTimeMillis() - startTime;
-            // 目的：统一记录耗时，便于分析任务执行稳定性
+            
             log.info("XXL-Job 执行完成, handler: {}, costMs: {}", jobHandler, cost);
             return result;
         } catch (Throwable throwable) {
             long cost = System.currentTimeMillis() - startTime;
-            // 约束：异常必须统一上报到告警钩子，保证失败可观测
+            
             log.error("XXL-Job 执行异常, handler: {}, costMs: {}", jobHandler, cost, throwable);
             xxlJobAlertHook.onJobError(jobHandler, throwable);
             throw throwable;
         } finally {
-            // 目的：仅在本次生成 traceId 时清理，避免误删上游 traceId
+            
             TraceIdUtils.clearIfGenerated(generated);
         }
     }

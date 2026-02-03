@@ -54,17 +54,13 @@ public class ModelSelectionChainTest {
             this.decision = decision;
         }
 
-        /**
-         * 对外暴露 supports 作为调用入口，便于上层复用。
-         */
+        
         @Override
         public boolean supports(AICallCommand request) {
             return supports;
         }
 
-        /**
-         * 对外暴露 select 作为调用入口，便于上层复用。
-         */
+        
         @Override
         protected ModelSelectionDecision doSelect(AICallCommand request) {
             if (!supports) {

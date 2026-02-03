@@ -32,7 +32,7 @@ public class ChatHistoryCleanupJob {
      */
     @XxlJob("chatHistoryCleanupHandler")
     public void cleanupExpiredChatHistory() {
-        // 目的：按配置保留窗口清理历史，保证策略可控
+        
         int retentionDays = chatHistoryProperties.getRetentionDays();
         LocalDateTime cutoff = LocalDateTime.now().minusDays(retentionDays);
         int deletedSessions = chatHistoryCleanupAppService.cleanupExpired(cutoff);

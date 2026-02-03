@@ -331,6 +331,7 @@ public class ModelConfigController {
         String modelName = modelConfig.getModelName();
         ModelType modelType = modelConfig.getModelType();
         String baseUrl = modelConfig.getBaseUrl();
+        String apiKey = modelConfig.getApiKey();
         Boolean enabled = modelConfig.getEnabled();
         Boolean toolEnabled = modelConfig.getToolEnabled();
         Integer priority = modelConfig.getPriority();
@@ -345,6 +346,7 @@ public class ModelConfigController {
                 .modelName(modelName)
                 .modelType(modelType)
                 .baseUrl(baseUrl)
+                .apiKey(apiKey)
                 .enabled(enabled)
                 .toolEnabled(toolEnabled)
                 .priority(priority)

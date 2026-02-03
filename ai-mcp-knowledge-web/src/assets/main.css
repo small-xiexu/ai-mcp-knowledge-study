@@ -1,9 +1,316 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+/* ==========================================================================
+   Gemini / Material 3 Design System Overrides for Element Plus (Dark Mode)
+   ========================================================================== */
+
+/* 
+   We wrap everything in .dark to ensure high specificity and to match 
+   the dark theme activated in App.vue. 
+*/
+.dark {
+  /* --- Color Tokens (Material 3 Dark) --- */
+  --md-sys-color-primary: #a8c7fa; /* Light Blue */
+  --md-sys-color-on-primary: #003062; /* Dark Blue Text on Primary */
+  --md-sys-color-primary-container: #0b428c; /* Dark Blue Container */
+  --md-sys-color-on-primary-container: #d3e3fd; /* Light Text on Container */
+  
+  --md-sys-color-secondary: #7fcfff; /* Light Secondary */
+  --md-sys-color-secondary-container: #004c7a; /* Dark Secondary Container */
+  
+  --md-sys-color-surface: #111318; /* Very Dark Background */
+  --md-sys-color-surface-container-low: #1d2024;
+  --md-sys-color-surface-container: #1d2024; /* Sidebar/Header Bg */
+  --md-sys-color-surface-container-high: #282a2d; /* Card Bg */
+  
+  --md-sys-color-on-surface: #e2e2e2; /* Main Text */
+  --md-sys-color-on-surface-variant: #c4c7c5; /* Secondary Text */
+  
+  --md-sys-color-outline: #8e918f;
+  --md-sys-color-outline-variant: #444746;
+  
+  --md-sys-color-error: #ffb4ab;
+  
+  /* --- Element Plus Variable Overrides (Dark) --- */
+  
+  /* Brand Colors */
+  --el-color-primary: var(--md-sys-color-primary);
+  /* Adjusted lighter/darker shades for dark mode */
+  --el-color-primary-light-3: #82b4f8;
+  --el-color-primary-light-5: #5e9ef6;
+  --el-color-primary-light-7: #3b87f4;
+  --el-color-primary-light-8: #297bf3;
+  --el-color-primary-light-9: #176ef2;
+  
+  --el-color-success: #81c995; /* Light Green */
+  --el-color-warning: #fdd663; /* Light Yellow */
+  --el-color-danger: #f28b82; /* Light Red */
+  --el-color-info: #e8eaed;    /* Light Grey */
+
+  /* Typography */
+  --el-font-family: "Google Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --el-text-color-primary: #e2e2e2;
+  --el-text-color-regular: #c4c7c5;
+  --el-text-color-secondary: #8e918f;
+  --el-text-color-placeholder: #5e615e;
+
+  /* Borders & Radius */
+  --el-border-radius-base: 8px;
+  --el-border-radius-small: 6px;
+  --el-border-radius-round: 999px;
+  
+  --el-border-color: #444746;
+  --el-border-color-light: #36383a;
+  --el-border-color-lighter: #2a2c2e;
+  
+  /* Backgrounds */
+  --el-bg-color: #1d2024;       /* Card/Container Bg */
+  --el-bg-color-page: #111318;  /* App Bg */
+  --el-fill-color-blank: #1d2024;
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  font-family: var(--el-font-family);
+  background-color: #111318; /* Hardcode Dark Bg */
+  color: #e2e2e2;            /* Hardcode Light Text */
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --------------------------------------------------------------------------
+   Component Specific Overrides (Dark Mode)
+   -------------------------------------------------------------------------- */
+
+/* --- Buttons --- */
+.el-button {
+  border-radius: 999px !important;
+  height: 36px; /* Slightly smaller height */
+  padding: 0 20px;
+  font-weight: 500;
+  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+  border: 1px solid transparent;
+}
+
+/* Primary Button */
+.el-button--primary {
+  background-color: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+.el-button--primary:hover,
+.el-button--primary:focus {
+  background-color: #d2e3fc !important; /* Lighter Blue on Hover */
+  border-color: #d2e3fc !important;
+  color: #0b57d0 !important; /* Dark Blue Text */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+  transform: translateY(-1px);
+}
+
+/* Default Button (Dark) */
+.el-button--default {
+  background-color: transparent;
+  border-color: #5e615e;
+  color: #a8c7fa; /* Primary color text */
+}
+.el-button--default:hover {
+  background-color: rgba(168, 199, 250, 0.08); /* Primary opacity */
+  border-color: #a8c7fa;
+  color: #d3e3fd;
+}
+
+/* Link/Text Button */
+.el-button.is-link, .el-button.is-text {
+  height: auto;
+  padding: 4px 8px;
+  color: #a8c7fa; /* Primary color */
+}
+.el-button.is-link:hover {
+  background-color: rgba(168, 199, 250, 0.1);
+}
+
+/* --- Inputs (Dark) --- */
+.el-input__wrapper {
+  background-color: #282a2d !important; /* Surface Container High */
+  box-shadow: none !important;
+  border-radius: 12px !important;
+  padding: 4px 16px !important;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+.el-input__wrapper:hover {
+  background-color: #36383a !important;
+}
+.el-input__wrapper.is-focus {
+  background-color: #1d2024 !important;
+  box-shadow: 0 0 0 2px var(--md-sys-color-primary) inset !important;
+}
+.el-input__inner {
+  color: #e2e2e2 !important;
+  font-size: 14px;
+}
+
+/* Textarea */
+.el-textarea__inner {
+  background-color: #282a2d !important;
+  color: #e2e2e2 !important;
+  box-shadow: none !important;
+  border-radius: 12px !important;
+  padding: 12px 16px !important;
+}
+.el-textarea__inner:focus {
+  background-color: #1d2024 !important;
+  box-shadow: 0 0 0 2px var(--md-sys-color-primary) inset !important;
+}
+
+/* --- Cards (Dark) --- */
+.el-card {
+  border: none !important;
+  border-radius: 16px !important;
+  background-color: #1d2024 !important; /* Surface Container */
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
+  overflow: visible !important;
+  color: #e2e2e2;
+}
+.el-card__header {
+  border-bottom: 1px solid #2d3033 !important;
+  padding: 16px 24px !important;
+  font-size: 18px;
+  font-weight: 500;
+  color: #e2e2e2;
+}
+.el-card__body {
+  padding: 24px !important;
+}
+
+/* --- Dialogs (Dark) --- */
+.el-dialog {
+  border-radius: 24px !important;
+  background-color: #282a2d !important; /* Surface Container High */
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5) !important;
+}
+.el-dialog__title {
+  color: #e2e2e2 !important;
+}
+.el-dialog__headerbtn .el-dialog__close {
+  color: #c4c7c5 !important;
+}
+
+/* --- Select / Dropdowns (Dark) --- */
+.el-select__wrapper {
+  background-color: #282a2d !important;
+  box-shadow: none !important;
+  border-radius: 12px !important;
+}
+.el-select-dropdown__item {
+  color: #c4c7c5;
+}
+.el-select-dropdown__item.selected {
+  background-color: #0b428c !important; /* Primary Container */
+  color: #d3e3fd !important; /* On Primary Container */
+  font-weight: 600;
+}
+.el-select-dropdown__item.hover, 
+.el-select-dropdown__item:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* --- Tags (Dark) --- */
+.el-tag {
+  border: none !important;
+  border-radius: 6px !important;
+}
+/* Muted colors for dark mode tags */
+.el-tag--success { background-color: rgba(129, 201, 149, 0.2); color: #81c995; }
+.el-tag--warning { background-color: rgba(253, 214, 99, 0.2); color: #fdd663; }
+.el-tag--danger { background-color: rgba(242, 139, 130, 0.2); color: #f28b82; }
+.el-tag--info { background-color: rgba(232, 234, 237, 0.1); color: #c4c7c5; }
+.el-tag--primary { background-color: rgba(168, 199, 250, 0.2); color: #a8c7fa; }
+
+/* --- Table (Dark) --- */
+.el-table {
+  background-color: transparent !important;
+  --el-table-row-hover-bg-color: rgba(255, 255, 255, 0.04) !important;
+  --el-table-border-color: #2d3033;
+  --el-table-header-bg-color: transparent;
+  --el-table-bg-color: transparent;
+  --el-table-tr-bg-color: transparent;
+  color: #c4c7c5;
+}
+.el-table th.el-table__cell {
+  background-color: rgba(255, 255, 255, 0.02) !important; /* Subtle header bg */
+  border-bottom: 1px solid #2d3033 !important;
+  color: #e2e2e2;
+  font-weight: 600;
+}
+.el-table td.el-table__cell {
+  border-bottom: 1px solid #2d3033 !important;
+}
+.el-table--border .el-table__inner-wrapper::after, 
+.el-table--border::after, 
+.el-table--border::before, 
+.el-table__inner-wrapper::before {
+  background-color: #2d3033 !important;
+}
+/* Fix sticky column bg in dark mode */
+.el-table__fixed-right-patch {
+  background-color: #1d2024 !important;
+}
+.el-table .el-table__cell.is-right {
+  /* Ensure fixed column has background to cover scrolled content */
+  background-color: #1d2024 !important; 
+}
+/* Except header needs to match header bg */
+.el-table th.el-table__cell.is-right {
+  background-color: #1d2024 !important; /* Approximation */
+}
+
+/* --- Pagination (Dark) --- */
+.el-pagination {
+  --el-pagination-bg-color: transparent;
+  --el-pagination-text-color: #c4c7c5;
+  --el-pagination-button-disabled-bg-color: transparent;
+}
+.el-pagination button {
+  background-color: transparent !important;
+  color: #c4c7c5 !important;
+}
+.el-pagination button:disabled {
+  color: #5e615e !important;
+}
+.el-pager li {
+  background-color: transparent !important;
+  color: #c4c7c5 !important;
+}
+.el-pager li.is-active {
+  color: #a8c7fa !important;
+  font-weight: bold;
+}
+
+/* --- Dropdown (Dark) --- */
+.el-dropdown-menu {
+  background-color: #282a2d !important;
+  border: 1px solid #444746 !important;
+}
+.el-dropdown-menu__item {
+  color: #e2e2e2 !important;
+}
+.el-dropdown-menu__item:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  color: #a8c7fa !important;
+}
+.el-dropdown-menu__item--divided {
+  border-top-color: #444746 !important;
+}
+
+/* --- Drawer (Dark) --- */
+.el-drawer {
+  background-color: #1d2024 !important;
+  color: #e2e2e2 !important;
+}
+.el-drawer__header {
+  color: #e2e2e2 !important;
+  border-bottom: 1px solid #2d3033;
+  margin-bottom: 0 !important;
+  padding-bottom: 20px !important;
+}
+.el-drawer__body {
+  padding-top: 20px !important;
 }

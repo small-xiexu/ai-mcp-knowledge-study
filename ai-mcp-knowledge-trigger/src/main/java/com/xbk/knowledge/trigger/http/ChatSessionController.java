@@ -251,9 +251,7 @@ public class ChatSessionController {
      * 出参：用于应用层分页查询
      */
     private static class ChatMessagePageRequest extends PageRequest {
-        /**
-         * 会话ID
-         */
+        
         private Long sessionId;
 
         public Long getSessionId() {

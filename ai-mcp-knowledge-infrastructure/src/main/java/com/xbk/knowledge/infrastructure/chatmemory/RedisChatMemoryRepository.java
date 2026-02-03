@@ -47,7 +47,7 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
     public RedisChatMemoryRepository(StringRedisTemplate stringRedisTemplate,
                                      ObjectMapper objectMapper,
                                      Duration ttl) {
-        // 目的：注入依赖与过期策略，确保统一的存储约束
+        
         this.stringRedisTemplate = stringRedisTemplate;
         this.objectMapper = objectMapper;
         this.ttl = ttl;
@@ -62,7 +62,7 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
      */
     @Override
     public List<String> findConversationIds() {
-        // 目的：按前缀枚举会话 key，便于后台管理与清理
+        
         Set<String> keys = stringRedisTemplate.keys(ChatRedisKeys.CHAT_MEMORY_PREFIX + "*");
         if (keys.isEmpty()) {
             return Collections.emptyList();
@@ -81,25 +81,25 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
      */
     @Override
     public List<Message> findByConversationId(String conversationId) {
-        // 目的：从 Redis 加载历史消息，恢复多轮对话上下文
-        // 约束：conversationId 为空时不做容错判断，保持调用方语义明确
+        
+        
         String key = buildKey(conversationId);
         String payload = stringRedisTemplate.opsForValue().get(key);
         if (payload == null || payload.isEmpty()) {
-            // 目的：没有缓存即返回空列表，避免上游出现空指针
+            
             return Collections.emptyList();
         }
         try {
             List<RedisChatMessage> stored = objectMapper.readValue(payload, new TypeReference<List<RedisChatMessage>>() {});
             List<Message> messages = new ArrayList<>();
             for (RedisChatMessage message : stored) {
-                // 目的：按存储的角色还原消息类型，保持上下文语义一致
+                
                 MessageType type = MessageType.fromValue(message.getType());
                 messages.add(toMessage(type, message.getContent()));
             }
             return messages;
         } catch (Exception e) {
-            // 目的：序列化失败时降级为空，避免影响对话主流程
+            
             return Collections.emptyList();
         }
     }
@@ -113,13 +113,13 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
      */
     @Override
     public void saveAll(String conversationId, List<Message> messages) {
-        // 目的：统一转为简化结构并写入 Redis，设置过期时间控制生命周期
-        // 约束：只持久化角色与文本内容，避免复杂对象序列化导致兼容问题
+        
+        
         String key = buildKey(conversationId);
         List<RedisChatMessage> payload = new ArrayList<>();
         for (Message message : messages) {
             if (message == null) {
-                // 目的：过滤空消息，避免写入无效数据
+                
                 continue;
             }
             RedisChatMessage stored = new RedisChatMessage();
@@ -129,10 +129,10 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
         }
         try {
             String json = objectMapper.writeValueAsString(payload);
-            // 目的：写入并设置 TTL，确保过期自动清理
+            
             stringRedisTemplate.opsForValue().set(key, json, ttl);
         } catch (Exception e) {
-            // 目的：避免序列化异常影响主流程
+            
         }
     }
 
@@ -145,8 +145,8 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
      */
     @Override
     public void deleteByConversationId(String conversationId) {
-        // 目的：主动清理会话，释放存储资源
-        // 约束：删除不存在的 key 由 Redis 无副作用处理
+        
+        
         stringRedisTemplate.delete(buildKey(conversationId));
     }
 
@@ -156,8 +156,8 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
      * 为什么：统一 Key 前缀，避免冲突
      */
     private String buildKey(String conversationId) {
-        // 目的：统一 Key 格式，便于定位与删除
-        // 约束：前缀固定，保证 findConversationIds 能正确反向解析
+        
+        
         return ChatRedisKeys.CHAT_MEMORY_PREFIX + conversationId;
     }
 
@@ -167,8 +167,8 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
      * 为什么：保持消息类型语义
      */
     private Message toMessage(MessageType type, String content) {
-        // 目的：还原消息类型，保证上下文角色正确
-        // 约束：未识别的类型降级为 SystemMessage，避免抛错中断
+        
+        
         if (type == MessageType.USER) {
             return new UserMessage(content);
         }
@@ -187,8 +187,8 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
      * 为什么：仅存储文本，避免复杂对象序列化
      */
     private String resolveContent(Message message) {
-        // 目的：仅提取文本内容，避免复杂对象序列化
-        // 约束：非 AbstractMessage 返回 null，由上层决定是否存储空内容
+        
+        
         if (message instanceof AbstractMessage) {
             return ((AbstractMessage) message).getText();
         }

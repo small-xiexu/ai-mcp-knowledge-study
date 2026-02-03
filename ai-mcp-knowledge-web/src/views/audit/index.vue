@@ -1,8 +1,12 @@
 <template>
-  <div class="audit-log">
-    <el-card>
+  <div class="gemini-container">
+    <el-card class="gemini-card">
       <!-- 搜索栏 -->
-      <el-form :inline="true" :model="searchForm" class="search-form">
+      <el-form
+        :inline="true"
+        :model="searchForm"
+        class="search-form"
+      >
         <el-form-item label="表名">
           <el-select
             v-model="searchForm.tableName"
@@ -10,6 +14,8 @@
             clearable
             filterable
             style="width: 260px"
+            class="gemini-select"
+            popper-class="gemini-select-dropdown"
           >
             <el-option
               v-for="name in tableOptions"
@@ -20,11 +26,18 @@
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">
+          <el-button
+            type="primary"
+            class="gemini-btn-primary"
+            @click="handleSearch"
+          >
             <el-icon><Search /></el-icon>
             搜索
           </el-button>
-          <el-button @click="handleReset">
+          <el-button
+            class="gemini-btn-secondary"
+            @click="handleReset"
+          >
             <el-icon><Refresh /></el-icon>
             重置
           </el-button>
@@ -35,28 +48,65 @@
       <el-table
         v-loading="loading"
         :data="tableData"
-        border
+        class="gemini-table"
         style="width: 100%"
       >
-        <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="tableName" label="表名" width="180" />
-        <el-table-column prop="recordId" label="记录ID" width="120" />
-        <el-table-column label="操作" width="120">
+        <el-table-column
+          prop="id"
+          label="ID"
+          width="80"
+        />
+        <el-table-column
+          prop="tableName"
+          label="表名"
+          width="180"
+        />
+        <el-table-column
+          prop="recordId"
+          label="记录ID"
+          width="120"
+        />
+        <el-table-column
+          label="操作"
+          width="120"
+        >
           <template #default="{ row }">
-            <el-tag :type="getOperationTagType(row.operation)">
+            <el-tag :type="getOperationTagType(row.operation)" effect="dark" style="border: none;">
               {{ row.operation }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="operator" label="操作人" width="120" />
-        <el-table-column prop="oldValue" label="变更前" min-width="200" show-overflow-tooltip />
-        <el-table-column prop="newValue" label="变更后" min-width="200" show-overflow-tooltip />
-        <el-table-column prop="createdAt" label="操作时间" width="180" />
-        <el-table-column label="操作" width="120" fixed="right">
+        <el-table-column
+          prop="operator"
+          label="操作人"
+          width="120"
+        />
+        <el-table-column
+          prop="oldValue"
+          label="变更前"
+          min-width="200"
+          show-overflow-tooltip
+        />
+        <el-table-column
+          prop="newValue"
+          label="变更后"
+          min-width="200"
+          show-overflow-tooltip
+        />
+        <el-table-column
+          prop="createdAt"
+          label="操作时间"
+          width="180"
+        />
+        <el-table-column
+          label="操作"
+          width="120"
+          fixed="right"
+        >
           <template #default="{ row }">
             <el-button
-              type="primary"
-              size="small"
+              text
+              class="action-btn"
               @click="handleViewDetail(row)"
             >
               查看详情
@@ -66,16 +116,17 @@
       </el-table>
 
       <!-- 分页 -->
-      <el-pagination
-        v-model:current-page="pagination.pageNum"
-        v-model:page-size="pagination.pageSize"
-        :total="pagination.total"
-        :page-sizes="[10, 20, 50, 100]"
-        layout="total, sizes, prev, pager, next, jumper"
-        style="margin-top: 20px; justify-content: flex-end"
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-      />
+      <div class="pagination-container">
+        <el-pagination
+          v-model:current-page="pagination.pageNum"
+          v-model:page-size="pagination.pageSize"
+          :total="pagination.total"
+          :page-sizes="[10, 20, 50, 100]"
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
+      </div>
     </el-card>
 
     <!-- 详情对话框 -->
@@ -83,8 +134,14 @@
       v-model="dialogVisible"
       title="审计详情"
       width="800px"
+      class="gemini-dialog"
+      align-center
     >
-      <el-descriptions :column="2" border>
+      <el-descriptions
+        class="gemini-descriptions"
+        :column="2"
+        border
+      >
         <el-descriptions-item label="表名">
           {{ currentLog?.tableName }}
         </el-descriptions-item>
@@ -92,21 +149,34 @@
           {{ currentLog?.recordId }}
         </el-descriptions-item>
         <el-descriptions-item label="操作">
-          <el-tag :type="getOperationTagType(currentLog?.operation)">
+          <el-tag
+            :type="getOperationTagType(currentLog?.operation)"
+            effect="dark"
+            style="border: none;"
+          >
             {{ currentLog?.operation }}
           </el-tag>
         </el-descriptions-item>
         <el-descriptions-item label="操作人">
           {{ currentLog?.operator }}
         </el-descriptions-item>
-        <el-descriptions-item label="操作时间">
+        <el-descriptions-item
+          label="操作时间"
+          :span="2"
+        >
           {{ currentLog?.createdAt }}
         </el-descriptions-item>
-        <el-descriptions-item label="变更前" :span="2">
-          <el-text>{{ currentLog?.oldValue || '-' }}</el-text>
+        <el-descriptions-item
+          label="变更前"
+          :span="2"
+        >
+          <pre class="json-code">{{ formatJson(currentLog?.oldValue) }}</pre>
         </el-descriptions-item>
-        <el-descriptions-item label="变更后" :span="2">
-          <el-text>{{ currentLog?.newValue || '-' }}</el-text>
+        <el-descriptions-item
+          label="变更后"
+          :span="2"
+        >
+          <pre class="json-code">{{ formatJson(currentLog?.newValue) }}</pre>
         </el-descriptions-item>
       </el-descriptions>
     </el-dialog>
@@ -144,8 +214,8 @@ const fetchData = async () => {
       pageSize: pagination.pageSize,
       tableName: searchForm.tableName || undefined
     })
-    tableData.value = res.data.data.records
-    pagination.total = res.data.data.total
+    tableData.value = res.data.records
+    pagination.total = res.data.total
   } catch (error: any) {
     ElMessage.error(error.message || '获取审计日志失败')
   } finally {
@@ -187,6 +257,16 @@ const getOperationTagType = (operation?: string) => {
   return 'info'
 }
 
+const formatJson = (jsonStr?: string) => {
+  if (!jsonStr) return '-'
+  try {
+    const obj = JSON.parse(jsonStr)
+    return JSON.stringify(obj, null, 2)
+  } catch (e) {
+    return jsonStr
+  }
+}
+
 // 分页大小变化
 const handleSizeChange = () => {
   pagination.pageNum = 1
@@ -206,7 +286,7 @@ onMounted(() => {
 const fetchTableOptions = async () => {
   try {
     const res = await getAuditTableNames()
-    tableOptions.value = res.data.data || []
+    tableOptions.value = res.data || []
   } catch (error: any) {
     ElMessage.error(error.message || '获取表名列表失败')
   }
@@ -220,5 +300,35 @@ const fetchTableOptions = async () => {
 
 .search-form {
   margin-bottom: 20px;
+}
+
+.gemini-descriptions {
+  --el-descriptions-table-border: 1px solid var(--gemini-border);
+  --el-descriptions-item-bordered-label-background: rgba(255, 255, 255, 0.05);
+}
+
+:deep(.gemini-descriptions .el-descriptions__label) {
+  color: var(--gemini-text-secondary);
+  font-weight: 500;
+  width: 120px;
+}
+
+:deep(.gemini-descriptions .el-descriptions__content) {
+  color: var(--gemini-text-primary);
+  background-color: transparent !important;
+}
+
+.json-code {
+  margin: 0;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  font-family: monospace;
+  font-size: 13px;
+  color: var(--gemini-accent);
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 400px;
+  overflow-y: auto;
 }
 </style>

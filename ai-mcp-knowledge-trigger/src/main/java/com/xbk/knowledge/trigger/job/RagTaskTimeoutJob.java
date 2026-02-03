@@ -34,7 +34,7 @@ public class RagTaskTimeoutJob {
      */
     @XxlJob("ragTaskTimeoutHandler")
     public void handleTimeoutTasks() {
-        // 目的：定义超时窗口，避免误杀短时波动任务
+        
         // 查询超过 2 小时仍处于 PROCESSING 状态的任务
         LocalDateTime twoHoursAgo = LocalDateTime.now().minusHours(2);
         List<RagTask> timeoutTasks = ragTaskRepository.findProcessingTasksBefore(twoHoursAgo);
@@ -46,12 +46,12 @@ public class RagTaskTimeoutJob {
 
         log.warn("发现 {} 个超时任务", timeoutTasks.size());
 
-        // 约束：逐条失败不影响整体处理
+        
         // 标记为失败
         int successCount = 0;
         for (RagTask task : timeoutTasks) {
             try {
-                // 目的：统一状态与失败原因，便于后续排查与重试
+                
                 task.setStatus(RagTaskStatus.FAILED);
                 task.setMessage("任务超时（超过 2 小时未完成）");
                 ragTaskRepository.update(task);

@@ -300,7 +300,20 @@ spring:
       api-key: xxx
 ```
 
-### MCP 配置
+### MCP 配置（推荐：Streamable HTTP）
+
+```json
+{
+  "mcpServers": {
+    "mcp-tool-csdn": {
+      "type": "http",
+      "url": "http://127.0.0.1:8101/mcp/message"
+    }
+  }
+}
+```
+
+### MCP 配置（兼容：stdio）
 
 ```json
 {

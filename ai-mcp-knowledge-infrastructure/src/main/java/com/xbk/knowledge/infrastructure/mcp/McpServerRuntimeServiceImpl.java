@@ -252,8 +252,36 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
         if (!StringUtils.hasText(endpoint)) {
             throw new IllegalArgumentException("HTTP 模式必须配置 endpoint");
         }
+        /*
+         * 目的：支持配置完整 URL（包含路径），避免 SDK 固定使用 /mcp 造成 404
+         */
+        String baseUri = endpoint;
+        String endpointPath = null;
+        try {
+            java.net.URI uri = java.net.URI.create(endpoint);
+            String scheme = uri.getScheme();
+            String host = uri.getHost();
+            int port = uri.getPort();
+            if (StringUtils.hasText(scheme) && StringUtils.hasText(host)) {
+                StringBuilder baseBuilder = new StringBuilder();
+                baseBuilder.append(scheme).append("://").append(host);
+                if (port > 0) {
+                    baseBuilder.append(":").append(port);
+                }
+                baseUri = baseBuilder.toString();
+                endpointPath = uri.getRawPath();
+                if (StringUtils.hasText(uri.getRawQuery())) {
+                    endpointPath = endpointPath + "?" + uri.getRawQuery();
+                }
+            }
+        } catch (Exception e) {
+            log.warn("HTTP endpoint 解析失败，回退为原始值: {}", endpoint, e);
+        }
 
-        HttpClientStreamableHttpTransport.Builder builder = HttpClientStreamableHttpTransport.builder(endpoint);
+        HttpClientStreamableHttpTransport.Builder builder = HttpClientStreamableHttpTransport.builder(baseUri);
+        if (StringUtils.hasText(endpointPath)) {
+            builder.endpoint(endpointPath);
+        }
         Map<String, String> headers = parseStringMap(config.getHeaders());
         if (!headers.isEmpty()) {
             builder.customizeRequest(requestBuilder -> applyHeaders(requestBuilder, headers));

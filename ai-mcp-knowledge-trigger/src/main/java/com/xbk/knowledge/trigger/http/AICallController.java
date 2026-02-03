@@ -67,7 +67,7 @@ public class AICallController implements IAICallService {
     @PostMapping("/chat")
     public Result<AIResponse> chat(@Valid @RequestBody AIRequest request) {
         try {
-            // 目的：接口层只做 DTO 转换，业务逻辑交由应用层处理
+            
             AICallCommand command = DTOConverter.toAppAICallCommand(request);
             AICallResult result = aiChatAppService.chat(command);
             AIResponse response = DTOConverter.toApiAIResponse(result);
@@ -78,7 +78,7 @@ public class AICallController implements IAICallService {
         } catch (Exception e) {
             log.error("AI 调用失败", e);
 
-            // 约束：统一返回业务错误结构，避免将异常栈暴露给前端
+            
             AIResponse response = new AIResponse();
             response.setSuccess(false);
             String errorMessage = e.getMessage();
@@ -99,7 +99,7 @@ public class AICallController implements IAICallService {
      */
     @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter stream(@Valid @RequestBody AIRequest request, HttpServletResponse httpResponse) {
-        // 目的：明确 SSE 所需的响应头，避免代理缓存与缓冲
+        
         httpResponse.setCharacterEncoding("UTF-8");
         httpResponse.setHeader("Cache-Control", "no-cache");
         httpResponse.setHeader("Connection", "keep-alive");
@@ -107,7 +107,7 @@ public class AICallController implements IAICallService {
         SseEmitter emitter = new SseEmitter(0L);
         AICallCommand command = DTOConverter.toAppAICallCommand(request);
         UsageStats usageStats = new UsageStats();
-        // 约束：流式链路中捕获异常并保证 emitter 完成
+        
         aiChatAppService.streamChat(command).subscribe(
                 chatResponse -> {
                     captureUsage(chatResponse, usageStats);
