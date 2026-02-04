@@ -208,60 +208,73 @@
 .el-popper,
 .gemini-dropdown,
 .gemini-select-dropdown {
-  background: #1e1f20 !important;
-  border: 1px solid var(--gemini-border) !important;
-  border-radius: 8px !important;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
-  backdrop-filter: blur(10px);
+  background: rgba(30, 31, 32, 0.85) !important; /* Semi-transparent */
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 12px !important; /* Rounder corners */
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   color: #e3e3e3 !important;
-  /* Force high contrast white text */
-  padding: 8px 12px !important;
+  padding: 6px !important; /* Unified padding */
   font-size: 13px !important;
   line-height: 1.4 !important;
+  transform-origin: top center;
+  animation: dropdown-entry 0.2s cubic-bezier(0.2, 0, 0, 1);
 
   /* Reset padding for menus which have their own padding logic */
   &.el-dropdown__popper,
   &.el-select__popper {
-    padding: 0 !important;
+    padding: 6px !important;
   }
 
   .el-dropdown-menu,
   .el-select-dropdown__list {
     background: transparent !important;
-    padding: 6px !important;
+    padding: 0 !important;
   }
 
   .el-dropdown-menu__item,
   .el-select-dropdown__item {
     color: #e3e3e3 !important;
-    border-radius: 6px !important;
+    border-radius: 8px !important;
     margin: 2px 0 !important;
-    padding: 8px 16px !important;
+    padding: 10px 16px !important; /* Taller items */
     font-size: 14px !important;
-    line-height: 1.4 !important;
+    font-weight: 500;
+    line-height: 1.5 !important;
     display: flex !important;
     align-items: center !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1) !important;
     position: relative !important;
 
     &:hover,
     &.is-hovering,
     &.hover {
-      background-color: rgba(138, 180, 248, 0.1) !important;
-      color: var(--gemini-accent) !important;
+      background-color: rgba(255, 255, 255, 0.08) !important;
+      color: #ffffff !important;
     }
 
     &.selected,
     &.is-selected {
       background-color: rgba(138, 180, 248, 0.15) !important;
       color: var(--gemini-accent) !important;
-      font-weight: 500;
+      font-weight: 600;
     }
   }
 
   .el-popper__arrow::before {
-    background: #1e1f20 !important;
-    border: 1px solid var(--gemini-border) !important;
+    display: none !important; /* Cleaner look without arrow */
+  }
+}
+
+@keyframes dropdown-entry {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
   }
 }
 

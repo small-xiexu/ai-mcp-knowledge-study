@@ -40,6 +40,14 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
         cachedCallbacks = null;
         int size = safeClients.size();
         log.info("MCP 工具回调更新完成，当前客户端数量: {}", size);
+        /*
+         * 目的：预热工具列表，避免首次查询命中空缓存
+         */
+        try {
+            getToolCallbacks();
+        } catch (Exception e) {
+            log.warn("预热 MCP 工具回调失败", e);
+        }
     }
 
     /**
@@ -50,6 +58,9 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
      */
     @Override
     public ToolCallback[] getToolCallbacks() {
+        // 记录调用来源与当前客户端数量，便于定位工具未拉取问题
+        int clientCount = clients.get() == null ? 0 : clients.get().size();
+        log.info("触发 MCP 工具回调获取，当前客户端数量: {}", clientCount);
         ToolCallback[] cached = cachedCallbacks;
         if (cached != null) {
             return cached;

@@ -158,12 +158,12 @@
            <div class="capsule-right">
               <div class="model-info-sm">{{ resolveSelectedModelName() || 'Pro' }}</div>
               <el-button 
-                class="send-btn" 
-                :loading="sending"
+                class="send-btn"
                 :disabled="!input.trim() && !sending"
                 @click="handleSend"
               >
-                <el-icon><Top /></el-icon>
+                <el-icon v-if="sending" class="is-loading"><Loading /></el-icon>
+                <el-icon v-else><Top /></el-icon>
               </el-button>
            </div>
         </div>
@@ -291,14 +291,28 @@ const selectChat = async (id: number) => {
 }
 
 const clearAllChats = async () => {
-  const toDelete = [...chats.value]
-  for (const chat of toDelete) {
-    await deleteChatSession(chat.id)
+  try {
+    await ElMessageBox.confirm('确定要清理所有会话历史吗？此操作不可撤销。', '二次确认', {
+      confirmButtonText: '确定清理',
+      cancelButtonText: '取消',
+      type: 'warning',
+      confirmButtonClass: 'el-button--danger'
+    })
+    
+    const toDelete = [...chats.value]
+    for (const chat of toDelete) {
+      await deleteChatSession(chat.id)
+    }
+    chats.value = []
+    messages.value = []
+    activeChatId.value = null
+    await createChat()
+    ElMessage.success('历史记录已清理')
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      ElMessage.error(error.message || '清理失败')
+    }
   }
-  chats.value = []
-  messages.value = []
-  activeChatId.value = null
-  await createChat()
 }
 
 const renameChat = async (chat: ChatSession) => {
@@ -432,7 +446,8 @@ const handleSend = async () => {
     content: userContent,
     modelId: selectedModelId.value,
     sessionId: currentChat.id,
-    ragTags: selectedTags.value
+    ragTags: selectedTags.value,
+    streaming: true
   }
 
   try {
@@ -784,42 +799,90 @@ watch(selectedTags, value => {
   top: 0;
   left: 0;
   right: 0;
-  height: 60px;
+  height: 72px; /* Increased height */
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px; /* Align with chat-body padding */
+  padding: 0 32px; /* More breathing room */
   z-index: 10;
-  background: linear-gradient(to bottom, var(--gemini-bg-primary) 30%, transparent);
+  background: rgba(19, 19, 20, 0.7); /* More transparent base */
+  backdrop-filter: blur(24px); /* Stronger blur */
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03); /* Subtle separator */
 }
 
 .top-controls {
   display: flex;
   align-items: center;
-  gap: 16px; /* Space between model and knowledge base */
+  gap: 12px;
+}
+
+.model-selector-wrapper, .rag-selector {
+  position: relative;
 }
 
 .model-selector-trigger {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border-radius: 12px;
+  gap: 6px;
+  padding: 0 8px;
+  height: 32px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: background-color 0.2s;
-  font-size: 15px;
+  background-color: transparent;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gemini-text-secondary);
+  user-select: none;
+}
+
+.model-selector-trigger span {
   color: var(--gemini-text-secondary);
 }
 
 .model-selector-trigger:not(.disabled):hover {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgba(255, 255, 255, 0.08);
   color: var(--gemini-text-primary);
 }
 
+.model-selector-trigger:not(.disabled):hover span {
+  color: var(--gemini-text-primary);
+}
+
+.model-selector-trigger:not(.disabled):active {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+.model-selector-trigger .el-icon {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  transition: transform 0.3s;
+}
+
+/* Rotate arrow when active (needs state, but this is a nice touch if possible) */
+/* .model-selector-trigger.active .el-icon { transform: rotate(180deg); } */
+
 .rag-trigger-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 8px;
+  border-radius: 6px;
+  background-color: transparent !important; /* Button link reset */
+  border: 1px solid transparent;
   color: var(--gemini-text-secondary);
   font-size: 14px;
-  gap: 8px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.rag-trigger-btn:hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: var(--gemini-text-primary);
 }
 
 .chat-body {
@@ -845,14 +908,20 @@ watch(selectedTags, value => {
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding-bottom: 60px;
+  padding-bottom: 80px;
 }
 
 .welcome-logo {
-  width: 64px;
-  height: 64px;
-  margin-bottom: 24px;
-  animation: sparkle-rotate 10s linear infinite;
+  width: 72px;
+  height: 72px;
+  margin-bottom: 28px;
+  filter: drop-shadow(0 0 20px rgba(66, 133, 244, 0.3)); /* Glow effect */
+  animation: sparkle-float 6s ease-in-out infinite;
+}
+
+@keyframes sparkle-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(5deg); }
 }
 
 @keyframes sparkle-rotate {
@@ -954,16 +1023,15 @@ watch(selectedTags, value => {
 }
 
 .message-row.user .bubble {
-  background-color: #2f3033;
-  padding: 4px 12px !important; /* Minimum padding for capsule look */
-  border-radius: 14px;
-  border-top-right-radius: 2px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background-color: #36373A;
+  padding: 10px 18px !important;
+  border-radius: 20px 20px 4px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   max-width: 80% !important;
-  color: #ffffff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  line-height: normal !important; /* Force tightest line height */
-  display: block; /* Ensure wrapping around content */
+  color: #ececf1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  line-height: 1.5 !important;
+  display: block;
 }
 
 .message-row.user .bubble :deep(p) {
@@ -988,18 +1056,20 @@ watch(selectedTags, value => {
 
 .floating-input-capsule {
   width: 100%;
-  max-width: 800px !important; /* Balanced, smaller width */
-  background-color: #1e1f20;
-  border-radius: 28px;
+  max-width: 800px !important;
+  background-color: rgba(30, 31, 32, 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 32px;
   display: flex !important;
   flex-direction: row !important;
   align-items: center;
   justify-content: space-between;
-  padding: 2px 12px;
-  gap: 8px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.2s;
+  padding: 6px 16px;
+  gap: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  border: none;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   margin: 0 auto;
 }
 
@@ -1056,19 +1126,25 @@ watch(selectedTags, value => {
 }
 
 .send-btn {
-  width: 28px; /* Slightly smaller to match slim capsule */
-  height: 28px;
-  border-radius: 14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   padding: 0;
-  background-color: var(--gemini-accent);
+  background: linear-gradient(135deg, #E2E8F0, #FFFFFF);
   border: none;
-  color: #131314;
-  font-size: 16px;
-  transition: all 0.2s;
+  color: #1a1a1a;
+  font-size: 18px;
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.send-btn:hover {
+  transform: translateY(-1px) scale(1.05);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
 .send-btn:disabled {
@@ -1179,5 +1255,18 @@ watch(selectedTags, value => {
 .markdown-body :deep(.copy-btn svg) {
   width: 16px;
   height: 16px;
+}
+
+/* Force flat typography for user messages */
+.message-row.user .markdown-body :deep(h1),
+.message-row.user .markdown-body :deep(h2),
+.message-row.user .markdown-body :deep(h3),
+.message-row.user .markdown-body :deep(h4) {
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  margin: 4px 0 !important;
+  line-height: 1.5 !important;
+  border: none !important;
+  padding: 0 !important;
 }
 </style>

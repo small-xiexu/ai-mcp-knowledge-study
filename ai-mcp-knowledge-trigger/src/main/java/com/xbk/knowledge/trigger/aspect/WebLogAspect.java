@@ -17,6 +17,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.function.Function;
@@ -61,26 +62,29 @@ public class WebLogAspect {
      */
     @Around("webLog()")
     public Object doAround(ProceedingJoinPoint joinPoint) throws Throwable {
-        
+        // 记录起始时间，统一计算接口耗时
         long startTime = TimeCostUtils.start();
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-
-        
         HttpServletRequest request = attributes != null ? attributes.getRequest() : null;
+        // 获取或生成 traceId，保证日志可串联
         String traceId = TraceIdUtils.getOrCreateTraceId();
+        /*
+         * 目的：将 traceId 写入日志上下文，便于日志平台串联请求
+         */
+        RequestContext requestContext = buildRequestContext(joinPoint, request, traceId);
 
-        RequestContext requestContext = buildRequestContext(joinPoint, request);
-
-        
         Object result = null;
         Throwable exception = null;
         try {
+            // 执行目标方法，捕获正常响应
             result = joinPoint.proceed();
             return result;
         } catch (Throwable e) {
+            // 记录异常并交由上层处理
             exception = e;
             throw e;
         } finally {
+            // 统一输出请求/响应日志（含耗时）
             long costTime = TimeCostUtils.costMillis(startTime);
             logRequestAndResponse(requestContext, result, exception, costTime);
         }
@@ -92,7 +96,7 @@ public class WebLogAspect {
      *
      * 为什么：保持日志字段稳定且可读，降低检索成本。
      */
-    private RequestContext buildRequestContext(ProceedingJoinPoint joinPoint, HttpServletRequest request) {
+    private RequestContext buildRequestContext(ProceedingJoinPoint joinPoint, HttpServletRequest request, String traceId) {
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         String className = signature.getDeclaringTypeName();
         String methodName = signature.getName();
@@ -100,10 +104,12 @@ public class WebLogAspect {
         int classNameStart = lastDotIndex + 1;
         String simpleClassName = className.substring(classNameStart);
 
+        // 组装请求 URL 与 URI，便于定位具体接口
         String requestUri = request != null ? request.getRequestURI() : "UNKNOWN";
         String requestUrl = buildRequestUrl(request);
 
         return new RequestContext(
+                traceId,
                 simpleClassName,
                 methodName,
                 requestUri,
@@ -125,12 +131,14 @@ public class WebLogAspect {
      */
     private void logRequestAndResponse(RequestContext requestContext, Object result,
                               Throwable exception, long costTime) {
+        // 统一日志前缀，保持字段稳定便于检索
         String prefix = String.format("ClassName:%s.%s url=%s",
                 requestContext.controller,
                 requestContext.method,
                 requestContext.requestUrl);
         String requestJson = formatRequestJson(requestContext.args);
         if (exception != null) {
+            // 异常场景输出错误信息，响应置空
             String exceptionMessage = exception.getMessage();
             log.error("{} request={} response=null duration={} error={}",
                     prefix,
@@ -138,6 +146,7 @@ public class WebLogAspect {
                     costTime,
                     exceptionMessage);
         } else {
+            // 正常场景输出响应内容
             String responseJson = formatResponseJson(result);
             log.info("{} request={} response={} duration={}",
                     prefix,
@@ -164,7 +173,7 @@ public class WebLogAspect {
 
         Function<Object, String> jsonMapper = this::toJsonString;
         String params = Arrays.stream(args)
-                .filter(arg -> arg != null)
+                .filter(Objects::nonNull)
                 .filter(arg -> !(arg instanceof HttpServletRequest))
                 .filter(arg -> !(arg instanceof jakarta.servlet.http.HttpServletResponse))
                 .map(jsonMapper)
@@ -268,13 +277,16 @@ public class WebLogAspect {
      */
     private static class RequestContext {
         
+        private final String traceId;
         private final String controller;
         private final String method;
         private final String requestUri;
         private final String requestUrl;
         private final Object[] args;
 
-        private RequestContext(String controller, String method, String requestUri, String requestUrl, Object[] args) {
+        private RequestContext(String traceId, String controller, String method, String requestUri, String requestUrl,
+                               Object[] args) {
+            this.traceId = traceId;
             this.controller = controller;
             this.method = method;
             this.requestUri = requestUri;

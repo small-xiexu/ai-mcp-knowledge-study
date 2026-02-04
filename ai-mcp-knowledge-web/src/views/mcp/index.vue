@@ -1,6 +1,15 @@
 <template>
   <div class="gemini-container">
     <el-card class="gemini-card">
+      <el-alert
+        title="运行机制说明"
+        type="info"
+        description="【启用/禁用】控制运行权限，【开启连接】控制实际运行。启用后需手动点击“开启连接”方可生效；禁用会立即断开连接。"
+        show-icon
+        :closable="false"
+        style="margin-bottom: 20px"
+      />
+
       <el-form
         :inline="true"
         class="search-form"
@@ -109,13 +118,22 @@
               >
                 编辑
               </el-button>
-              <el-button
-                text
-                class="action-btn"
-                @click="handleRefresh(row)"
+              <el-tooltip
+                :content="row.enabled ? '重新建立运行时连接' : '请先启用配置方可连接'"
+                placement="top"
+                :show-after="500"
               >
-                重置连接
-              </el-button>
+                <div style="display: inline-block;">
+                  <el-button
+                    text
+                    class="action-btn"
+                    :disabled="!row.enabled"
+                    @click="handleRefresh(row)"
+                  >
+                    开启连接
+                  </el-button>
+                </div>
+              </el-tooltip>
               <el-button
                 text
                 class="action-btn"

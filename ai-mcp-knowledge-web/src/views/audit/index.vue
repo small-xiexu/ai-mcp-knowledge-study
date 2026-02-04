@@ -94,10 +94,13 @@
           show-overflow-tooltip
         />
         <el-table-column
-          prop="createdAt"
           label="操作时间"
           width="180"
-        />
+        >
+          <template #default="{ row }">
+            {{ formatDateTime(row.createdAt) }}
+          </template>
+        </el-table-column>
         <el-table-column
           label="操作"
           width="120"
@@ -164,7 +167,7 @@
           label="操作时间"
           :span="2"
         >
-          {{ currentLog?.createdAt }}
+          {{ formatDateTime(currentLog?.createdAt) }}
         </el-descriptions-item>
         <el-descriptions-item
           label="变更前"
@@ -265,6 +268,12 @@ const formatJson = (jsonStr?: string) => {
   } catch (e) {
     return jsonStr
   }
+}
+
+const formatDateTime = (val?: string) => {
+  if (!val) return '-'
+  // Handle 2026-02-03T10:32:33 or 2026-02-03T10:32:33.123
+  return val.replace('T', ' ').substring(0, 19)
 }
 
 // 分页大小变化

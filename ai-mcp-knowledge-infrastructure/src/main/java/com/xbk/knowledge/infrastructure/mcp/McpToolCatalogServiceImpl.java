@@ -25,6 +25,7 @@ import java.util.List;
 public class McpToolCatalogServiceImpl implements McpToolCatalogService {
 
     private static final String TOOL_PROMPT_HEADER = "可用工具列表：";
+    private static final int EMPTY_CACHE_SECONDS = 3;
 
     private final ToolCallbackProvider toolCallbackProvider;
     private final McpToolProperties properties;
@@ -121,7 +122,13 @@ public class McpToolCatalogServiceImpl implements McpToolCatalogService {
             }
             prompt = builder.toString().trim();
         }
-        long expireAt = now + properties.getCacheSeconds() * 1000L;
+        /*
+         * 目的：空工具结果不做长缓存，允许快速重试拉取
+         */
+        int ttlSeconds = CollectionUtils.isEmpty(tools)
+                ? Math.min(properties.getCacheSeconds(), EMPTY_CACHE_SECONDS)
+                : properties.getCacheSeconds();
+        long expireAt = now + ttlSeconds * 1000L;
         return new ToolSnapshot(prompt, expireAt);
     }
 

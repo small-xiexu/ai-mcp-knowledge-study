@@ -3,8 +3,13 @@ package com.xbk.knowledge.infrastructure.audit;
 import com.xbk.knowledge.types.common.Result;
 import com.xbk.knowledge.api.dto.model.ModelConfigResponse;
 import com.xbk.knowledge.api.dto.task.TaskTypeResponse;
+import com.xbk.knowledge.api.dto.mcp.McpServerConfigResponse;
+import com.xbk.knowledge.api.dto.mcp.McpServerConfigRequest;
+import com.xbk.knowledge.api.dto.common.IdRequest;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.model.entity.TaskType;
+import com.xbk.knowledge.domain.model.entity.McpServerConfig;
+import com.xbk.knowledge.domain.repository.McpServerConfigRepository;
 import com.xbk.knowledge.domain.model.vo.common.IdQuery;
 import com.xbk.knowledge.domain.repository.ModelConfigRepository;
 import com.xbk.knowledge.domain.repository.TaskTypeRepository;
@@ -33,6 +38,7 @@ public class AuditAspect {
 
     private static final String MODEL_CONFIG_TABLE = "ai_model_config";
     private static final String TASK_TYPE_TABLE = "ai_task_type";
+    private static final String MCP_SERVER_CONFIG_TABLE = "ai_mcp_server_config";
     private static final String OPERATION_INSERT = "INSERT";
     private static final String OPERATION_UPDATE = "UPDATE";
     private static final String OPERATION_DELETE = "DELETE";
@@ -40,6 +46,7 @@ public class AuditAspect {
     private final AuditService auditService;
     private final ModelConfigRepository modelConfigRepository;
     private final TaskTypeRepository taskTypeRepository;
+    private final McpServerConfigRepository mcpServerConfigRepository;
 
     /**
      * 对外暴露 aroundCreateModel 作为调用入口，便于上层复用。
@@ -177,6 +184,111 @@ public class AuditAspect {
     }
 
     /**
+     * 对外暴露 aroundCreateMcpServerConfig 作为调用入口，便于上层复用。
+     *
+     * 为什么：创建后记录审计，避免遗漏
+     * 入参：切点
+     * 出参：原方法返回值
+     */
+    @Around("execution(* com.xbk.knowledge.trigger.http.McpServerConfigController.createConfig(..))")
+    public Object aroundCreateMcpServerConfig(ProceedingJoinPoint joinPoint) throws Throwable {
+        Object result = joinPoint.proceed();
+        try {
+            Long recordId = extractRecordId(result);
+            if (recordId != null) {
+                IdQuery idQuery = new IdQuery(recordId);
+                McpServerConfig newValue = mcpServerConfigRepository
+                        .findById(idQuery)
+                        .orElse(null);
+                /*
+                 * 目的：记录新增前后差异，新增时旧值为空
+                 */
+                auditService.recordAudit(MCP_SERVER_CONFIG_TABLE, recordId, OPERATION_INSERT, null, newValue);
+            } else {
+                log.warn("创建 MCP Server 配置审计未记录，未解析到记录ID");
+            }
+        } catch (Exception ex) {
+            log.error("记录 MCP Server 配置创建审计失败", ex);
+        }
+        return result;
+    }
+
+    /**
+     * 对外暴露 aroundUpdateMcpServerConfig 作为调用入口，便于上层复用。
+     *
+     * 为什么：更新前后需要对比，记录变更内容
+     * 入参：切点
+     * 出参：原方法返回值
+     */
+    @Around("execution(* com.xbk.knowledge.trigger.http.McpServerConfigController.updateConfig(..))")
+    public Object aroundUpdateMcpServerConfig(ProceedingJoinPoint joinPoint) throws Throwable {
+        Object[] args = joinPoint.getArgs();
+        Long recordId = extractRecordId(args);
+        IdQuery idQuery = recordId == null ? null : new IdQuery(recordId);
+        McpServerConfig oldValue = idQuery == null ? null : mcpServerConfigRepository
+                .findById(idQuery)
+                .orElse(null);
+        try {
+            Object result = joinPoint.proceed();
+            try {
+                if (recordId != null) {
+                    McpServerConfig newValue = mcpServerConfigRepository
+                            .findById(idQuery)
+                            .orElse(null);
+                    /*
+                     * 目的：记录更新前后差异
+                     */
+                    auditService.recordAudit(MCP_SERVER_CONFIG_TABLE, recordId, OPERATION_UPDATE, oldValue, newValue);
+                } else {
+                    log.warn("更新 MCP Server 配置审计未记录，未解析到记录ID");
+                }
+            } catch (Exception ex) {
+                log.error("记录 MCP Server 配置更新审计失败，id: {}", recordId, ex);
+            }
+            return result;
+        } catch (Throwable ex) {
+            log.error("MCP Server 配置更新执行异常，审计未记录，id: {}", recordId, ex);
+            throw ex;
+        }
+    }
+
+    /**
+     * 对外暴露 aroundDeleteMcpServerConfig 作为调用入口，便于上层复用。
+     *
+     * 为什么：删除前记录旧值，便于审计回溯
+     * 入参：切点
+     * 出参：原方法返回值
+     */
+    @Around("execution(* com.xbk.knowledge.trigger.http.McpServerConfigController.deleteConfig(..))")
+    public Object aroundDeleteMcpServerConfig(ProceedingJoinPoint joinPoint) throws Throwable {
+        Object[] args = joinPoint.getArgs();
+        Long recordId = extractRecordId(args);
+        IdQuery idQuery = recordId == null ? null : new IdQuery(recordId);
+        McpServerConfig oldValue = idQuery == null ? null : mcpServerConfigRepository
+                .findById(idQuery)
+                .orElse(null);
+        try {
+            Object result = joinPoint.proceed();
+            try {
+                if (recordId != null) {
+                    /*
+                     * 目的：删除时只记录旧值
+                     */
+                    auditService.recordAudit(MCP_SERVER_CONFIG_TABLE, recordId, OPERATION_DELETE, oldValue, null);
+                } else {
+                    log.warn("删除 MCP Server 配置审计未记录，未解析到记录ID");
+                }
+            } catch (Exception ex) {
+                log.error("记录 MCP Server 配置删除审计失败，id: {}", recordId, ex);
+            }
+            return result;
+        } catch (Throwable ex) {
+            log.error("MCP Server 配置删除执行异常，审计未记录，id: {}", recordId, ex);
+            throw ex;
+        }
+    }
+
+    /**
      * 对外暴露 aroundUpdateTaskType 作为调用入口，便于上层复用。
      *
      * 为什么：更新前后需要对比，记录变更内容
@@ -271,6 +383,9 @@ public class AuditAspect {
         if (data instanceof TaskTypeResponse response) {
             return response.getId();
         }
+        if (data instanceof McpServerConfigResponse response) {
+            return response.getId();
+        }
         return null;
     }
 
@@ -286,6 +401,12 @@ public class AuditAspect {
         Object firstArg = args[0];
         if (firstArg instanceof Long id) {
             return id;
+        }
+        if (firstArg instanceof IdRequest request) {
+            return request.getId();
+        }
+        if (firstArg instanceof McpServerConfigRequest request) {
+            return request.getId();
         }
         return null;
     }

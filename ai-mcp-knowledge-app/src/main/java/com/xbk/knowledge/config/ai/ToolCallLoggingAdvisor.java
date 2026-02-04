@@ -24,8 +24,9 @@ import java.util.stream.Stream;
 /**
  * 工具调用日志 Advisor
  * 仅在模型产出工具调用时打印日志，避免普通对话误报为 MCP 调用
- *
+ * <p>
  * 职责：应用装配配置，用于集中接入框架能力
+ *
  * @author xiexu
  */
 @Slf4j
@@ -54,13 +55,19 @@ public class ToolCallLoggingAdvisor implements CallAdvisor {
      */
     @Override
     public ChatClientResponse adviseCall(ChatClientRequest request, CallAdvisorChain chain) {
+        // 记录调用耗时，用于衡量模型侧工具触发成本
         long startTime = TimeCostUtils.start();
+        // 放行到后续 Advisor/实际模型调用，拿到完整响应用于日志判断
         ChatClientResponse response = chain.nextCall(request);
-        ChatResponse chatResponse = response == null ? null : response.chatResponse();
+        // 提取模型响应体，作为是否存在工具调用的判断依据
+        ChatResponse chatResponse = response.chatResponse();
+        // 仅在确实触发工具调用时记录日志，避免普通对话污染日志
         if (hasToolCalls(chatResponse)) {
             String traceId = TraceIdUtils.getOrCreateTraceId();
             long cost = TimeCostUtils.costMillis(startTime);
+            // 归并工具名称，便于审计与排查
             String toolNames = extractToolNames(chatResponse);
+            // 截断用户输入，降低日志敏感信息与长度风险
             String userText = getUserText(request);
             String userPrompt = truncatePrompt(userText, 100);
             log.info("[{}] 工具调用触发, 耗时: {}ms, tools: {}, prompt: {}", traceId, cost, toolNames, userPrompt);
@@ -85,14 +92,18 @@ public class ToolCallLoggingAdvisor implements CallAdvisor {
      * @return 工具名称
      */
     private String extractToolNames(ChatResponse chatResponse) {
+        // 取出模型生成结果集合，后续从中筛选工具调用
         List<Generation> results = chatResponse.getResults();
+        // 通过函数式管道统一提取工具名，避免分支分散
         Function<Generation, AssistantMessage> outputMapper = Generation::getOutput;
         Predicate<AssistantMessage> hasToolCalls = AssistantMessage::hasToolCalls;
         Function<AssistantMessage, Stream<AssistantMessage.ToolCall>> toolCallStreamMapper = message -> message
                 .getToolCalls()
                 .stream();
+        // 提取工具调用名称
         Function<AssistantMessage.ToolCall, String> toolCallNameMapper = AssistantMessage.ToolCall::name;
         Collector<String, ?, Set<String>> collector = Collectors.toSet();
+        // 过滤含工具调用的消息，展平工具调用列表并提取名称集合
         Set<String> toolNames = results
                 .stream()
                 .map(outputMapper)
@@ -113,12 +124,9 @@ public class ToolCallLoggingAdvisor implements CallAdvisor {
      * @return 用户输入文本
      */
     private String getUserText(ChatClientRequest request) {
-        if (request
-                .prompt()
-                .getContents() != null) {
-            return request
-                    .prompt()
-                    .getContents();
+        // 优先使用已聚合的 prompt 文本，避免二次拼装
+        if (request.prompt().getContents() != null) {
+            return request.prompt().getContents();
         }
         return "";
     }
