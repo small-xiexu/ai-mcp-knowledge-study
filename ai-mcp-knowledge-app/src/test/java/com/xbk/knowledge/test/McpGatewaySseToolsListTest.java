@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * 说明：
  * 本测试包含两部分：
  * 1. 验证 SSE + tools/list
- * 2. 通过 OpenAI 模型验证“工具已注入链路”但显式禁用 tools/call
+ * 2. 通过 OpenAI 模型验证 tools/call 全链路（包含真实工具调用）
  *
  * 前置条件：
  * 1. ai-mcp-gateway-study 服务已启动（默认 http://localhost:8091）
@@ -107,7 +107,7 @@ public class McpGatewaySseToolsListTest {
         String gatewayId = getConfig("mcp.gateway.gateway-id", "MCP_GATEWAY_ID", "gateway_001");
         String defaultSseEndpoint = buildSseEndpoint(contextPath, gatewayId);
         String sseEndpoint = getConfig("mcp.gateway.sse-endpoint", "MCP_GATEWAY_SSE_ENDPOINT", defaultSseEndpoint);
-        String expectedToolName = getConfig("mcp.gateway.tool-name", "MCP_GATEWAY_TOOL_NAME", "JavaSDKMCPClient_getCompanyEmployee");
+        String expectedToolName = getConfig("mcp.gateway.tool-name", "MCP_GATEWAY_TOOL_NAME", "sendWeixinNotice");
         Integer connectTimeoutMs = getIntConfig("mcp.gateway.connect-timeout-ms", "MCP_GATEWAY_CONNECT_TIMEOUT_MS", 10000);
         Integer requestTimeoutMs = getIntConfig("mcp.gateway.request-timeout-ms", "MCP_GATEWAY_REQUEST_TIMEOUT_MS", 120000);
         Integer initTimeoutMs = getIntConfig("mcp.gateway.init-timeout-ms", "MCP_GATEWAY_INIT_TIMEOUT_MS", 300000);
@@ -152,25 +152,25 @@ public class McpGatewaySseToolsListTest {
     }
 
     /**
-     * 通过大模型验证 SSE + tools/list 注入链路（不触发 tools/call）。
+     * 通过大模型验证 SSE + tools/list + tools/call 全链路。
      *
      * 核心思路：
      * 1. 先完成 SSE 注册并断言 tools/list 返回目标工具
-     * 2. 再发起一次 OpenAI 模型调用，并设置 toolChoice=none
-     * 3. 断言模型请求成功返回，证明模型链路可用且不会误走 tools/call
+     * 2. 再发起一次 OpenAI 模型调用，要求必须调用工具
+     * 3. 断言模型返回有效文本，且不出现“工具不可用/未找到”等失败语义
      */
     @Test
-    public void test_sse_tools_list_with_openai_model_no_tool_call() {
+    public void test_sse_tools_list_with_openai_model_tool_call() {
         String baseUrl = getConfig("mcp.gateway.base-url", "MCP_GATEWAY_BASE_URL", "http://localhost:8091");
         String contextPath = getConfig("mcp.gateway.context-path", "MCP_GATEWAY_CONTEXT_PATH", "/api-gateway");
         String gatewayId = getConfig("mcp.gateway.gateway-id", "MCP_GATEWAY_ID", "gateway_001");
         String defaultSseEndpoint = buildSseEndpoint(contextPath, gatewayId);
         String sseEndpoint = getConfig("mcp.gateway.sse-endpoint", "MCP_GATEWAY_SSE_ENDPOINT", defaultSseEndpoint);
-        String expectedToolName = getConfig("mcp.gateway.tool-name", "MCP_GATEWAY_TOOL_NAME", "JavaSDKMCPClient_getCompanyEmployee");
+        String expectedToolName = getConfig("mcp.gateway.tool-name", "MCP_GATEWAY_TOOL_NAME", "sendWeixinNotice");
         String modelPrompt = getConfig(
                 "mcp.gateway.model-prompt",
                 "MCP_GATEWAY_MODEL_PROMPT",
-                "请确认你已收到可用工具信息，并用中文回复“已连接MCP工具”。不要调用任何工具。"
+                "请务必调用工具 sendWeixinNotice，参数：platform=测试平台，subject=网关联调验证，description=SSE+tools/list+tools/call 集成测试，jumpUrl=https://example.com。调用完成后用中文简短回复结果。"
         );
         Long preferredModelId = getLongConfig("mcp.gateway.model-id", "MCP_GATEWAY_MODEL_ID", null);
 
@@ -181,12 +181,12 @@ public class McpGatewaySseToolsListTest {
         String endpoint = trimTrailingSlash(baseUrl);
         Long configId = System.currentTimeMillis();
 
-        log.info("MCP 模型联调(禁用 tools/call)配置 baseUrl: {}, sseEndpoint: {}, gatewayId: {}",
+        log.info("MCP 模型联调(启用 tools/call)配置 baseUrl: {}, sseEndpoint: {}, gatewayId: {}",
                 endpoint, sseEndpoint, gatewayId);
 
         McpServerConfig config = McpServerConfig.builder()
                 .id(configId)
-                .serverName("mcp-gateway-sse-openai-nocall-" + gatewayId)
+                .serverName("mcp-gateway-sse-openai-call-" + gatewayId)
                 .serverType(McpServerType.SSE)
                 .enabled(true)
                 .endpoint(endpoint)
@@ -208,25 +208,31 @@ public class McpGatewaySseToolsListTest {
             assertTrue(hasTool(callbacks, expectedToolName),
                     "❌ 未找到期望工具: " + expectedToolName + "，实际工具: " + toolNames);
 
-            // 再走一次模型链路，但显式禁用工具调用，避免触发未实现的 tools/call
+            // 再走模型链路，显式要求工具调用，验证 tools/call 真实执行
             ModelConfig openAiModel = resolveOpenAiModelConfig(preferredModelId);
             assertNotNull(openAiModel, "❌ 未找到可用的 OpenAI 模型配置");
 
             OpenAiChatOptions openAiChatOptions = OpenAiChatOptions.builder()
                     .model(openAiModel.getModelName())
-                    .toolChoice("none")
-                    .internalToolExecutionEnabled(Boolean.FALSE)
+                    .toolChoice("required")
+                    .internalToolExecutionEnabled(Boolean.TRUE)
                     .build();
             ChatClient chatClient = chatClientAssemblyService.buildChatClient(openAiModel);
             ChatResponse response = chatClient.prompt()
+                    .toolNames(expectedToolName)
                     .user(modelPrompt)
                     .options(openAiChatOptions)
                     .call()
                     .chatResponse();
 
             assertNotNull(response, "❌ 模型调用未返回响应");
-            log.info("✅ 模型链路验证通过（tools/list 已验证，tools/call 已禁用），model: {}",
+            String assistantContent = extractAssistantContent(response);
+            assertTrue(assistantContent != null && !assistantContent.isBlank(), "❌ 模型返回内容为空");
+            assertTrue(!containsToolFailureKeyword(assistantContent),
+                    "❌ 模型返回工具调用失败语义，content: " + assistantContent);
+            log.info("✅ 模型链路验证通过（tools/list + tools/call），model: {}",
                     openAiModel.getModelName());
+            log.info("模型最终回复: {}", assistantContent);
         } finally {
             runtimeService.unregister(configId);
         }
@@ -315,6 +321,30 @@ public class McpGatewaySseToolsListTest {
         }
         builder.append("]");
         return builder.toString();
+    }
+
+    /**
+     * 提取模型最终文本输出，便于断言与日志排查。
+     */
+    private String extractAssistantContent(ChatResponse response) {
+        if (response == null || response.getResult() == null || response.getResult().getOutput() == null) {
+            return "";
+        }
+        String text = response.getResult().getOutput().getText();
+        return text == null ? "" : text;
+    }
+
+    /**
+     * 判断回复中是否包含典型工具失败语义。
+     */
+    private boolean containsToolFailureKeyword(String content) {
+        if (content == null || content.isEmpty()) {
+            return true;
+        }
+        return content.contains("工具不可用")
+                || content.contains("工具未找到")
+                || content.contains("无法调用工具")
+                || content.contains("无法查询");
     }
 
     /**
