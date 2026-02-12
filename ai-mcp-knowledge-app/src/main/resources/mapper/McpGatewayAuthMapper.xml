@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.McpGatewayAuthMapper">
+
+    <resultMap id="McpGatewayAuthMap" type="com.xbk.knowledge.domain.model.entity.gateway.McpGatewayAuth">
+        <id column="id" property="id"/>
+        <result column="gateway_id" property="gatewayId"/>
+        <result column="api_key" property="apiKey"/>
+        <result column="rate_limit" property="rateLimit"/>
+        <result column="expire_time" property="expireTime"/>
+        <result column="status" property="status"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <insert id="insertGatewayAuth" parameterType="com.xbk.knowledge.domain.model.entity.gateway.McpGatewayAuth" useGeneratedKeys="true" keyProperty="id">
+        insert into mcp_gateway_auth (
+            gateway_id,
+            api_key,
+            rate_limit,
+            expire_time,
+            status,
+            created_at,
+            updated_at
+        ) values (
+            #{gatewayId},
+            #{apiKey},
+            #{rateLimit},
+            #{expireTime},
+            #{status},
+            #{createdAt},
+            #{updatedAt}
+        )
+    </insert>
+
+    <update id="updateGatewayAuth" parameterType="com.xbk.knowledge.domain.model.entity.gateway.McpGatewayAuth">
+        update mcp_gateway_auth
+        set gateway_id = #{gatewayId},
+            api_key = #{apiKey},
+            rate_limit = #{rateLimit},
+            expire_time = #{expireTime},
+            status = #{status},
+            updated_at = #{updatedAt}
+        where id = #{id}
+    </update>
+
+    <delete id="deleteGatewayAuthById">
+        delete from mcp_gateway_auth where id = #{id}
+    </delete>
+
+    <select id="findByApiKey" resultMap="McpGatewayAuthMap">
+        select
+            id,
+            gateway_id,
+            api_key,
+            rate_limit,
+            expire_time,
+            status,
+            created_at,
+            updated_at
+        from mcp_gateway_auth
+        where api_key = #{apiKey}
+    </select>
+
+    <select id="findByGatewayId" resultMap="McpGatewayAuthMap">
+        select
+            id,
+            gateway_id,
+            api_key,
+            rate_limit,
+            expire_time,
+            status,
+            created_at,
+            updated_at
+        from mcp_gateway_auth
+        where gateway_id = #{gatewayId}
+        order by id desc
+    </select>
+
+    <select id="findEnabledByGatewayId" resultMap="McpGatewayAuthMap">
+        select
+            id,
+            gateway_id,
+            api_key,
+            rate_limit,
+            expire_time,
+            status,
+            created_at,
+            updated_at
+        from mcp_gateway_auth
+        where gateway_id = #{gatewayId}
+          and status = 1
+        order by id desc
+    </select>
+
+</mapper>

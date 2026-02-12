@@ -215,6 +215,8 @@
       :model-data="currentModel"
       @success="handleFormSuccess"
     />
+
+    <ModelToolBinding style="margin-top: 16px;" />
   </div>
 </template>
 
@@ -232,6 +234,7 @@ import {
   testModelConnection
 } from '@/api/model'
 import ModelForm from './components/ModelForm.vue'
+import ModelToolBinding from './components/ModelToolBinding.vue'
 import type { ModelConfig } from '@/types/entity'
 
 const loading = ref(false)

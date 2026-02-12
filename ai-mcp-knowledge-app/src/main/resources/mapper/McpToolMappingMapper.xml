@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.McpToolMappingMapper">
+
+    <resultMap id="McpToolMappingMap" type="com.xbk.knowledge.domain.model.entity.gateway.McpToolMapping">
+        <id column="id" property="id"/>
+        <result column="gateway_id" property="gatewayId"/>
+        <result column="tool_id" property="toolId"/>
+        <result column="mapping_type" property="mappingType"/>
+        <result column="parent_id" property="parentId"/>
+        <result column="field_name" property="fieldName"/>
+        <result column="mcp_type" property="mcpType"/>
+        <result column="mcp_desc" property="mcpDesc"/>
+        <result column="is_required" property="isRequired"/>
+        <result column="item_type" property="itemType"/>
+        <result column="item_ref_id" property="itemRefId"/>
+        <result column="http_path" property="httpPath"/>
+        <result column="http_location" property="httpLocation"/>
+        <result column="sort_order" property="sortOrder"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <insert id="insertToolMapping" parameterType="com.xbk.knowledge.domain.model.entity.gateway.McpToolMapping" useGeneratedKeys="true" keyProperty="id">
+        insert into mcp_tool_mapping (
+            gateway_id,
+            tool_id,
+            mapping_type,
+            parent_id,
+            field_name,
+            mcp_type,
+            mcp_desc,
+            is_required,
+            item_type,
+            item_ref_id,
+            http_path,
+            http_location,
+            sort_order,
+            created_at,
+            updated_at
+        ) values (
+            #{gatewayId},
+            #{toolId},
+            #{mappingType},
+            #{parentId},
+            #{fieldName},
+            #{mcpType},
+            #{mcpDesc},
+            #{isRequired},
+            #{itemType},
+            #{itemRefId},
+            #{httpPath},
+            #{httpLocation},
+            #{sortOrder},
+            #{createdAt},
+            #{updatedAt}
+        )
+    </insert>
+
+    <update id="updateToolMapping" parameterType="com.xbk.knowledge.domain.model.entity.gateway.McpToolMapping">
+        update mcp_tool_mapping
+        set gateway_id = #{gatewayId},
+            tool_id = #{toolId},
+            mapping_type = #{mappingType},
+            parent_id = #{parentId},
+            field_name = #{fieldName},
+            mcp_type = #{mcpType},
+            mcp_desc = #{mcpDesc},
+            is_required = #{isRequired},
+            item_type = #{itemType},
+            item_ref_id = #{itemRefId},
+            http_path = #{httpPath},
+            http_location = #{httpLocation},
+            sort_order = #{sortOrder},
+            updated_at = #{updatedAt}
+        where id = #{id}
+    </update>
+
+    <delete id="deleteToolMappingById">
+        delete from mcp_tool_mapping
+        where id = #{id}
+    </delete>
+
+    <delete id="deleteToolMappingByToolId">
+        delete from mcp_tool_mapping
+        where tool_id = #{toolId}
+    </delete>
+
+    <select id="findByToolIdAndMappingType" resultMap="McpToolMappingMap">
+        select
+            id,
+            gateway_id,
+            tool_id,
+            mapping_type,
+            parent_id,
+            field_name,
+            mcp_type,
+            mcp_desc,
+            is_required,
+            item_type,
+            item_ref_id,
+            http_path,
+            http_location,
+            sort_order,
+            created_at,
+            updated_at
+        from mcp_tool_mapping
+        where tool_id = #{toolId}
+          and mapping_type = #{mappingType}
+        order by sort_order asc, id asc
+    </select>
+
+</mapper>

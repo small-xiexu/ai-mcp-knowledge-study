@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.McpToolRegistryMapper">
+
+    <resultMap id="McpToolRegistryMap" type="com.xbk.knowledge.domain.model.entity.gateway.McpToolRegistry">
+        <id column="id" property="id"/>
+        <result column="gateway_id" property="gatewayId"/>
+        <result column="tool_name" property="toolName"/>
+        <result column="tool_description" property="toolDescription"/>
+        <result column="http_url" property="httpUrl"/>
+        <result column="http_method" property="httpMethod"/>
+        <result column="http_headers" property="httpHeaders"/>
+        <result column="timeout" property="timeout"/>
+        <result column="retry_times" property="retryTimes"/>
+        <result column="status" property="status"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <insert id="insertToolRegistry" parameterType="com.xbk.knowledge.domain.model.entity.gateway.McpToolRegistry" useGeneratedKeys="true" keyProperty="id">
+        insert into mcp_tool_registry (
+            gateway_id,
+            tool_name,
+            tool_description,
+            http_url,
+            http_method,
+            http_headers,
+            timeout,
+            retry_times,
+            status,
+            created_at,
+            updated_at
+        ) values (
+            #{gatewayId},
+            #{toolName},
+            #{toolDescription},
+            #{httpUrl},
+            #{httpMethod},
+            #{httpHeaders},
+            #{timeout},
+            #{retryTimes},
+            #{status},
+            #{createdAt},
+            #{updatedAt}
+        )
+    </insert>
+
+    <update id="updateToolRegistry" parameterType="com.xbk.knowledge.domain.model.entity.gateway.McpToolRegistry">
+        update mcp_tool_registry
+        set gateway_id = #{gatewayId},
+            tool_name = #{toolName},
+            tool_description = #{toolDescription},
+            http_url = #{httpUrl},
+            http_method = #{httpMethod},
+            http_headers = #{httpHeaders},
+            timeout = #{timeout},
+            retry_times = #{retryTimes},
+            status = #{status},
+            updated_at = #{updatedAt}
+        where id = #{id}
+    </update>
+
+    <delete id="deleteToolRegistryById">
+        delete from mcp_tool_registry
+        where id = #{id}
+    </delete>
+
+    <select id="findById" resultMap="McpToolRegistryMap">
+        select
+            id,
+            gateway_id,
+            tool_name,
+            tool_description,
+            http_url,
+            http_method,
+            http_headers,
+            timeout,
+            retry_times,
+            status,
+            created_at,
+            updated_at
+        from mcp_tool_registry
+        where id = #{id}
+    </select>
+
+    <select id="findByGatewayIdAndToolName" resultMap="McpToolRegistryMap">
+        select
+            id,
+            gateway_id,
+            tool_name,
+            tool_description,
+            http_url,
+            http_method,
+            http_headers,
+            timeout,
+            retry_times,
+            status,
+            created_at,
+            updated_at
+        from mcp_tool_registry
+        where gateway_id = #{gatewayId}
+          and tool_name = #{toolName}
+    </select>
+
+    <select id="findByGatewayId" resultMap="McpToolRegistryMap">
+        select
+            id,
+            gateway_id,
+            tool_name,
+            tool_description,
+            http_url,
+            http_method,
+            http_headers,
+            timeout,
+            retry_times,
+            status,
+            created_at,
+            updated_at
+        from mcp_tool_registry
+        where gateway_id = #{gatewayId}
+        order by id desc
+    </select>
+
+    <select id="findEnabledByGatewayId" resultMap="McpToolRegistryMap">
+        select
+            id,
+            gateway_id,
+            tool_name,
+            tool_description,
+            http_url,
+            http_method,
+            http_headers,
+            timeout,
+            retry_times,
+            status,
+            created_at,
+            updated_at
+        from mcp_tool_registry
+        where gateway_id = #{gatewayId}
+          and status = 1
+        order by id desc
+    </select>
+
+    <select id="findPage" resultMap="McpToolRegistryMap">
+        select
+            id,
+            gateway_id,
+            tool_name,
+            tool_description,
+            http_url,
+            http_method,
+            http_headers,
+            timeout,
+            retry_times,
+            status,
+            created_at,
+            updated_at
+        from mcp_tool_registry
+        where gateway_id = #{gatewayId}
+        order by id desc
+        limit #{pageSize} offset #{offset}
+    </select>
+
+    <select id="countByGatewayId" resultType="long">
+        select count(1)
+        from mcp_tool_registry
+        where gateway_id = #{gatewayId}
+    </select>
+
+</mapper>

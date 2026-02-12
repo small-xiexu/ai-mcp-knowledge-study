@@ -104,11 +104,13 @@ const route = useRoute()
 
 const menuRoutes = computed(() => {
   const layoutRoute = routes.find(r => r.path === '/')
-  return layoutRoute?.children || []
+  return (layoutRoute?.children || []).filter(item => !item.meta?.hidden)
 })
 
 const activeMenu = computed(() => {
-  // 简单匹配，假设路由结构不深
+  if (route.path.startsWith('/gateway-tools/')) {
+    return '/gateway-tools'
+  }
   return route.path
 })
 

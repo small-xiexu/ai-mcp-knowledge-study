@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.mcp.SyncMcpToolCallbackProvider;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.ToolCallbackProvider;
-import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -22,7 +21,6 @@ import io.modelcontextprotocol.client.McpSyncClient;
  */
 @Slf4j
 @Component
-@Primary
 public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
 
     private final AtomicReference<List<McpSyncClient>> clients = new AtomicReference<>(Collections.emptyList());

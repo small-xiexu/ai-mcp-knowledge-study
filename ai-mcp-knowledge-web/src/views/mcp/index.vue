@@ -2,6 +2,15 @@
   <div class="gemini-container">
     <el-card class="gemini-card">
       <el-alert
+        title="用途说明"
+        type="warning"
+        description="本页用于配置和管理外部 MCP Server 连接（支持 STDIO/SSE/HTTP），并控制其运行状态。"
+        show-icon
+        :closable="false"
+        style="margin-bottom: 12px"
+      />
+
+      <el-alert
         title="运行机制说明"
         type="info"
         description="【启用/禁用】控制运行权限，【开启连接】控制实际运行。启用后需手动点击“开启连接”方可生效；禁用会立即断开连接。"

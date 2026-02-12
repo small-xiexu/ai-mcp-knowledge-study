@@ -1,0 +1,584 @@
+package com.xbk.knowledge.trigger.http;
+
+import com.xbk.knowledge.application.service.app.GatewayObservabilityAppService;
+import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.model.entity.gateway.McpGateway;
+import com.xbk.knowledge.domain.model.entity.gateway.McpToolBinding;
+import com.xbk.knowledge.domain.model.entity.gateway.McpToolMapping;
+import com.xbk.knowledge.domain.model.entity.gateway.McpToolRegistry;
+import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
+import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.model.vo.gateway.GatewayIdQuery;
+import com.xbk.knowledge.domain.model.vo.gateway.GatewayPageQuery;
+import com.xbk.knowledge.domain.model.vo.gateway.ToolBindingQuery;
+import com.xbk.knowledge.domain.model.vo.gateway.ToolMappingQuery;
+import com.xbk.knowledge.domain.model.vo.gateway.ToolNameQuery;
+import com.xbk.knowledge.domain.model.vo.gateway.ToolRegistryPageQuery;
+import com.xbk.knowledge.domain.repository.ModelConfigRepository;
+import com.xbk.knowledge.domain.repository.gateway.McpGatewayRepository;
+import com.xbk.knowledge.domain.repository.gateway.McpToolBindingRepository;
+import com.xbk.knowledge.domain.repository.gateway.McpToolMappingRepository;
+import com.xbk.knowledge.domain.repository.gateway.McpToolRegistryRepository;
+import com.xbk.knowledge.domain.service.gateway.GatewayToolService;
+import com.xbk.knowledge.types.common.PageRequest;
+import com.xbk.knowledge.types.common.PageResult;
+import com.xbk.knowledge.types.common.Result;
+import com.xbk.knowledge.types.enums.ToolBindType;
+import jakarta.validation.Valid;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+/**
+ * Gateway 管理接口
+ *
+ * @author xiexu
+ */
+@Slf4j
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/gateway/manage")
+public class GatewayManageController {
+
+    private static final String DEFAULT_GATEWAY_ID = "default_gateway";
+    private static final String CALL_ID_MDC_KEY = "gatewayToolCallId";
+
+    private final McpGatewayRepository gatewayRepository;
+    private final McpToolRegistryRepository toolRegistryRepository;
+    private final McpToolMappingRepository toolMappingRepository;
+    private final McpToolBindingRepository toolBindingRepository;
+    private final ModelConfigRepository modelConfigRepository;
+    private final GatewayToolService gatewayToolService;
+    private final GatewayObservabilityAppService gatewayObservabilityAppService;
+
+    @PostMapping("/instances/list")
+    public Result<PageResult<Map<String, Object>>> listGatewayInstances(@Valid @RequestBody PageRequest request) {
+        int offset = request.getOffset();
+        int pageSize = request.getPageSize();
+        GatewayPageQuery query = new GatewayPageQuery(offset, pageSize);
+        List<McpGateway> gateways = gatewayRepository.findPage(query);
+        long total = gatewayRepository.countAll();
+
+        List<Map<String, Object>> records = new ArrayList<>();
+        for (McpGateway gateway : gateways) {
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("id", gateway.getId());
+            row.put("gatewayId", gateway.getGatewayId());
+            row.put("gatewayName", gateway.getGatewayName());
+            row.put("gatewayVersion", gateway.getGatewayVersion());
+            row.put("status", gateway.getStatus());
+            row.put("toolCount", toolRegistryRepository.countByGatewayId(new GatewayIdQuery(gateway.getGatewayId())));
+            row.put("createdAt", gateway.getCreatedAt());
+            row.put("updatedAt", gateway.getUpdatedAt());
+            records.add(row);
+        }
+
+        return Result.success(PageResult.of(records, total, request.getPageNum(), request.getPageSize()));
+    }
+
+    @PostMapping("/instances/save")
+    public Result<McpGateway> saveGatewayInstance(@RequestBody GatewayInstanceRequest request) {
+        if (!StringUtils.hasText(request.getGatewayName())) {
+            return Result.error("gatewayName 不能为空");
+        }
+        String gatewayId = StringUtils.hasText(request.getGatewayId())
+                ? request.getGatewayId().trim()
+                : DEFAULT_GATEWAY_ID;
+
+        McpGateway gateway;
+        if (request.getId() == null) {
+            gateway = gatewayRepository.findByGatewayId(new GatewayIdQuery(gatewayId)).orElse(null);
+            if (gateway == null) {
+                gateway = new McpGateway();
+                gateway.setCreatedAt(LocalDateTime.now());
+            }
+        } else {
+            gateway = gatewayRepository.findById(new IdQuery(request.getId())).orElse(new McpGateway());
+            gateway.setId(request.getId());
+        }
+
+        gateway.setGatewayId(gatewayId);
+        gateway.setGatewayName(request.getGatewayName());
+        gateway.setGatewayDesc(request.getGatewayDesc());
+        gateway.setGatewayVersion(request.getGatewayVersion());
+        gateway.setGatewayInstructions(request.getGatewayInstructions());
+        gateway.setStatus(request.getStatus() == null ? 1 : request.getStatus());
+        gateway.setUpdatedAt(LocalDateTime.now());
+
+        McpGateway saved = gatewayRepository.save(gateway);
+        return Result.success(saved);
+    }
+
+    @PostMapping("/instances/delete")
+    public Result<Void> deleteGatewayInstance(@RequestBody IdQuery query) {
+        if (query == null || query.getId() == null) {
+            return Result.error("ID 不能为空");
+        }
+        gatewayRepository.deleteById(query);
+        return Result.success();
+    }
+
+    @PostMapping("/tools/list")
+    public Result<PageResult<Map<String, Object>>> listTools(@RequestBody ToolListRequest request) {
+        String gatewayId = resolveGatewayId(request == null ? null : request.getGatewayId());
+        ensureGatewayExists(gatewayId);
+        int pageNum = request.getPageNum() == null || request.getPageNum() < 1 ? 1 : request.getPageNum();
+        int pageSize = request.getPageSize() == null || request.getPageSize() < 1 ? 10 : request.getPageSize();
+        int offset = (pageNum - 1) * pageSize;
+
+        List<McpToolRegistry> records = toolRegistryRepository.findPage(new ToolRegistryPageQuery(gatewayId, offset, pageSize));
+        long total = toolRegistryRepository.countByGatewayId(new GatewayIdQuery(gatewayId));
+
+        List<Map<String, Object>> rows = new ArrayList<>();
+        for (McpToolRegistry tool : records) {
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("id", tool.getId());
+            row.put("gatewayId", tool.getGatewayId());
+            row.put("toolName", tool.getToolName());
+            row.put("toolDescription", tool.getToolDescription());
+            row.put("httpMethod", tool.getHttpMethod());
+            row.put("httpUrl", tool.getHttpUrl());
+            row.put("status", tool.getStatus());
+            row.put("timeout", tool.getTimeout());
+            row.put("retryTimes", tool.getRetryTimes());
+            row.put("lastCallSummary", "-");
+            row.put("createdAt", tool.getCreatedAt());
+            row.put("updatedAt", tool.getUpdatedAt());
+            rows.add(row);
+        }
+
+        return Result.success(PageResult.of(rows, total, pageNum, pageSize));
+    }
+
+    @PostMapping("/tools/get")
+    public Result<Map<String, Object>> getTool(@RequestBody IdQuery query) {
+        McpToolRegistry tool = toolRegistryRepository.findById(query).orElse(null);
+        if (tool == null) {
+            return Result.error("工具不存在");
+        }
+
+        List<McpToolMapping> requestMappings = toolMappingRepository.findByToolIdAndMappingType(
+                new ToolMappingQuery(tool.getId(), "request")
+        );
+        List<McpToolMapping> responseMappings = toolMappingRepository.findByToolIdAndMappingType(
+                new ToolMappingQuery(tool.getId(), "response")
+        );
+
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("tool", tool);
+        data.put("requestMappings", requestMappings);
+        data.put("responseMappings", responseMappings);
+        return Result.success(data);
+    }
+
+    @PostMapping("/tools/save")
+    public Result<McpToolRegistry> saveTool(@RequestBody SaveToolRequest request) {
+        if (!StringUtils.hasText(request.getToolName())) {
+            return Result.error("toolName 不能为空");
+        }
+        String gatewayId = resolveGatewayId(request.getGatewayId());
+        ensureGatewayExists(gatewayId);
+
+        McpToolRegistry tool;
+        if (request.getId() == null) {
+            tool = new McpToolRegistry();
+            tool.setCreatedAt(LocalDateTime.now());
+        } else {
+            tool = toolRegistryRepository.findById(new IdQuery(request.getId())).orElse(new McpToolRegistry());
+            tool.setId(request.getId());
+        }
+
+        tool.setGatewayId(gatewayId);
+        tool.setToolName(request.getToolName());
+        tool.setToolDescription(request.getToolDescription());
+        tool.setHttpMethod(request.getHttpMethod());
+        tool.setHttpUrl(request.getHttpUrl());
+        tool.setHttpHeaders(request.getHttpHeaders());
+        tool.setTimeout(request.getTimeout() == null ? 30000 : request.getTimeout());
+        tool.setRetryTimes(request.getRetryTimes() == null ? 0 : request.getRetryTimes());
+        tool.setStatus(request.getStatus() == null ? 1 : request.getStatus());
+        tool.setUpdatedAt(LocalDateTime.now());
+
+        McpToolRegistry saved = toolRegistryRepository.save(tool);
+        toolMappingRepository.deleteByToolId(saved.getId());
+        saveMappings(saved.getId(), saved.getGatewayId(), request.getRequestMappings(), "request");
+        saveMappings(saved.getId(), saved.getGatewayId(), request.getResponseMappings(), "response");
+
+        return Result.success(saved);
+    }
+
+    @PostMapping("/tools/delete")
+    public Result<Void> deleteTool(@RequestBody IdQuery query) {
+        if (query == null || query.getId() == null) {
+            return Result.error("ID 不能为空");
+        }
+        toolMappingRepository.deleteByToolId(query.getId());
+        toolBindingRepository.deleteByToolId(query.getId());
+        toolRegistryRepository.deleteById(query);
+        return Result.success();
+    }
+
+    @PostMapping("/tools/enable")
+    public Result<Void> enableTool(@RequestBody IdQuery query) {
+        McpToolRegistry tool = toolRegistryRepository.findById(query).orElse(null);
+        if (tool == null) {
+            return Result.error("工具不存在");
+        }
+        tool.setStatus(1);
+        tool.setUpdatedAt(LocalDateTime.now());
+        toolRegistryRepository.save(tool);
+        return Result.success();
+    }
+
+    @PostMapping("/tools/disable")
+    public Result<Void> disableTool(@RequestBody IdQuery query) {
+        McpToolRegistry tool = toolRegistryRepository.findById(query).orElse(null);
+        if (tool == null) {
+            return Result.error("工具不存在");
+        }
+        tool.setStatus(0);
+        tool.setUpdatedAt(LocalDateTime.now());
+        toolRegistryRepository.save(tool);
+        return Result.success();
+    }
+
+    @PostMapping("/tools/debug")
+    public Result<Map<String, Object>> debugTool(@RequestBody ToolDebugRequest request) {
+        if (!StringUtils.hasText(request.getToolName())) {
+            return Result.error("toolName 不能为空");
+        }
+        String gatewayId = resolveGatewayId(request.getGatewayId());
+        ensureGatewayExists(gatewayId);
+
+        Map<String, Object> arguments = request.getArguments() == null ? Collections.emptyMap() : request.getArguments();
+        String callId = UUID.randomUUID().toString().replace("-", "");
+        long startAt = System.nanoTime();
+        String previousCallId = MDC.get(CALL_ID_MDC_KEY);
+        MDC.put(CALL_ID_MDC_KEY, callId);
+        log.info("gateway_tool_call source=DEBUG stage=start callId={} gatewayId={} toolName={} argsKeys={}",
+                callId,
+                gatewayId,
+                request.getToolName(),
+                arguments.keySet());
+        GatewayToolService.ToolCallResult callResult;
+        try {
+            callResult = gatewayToolService.callTool(gatewayId, request.getToolName(), arguments);
+        } finally {
+            if (StringUtils.hasText(previousCallId)) {
+                MDC.put(CALL_ID_MDC_KEY, previousCallId);
+            } else {
+                MDC.remove(CALL_ID_MDC_KEY);
+            }
+        }
+        long latencyMs = (System.nanoTime() - startAt) / 1_000_000;
+        log.info("gateway_tool_call source=DEBUG stage=end callId={} gatewayId={} toolName={} argsKeys={} success={} errorCode={} latencyMs={}",
+                callId,
+                gatewayId,
+                request.getToolName(),
+                arguments.keySet(),
+                callResult.success(),
+                callResult.errorCode(),
+                latencyMs);
+
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("success", callResult.success());
+        data.put("content", callResult.content());
+        data.put("errorCode", callResult.errorCode());
+        return Result.success(data);
+    }
+
+    @PostMapping("/bindings/model/get")
+    public Result<Map<String, Object>> getModelBindings(@RequestBody ModelBindingQueryRequest request) {
+        if (request == null || request.getModelId() == null) {
+            return Result.error("modelId 不能为空");
+        }
+        List<McpToolBinding> bindings = toolBindingRepository.findByBindTypeAndTargetId(
+                new ToolBindingQuery(ToolBindType.MODEL.name(), request.getModelId())
+        );
+
+        List<Long> toolIds = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(bindings)) {
+            for (McpToolBinding binding : bindings) {
+                if (binding != null && binding.getToolId() != null && !Boolean.FALSE.equals(binding.getEnabled())) {
+                    toolIds.add(binding.getToolId());
+                }
+            }
+        }
+
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("modelId", request.getModelId());
+        data.put("toolIds", toolIds);
+        data.put("globalVisible", toolIds.isEmpty());
+        return Result.success(data);
+    }
+
+    @PostMapping("/bindings/model/save")
+    public Result<Void> saveModelBindings(@RequestBody SaveModelBindingRequest request) {
+        if (request == null || request.getModelId() == null) {
+            return Result.error("modelId 不能为空");
+        }
+
+        List<McpToolBinding> existing = toolBindingRepository.findByBindTypeAndTargetId(
+                new ToolBindingQuery(ToolBindType.MODEL.name(), request.getModelId())
+        );
+        for (McpToolBinding binding : existing) {
+            if (binding != null && binding.getId() != null) {
+                toolBindingRepository.deleteById(binding.getId());
+            }
+        }
+
+        if (CollectionUtils.isEmpty(request.getToolIds())) {
+            return Result.success();
+        }
+
+        for (Long toolId : request.getToolIds()) {
+            if (toolId == null) {
+                continue;
+            }
+            McpToolRegistry tool = toolRegistryRepository.findById(new IdQuery(toolId)).orElse(null);
+            if (tool == null) {
+                continue;
+            }
+            McpToolBinding binding = McpToolBinding.builder()
+                    .gatewayId(tool.getGatewayId())
+                    .toolId(toolId)
+                    .bindType(ToolBindType.MODEL.name())
+                    .bindTargetId(request.getModelId())
+                    .enabled(Boolean.TRUE)
+                    .createdAt(LocalDateTime.now())
+                    .updatedAt(LocalDateTime.now())
+                    .build();
+            toolBindingRepository.save(binding);
+        }
+
+        return Result.success();
+    }
+
+    @PostMapping("/tools/all-enabled")
+    public Result<List<Map<String, Object>>> allEnabledTools() {
+        List<McpGateway> gateways = gatewayRepository.findAllEnabled();
+        List<Map<String, Object>> tools = new ArrayList<>();
+        for (McpGateway gateway : gateways) {
+            List<McpToolRegistry> gatewayTools = toolRegistryRepository.findEnabledByGatewayId(
+                    new GatewayIdQuery(gateway.getGatewayId())
+            );
+            for (McpToolRegistry tool : gatewayTools) {
+                Map<String, Object> item = new LinkedHashMap<>();
+                item.put("id", tool.getId());
+                item.put("gatewayId", tool.getGatewayId());
+                item.put("toolName", tool.getToolName());
+                item.put("toolDescription", tool.getToolDescription());
+                tools.add(item);
+            }
+        }
+        return Result.success(tools);
+    }
+
+    @PostMapping("/models/enabled")
+    public Result<List<Map<String, Object>>> enabledModels() {
+        List<ModelConfig> models = modelConfigRepository.findByEnabled(new EnabledQuery(true));
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (ModelConfig model : models) {
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("id", model.getId());
+            item.put("modelName", model.getModelName());
+            item.put("modelType", model.getModelType());
+            result.add(item);
+        }
+        return Result.success(result);
+    }
+
+    @PostMapping("/metrics/overview")
+    public Result<Map<String, Object>> queryGatewayMetrics(@RequestBody GatewayMetricsQueryRequest request) {
+        GatewayObservabilityAppService.GatewayMetricsReport report = gatewayObservabilityAppService.queryMetrics(
+                new GatewayObservabilityAppService.MetricsQuery(
+                        resolveGatewayId(request == null ? null : request.getGatewayId()),
+                        request == null ? null : request.getToolName(),
+                        request == null ? null : request.getRecentMinutes()
+                )
+        );
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("generatedAt", report.generatedAt());
+        data.put("recentMinutes", report.recentMinutes());
+        data.put("toolMetrics", report.toolMetrics());
+        data.put("alerts", report.alerts());
+        return Result.success(data);
+    }
+
+    private void saveMappings(Long toolId,
+                              String gatewayId,
+                              List<MappingNodeRequest> mappings,
+                              String mappingType) {
+        if (CollectionUtils.isEmpty(mappings)) {
+            return;
+        }
+
+        int[] sortOrder = new int[]{0};
+        for (MappingNodeRequest mapping : mappings) {
+            saveMappingNode(toolId, gatewayId, mappingType, mapping, null, sortOrder);
+        }
+    }
+
+    private void saveMappingNode(Long toolId,
+                                 String gatewayId,
+                                 String mappingType,
+                                 MappingNodeRequest mapping,
+                                 Long parentId,
+                                 int[] sortOrder) {
+        if (mapping == null || !StringUtils.hasText(mapping.getFieldName())) {
+            return;
+        }
+        McpToolMapping entity = McpToolMapping.builder()
+                .gatewayId(gatewayId)
+                .toolId(toolId)
+                .mappingType(mappingType)
+                .parentId(parentId == null ? mapping.getParentId() : parentId)
+                .fieldName(mapping.getFieldName())
+                .mcpType(mapping.getMcpType())
+                .mcpDesc(mapping.getMcpDesc())
+                .isRequired(mapping.getIsRequired())
+                .itemType(mapping.getItemType())
+                .itemRefId(mapping.getItemRefId())
+                .httpPath(mapping.getHttpPath())
+                .httpLocation(mapping.getHttpLocation())
+                .sortOrder(mapping.getSortOrder() == null ? sortOrder[0] : mapping.getSortOrder())
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+        McpToolMapping saved = toolMappingRepository.save(entity);
+        sortOrder[0]++;
+
+        if (!CollectionUtils.isEmpty(mapping.getChildren())) {
+            for (MappingNodeRequest child : mapping.getChildren()) {
+                saveMappingNode(toolId, gatewayId, mappingType, child, saved.getId(), sortOrder);
+            }
+        }
+    }
+
+    private String resolveGatewayId(String gatewayId) {
+        if (!StringUtils.hasText(gatewayId)) {
+            return DEFAULT_GATEWAY_ID;
+        }
+        return gatewayId.trim();
+    }
+
+    private McpGateway ensureGatewayExists(String gatewayId) {
+        String resolvedGatewayId = resolveGatewayId(gatewayId);
+        McpGateway existing = gatewayRepository.findByGatewayId(new GatewayIdQuery(resolvedGatewayId)).orElse(null);
+        if (existing != null) {
+            return existing;
+        }
+
+        McpGateway gateway = new McpGateway();
+        gateway.setGatewayId(resolvedGatewayId);
+        gateway.setGatewayName("默认网关");
+        gateway.setGatewayDesc("系统自动创建的默认网关实例");
+        gateway.setGatewayVersion("1.0.0");
+        gateway.setGatewayInstructions("单网关模式默认实例");
+        gateway.setStatus(1);
+        gateway.setCreatedAt(LocalDateTime.now());
+        gateway.setUpdatedAt(LocalDateTime.now());
+        try {
+            return gatewayRepository.save(gateway);
+        } catch (Exception e) {
+            return gatewayRepository.findByGatewayId(new GatewayIdQuery(resolvedGatewayId)).orElse(gateway);
+        }
+    }
+
+    @Data
+    public static class GatewayInstanceRequest {
+
+        private Long id;
+        private String gatewayId;
+        private String gatewayName;
+        private String gatewayDesc;
+        private String gatewayVersion;
+        private String gatewayInstructions;
+        private Integer status;
+    }
+
+    @Data
+    public static class ToolListRequest {
+
+        private String gatewayId;
+        private Integer pageNum;
+        private Integer pageSize;
+    }
+
+    @Data
+    public static class SaveToolRequest {
+
+        private Long id;
+        private String gatewayId;
+        private String toolName;
+        private String toolDescription;
+        private String httpUrl;
+        private String httpMethod;
+        private String httpHeaders;
+        private Integer timeout;
+        private Integer retryTimes;
+        private Integer status;
+        private List<MappingNodeRequest> requestMappings;
+        private List<MappingNodeRequest> responseMappings;
+    }
+
+    @Data
+    public static class MappingNodeRequest {
+
+        private Long parentId;
+        private String fieldName;
+        private String mcpType;
+        private String mcpDesc;
+        private Boolean isRequired;
+        private String itemType;
+        private Long itemRefId;
+        private String httpPath;
+        private String httpLocation;
+        private Integer sortOrder;
+        private List<MappingNodeRequest> children;
+    }
+
+    @Data
+    public static class ToolDebugRequest {
+
+        private String gatewayId;
+        private String toolName;
+        private Map<String, Object> arguments;
+    }
+
+    @Data
+    public static class ModelBindingQueryRequest {
+
+        private Long modelId;
+    }
+
+    @Data
+    public static class SaveModelBindingRequest {
+
+        private Long modelId;
+        private List<Long> toolIds;
+    }
+
+    @Data
+    public static class GatewayMetricsQueryRequest {
+
+        private String gatewayId;
+        private String toolName;
+        private Integer recentMinutes;
+    }
+}

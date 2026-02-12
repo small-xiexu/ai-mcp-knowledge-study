@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.McpToolSchemaMapper">
+
+    <resultMap id="McpToolSchemaMap" type="com.xbk.knowledge.domain.model.entity.gateway.McpToolSchema">
+        <id column="id" property="id"/>
+        <result column="gateway_id" property="gatewayId"/>
+        <result column="tool_id" property="toolId"/>
+        <result column="schema_version" property="schemaVersion"/>
+        <result column="input_schema" property="inputSchema"/>
+        <result column="output_schema" property="outputSchema"/>
+        <result column="schema_hash" property="schemaHash"/>
+        <result column="is_active" property="isActive"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <insert id="insertToolSchema" parameterType="com.xbk.knowledge.domain.model.entity.gateway.McpToolSchema" useGeneratedKeys="true" keyProperty="id">
+        insert into mcp_tool_schema (
+            gateway_id,
+            tool_id,
+            schema_version,
+            input_schema,
+            output_schema,
+            schema_hash,
+            is_active,
+            created_at,
+            updated_at
+        ) values (
+            #{gatewayId},
+            #{toolId},
+            #{schemaVersion},
+            #{inputSchema},
+            #{outputSchema},
+            #{schemaHash},
+            #{isActive},
+            #{createdAt},
+            #{updatedAt}
+        )
+    </insert>
+
+    <update id="updateToolSchema" parameterType="com.xbk.knowledge.domain.model.entity.gateway.McpToolSchema">
+        update mcp_tool_schema
+        set gateway_id = #{gatewayId},
+            tool_id = #{toolId},
+            schema_version = #{schemaVersion},
+            input_schema = #{inputSchema},
+            output_schema = #{outputSchema},
+            schema_hash = #{schemaHash},
+            is_active = #{isActive},
+            updated_at = #{updatedAt}
+        where id = #{id}
+    </update>
+
+    <select id="findActiveByGatewayIdAndToolId" resultMap="McpToolSchemaMap">
+        select
+            id,
+            gateway_id,
+            tool_id,
+            schema_version,
+            input_schema,
+            output_schema,
+            schema_hash,
+            is_active,
+            created_at,
+            updated_at
+        from mcp_tool_schema
+        where gateway_id = #{gatewayId}
+          and tool_id = #{toolId}
+          and is_active = 1
+        order by schema_version desc
+        limit 1
+    </select>
+
+</mapper>

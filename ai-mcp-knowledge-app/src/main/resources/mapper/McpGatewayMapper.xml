@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.McpGatewayMapper">
+
+    <resultMap id="McpGatewayMap" type="com.xbk.knowledge.domain.model.entity.gateway.McpGateway">
+        <id column="id" property="id"/>
+        <result column="gateway_id" property="gatewayId"/>
+        <result column="gateway_name" property="gatewayName"/>
+        <result column="gateway_desc" property="gatewayDesc"/>
+        <result column="gateway_version" property="gatewayVersion"/>
+        <result column="gateway_instructions" property="gatewayInstructions"/>
+        <result column="status" property="status"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <insert id="insertGateway" parameterType="com.xbk.knowledge.domain.model.entity.gateway.McpGateway" useGeneratedKeys="true" keyProperty="id">
+        insert into mcp_gateway (
+            gateway_id,
+            gateway_name,
+            gateway_desc,
+            gateway_version,
+            gateway_instructions,
+            status,
+            created_at,
+            updated_at
+        ) values (
+            #{gatewayId},
+            #{gatewayName},
+            #{gatewayDesc},
+            #{gatewayVersion},
+            #{gatewayInstructions},
+            #{status},
+            #{createdAt},
+            #{updatedAt}
+        )
+    </insert>
+
+    <update id="updateGateway" parameterType="com.xbk.knowledge.domain.model.entity.gateway.McpGateway">
+        update mcp_gateway
+        set gateway_id = #{gatewayId},
+            gateway_name = #{gatewayName},
+            gateway_desc = #{gatewayDesc},
+            gateway_version = #{gatewayVersion},
+            gateway_instructions = #{gatewayInstructions},
+            status = #{status},
+            updated_at = #{updatedAt}
+        where id = #{id}
+    </update>
+
+    <delete id="deleteGatewayById">
+        delete from mcp_gateway
+        where id = #{id}
+    </delete>
+
+    <select id="findById" resultMap="McpGatewayMap">
+        select
+            id,
+            gateway_id,
+            gateway_name,
+            gateway_desc,
+            gateway_version,
+            gateway_instructions,
+            status,
+            created_at,
+            updated_at
+        from mcp_gateway
+        where id = #{id}
+    </select>
+
+    <select id="findByGatewayId" resultMap="McpGatewayMap">
+        select
+            id,
+            gateway_id,
+            gateway_name,
+            gateway_desc,
+            gateway_version,
+            gateway_instructions,
+            status,
+            created_at,
+            updated_at
+        from mcp_gateway
+        where gateway_id = #{gatewayId}
+    </select>
+
+    <select id="findPage" resultMap="McpGatewayMap">
+        select
+            id,
+            gateway_id,
+            gateway_name,
+            gateway_desc,
+            gateway_version,
+            gateway_instructions,
+            status,
+            created_at,
+            updated_at
+        from mcp_gateway
+        order by id desc
+        limit #{pageSize} offset #{offset}
+    </select>
+
+    <select id="findAllEnabled" resultMap="McpGatewayMap">
+        select
+            id,
+            gateway_id,
+            gateway_name,
+            gateway_desc,
+            gateway_version,
+            gateway_instructions,
+            status,
+            created_at,
+            updated_at
+        from mcp_gateway
+        where status = 1
+        order by id desc
+    </select>
+
+    <select id="countAll" resultType="long">
+        select count(1) from mcp_gateway
+    </select>
+
+</mapper>

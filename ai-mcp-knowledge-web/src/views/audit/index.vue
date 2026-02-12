@@ -20,7 +20,7 @@
             <el-option
               v-for="name in tableOptions"
               :key="name"
-              :label="name"
+              :label="formatTableOption(name)"
               :value="name"
             />
           </el-select>
@@ -56,11 +56,11 @@
           label="ID"
           width="80"
         />
-        <el-table-column
-          prop="tableName"
-          label="表名"
-          width="180"
-        />
+        <el-table-column label="表名" width="220">
+          <template #default="{ row }">
+            <span>{{ getTableLabel(row.tableName) }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
           prop="recordId"
           label="记录ID"
@@ -72,7 +72,7 @@
         >
           <template #default="{ row }">
             <el-tag :type="getOperationTagType(row.operation)" effect="dark" style="border: none;">
-              {{ row.operation }}
+              {{ getOperationLabel(row.operation) }}
             </el-tag>
           </template>
         </el-table-column>
@@ -146,7 +146,7 @@
         border
       >
         <el-descriptions-item label="表名">
-          {{ currentLog?.tableName }}
+          {{ getTableLabel(currentLog?.tableName) }}
         </el-descriptions-item>
         <el-descriptions-item label="记录ID">
           {{ currentLog?.recordId }}
@@ -157,7 +157,7 @@
             effect="dark"
             style="border: none;"
           >
-            {{ currentLog?.operation }}
+            {{ getOperationLabel(currentLog?.operation) }}
           </el-tag>
         </el-descriptions-item>
         <el-descriptions-item label="操作人">
@@ -208,6 +208,38 @@ const pagination = reactive({
   total: 0
 })
 
+const tableNameLabelMap: Record<string, string> = {
+  ai_model_config: '模型配置（ai_model_config）',
+  ai_task_type: '任务类型（ai_task_type）',
+  ai_mcp_server_config: 'MCP 服务配置（ai_mcp_server_config）',
+  mcp_gateway: 'Gateway 实例（mcp_gateway）',
+  mcp_tool_registry: 'Gateway 工具（mcp_tool_registry）',
+  mcp_tool_binding: '工具绑定（mcp_tool_binding）',
+  mcp_tool_mapping: '参数映射（mcp_tool_mapping）',
+  mcp_tool_schema: 'Schema 缓存（mcp_tool_schema）',
+  mcp_gateway_auth: '网关鉴权（mcp_gateway_auth）'
+}
+
+const operationLabelMap: Record<string, string> = {
+  INSERT: '新增',
+  UPDATE: '更新',
+  DELETE: '删除',
+  CREATE: '创建',
+  ENABLE: '启用',
+  DISABLE: '禁用',
+  DEBUG: '测试',
+  BIND: '绑定',
+  GATEWAY_INSTANCE_CREATE: '网关实例-创建',
+  GATEWAY_INSTANCE_UPDATE: '网关实例-更新',
+  GATEWAY_INSTANCE_DELETE: '网关实例-删除',
+  GATEWAY_TOOL_CREATE: '网关工具-创建',
+  GATEWAY_TOOL_UPDATE: '网关工具-更新',
+  GATEWAY_TOOL_DELETE: '网关工具-删除',
+  GATEWAY_TOOL_ENABLE: '网关工具-启用',
+  GATEWAY_TOOL_DISABLE: '网关工具-禁用',
+  GATEWAY_MODEL_BINDING_UPDATE: '网关模型绑定-更新'
+}
+
 // 获取审计日志列表
 const fetchData = async () => {
   loading.value = true
@@ -248,6 +280,15 @@ const handleViewDetail = (row: ConfigAudit) => {
 const getOperationTagType = (operation?: string) => {
   if (!operation) return 'info'
   const normalized = operation.toUpperCase()
+  if (normalized.includes('ENABLE')) {
+    return 'success'
+  }
+  if (normalized.includes('DISABLE')) {
+    return 'info'
+  }
+  if (normalized.includes('BIND')) {
+    return 'primary'
+  }
   if (normalized.includes('CREATE') || normalized.includes('INSERT')) {
     return 'success'
   }
@@ -258,6 +299,22 @@ const getOperationTagType = (operation?: string) => {
     return 'danger'
   }
   return 'info'
+}
+
+const getOperationLabel = (operation?: string) => {
+  if (!operation) return '-'
+  const normalized = operation.toUpperCase()
+  return operationLabelMap[normalized] || operation
+}
+
+const getTableLabel = (tableName?: string) => {
+  if (!tableName) return '-'
+  return tableNameLabelMap[tableName] || tableName
+}
+
+const formatTableOption = (tableName?: string) => {
+  if (!tableName) return '-'
+  return getTableLabel(tableName)
 }
 
 const formatJson = (jsonStr?: string) => {

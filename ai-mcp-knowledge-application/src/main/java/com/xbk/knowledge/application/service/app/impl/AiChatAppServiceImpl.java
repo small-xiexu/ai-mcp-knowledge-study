@@ -5,6 +5,7 @@ import com.xbk.knowledge.application.model.dto.AICallResult;
 import com.xbk.knowledge.application.provider.ModelProviderFactory;
 import com.xbk.knowledge.application.service.app.AiChatAppService;
 import com.xbk.knowledge.application.service.app.ModelConfigAppService;
+import com.xbk.knowledge.application.context.GatewayToolBindingContextHolder;
 import com.xbk.knowledge.application.service.mcp.McpToolCatalogService;
 import com.xbk.knowledge.application.service.rag.RagVectorStoreService;
 import com.xbk.knowledge.domain.model.aggregate.call.CallLogAggregate;
@@ -86,6 +87,7 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         Prompt prompt = buildPrompt(command, toolEnabled);
         CallLog callLog = buildCallLog(modelConfig, command);
         String conversationId = resolveConversationId(command);
+        GatewayToolBindingContextHolder.set(modelConfig.getId(), command.getSessionId());
         try {
             ChatClient chatClient = resolveChatClient(modelConfig, toolEnabled);
             ChatResponse response = chatClient.prompt(prompt).call().chatResponse();
@@ -121,6 +123,8 @@ public class AiChatAppServiceImpl implements AiChatAppService {
                     .build();
             callLogRepository.save(aggregate);
             throw e;
+        } finally {
+            GatewayToolBindingContextHolder.clear();
         }
     }
 
@@ -144,33 +148,37 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         UsageStats usageStats = new UsageStats();
         String conversationId = resolveConversationId(command);
         StringBuilder assistantBuffer = new StringBuilder();
-        ChatClient chatClient = resolveChatClient(modelConfig, toolEnabled);
-        return chatClient.prompt(prompt)
-                .stream()
-                .chatResponse()
-                .doOnNext(response -> {
-                    captureUsage(response, usageStats);
-                    appendStreamContent(response, assistantBuffer);
-                })
-                .doOnError(error -> {
-                    long responseTime = System.currentTimeMillis() - startTime;
-                    CallLogAggregate aggregate = CallLogAggregate.builder()
-                            .callLog(fillFailureLog(callLog, error.getMessage(), responseTime))
-                            .build();
-                    callLogRepository.save(aggregate);
-                })
-                .doOnComplete(() -> {
-                    long responseTime = System.currentTimeMillis() - startTime;
-                    Integer tokensUsed = usageStats.getTotalTokens();
-                    /*
-                     * 目的：流式完成后统一落库与记忆追加
-                     */
-                    appendChatMemory(conversationId, command.getContent(), assistantBuffer.toString());
-                    CallLogAggregate aggregate = CallLogAggregate.builder()
-                            .callLog(fillSuccessLog(callLog, null, tokensUsed, responseTime))
-                            .build();
-                    callLogRepository.save(aggregate);
-                });
+        return Flux.defer(() -> {
+            GatewayToolBindingContextHolder.set(modelConfig.getId(), command.getSessionId());
+            ChatClient chatClient = resolveChatClient(modelConfig, toolEnabled);
+            return chatClient.prompt(prompt)
+                    .stream()
+                    .chatResponse()
+                    .doOnNext(response -> {
+                        captureUsage(response, usageStats);
+                        appendStreamContent(response, assistantBuffer);
+                    })
+                    .doOnError(error -> {
+                        long responseTime = System.currentTimeMillis() - startTime;
+                        CallLogAggregate aggregate = CallLogAggregate.builder()
+                                .callLog(fillFailureLog(callLog, error.getMessage(), responseTime))
+                                .build();
+                        callLogRepository.save(aggregate);
+                    })
+                    .doOnComplete(() -> {
+                        long responseTime = System.currentTimeMillis() - startTime;
+                        Integer tokensUsed = usageStats.getTotalTokens();
+                        /*
+                         * 目的：流式完成后统一落库与记忆追加
+                         */
+                        appendChatMemory(conversationId, command.getContent(), assistantBuffer.toString());
+                        CallLogAggregate aggregate = CallLogAggregate.builder()
+                                .callLog(fillSuccessLog(callLog, null, tokensUsed, responseTime))
+                                .build();
+                        callLogRepository.save(aggregate);
+                    })
+                    .doFinally(signalType -> GatewayToolBindingContextHolder.clear());
+        });
     }
 
     /**

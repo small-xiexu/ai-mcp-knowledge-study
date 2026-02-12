@@ -54,6 +54,18 @@ const routes: RouteRecordRaw[] = [
         meta: { title: 'MCP 配置', icon: 'Link' }
       },
       {
+        path: 'gateway-tools',
+        name: 'GatewayTools',
+        component: () => import('@/views/gateway/tools/index.vue'),
+        meta: { title: '网关工具', icon: 'Operation' }
+      },
+      {
+        path: 'gateway-tools/:gatewayId/tools',
+        name: 'GatewayToolList',
+        component: () => import('@/views/gateway/tools/index.vue'),
+        meta: { title: '工具配置', icon: 'Tools', hidden: true }
+      },
+      {
         path: 'audit',
         name: 'Audit',
         component: () => import('@/views/audit/index.vue'),
