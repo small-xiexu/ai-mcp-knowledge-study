@@ -78,13 +78,13 @@ public class ChatMessageRepositoryImpl implements ChatMessageRepository {
 
     /**
      * 删除过期会话的消息
-     *
+     * <p>
      * 为什么：清理历史数据，控制规模
      * 入参：截止时间
      * 出参：删除数量
      */
     @Override
-    public int deleteBySessionUpdatedBefore(LocalDateTime updatedBefore) {
-        return chatMessageMapper.deleteBySessionUpdatedBefore(updatedBefore);
+    public void deleteBySessionUpdatedBefore(LocalDateTime updatedBefore) {
+        chatMessageMapper.deleteBySessionUpdatedBefore(updatedBefore);
     }
 }

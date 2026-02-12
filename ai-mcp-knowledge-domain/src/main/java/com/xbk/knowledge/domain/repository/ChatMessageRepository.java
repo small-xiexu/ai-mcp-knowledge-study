@@ -3,6 +3,7 @@ package com.xbk.knowledge.domain.repository;
 import com.xbk.knowledge.domain.model.entity.ChatMessage;
 import com.xbk.knowledge.domain.model.vo.chat.ChatMessagePageQuery;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -52,10 +53,10 @@ public interface ChatMessageRepository {
 
     /**
      * 删除过期会话的消息
-     *
+     * <p>
      * 为什么：清理历史消息，控制数据规模
      * 入参：截止时间
      * 出参：删除行数
      */
-    int deleteBySessionUpdatedBefore(java.time.LocalDateTime updatedBefore);
+    void deleteBySessionUpdatedBefore(LocalDateTime updatedBefore);
 }

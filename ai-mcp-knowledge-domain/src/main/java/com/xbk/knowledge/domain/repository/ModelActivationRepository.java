@@ -21,10 +21,10 @@ public interface ModelActivationRepository {
 
     /**
      * 保存或更新激活配置
-     *
+     * <p>
      * 为什么：激活配置可能已存在，需要覆盖更新
      * 入参：激活配置
      * 出参：保存后的激活配置
      */
-    ModelActivation saveOrUpdate(ModelActivation activation);
+    void saveOrUpdate(ModelActivation activation);
 }

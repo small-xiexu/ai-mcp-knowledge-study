@@ -34,13 +34,13 @@ public class ModelActivationRepositoryImpl implements ModelActivationRepository 
 
     /**
      * 保存或更新激活配置
-     *
+     * <p>
      * 为什么：激活配置可能不存在，需要支持新增与更新
      * 入参：激活配置
      * 出参：保存后的激活配置
      */
     @Override
-    public ModelActivation saveOrUpdate(ModelActivation activation) {
+    public void saveOrUpdate(ModelActivation activation) {
         ModelActivation existing = modelActivationMapper.findActivation();
         LocalDateTime now = LocalDateTime.now();
         if (existing == null) {
@@ -50,7 +50,7 @@ public class ModelActivationRepositoryImpl implements ModelActivationRepository 
             activation.setCreatedAt(now);
             activation.setUpdatedAt(now);
             modelActivationMapper.insertActivation(activation);
-            return activation;
+            return;
         }
         /*
          * 目的：沿用原 ID 与创建时间，仅更新更新时间
@@ -59,6 +59,5 @@ public class ModelActivationRepositoryImpl implements ModelActivationRepository 
         activation.setCreatedAt(existing.getCreatedAt());
         activation.setUpdatedAt(now);
         modelActivationMapper.updateActivation(activation);
-        return activation;
     }
 }
