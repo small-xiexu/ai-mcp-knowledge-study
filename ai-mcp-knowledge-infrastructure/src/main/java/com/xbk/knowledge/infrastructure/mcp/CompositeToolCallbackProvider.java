@@ -15,7 +15,10 @@ import java.util.Set;
 
 /**
  * 组合工具回调提供者
- * 合并 Dynamic MCP 工具与 Gateway HTTP 工具
+ * 合并 Dynamic MCP 工具与 Gateway HTTP 工具，作为 Spring AI 的 Primary ToolCallbackProvider
+ *
+ * 为什么需要组合：系统同时存在两种工具来源——MCP Server 动态注册的工具和 Gateway HTTP 配置的工具，
+ * 需要统一合并后提供给 ChatClient，同时处理工具名称去重
  *
  * @author xiexu
  */
@@ -28,6 +31,9 @@ public class CompositeToolCallbackProvider implements ToolCallbackProvider {
     private final DynamicMcpToolCallbackProvider dynamicProvider;
     private final GatewayToolCallbackProvider gatewayProvider;
 
+    /**
+     * 合并两个来源的工具回调，按工具名称去重（先注册的优先）
+     */
     @Override
     public ToolCallback[] getToolCallbacks() {
         List<ToolCallback> merged = new ArrayList<>();
@@ -39,6 +45,7 @@ public class CompositeToolCallbackProvider implements ToolCallbackProvider {
         return merged.toArray(new ToolCallback[0]);
     }
 
+    /** 将回调数组追加到合并列表，跳过空值和重名工具 */
     private void appendCallbacks(List<ToolCallback> merged,
                                  Set<String> names,
                                  ToolCallback[] callbacks) {

@@ -79,20 +79,4 @@
         order by id desc
     </select>
 
-    <select id="findEnabledByGatewayId" resultMap="McpGatewayAuthMap">
-        select
-            id,
-            gateway_id,
-            api_key,
-            rate_limit,
-            expire_time,
-            status,
-            created_at,
-            updated_at
-        from mcp_gateway_auth
-        where gateway_id = #{gatewayId}
-          and status = 1
-        order by id desc
-    </select>
-
 </mapper>

@@ -13,7 +13,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * initialize 处理器
+ * MCP 协议 initialize 握手处理器
+ *
+ * 职责：处理客户端发起的 initialize 请求，返回服务端能力声明（capabilities）、
+ * 协议版本、服务器信息和使用说明
  *
  * @author xiexu
  */

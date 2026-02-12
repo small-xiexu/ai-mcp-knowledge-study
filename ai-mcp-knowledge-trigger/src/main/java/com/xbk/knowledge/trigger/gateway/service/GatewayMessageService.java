@@ -13,15 +13,27 @@ import java.util.Map;
 /**
  * Gateway 消息路由服务
  *
+ * 职责：接收 JSON-RPC 消息，根据 method 字段分发到对应的 Handler 处理
+ * 支持的消息类型：Request（需要响应）、Notification（仅记录）、Response（忽略）
+ *
  * @author xiexu
  */
 @Slf4j
 @Service
 public class GatewayMessageService {
 
+    /** Handler 注册表，key 为 Bean 名称，由 Spring 自动注入 */
     @Resource
     private Map<String, IRequestHandler> requestHandlerMap;
 
+    /**
+     * 处理 JSON-RPC 消息
+     * Response 类型直接忽略，Notification 仅记录日志，Request 路由到对应 Handler
+     *
+     * @param gatewayId 网关业务标识
+     * @param message   反序列化后的 JSON-RPC 消息
+     * @return JSON-RPC 响应（Notification 返回 null）
+     */
     public McpSchemaVO.JSONRPCResponse process(String gatewayId, McpSchemaVO.JSONRPCMessage message) {
         if (message instanceof McpSchemaVO.JSONRPCResponse) {
             return null;

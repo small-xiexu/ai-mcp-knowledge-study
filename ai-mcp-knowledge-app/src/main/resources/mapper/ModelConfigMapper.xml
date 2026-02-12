@@ -140,23 +140,6 @@
         where model_name = #{modelName}
     </select>
 
-    <select id="findByModelTypeAndEnabled" resultMap="ModelConfigMap">
-        select
-            id,
-            model_name,
-            model_type,
-            api_key,
-            base_url,
-            enabled,
-            tool_enabled,
-            priority,
-            created_at,
-            updated_at
-        from ai_model_config
-        where model_type = #{modelType}
-          and enabled = #{enabled}
-    </select>
-
     <select id="findByEnabled" resultMap="ModelConfigMap">
         select
             id,

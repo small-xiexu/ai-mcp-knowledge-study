@@ -8,7 +8,6 @@ import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
 import com.xbk.knowledge.domain.model.vo.common.IdQuery;
 import com.xbk.knowledge.domain.model.vo.model.ModelConfigPageQuery;
 import com.xbk.knowledge.domain.model.vo.model.ModelNameQuery;
-import com.xbk.knowledge.domain.model.vo.model.ModelTypeEnabledQuery;
 import com.xbk.knowledge.domain.repository.ModelConfigRepository;
 import com.xbk.knowledge.infrastructure.mapper.ModelCapabilityMapper;
 import com.xbk.knowledge.infrastructure.mapper.ModelConfigMapper;
@@ -33,22 +32,6 @@ public class ModelConfigRepositoryImpl implements ModelConfigRepository {
 
     private final ModelConfigMapper modelConfigMapper;
     private final ModelCapabilityMapper modelCapabilityMapper;
-
-    /**
-     * 按模型类型与启用状态查询
-     * 用于按维度过滤模型配置
-     *
-     * 为什么：提供模型维度过滤能力
-     * 入参：模型类型与启用状态查询条件
-     * 出参：模型配置列表
-     */
-    @Override
-    public List<ModelConfig> findByModelTypeAndEnabled(ModelTypeEnabledQuery query) {
-        if (query == null) {
-            return Collections.emptyList();
-        }
-        return modelConfigMapper.findByModelTypeAndEnabled(query);
-    }
 
     /**
      * 按启用状态查询并按优先级排序

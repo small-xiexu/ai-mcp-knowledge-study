@@ -15,15 +15,18 @@ import java.util.List;
 @Mapper
 public interface McpGatewayAuthMapper extends BaseMapper<McpGatewayAuth> {
 
+    /** 新增鉴权记录 */
     int insertGatewayAuth(McpGatewayAuth auth);
 
+    /** 更新鉴权记录 */
     int updateGatewayAuth(McpGatewayAuth auth);
 
+    /** 按主键删除鉴权记录 */
     int deleteGatewayAuthById(Long id);
 
+    /** 按 API Key 精确查询鉴权记录 */
     McpGatewayAuth findByApiKey(String apiKey);
 
+    /** 按 gatewayId 查询该网关下所有鉴权记录 */
     List<McpGatewayAuth> findByGatewayId(GatewayIdQuery query);
-
-    List<McpGatewayAuth> findEnabledByGatewayId(GatewayIdQuery query);
 }

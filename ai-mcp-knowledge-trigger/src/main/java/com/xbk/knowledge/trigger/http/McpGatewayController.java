@@ -26,6 +26,9 @@ import reactor.core.publisher.Mono;
 /**
  * Gateway MCP 对外接口
  *
+ * 职责：暴露 MCP 协议的 SSE 连接端点和消息处理端点，
+ * 供外部 MCP 客户端（如 Claude Desktop、Cursor 等）接入
+ *
  * @author xiexu
  */
 @Slf4j
@@ -38,6 +41,11 @@ public class McpGatewayController {
     private final GatewaySessionService gatewaySessionService;
     private final GatewayMessageService gatewayMessageService;
 
+    /**
+     * 建立 SSE 连接
+     * MCP 客户端通过此端点建立长连接，接收 endpoint 事件和心跳
+     * API Key 支持 Header（X-API-Key）和 Query 参数两种传递方式
+     */
     @GetMapping(value = "/{gatewayId}/mcp/sse", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ServerSentEvent<String>> establishSseConnection(@PathVariable("gatewayId") String gatewayId,
                                                                  @RequestHeader(value = "X-API-Key", required = false) String apiKey,
@@ -46,6 +54,11 @@ public class McpGatewayController {
         return gatewaySessionService.establishSseConnection(gatewayId, mergedApiKey);
     }
 
+    /**
+     * 处理 JSON-RPC 消息
+     * MCP 客户端通过此端点发送 initialize/tools/list/tools/call 等请求，
+     * 响应同时通过 SSE 通道推送给客户端
+     */
     @PostMapping(value = "/{gatewayId}/mcp/message", consumes = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<Object>> handleMessage(@PathVariable("gatewayId") String gatewayId,
                                                       @RequestParam("sessionId") String sessionId,

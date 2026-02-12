@@ -51,6 +51,11 @@ import java.util.UUID;
 /**
  * Gateway 工具域服务实现
  *
+ * 职责：实现 Gateway 工具的核心业务逻辑，包括：
+ * 1. 工具清单查询（listTools）：加载已启用工具并生成 JSON Schema
+ * 2. 工具调用执行（callTool）：参数映射 → HTTP 请求 → 响应提取 → 指标记录
+ * 3. 协议初始化（initialize）：返回网关能力声明
+ *
  * @author xiexu
  */
 @Slf4j
@@ -59,8 +64,11 @@ import java.util.UUID;
 public class GatewayToolServiceImpl implements GatewayToolService {
 
     private static final String CALL_ID_MDC_KEY = "gatewayToolCallId";
+    /** MCP 协议版本号 */
     private static final String PROTOCOL_VERSION = "2024-11-05";
+    /** 参数映射类型：请求方向 */
     private static final String REQUEST_MAPPING_TYPE = "request";
+    /** 参数映射类型：响应方向 */
     private static final String RESPONSE_MAPPING_TYPE = "response";
     private static final int DEFAULT_TIMEOUT_MS = 30000;
     private static final int DEFAULT_RETRY_TIMES = 0;
@@ -74,6 +82,10 @@ public class GatewayToolServiceImpl implements GatewayToolService {
 
     private final WebClient webClient = WebClient.builder().build();
 
+    /**
+     * 查询网关下所有已启用工具的定义列表
+     * 每个工具包含 name、description 和根据参数映射生成的 inputSchema
+     */
     @Override
     public List<ToolDefinition> listTools(String gatewayId) {
         McpGateway gateway = requireEnabledGateway(gatewayId);
@@ -97,6 +109,10 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         return definitions;
     }
 
+    /**
+     * 执行工具调用
+     * 流程：校验工具 → 加载参数映射 → 构建 HTTP 请求 → 带重试执行 → 提取响应 → 记录指标
+     */
     @Override
     public ToolCallResult callTool(String gatewayId, String toolName, Map<String, Object> arguments) {
         long startAt = System.nanoTime();
@@ -143,6 +159,7 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         }
     }
 
+    /** 处理 MCP initialize 握手，返回网关能力声明 */
     @Override
     public GatewayCapability initialize(String gatewayId) {
         McpGateway gateway = requireEnabledGateway(gatewayId);
@@ -152,6 +169,7 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         return new GatewayCapability(PROTOCOL_VERSION, serverName, serverVersion, instructions);
     }
 
+    /** 校验网关存在且已启用，否则抛出 BusinessException */
     private McpGateway requireEnabledGateway(String gatewayId) {
         if (!StringUtils.hasText(gatewayId)) {
             throw new BusinessException("gatewayId 不能为空");
@@ -167,6 +185,10 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         return gateway;
     }
 
+    /**
+     * 解析工具的 inputSchema
+     * 优先从 Schema 缓存中读取（通过 hash 比对判断是否过期），缓存未命中时重新生成并持久化
+     */
     private Map<String, Object> resolveInputSchema(String gatewayId,
                                                    McpToolRegistry tool,
                                                    List<McpToolMapping> mappings) {
@@ -189,6 +211,7 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         return schema;
     }
 
+    /** 持久化 inputSchema 缓存（新增或更新版本号） */
     private void saveInputSchemaCache(String gatewayId,
                                       Long toolId,
                                       String mappingHash,
@@ -211,6 +234,7 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         toolSchemaRepository.save(schemaEntity);
     }
 
+    /** 根据参数映射树形结构生成 JSON Schema（支持嵌套 object/array） */
     private Map<String, Object> buildInputSchema(List<McpToolMapping> mappings) {
         if (mappings == null || mappings.isEmpty()) {
             return buildObjectSchema(Collections.emptyMap(), Collections.emptyList());
@@ -338,6 +362,10 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         return items;
     }
 
+    /**
+     * 构建 HTTP 调用载荷
+     * 根据参数映射规则将 MCP arguments 分发到 header/query/path/body 各位置
+     */
     private HttpInvokePayload buildInvokePayload(McpToolRegistry tool,
                                                  List<McpToolMapping> requestMappings,
                                                  Map<String, Object> arguments) {
@@ -383,6 +411,7 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         return payload;
     }
 
+    /** 将参数值写入 HTTP 载荷的指定位置（header/query/path/body） */
     private void applyValueToPayload(HttpInvokePayload payload,
                                      String httpLocation,
                                      String httpPath,
@@ -406,6 +435,7 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         setPathValue(payload.body, httpPath, value);
     }
 
+    /** 带重试的 HTTP 调用执行 */
     private String executeWithRetry(HttpInvokePayload payload, Integer retryTimes, Integer timeout) {
         int attempts = normalizeRetryTimes(retryTimes) + 1;
         int timeoutMs = normalizeTimeout(timeout);
@@ -424,6 +454,7 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         throw new IllegalStateException("HTTP 工具调用失败", lastException);
     }
 
+    /** 执行单次 HTTP 请求（WebClient 同步阻塞） */
     private String executeOnce(HttpInvokePayload payload, int timeoutMs) {
         String finalUrl = buildFinalUrl(payload.url, payload.query);
         WebClient.RequestBodySpec request = webClient
@@ -455,6 +486,7 @@ public class GatewayToolServiceImpl implements GatewayToolService {
                 .block();
     }
 
+    /** 根据响应映射规则从原始响应中提取指定字段 */
     private String extractResponse(String rawResponse,
                                    List<McpToolMapping> responseMappings) {
         if (responseMappings == null || responseMappings.isEmpty()) {
@@ -497,6 +529,7 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         return toJson(extracted);
     }
 
+    /** 按路径表达式从 JSON 树中提取值（支持嵌套路径和数组下标 [n]/[*]） */
     private Object extractByPathExpression(JsonNode root, String expression) {
         if (root == null || !StringUtils.hasText(expression)) {
             return null;
@@ -558,6 +591,7 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         return values;
     }
 
+    /** 将路径表达式按 '.' 分割为 token 列表（方括号内的 '.' 不分割） */
     private List<String> splitPathTokens(String expression) {
         List<String> tokens = new ArrayList<>();
         StringBuilder current = new StringBuilder();
@@ -603,6 +637,7 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         return objectMapper.convertValue(node, Object.class);
     }
 
+    /** 计算参数映射列表的 SHA-256 哈希值（用于 Schema 缓存失效判断） */
     private String computeMappingHash(List<McpToolMapping> mappings) {
         if (mappings == null || mappings.isEmpty()) {
             return sha256("EMPTY");
@@ -643,6 +678,7 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         }
     }
 
+    /** 从映射节点向上遍历父节点，拼接完整的源路径（用于从 arguments 中读取值） */
     private String resolveSourcePath(McpToolMapping mapping, Map<Long, McpToolMapping> nodeMap) {
         List<String> names = new ArrayList<>();
         McpToolMapping current = mapping;
@@ -669,6 +705,7 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         return path;
     }
 
+    /** 按路径从 Map 中读取嵌套值（支持 '.' 分隔和数组下标） */
     private Object readValueByPath(Map<String, Object> source, String path) {
         if (source == null) {
             return null;
@@ -717,6 +754,7 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         return current;
     }
 
+    /** 按路径向 Map 中写入嵌套值（自动创建中间层 Map） */
     @SuppressWarnings("unchecked")
     private void setPathValue(Map<String, Object> target, String path, Object value) {
         if (!StringUtils.hasText(path)) {
@@ -744,6 +782,7 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         }
     }
 
+    /** 替换 URL 中的路径变量（支持 {key} 和 :key 两种风格） */
     private String replacePathVariable(String url, String key, Object value) {
         if (!StringUtils.hasText(url) || !StringUtils.hasText(key) || value == null) {
             return url;
@@ -753,6 +792,7 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         return replaced.replace(":" + key, encoded);
     }
 
+    /** 将 query 参数拼接到 URL 上 */
     private String buildFinalUrl(String url, Map<String, Object> query) {
         if (query == null || query.isEmpty()) {
             return url;
@@ -785,6 +825,7 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         }
     }
 
+    /** 解析工具配置中的 JSON 格式请求头 */
     private Map<String, String> parseHeaders(String headersJson) {
         if (!StringUtils.hasText(headersJson)) {
             return new LinkedHashMap<>();
@@ -929,6 +970,7 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         return new ToolCallResult(false, content, errorCode);
     }
 
+    /** 记录工具调用指标到可观测性服务 */
     private void recordMetrics(String gatewayId,
                                String toolName,
                                boolean success,
@@ -948,6 +990,7 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         );
     }
 
+    /** 根据异常信息分类错误码（超时 vs 通用失败） */
     private String classifyErrorCode(Exception e) {
         if (e == null || !StringUtils.hasText(e.getMessage())) {
             return "TOOL_EXEC_FAILED";
@@ -967,6 +1010,7 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         return UUID.randomUUID().toString().replace("-", "");
     }
 
+    /** HTTP 调用载荷，封装 URL、方法、请求头、查询参数和请求体 */
     private static class HttpInvokePayload {
         private String url;
         private HttpMethod method;

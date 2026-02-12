@@ -37,9 +37,4 @@ public interface McpToolBindingRepository {
      * 删除指定工具的所有绑定
      */
     void deleteByToolId(Long toolId);
-
-    /**
-     * 批量保存绑定关系
-     */
-    void saveAll(List<McpToolBinding> bindings);
 }

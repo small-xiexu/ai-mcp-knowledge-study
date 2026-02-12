@@ -7,7 +7,6 @@ import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
 import com.xbk.knowledge.domain.model.vo.common.IdQuery;
 import com.xbk.knowledge.domain.model.vo.model.ModelConfigPageQuery;
 import com.xbk.knowledge.domain.model.vo.model.ModelNameQuery;
-import com.xbk.knowledge.domain.model.vo.model.ModelTypeEnabledQuery;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -75,15 +74,6 @@ public interface ModelConfigMapper extends BaseMapper<ModelConfig> {
      * 出参：模型配置
      */
     ModelConfig findByModelName(ModelNameQuery query);
-
-    /**
-     * 根据模型类型和启用状态查询模型配置
-     *
-     * 为什么：按类型与状态筛选
-     * 入参：模型类型与启用状态查询条件
-     * 出参：模型配置列表
-     */
-    List<ModelConfig> findByModelTypeAndEnabled(ModelTypeEnabledQuery query);
 
     /**
      * 根据启用状态查询模型配置

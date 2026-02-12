@@ -7,7 +7,6 @@ import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
 import com.xbk.knowledge.domain.model.vo.common.IdQuery;
 import com.xbk.knowledge.domain.model.vo.model.ModelConfigPageQuery;
 import com.xbk.knowledge.domain.model.vo.model.ModelNameQuery;
-import com.xbk.knowledge.domain.model.vo.model.ModelTypeEnabledQuery;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,15 +18,6 @@ import java.util.Optional;
  * @author xiexu
  */
 public interface ModelConfigRepository {
-
-    /**
-     * 根据模型类型查询启用的模型配置
-     *
-     * 为什么：按模型类型筛选可用配置
-     * 入参：模型类型与启用状态查询条件
-     * 出参：模型配置列表
-     */
-    List<ModelConfig> findByModelTypeAndEnabled(ModelTypeEnabledQuery query);
 
     /**
      * 查询启用模型配置并按优先级降序排序

@@ -34,6 +34,12 @@ import java.util.UUID;
 /**
  * Gateway ToolCallback 提供者
  *
+ * 职责：将 Gateway 配置的 HTTP 工具转换为 Spring AI 的 ToolCallback，
+ * 注入到 AI 模型调用链路中。支持工具绑定过滤（按模型/会话维度控制工具可见性）
+ *
+ * 为什么需要：Gateway 工具以 HTTP 配置形式存储在数据库中，需要适配为 Spring AI
+ * 的 FunctionToolCallback 才能被 ChatClient 识别和调用
+ *
  * @author xiexu
  */
 @Slf4j
@@ -51,6 +57,10 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
     private final GatewayToolService gatewayToolService;
     private final ObjectMapper objectMapper;
 
+    /**
+     * 获取所有可用的 Gateway 工具回调
+     * 流程：加载已启用网关 → 获取工具定义 → 应用绑定过滤 → 去重 → 构建 FunctionToolCallback
+     */
     @Override
     public ToolCallback[] getToolCallbacks() {
         List<McpGateway> enabledGateways = gatewayRepository.findAllEnabled();
@@ -107,6 +117,7 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
         return callbacks.toArray(new ToolCallback[0]);
     }
 
+    /** 批量加载所有网关的工具定义，返回 gatewayId → (toolName → ToolDefinition) 映射 */
     private Map<String, Map<String, GatewayToolService.ToolDefinition>> loadToolDefinitions(List<McpGateway> gateways) {
         Map<String, Map<String, GatewayToolService.ToolDefinition>> result = new HashMap<>();
         for (McpGateway gateway : gateways) {
@@ -130,6 +141,7 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
         return result;
     }
 
+    /** 根据 ThreadLocal 中的绑定上下文过滤工具候选列表（无上下文时不过滤） */
     private List<ToolCandidate> applyBindingFilter(List<ToolCandidate> candidates) {
         GatewayToolBindingContextHolder.BindingContext context = GatewayToolBindingContextHolder.get();
         if (context == null) {
@@ -174,6 +186,7 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
         return filtered;
     }
 
+    /** 从绑定列表中收集已启用的工具 ID */
     private void appendEnabledToolIds(Set<Long> collector, List<McpToolBinding> bindings) {
         for (McpToolBinding binding : bindings) {
             if (binding == null || binding.getToolId() == null) {
@@ -186,6 +199,7 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
         }
     }
 
+    /** 将工具注册信息和定义组装为候选对象 */
     private ToolCandidate buildToolCandidate(String gatewayId,
                                              McpToolRegistry registry,
                                              GatewayToolService.ToolDefinition definition) {
@@ -205,6 +219,7 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
         return new ToolCandidate(registry.getId(), gatewayId, registry.getToolName(), description, inputSchema);
     }
 
+    /** 将候选对象构建为 FunctionToolCallback，内部封装工具调用逻辑和链路追踪 */
     private ToolCallback buildToolCallback(ToolCandidate candidate) {
         String inputSchema = candidate.inputSchema;
         if (!StringUtils.hasText(inputSchema)) {
@@ -277,6 +292,7 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
                 .build();
     }
 
+    /** 工具候选对象，承载构建 ToolCallback 所需的中间数据 */
     private static class ToolCandidate {
 
         private final Long toolId;

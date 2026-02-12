@@ -16,13 +16,18 @@ import java.util.List;
 @Mapper
 public interface McpToolMappingMapper extends BaseMapper<McpToolMapping> {
 
+    /** 新增参数映射记录 */
     int insertToolMapping(McpToolMapping mapping);
 
+    /** 更新参数映射记录 */
     int updateToolMapping(McpToolMapping mapping);
 
+    /** 按主键删除参数映射记录 */
     int deleteToolMappingById(IdQuery query);
 
+    /** 按工具 ID 批量删除参数映射（级联删除场景） */
     int deleteToolMappingByToolId(Long toolId);
 
+    /** 按工具 ID + 映射类型（request/response）查询参数映射列表 */
     List<McpToolMapping> findByToolIdAndMappingType(ToolMappingQuery query);
 }

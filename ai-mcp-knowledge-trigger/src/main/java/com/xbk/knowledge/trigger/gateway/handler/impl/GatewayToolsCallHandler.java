@@ -12,7 +12,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * tools/call 处理器
+ * MCP 协议 tools/call 处理器
+ *
+ * 职责：处理客户端的工具调用请求，解析 name 和 arguments 参数，
+ * 委托 GatewayToolService 执行实际的 HTTP 工具调用，将结果封装为 MCP 协议响应
  *
  * @author xiexu
  */
@@ -68,6 +71,7 @@ public class GatewayToolsCallHandler implements IRequestHandler {
         return new McpSchemaVO.JSONRPCResponse(McpSchemaVO.JSONRPC_VERSION, requestId, result, null);
     }
 
+    /** 构造参数校验失败的 JSON-RPC 错误响应（错误码 -32602） */
     private McpSchemaVO.JSONRPCResponse invalidParams(Object requestId, String message) {
         return new McpSchemaVO.JSONRPCResponse(
                 McpSchemaVO.JSONRPC_VERSION,

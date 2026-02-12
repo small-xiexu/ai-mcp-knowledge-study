@@ -14,7 +14,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * tools/list 处理器
+ * MCP 协议 tools/list 处理器
+ *
+ * 职责：处理客户端的工具清单查询请求，从 GatewayToolService 获取已启用的工具定义列表，
+ * 转换为 MCP 协议规定的 tools 数组格式返回
  *
  * @author xiexu
  */

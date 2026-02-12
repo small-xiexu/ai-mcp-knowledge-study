@@ -65,14 +65,4 @@ public class McpToolBindingRepositoryImpl implements McpToolBindingRepository {
         }
         mapper.deleteToolBindingByToolId(toolId);
     }
-
-    @Override
-    public void saveAll(List<McpToolBinding> bindings) {
-        if (bindings == null || bindings.isEmpty()) {
-            return;
-        }
-        for (McpToolBinding binding : bindings) {
-            save(binding);
-        }
-    }
 }

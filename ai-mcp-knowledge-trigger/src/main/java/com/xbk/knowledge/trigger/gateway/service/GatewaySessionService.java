@@ -28,6 +28,9 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Gateway 会话服务
  *
+ * 职责：管理 MCP SSE 连接的完整生命周期，包括建立连接、API Key 鉴权、
+ * 速率限制、心跳保活、消息回推、会话过期清理
+ *
  * @author xiexu
  */
 @Slf4j
@@ -35,15 +38,26 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 public class GatewaySessionService {
 
+    /** 会话超时时间（分钟），超过此时间未活跃的会话将被清理 */
     private static final long SESSION_TIMEOUT_MINUTES = 30;
 
     private final McpGatewayRepository gatewayRepository;
     private final McpGatewayAuthRepository gatewayAuthRepository;
     private final ObjectMapper objectMapper;
 
+    /** sessionId → 会话状态，内存维护所有活跃会话 */
     private final Map<String, SessionConfigVO> sessions = new ConcurrentHashMap<>();
+    /** gatewayId:apiKey → 速率窗口，用于 API Key 调用频率限制 */
     private final Map<String, RateWindow> rateWindows = new ConcurrentHashMap<>();
 
+    /**
+     * 建立 SSE 连接
+     * 流程：校验网关 → 校验 API Key → 生成 sessionId → 推送 endpoint 事件 → 启动心跳
+     *
+     * @param gatewayId 网关业务标识
+     * @param apiKey    客户端传入的 API Key（可选，取决于网关是否配置鉴权）
+     * @return SSE 事件流
+     */
     public Flux<ServerSentEvent<String>> establishSseConnection(String gatewayId, String apiKey) {
         validateGateway(gatewayId);
         validateApiKey(gatewayId, apiKey);
@@ -64,6 +78,7 @@ public class GatewaySessionService {
                 .doOnTerminate(() -> removeSession(sessionId));
     }
 
+    /** 按 sessionId 获取活跃会话，同时刷新最后访问时间 */
     public SessionConfigVO getSession(String sessionId) {
         if (!StringUtils.hasText(sessionId)) {
             return null;
@@ -76,6 +91,7 @@ public class GatewaySessionService {
         return session;
     }
 
+    /** 移除会话并关闭对应的 SSE sink */
     public void removeSession(String sessionId) {
         SessionConfigVO session = sessions.remove(sessionId);
         if (session == null) {
@@ -89,6 +105,7 @@ public class GatewaySessionService {
         }
     }
 
+    /** 将 JSON-RPC 响应通过 SSE 推送给客户端 */
     public void publishResponse(String sessionId, McpSchemaVO.JSONRPCResponse rpcResponse) {
         if (rpcResponse == null || !StringUtils.hasText(sessionId)) {
             return;
@@ -105,6 +122,7 @@ public class GatewaySessionService {
         }
     }
 
+    /** 清理超时的过期会话（可由定时任务调用） */
     public void cleanupExpiredSessions() {
         for (Map.Entry<String, SessionConfigVO> entry : sessions.entrySet()) {
             SessionConfigVO session = entry.getValue();
@@ -114,6 +132,7 @@ public class GatewaySessionService {
         }
     }
 
+    /** 应用关闭时清理所有会话 */
     @PreDestroy
     public void shutdown() {
         for (String sessionId : sessions.keySet()) {
@@ -121,6 +140,7 @@ public class GatewaySessionService {
         }
     }
 
+    /** 校验网关是否存在且已启用 */
     private void validateGateway(String gatewayId) {
         if (!StringUtils.hasText(gatewayId)) {
             throw new BusinessException("gatewayId 不能为空");
@@ -134,6 +154,7 @@ public class GatewaySessionService {
         }
     }
 
+    /** 校验 API Key 有效性（存在性、过期、速率限制） */
     private void validateApiKey(String gatewayId, String apiKey) {
         List<McpGatewayAuth> authList = gatewayAuthRepository.findByGatewayId(new GatewayIdQuery(gatewayId));
         if (authList == null || authList.isEmpty()) {
@@ -172,6 +193,7 @@ public class GatewaySessionService {
         throw new BusinessException("API Key 无效");
     }
 
+    /** 基于滑动分钟窗口的速率限制检查 */
     private void checkRateLimit(String gatewayId, String apiKey, Integer rateLimit) {
         if (rateLimit == null || rateLimit <= 0) {
             return;
@@ -191,6 +213,7 @@ public class GatewaySessionService {
         }
     }
 
+    /** 速率限制滑动窗口，按分钟粒度计数 */
     private static class RateWindow {
 
         private final long windowMinute;
