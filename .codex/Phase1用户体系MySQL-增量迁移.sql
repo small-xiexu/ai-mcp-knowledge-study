@@ -1,0 +1,236 @@
+-- =====================================================
+-- Phase 1 用户体系 MySQL 增量迁移脚本（基于现有库）
+-- 目标：
+-- 1) 新增用户中心相关表
+-- 2) 在现有业务表预埋 tenant_id / operator_id / request_id
+-- 3) 保持可重复执行（幂等）
+-- =====================================================
+
+SET NAMES utf8mb4;
+USE ai_model_orchestration;
+
+-- =====================================================
+-- A. 用户中心核心表（若不存在则创建）
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS sys_user (
+    id               BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+    tenant_id        VARCHAR(64) NOT NULL DEFAULT 'default' COMMENT '租户ID',
+    username         VARCHAR(64) NOT NULL COMMENT '登录用户名',
+    display_name     VARCHAR(128) NOT NULL COMMENT '显示名称',
+    email            VARCHAR(128) DEFAULT NULL COMMENT '邮箱',
+    mobile           VARCHAR(32) DEFAULT NULL COMMENT '手机号',
+    password_hash    VARCHAR(255) NOT NULL COMMENT '密码哈希',
+    password_salt    VARCHAR(64) DEFAULT NULL COMMENT '密码盐（可选）',
+    status           TINYINT NOT NULL DEFAULT 1 COMMENT '状态：1启用 0禁用 2锁定',
+    is_super_admin   TINYINT NOT NULL DEFAULT 0 COMMENT '是否平台超管：1是 0否',
+    last_login_at    DATETIME DEFAULT NULL COMMENT '最后登录时间',
+    last_login_ip    VARCHAR(64) DEFAULT NULL COMMENT '最后登录IP',
+    remark           VARCHAR(500) DEFAULT NULL COMMENT '备注',
+    created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    UNIQUE KEY uk_sys_user_tenant_username (tenant_id, username),
+    KEY idx_sys_user_tenant_status (tenant_id, status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统用户表';
+
+CREATE TABLE IF NOT EXISTS sys_role (
+    id               BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+    tenant_id        VARCHAR(64) NOT NULL DEFAULT 'default' COMMENT '租户ID',
+    role_code        VARCHAR(64) NOT NULL COMMENT '角色编码',
+    role_name        VARCHAR(128) NOT NULL COMMENT '角色名称',
+    role_scope       VARCHAR(32) NOT NULL DEFAULT 'TENANT' COMMENT '角色范围：PLATFORM/TENANT/PROJECT',
+    status           TINYINT NOT NULL DEFAULT 1 COMMENT '状态：1启用 0禁用',
+    remark           VARCHAR(500) DEFAULT NULL COMMENT '备注',
+    created_by       BIGINT DEFAULT NULL COMMENT '创建人ID',
+    created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    UNIQUE KEY uk_sys_role_tenant_code (tenant_id, role_code),
+    KEY idx_sys_role_tenant_status (tenant_id, status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统角色表';
+
+CREATE TABLE IF NOT EXISTS sys_permission (
+    id               BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+    permission_code  VARCHAR(128) NOT NULL COMMENT '权限编码',
+    permission_name  VARCHAR(128) NOT NULL COMMENT '权限名称',
+    resource_type    VARCHAR(64) NOT NULL COMMENT '资源类型',
+    action           VARCHAR(64) NOT NULL COMMENT '动作',
+    http_method      VARCHAR(16) DEFAULT NULL COMMENT 'HTTP 方法',
+    http_path        VARCHAR(255) DEFAULT NULL COMMENT 'HTTP 路径',
+    status           TINYINT NOT NULL DEFAULT 1 COMMENT '状态：1启用 0禁用',
+    remark           VARCHAR(500) DEFAULT NULL COMMENT '备注',
+    created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    UNIQUE KEY uk_sys_permission_code (permission_code),
+    KEY idx_sys_permission_resource_action (resource_type, action)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统权限表';
+
+CREATE TABLE IF NOT EXISTS sys_user_role (
+    id               BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+    tenant_id        VARCHAR(64) NOT NULL DEFAULT 'default' COMMENT '租户ID',
+    user_id          BIGINT NOT NULL COMMENT '用户ID',
+    role_id          BIGINT NOT NULL COMMENT '角色ID',
+    granted_by       BIGINT DEFAULT NULL COMMENT '授权人ID',
+    granted_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '授权时间',
+    UNIQUE KEY uk_sys_user_role (tenant_id, user_id, role_id),
+    KEY idx_sys_user_role_role (tenant_id, role_id),
+    CONSTRAINT fk_sys_user_role_user FOREIGN KEY (user_id) REFERENCES sys_user (id),
+    CONSTRAINT fk_sys_user_role_role FOREIGN KEY (role_id) REFERENCES sys_role (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户角色关系表';
+
+CREATE TABLE IF NOT EXISTS sys_role_permission (
+    id               BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+    tenant_id        VARCHAR(64) NOT NULL DEFAULT 'default' COMMENT '租户ID',
+    role_id          BIGINT NOT NULL COMMENT '角色ID',
+    permission_id    BIGINT NOT NULL COMMENT '权限ID',
+    granted_by       BIGINT DEFAULT NULL COMMENT '授权人ID',
+    granted_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '授权时间',
+    UNIQUE KEY uk_sys_role_permission (tenant_id, role_id, permission_id),
+    KEY idx_sys_role_permission_perm (permission_id),
+    CONSTRAINT fk_sys_role_permission_role FOREIGN KEY (role_id) REFERENCES sys_role (id),
+    CONSTRAINT fk_sys_role_permission_perm FOREIGN KEY (permission_id) REFERENCES sys_permission (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色权限关系表';
+
+CREATE TABLE IF NOT EXISTS sys_org (
+    id               BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+    tenant_id        VARCHAR(64) NOT NULL DEFAULT 'default' COMMENT '租户ID',
+    org_code         VARCHAR(64) NOT NULL COMMENT '组织编码',
+    org_name         VARCHAR(128) NOT NULL COMMENT '组织名称',
+    parent_id        BIGINT DEFAULT NULL COMMENT '父组织ID',
+    org_path         VARCHAR(1000) DEFAULT NULL COMMENT '组织路径',
+    status           TINYINT NOT NULL DEFAULT 1 COMMENT '状态：1启用 0禁用',
+    remark           VARCHAR(500) DEFAULT NULL COMMENT '备注',
+    created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    UNIQUE KEY uk_sys_org_tenant_code (tenant_id, org_code),
+    KEY idx_sys_org_tenant_parent (tenant_id, parent_id),
+    CONSTRAINT fk_sys_org_parent FOREIGN KEY (parent_id) REFERENCES sys_org (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统组织表';
+
+CREATE TABLE IF NOT EXISTS sys_user_org (
+    id               BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+    tenant_id        VARCHAR(64) NOT NULL DEFAULT 'default' COMMENT '租户ID',
+    user_id          BIGINT NOT NULL COMMENT '用户ID',
+    org_id           BIGINT NOT NULL COMMENT '组织ID',
+    is_primary       TINYINT NOT NULL DEFAULT 0 COMMENT '是否主组织',
+    joined_at        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '加入时间',
+    UNIQUE KEY uk_sys_user_org (tenant_id, user_id, org_id),
+    KEY idx_sys_user_org_org (tenant_id, org_id),
+    CONSTRAINT fk_sys_user_org_user FOREIGN KEY (user_id) REFERENCES sys_user (id),
+    CONSTRAINT fk_sys_user_org_org FOREIGN KEY (org_id) REFERENCES sys_org (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户组织关系表';
+
+CREATE TABLE IF NOT EXISTS sys_api_key (
+    id               BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+    tenant_id        VARCHAR(64) NOT NULL DEFAULT 'default' COMMENT '租户ID',
+    owner_user_id    BIGINT NOT NULL COMMENT '归属用户ID',
+    access_key       VARCHAR(64) NOT NULL COMMENT '访问Key',
+    secret_hash      VARCHAR(255) NOT NULL COMMENT '密钥哈希',
+    scopes           JSON DEFAULT NULL COMMENT '权限范围',
+    status           TINYINT NOT NULL DEFAULT 1 COMMENT '状态：1启用 0禁用',
+    expire_at        DATETIME DEFAULT NULL COMMENT '过期时间',
+    last_used_at     DATETIME DEFAULT NULL COMMENT '最后使用时间',
+    created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    UNIQUE KEY uk_sys_api_key_access_key (access_key),
+    KEY idx_sys_api_key_owner (tenant_id, owner_user_id),
+    CONSTRAINT fk_sys_api_key_owner FOREIGN KEY (owner_user_id) REFERENCES sys_user (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='API密钥表';
+
+CREATE TABLE IF NOT EXISTS sys_audit_event (
+    id               BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+    tenant_id        VARCHAR(64) NOT NULL DEFAULT 'default' COMMENT '租户ID',
+    operator_id      BIGINT DEFAULT NULL COMMENT '操作人ID',
+    operator_type    VARCHAR(32) NOT NULL COMMENT '主体类型：user/api_key/system',
+    event_type       VARCHAR(64) NOT NULL COMMENT '事件类型',
+    resource_type    VARCHAR(64) NOT NULL COMMENT '资源类型',
+    resource_id      VARCHAR(128) NOT NULL COMMENT '资源ID',
+    action           VARCHAR(64) NOT NULL COMMENT '动作',
+    request_id       VARCHAR(64) DEFAULT NULL COMMENT '请求ID',
+    source_ip        VARCHAR(64) DEFAULT NULL COMMENT '来源IP',
+    user_agent       VARCHAR(500) DEFAULT NULL COMMENT 'UA',
+    old_value        JSON DEFAULT NULL COMMENT '旧值快照',
+    new_value        JSON DEFAULT NULL COMMENT '新值快照',
+    result           TINYINT NOT NULL DEFAULT 1 COMMENT '执行结果：1成功 0失败',
+    error_message    VARCHAR(1000) DEFAULT NULL COMMENT '失败原因',
+    cost_ms          BIGINT DEFAULT NULL COMMENT '耗时ms',
+    ext              JSON DEFAULT NULL COMMENT '扩展信息',
+    occurred_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '发生时间',
+    KEY idx_sys_audit_operator_time (tenant_id, operator_id, occurred_at),
+    KEY idx_sys_audit_resource (tenant_id, resource_type, resource_id),
+    KEY idx_sys_audit_request_id (request_id),
+    CONSTRAINT fk_sys_audit_operator FOREIGN KEY (operator_id) REFERENCES sys_user (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='统一审计事件表';
+
+-- =====================================================
+-- B. 现有核心业务表预埋字段（幂等）
+-- =====================================================
+
+ALTER TABLE ai_model_config       ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(64) NOT NULL DEFAULT 'default' COMMENT '租户ID';
+ALTER TABLE ai_task_type          ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(64) NOT NULL DEFAULT 'default' COMMENT '租户ID';
+ALTER TABLE ai_mcp_server_config  ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(64) NOT NULL DEFAULT 'default' COMMENT '租户ID';
+ALTER TABLE ai_model_activation   ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(64) NOT NULL DEFAULT 'default' COMMENT '租户ID';
+ALTER TABLE ai_chat_session       ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(64) NOT NULL DEFAULT 'default' COMMENT '租户ID';
+ALTER TABLE ai_chat_message       ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(64) NOT NULL DEFAULT 'default' COMMENT '租户ID';
+ALTER TABLE ai_rag_task           ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(64) NOT NULL DEFAULT 'default' COMMENT '租户ID';
+
+ALTER TABLE ai_call_log           ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(64) NOT NULL DEFAULT 'default' COMMENT '租户ID';
+ALTER TABLE ai_call_log           ADD COLUMN IF NOT EXISTS operator_id BIGINT DEFAULT NULL COMMENT '操作人ID';
+ALTER TABLE ai_call_log           ADD COLUMN IF NOT EXISTS request_id VARCHAR(64) DEFAULT NULL COMMENT '请求ID';
+
+ALTER TABLE ai_config_audit       ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(64) NOT NULL DEFAULT 'default' COMMENT '租户ID';
+ALTER TABLE ai_config_audit       ADD COLUMN IF NOT EXISTS operator_id BIGINT DEFAULT NULL COMMENT '操作人ID';
+ALTER TABLE ai_config_audit       ADD COLUMN IF NOT EXISTS request_id VARCHAR(64) DEFAULT NULL COMMENT '请求ID';
+
+ALTER TABLE mcp_gateway           ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(64) NOT NULL DEFAULT 'default' COMMENT '租户ID';
+ALTER TABLE mcp_gateway_auth      ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(64) NOT NULL DEFAULT 'default' COMMENT '租户ID';
+ALTER TABLE mcp_tool_registry     ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(64) NOT NULL DEFAULT 'default' COMMENT '租户ID';
+ALTER TABLE mcp_tool_mapping      ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(64) NOT NULL DEFAULT 'default' COMMENT '租户ID';
+ALTER TABLE mcp_tool_schema       ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(64) NOT NULL DEFAULT 'default' COMMENT '租户ID';
+ALTER TABLE mcp_tool_binding      ADD COLUMN IF NOT EXISTS tenant_id VARCHAR(64) NOT NULL DEFAULT 'default' COMMENT '租户ID';
+
+-- =====================================================
+-- C. 可选索引（若不存在则创建）
+-- =====================================================
+
+DROP PROCEDURE IF EXISTS sp_add_index_if_not_exists;
+DELIMITER $$
+CREATE PROCEDURE sp_add_index_if_not_exists(
+    IN p_schema VARCHAR(64),
+    IN p_table  VARCHAR(64),
+    IN p_index  VARCHAR(64),
+    IN p_ddl    VARCHAR(1000)
+)
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.statistics
+        WHERE table_schema = p_schema
+          AND table_name = p_table
+          AND index_name = p_index
+    ) THEN
+        SET @ddl = p_ddl;
+        PREPARE stmt FROM @ddl;
+        EXECUTE stmt;
+        DEALLOCATE PREPARE stmt;
+    END IF;
+END$$
+DELIMITER ;
+
+SET @schema_name = DATABASE();
+CALL sp_add_index_if_not_exists(@schema_name, 'ai_model_config',      'idx_ai_model_config_tenant',     'ALTER TABLE ai_model_config ADD INDEX idx_ai_model_config_tenant (tenant_id)');
+CALL sp_add_index_if_not_exists(@schema_name, 'ai_task_type',         'idx_ai_task_type_tenant',        'ALTER TABLE ai_task_type ADD INDEX idx_ai_task_type_tenant (tenant_id)');
+CALL sp_add_index_if_not_exists(@schema_name, 'ai_mcp_server_config', 'idx_ai_mcp_server_tenant',       'ALTER TABLE ai_mcp_server_config ADD INDEX idx_ai_mcp_server_tenant (tenant_id)');
+CALL sp_add_index_if_not_exists(@schema_name, 'ai_chat_session',      'idx_ai_chat_session_tenant',     'ALTER TABLE ai_chat_session ADD INDEX idx_ai_chat_session_tenant (tenant_id)');
+CALL sp_add_index_if_not_exists(@schema_name, 'ai_chat_message',      'idx_ai_chat_message_tenant',     'ALTER TABLE ai_chat_message ADD INDEX idx_ai_chat_message_tenant (tenant_id)');
+CALL sp_add_index_if_not_exists(@schema_name, 'ai_rag_task',          'idx_ai_rag_task_tenant',         'ALTER TABLE ai_rag_task ADD INDEX idx_ai_rag_task_tenant (tenant_id)');
+CALL sp_add_index_if_not_exists(@schema_name, 'ai_call_log',          'idx_ai_call_log_tenant_time',    'ALTER TABLE ai_call_log ADD INDEX idx_ai_call_log_tenant_time (tenant_id, created_at)');
+CALL sp_add_index_if_not_exists(@schema_name, 'ai_config_audit',      'idx_ai_config_audit_tenant_time','ALTER TABLE ai_config_audit ADD INDEX idx_ai_config_audit_tenant_time (tenant_id, created_at)');
+CALL sp_add_index_if_not_exists(@schema_name, 'mcp_gateway',          'idx_mcp_gateway_tenant',         'ALTER TABLE mcp_gateway ADD INDEX idx_mcp_gateway_tenant (tenant_id)');
+CALL sp_add_index_if_not_exists(@schema_name, 'mcp_tool_registry',    'idx_mcp_tool_registry_tenant',   'ALTER TABLE mcp_tool_registry ADD INDEX idx_mcp_tool_registry_tenant (tenant_id)');
+
+DROP PROCEDURE IF EXISTS sp_add_index_if_not_exists;
+
+-- =====================================================
+-- D. 迁移完成标识
+-- =====================================================
+SELECT 'Phase 1 用户体系增量迁移完成' AS message, NOW() AS executed_at;
+
