@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.IdentityMapper">
+
+    <resultMap id="SysUserMap" type="com.xbk.knowledge.domain.model.entity.SysUser">
+        <id column="id" property="id"/>
+        <result column="tenant_id" property="tenantId"/>
+        <result column="username" property="username"/>
+        <result column="display_name" property="displayName"/>
+        <result column="email" property="email"/>
+        <result column="mobile" property="mobile"/>
+        <result column="password_hash" property="passwordHash"/>
+        <result column="status" property="status"/>
+        <result column="is_super_admin" property="isSuperAdmin"/>
+        <result column="last_login_at" property="lastLoginAt"/>
+        <result column="last_login_ip" property="lastLoginIp"/>
+        <result column="remark" property="remark"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <sql id="SysUserColumns">
+        id,
+        tenant_id,
+        username,
+        display_name,
+        email,
+        mobile,
+        password_hash,
+        status,
+        is_super_admin,
+        last_login_at,
+        last_login_ip,
+        remark,
+        created_at,
+        updated_at
+    </sql>
+
+    <select id="findByTenantAndUsername" resultMap="SysUserMap">
+        select
+        <include refid="SysUserColumns"/>
+        from sys_user
+        where tenant_id = #{tenantId}
+          and username = #{username}
+        limit 1
+    </select>
+
+    <select id="findById" resultMap="SysUserMap">
+        select
+        <include refid="SysUserColumns"/>
+        from sys_user
+        where id = #{userId}
+        limit 1
+    </select>
+
+    <select id="findRoleCodes" resultType="string">
+        select distinct r.role_code
+        from sys_user_role ur
+                 join sys_role r on ur.role_id = r.id
+        where ur.tenant_id = #{tenantId}
+          and ur.user_id = #{userId}
+          and r.status = 1
+    </select>
+
+    <select id="findPermissionCodes" resultType="string">
+        select distinct p.permission_code
+        from sys_user_role ur
+                 join sys_role_permission rp on ur.role_id = rp.role_id and ur.tenant_id = rp.tenant_id
+                 join sys_permission p on rp.permission_id = p.id
+        where ur.tenant_id = #{tenantId}
+          and ur.user_id = #{userId}
+          and p.status = 1
+    </select>
+
+    <select id="findAllPermissionCodes" resultType="string">
+        select permission_code
+        from sys_permission
+        where status = 1
+    </select>
+
+    <select id="findPage" resultMap="SysUserMap">
+        select
+        <include refid="SysUserColumns"/>
+        from sys_user
+        where tenant_id = #{tenantId}
+        <if test="username != null and username != ''">
+            and username like concat('%', #{username}, '%')
+        </if>
+        <if test="status != null">
+            and status = #{status}
+        </if>
+        order by updated_at desc, id asc
+        limit #{pageSize} offset #{offset}
+    </select>
+
+    <select id="count" resultType="long">
+        select count(1)
+        from sys_user
+        where tenant_id = #{tenantId}
+        <if test="username != null and username != ''">
+            and username like concat('%', #{username}, '%')
+        </if>
+        <if test="status != null">
+            and status = #{status}
+        </if>
+    </select>
+
+    <insert id="insertUser" parameterType="com.xbk.knowledge.domain.model.entity.SysUser" useGeneratedKeys="true"
+            keyProperty="id">
+        insert into sys_user (
+            tenant_id,
+            username,
+            display_name,
+            email,
+            mobile,
+            password_hash,
+            status,
+            is_super_admin,
+            created_at,
+            updated_at
+        ) values (
+            #{tenantId},
+            #{username},
+            #{displayName},
+            #{email},
+            #{mobile},
+            #{passwordHash},
+            #{status},
+            #{isSuperAdmin},
+            #{createdAt},
+            #{updatedAt}
+        )
+    </insert>
+
+    <select id="countByTenantAndUsername" resultType="long">
+        select count(1)
+        from sys_user
+        where tenant_id = #{tenantId}
+          and username = #{username}
+    </select>
+
+    <update id="updateLastLogin">
+        update sys_user
+        set last_login_at = #{loginTime},
+            last_login_ip = #{loginIp},
+            updated_at = #{loginTime}
+        where id = #{userId}
+    </update>
+
+    <resultMap id="SysRoleMap" type="com.xbk.knowledge.domain.model.entity.SysRole">
+        <id column="id" property="id"/>
+        <result column="tenant_id" property="tenantId"/>
+        <result column="role_code" property="roleCode"/>
+        <result column="role_name" property="roleName"/>
+        <result column="role_scope" property="roleScope"/>
+        <result column="status" property="status"/>
+        <result column="remark" property="remark"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <sql id="SysRoleColumns">
+        id,
+        tenant_id,
+        role_code,
+        role_name,
+        role_scope,
+        status,
+        remark,
+        created_at,
+        updated_at
+    </sql>
+
+    <select id="findRolePage" resultMap="SysRoleMap">
+        select
+        <include refid="SysRoleColumns"/>
+        from sys_role
+        where tenant_id = #{tenantId}
+        <if test="roleCode != null and roleCode != ''">
+            and role_code like concat('%', #{roleCode}, '%')
+        </if>
+        <if test="status != null">
+            and status = #{status}
+        </if>
+        order by updated_at desc, id asc
+        limit #{pageSize} offset #{offset}
+    </select>
+
+    <select id="countRole" resultType="long">
+        select count(1)
+        from sys_role
+        where tenant_id = #{tenantId}
+        <if test="roleCode != null and roleCode != ''">
+            and role_code like concat('%', #{roleCode}, '%')
+        </if>
+        <if test="status != null">
+            and status = #{status}
+        </if>
+    </select>
+
+    <insert id="insertRole" parameterType="com.xbk.knowledge.domain.model.entity.SysRole" useGeneratedKeys="true"
+            keyProperty="id">
+        insert into sys_role (
+            tenant_id,
+            role_code,
+            role_name,
+            role_scope,
+            status,
+            remark,
+            created_at,
+            updated_at
+        ) values (
+            #{tenantId},
+            #{roleCode},
+            #{roleName},
+            #{roleScope},
+            #{status},
+            #{remark},
+            #{createdAt},
+            #{updatedAt}
+        )
+    </insert>
+
+    <update id="updateRole" parameterType="com.xbk.knowledge.domain.model.entity.SysRole">
+        update sys_role
+        set role_name = #{roleName},
+            role_scope = #{roleScope},
+            status = #{status},
+            remark = #{remark},
+            updated_at = #{updatedAt}
+        where id = #{id}
+          and tenant_id = #{tenantId}
+    </update>
+
+    <select id="findRoleById" resultMap="SysRoleMap">
+        select
+        <include refid="SysRoleColumns"/>
+        from sys_role
+        where id = #{roleId}
+        limit 1
+    </select>
+
+    <select id="countByTenantAndRoleCode" resultType="long">
+        select count(1)
+        from sys_role
+        where tenant_id = #{tenantId}
+          and role_code = #{roleCode}
+        <if test="excludeRoleId != null">
+            and id != #{excludeRoleId}
+        </if>
+    </select>
+
+    <select id="findRolePermissionIds" resultType="long">
+        select permission_id
+        from sys_role_permission
+        where tenant_id = #{tenantId}
+          and role_id = #{roleId}
+    </select>
+
+    <delete id="deleteRolePermissions">
+        delete from sys_role_permission
+        where tenant_id = #{tenantId}
+          and role_id = #{roleId}
+    </delete>
+
+    <insert id="insertRolePermission">
+        insert into sys_role_permission (
+            tenant_id,
+            role_id,
+            permission_id,
+            granted_by,
+            granted_at
+        ) values (
+            #{tenantId},
+            #{roleId},
+            #{permissionId},
+            #{grantedBy},
+            now()
+        )
+    </insert>
+
+    <resultMap id="SysPermissionMap" type="com.xbk.knowledge.domain.model.entity.SysPermission">
+        <id column="id" property="id"/>
+        <result column="permission_code" property="permissionCode"/>
+        <result column="permission_name" property="permissionName"/>
+        <result column="resource_type" property="resourceType"/>
+        <result column="action" property="action"/>
+        <result column="status" property="status"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <sql id="SysPermissionColumns">
+        id,
+        permission_code,
+        permission_name,
+        resource_type,
+        action,
+        status,
+        created_at,
+        updated_at
+    </sql>
+
+    <select id="findPermissionPage" resultMap="SysPermissionMap">
+        select
+        <include refid="SysPermissionColumns"/>
+        from sys_permission
+        where 1 = 1
+        <if test="resourceType != null and resourceType != ''">
+            and resource_type like concat('%', #{resourceType}, '%')
+        </if>
+        <if test="action != null and action != ''">
+            and action like concat('%', #{action}, '%')
+        </if>
+        <if test="status != null">
+            and status = #{status}
+        </if>
+        order by id asc
+        limit #{pageSize} offset #{offset}
+    </select>
+
+    <select id="countPermission" resultType="long">
+        select count(1)
+        from sys_permission
+        where 1 = 1
+        <if test="resourceType != null and resourceType != ''">
+            and resource_type like concat('%', #{resourceType}, '%')
+        </if>
+        <if test="action != null and action != ''">
+            and action like concat('%', #{action}, '%')
+        </if>
+        <if test="status != null">
+            and status = #{status}
+        </if>
+    </select>
+
+    <select id="countPermissionByIds" resultType="long">
+        select count(1)
+        from sys_permission
+        where id in
+        <foreach collection="permissionIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="findUserRoleIds" resultType="long">
+        select role_id
+        from sys_user_role
+        where tenant_id = #{tenantId}
+          and user_id = #{userId}
+    </select>
+
+    <select id="countRolesByIds" resultType="long">
+        select count(1)
+        from sys_role
+        where tenant_id = #{tenantId}
+          and id in
+        <foreach collection="roleIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <delete id="deleteUserRoles">
+        delete from sys_user_role
+        where tenant_id = #{tenantId}
+          and user_id = #{userId}
+    </delete>
+
+    <insert id="insertUserRole">
+        insert into sys_user_role (
+            tenant_id,
+            user_id,
+            role_id,
+            granted_by,
+            granted_at
+        ) values (
+            #{tenantId},
+            #{userId},
+            #{roleId},
+            #{grantedBy},
+            now()
+        )
+    </insert>
+
+</mapper>

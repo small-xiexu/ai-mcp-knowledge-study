@@ -1,6 +1,7 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios'
 import { ElMessage } from 'element-plus'
 import type { Result } from '@/types/api'
+import { clearAuthStorage, getAuthToken } from '@/utils/auth'
 
 // 创建 axios 实例
 const service: AxiosInstance = axios.create({
@@ -14,11 +15,11 @@ const service: AxiosInstance = axios.create({
 // 请求拦截器
 service.interceptors.request.use(
   (config) => {
-    // 可以在这里添加 Token
-    // const token = localStorage.getItem('token')
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`
-    // }
+    const token = getAuthToken()
+    if (token) {
+      config.headers = config.headers || {}
+      config.headers[token.tokenName] = token.tokenValue
+    }
     return config
   },
   (error) => {
@@ -34,6 +35,9 @@ service.interceptors.response.use(
 
     // 如果返回的状态码不是 200，则认为是错误
     if (res.code !== 200) {
+      if (res.code === 401) {
+        handleUnauthorized()
+      }
       ElMessage.error(res.message || '请求失败')
       return Promise.reject(new Error(res.message || '请求失败'))
     }
@@ -50,6 +54,7 @@ service.interceptors.response.use(
           message = '请求参数错误'
           break
         case 401:
+          handleUnauthorized()
           message = '未授权，请重新登录'
           break
         case 403:
@@ -90,6 +95,15 @@ const request = {
   delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<Result<T>> {
     return service.delete(url, config)
   }
+}
+
+const handleUnauthorized = () => {
+  clearAuthStorage()
+  if (window.location.pathname === '/login') {
+    return
+  }
+  const redirect = `${window.location.pathname}${window.location.search}`
+  window.location.href = `/login?redirect=${encodeURIComponent(redirect)}`
 }
 
 export default request

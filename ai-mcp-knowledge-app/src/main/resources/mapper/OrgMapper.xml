@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.OrgMapper">
+
+    <resultMap id="SysOrgMap" type="com.xbk.knowledge.domain.model.entity.SysOrg">
+        <id column="id" property="id"/>
+        <result column="tenant_id" property="tenantId"/>
+        <result column="org_code" property="orgCode"/>
+        <result column="org_name" property="orgName"/>
+        <result column="parent_id" property="parentId"/>
+        <result column="org_path" property="orgPath"/>
+        <result column="status" property="status"/>
+        <result column="remark" property="remark"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <sql id="SysOrgColumns">
+        id,
+        tenant_id,
+        org_code,
+        org_name,
+        parent_id,
+        org_path,
+        status,
+        remark,
+        created_at,
+        updated_at
+    </sql>
+
+    <select id="findList" resultMap="SysOrgMap">
+        select
+        <include refid="SysOrgColumns"/>
+        from sys_org
+        where tenant_id = #{tenantId}
+        <if test="status != null">
+            and status = #{status}
+        </if>
+        order by org_path asc, id asc
+    </select>
+
+    <select id="findById" resultMap="SysOrgMap">
+        select
+        <include refid="SysOrgColumns"/>
+        from sys_org
+        where id = #{orgId}
+        limit 1
+    </select>
+
+    <insert id="insertOrg" parameterType="com.xbk.knowledge.domain.model.entity.SysOrg" useGeneratedKeys="true"
+            keyProperty="id">
+        insert into sys_org (
+            tenant_id,
+            org_code,
+            org_name,
+            parent_id,
+            org_path,
+            status,
+            remark,
+            created_at,
+            updated_at
+        ) values (
+            #{tenantId},
+            #{orgCode},
+            #{orgName},
+            #{parentId},
+            #{orgPath},
+            #{status},
+            #{remark},
+            #{createdAt},
+            #{updatedAt}
+        )
+    </insert>
+
+    <update id="updateOrg" parameterType="com.xbk.knowledge.domain.model.entity.SysOrg">
+        update sys_org
+        set org_name = #{orgName},
+            parent_id = #{parentId},
+            org_path = #{orgPath},
+            status = #{status},
+            remark = #{remark},
+            updated_at = #{updatedAt}
+        where id = #{id}
+          and tenant_id = #{tenantId}
+    </update>
+
+    <select id="countByTenantAndOrgCode" resultType="long">
+        select count(1)
+        from sys_org
+        where tenant_id = #{tenantId}
+          and org_code = #{orgCode}
+        <if test="excludeId != null">
+            and id != #{excludeId}
+        </if>
+    </select>
+
+    <delete id="deleteUserOrgs">
+        delete from sys_user_org
+        where tenant_id = #{tenantId}
+          and user_id = #{userId}
+    </delete>
+
+    <insert id="insertUserOrg">
+        insert into sys_user_org (
+            tenant_id,
+            user_id,
+            org_id,
+            is_primary,
+            joined_at
+        ) values (
+            #{tenantId},
+            #{userId},
+            #{orgId},
+            #{isPrimary},
+            now()
+        )
+    </insert>
+
+</mapper>

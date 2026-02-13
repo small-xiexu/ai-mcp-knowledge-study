@@ -33,6 +33,16 @@ public enum ResultCode {
     PARAM_BIND_FAILED(400, "参数绑定失败"),
 
     /**
+     * 未登录
+     */
+    UNAUTHORIZED(401, "未登录或登录已失效"),
+
+    /**
+     * 无权限
+     */
+    FORBIDDEN(403, "无权限访问"),
+
+    /**
      * 资源未找到
      */
     NOT_FOUND(404, "资源不存在"),

@@ -122,6 +122,13 @@
             <artifactId>spring-ai-mcp</artifactId>
         </dependency>
 
+        <!-- Sa-Token（供审计切面读取登录用户） -->
+        <dependency>
+            <groupId>cn.dev33</groupId>
+            <artifactId>sa-token-spring-boot3-starter</artifactId>
+            <version>1.37.0</version>
+        </dependency>
+
         <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>

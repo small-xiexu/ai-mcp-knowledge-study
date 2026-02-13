@@ -1,5 +1,7 @@
 package com.xbk.knowledge.trigger.exception;
 
+import cn.dev33.satoken.exception.NotLoginException;
+import cn.dev33.satoken.exception.NotPermissionException;
 import com.xbk.knowledge.types.common.Result;
 import com.xbk.knowledge.types.common.ResultCode;
 import com.xbk.knowledge.types.exception.BusinessException;
@@ -29,6 +31,42 @@ import java.util.function.Consumer;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    /**
+     * 处理 Sa-Token 未登录异常
+     *
+     * 为什么：前端需要稳定识别 401 语义并触发重新登录。
+     *
+     * @param e       未登录异常
+     * @param request HTTP 请求
+     * @return 错误响应
+     */
+    @ExceptionHandler(NotLoginException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public Result<Object> handleNotLoginException(NotLoginException e, HttpServletRequest request) {
+        String requestUri = request.getRequestURI();
+        String message = e.getMessage();
+        log.warn("未登录访问: path={}, message={}", requestUri, message);
+        return Result.error(ResultCode.UNAUTHORIZED, ResultCode.UNAUTHORIZED.getMessage());
+    }
+
+    /**
+     * 处理 Sa-Token 无权限异常
+     *
+     * 为什么：明确区分 403，便于前端做权限提示。
+     *
+     * @param e       无权限异常
+     * @param request HTTP 请求
+     * @return 错误响应
+     */
+    @ExceptionHandler(NotPermissionException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public Result<Object> handleNotPermissionException(NotPermissionException e, HttpServletRequest request) {
+        String requestUri = request.getRequestURI();
+        String permission = e.getPermission();
+        log.warn("权限不足: path={}, permission={}", requestUri, permission);
+        return Result.error(ResultCode.FORBIDDEN, ResultCode.FORBIDDEN.getMessage());
+    }
 
     /**
      * 处理业务异常

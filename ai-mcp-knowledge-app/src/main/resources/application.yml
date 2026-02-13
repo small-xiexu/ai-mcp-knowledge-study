@@ -61,3 +61,11 @@ xxl:
     cookie-ttl-seconds: 1800
     # 任务下拉缓存秒数
     job-cache-ttl-seconds: 600
+
+sa-token:
+  # token 名称（前端请求头中使用）
+  token-name: satoken
+  # 允许在 header 中读取 token
+  is-read-header: true
+  # 禁止从 cookie 读取 token，减少跨域干扰
+  is-read-cookie: false

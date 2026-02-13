@@ -70,11 +70,22 @@
           <el-icon class="title-arrow"><ArrowDown /></el-icon>
         </div>
         <div class="header-actions">
-           <!-- Profile/Actions -->
-           <div class="user-profile">
-             <span class="pro-tag">PRO</span>
-             <el-avatar :size="32" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png" />
-           </div>
+          <el-dropdown trigger="click" popper-class="gemini-dropdown" @command="handleUserCommand">
+            <div class="user-profile">
+              <span class="pro-tag">{{ currentUserLabel }}</span>
+              <el-avatar :size="32" class="user-avatar">
+                {{ currentUserInitial }}
+              </el-avatar>
+            </div>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="logout">
+                  <el-icon><SwitchButton /></el-icon>
+                  退出登录
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
         </div>
       </header>
 
@@ -91,20 +102,32 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/store/app'
+import { useAuthStore } from '@/store/auth'
+import { usePermission } from '@/composables/usePermission'
 import routes from '@/router/routes'
-import { Menu as MenuIcon, Setting, ArrowDown } from '@element-plus/icons-vue'
+import { Menu as MenuIcon, Setting, ArrowDown, SwitchButton } from '@element-plus/icons-vue'
 
 const appStore = useAppStore()
+const authStore = useAuthStore()
+const { hasPermission } = usePermission()
 const route = useRoute()
-
-
+const router = useRouter()
 
 
 const menuRoutes = computed(() => {
   const layoutRoute = routes.find(r => r.path === '/')
-  return (layoutRoute?.children || []).filter(item => !item.meta?.hidden)
+  return (layoutRoute?.children || []).filter(item => {
+    if (item.meta?.hidden) {
+      return false
+    }
+    const permission = typeof item.meta?.permission === 'string' ? item.meta.permission : ''
+    if (!permission) {
+      return true
+    }
+    return hasPermission(permission)
+  })
 })
 
 const activeMenu = computed(() => {
@@ -121,6 +144,32 @@ const currentPageTitle = computed(() => {
 const resolveMenuPath = (path?: string) => {
   if (!path) return '/'
   return path.startsWith('/') ? path : `/${path}`
+}
+
+const currentUserLabel = computed(() => {
+  if (authStore.profile?.displayName) {
+    return authStore.profile.displayName
+  }
+  if (authStore.profile?.username) {
+    return authStore.profile.username
+  }
+  return '未登录'
+})
+
+const currentUserInitial = computed(() => {
+  const label = currentUserLabel.value
+  if (!label || label === '未登录') {
+    return 'U'
+  }
+  return label.substring(0, 1).toUpperCase()
+})
+
+const handleUserCommand = async (command: string | number | object) => {
+  if (command !== 'logout') {
+    return
+  }
+  await authStore.logout()
+  await router.replace('/login')
 }
 </script>
 
@@ -337,18 +386,27 @@ const resolveMenuPath = (path?: string) => {
   display: flex;
   align-items: center;
   gap: 12px;
+  cursor: pointer;
 }
 
 .pro-tag {
-  background: linear-gradient(90deg, #4285f4, #9b72cb, #d96570);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  font-weight: 700;
-  font-size: 12px;
+  color: var(--gemini-text-primary);
+  font-weight: 600;
+  font-size: 13px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 2px 8px;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 4px 10px;
   border-radius: 12px;
+  max-width: 180px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-avatar {
+  background: rgba(138, 180, 248, 0.25);
+  color: #d3e3fd;
+  font-weight: 600;
 }
 
 .page-container {

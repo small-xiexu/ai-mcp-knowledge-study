@@ -2,6 +2,12 @@ import type { RouteRecordRaw } from 'vue-router'
 
 const routes: RouteRecordRaw[] = [
   {
+    path: '/login',
+    name: 'Login',
+    component: () => import('@/views/login/index.vue'),
+    meta: { title: '登录', hidden: true }
+  },
+  {
     path: '/',
     component: () => import('@/components/Layout/MainLayout.vue'),
     children: [
@@ -66,10 +72,40 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '工具配置', icon: 'Tools', hidden: true }
       },
       {
+        path: 'users',
+        name: 'Users',
+        component: () => import('@/views/user/index.vue'),
+        meta: { title: '用户管理', icon: 'User', permission: 'user:read' }
+      },
+      {
+        path: 'roles',
+        name: 'Roles',
+        component: () => import('@/views/role/index.vue'),
+        meta: { title: '角色管理', icon: 'Avatar', permission: 'role:read' }
+      },
+      {
+        path: 'orgs',
+        name: 'Orgs',
+        component: () => import('@/views/org/index.vue'),
+        meta: { title: '组织管理', icon: 'OfficeBuilding', permission: 'user:read' }
+      },
+      {
+        path: 'apikeys',
+        name: 'ApiKeys',
+        component: () => import('@/views/apikey/index.vue'),
+        meta: { title: 'API Key', icon: 'Key', permission: 'user:read' }
+      },
+      {
+        path: 'audit-events',
+        name: 'AuditEvents',
+        component: () => import('@/views/audit-event/index.vue'),
+        meta: { title: '身份审计', icon: 'Tickets', permission: 'audit:read' }
+      },
+      {
         path: 'audit',
         name: 'Audit',
         component: () => import('@/views/audit/index.vue'),
-        meta: { title: '审计日志', icon: 'Document' }
+        meta: { title: '审计日志', icon: 'Document', permission: 'audit:read' }
       }
     ]
   },

@@ -88,6 +88,12 @@
             <version>6.8.0.202311291450-r</version>
         </dependency>
 
+        <!-- 密码哈希工具（BCrypt） -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-crypto</artifactId>
+        </dependency>
+
         <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>

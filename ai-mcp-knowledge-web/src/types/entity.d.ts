@@ -402,3 +402,134 @@ export interface McpServerConfigRequest {
   requestTimeoutMs?: number
   initTimeoutMs?: number
 }
+
+/**
+ * 身份用户
+ */
+export interface IdentityUser {
+  id: number
+  tenantId: string
+  username: string
+  displayName: string
+  email?: string
+  mobile?: string
+  status?: number
+  superAdmin?: boolean
+  lastLoginAt?: string
+  createdAt?: string
+  updatedAt?: string
+}
+
+/**
+ * 角色
+ */
+export interface IdentityRole {
+  id: number
+  tenantId: string
+  roleCode: string
+  roleName: string
+  roleScope?: string
+  status?: number
+  remark?: string
+  permissionIds?: number[]
+  createdAt?: string
+  updatedAt?: string
+}
+
+/**
+ * 权限
+ */
+export interface IdentityPermission {
+  id: number
+  permissionCode: string
+  permissionName: string
+  resourceType?: string
+  action?: string
+  status?: number
+  createdAt?: string
+  updatedAt?: string
+}
+
+/**
+ * 组织
+ */
+export interface IdentityOrg {
+  id: number
+  tenantId: string
+  orgCode: string
+  orgName: string
+  parentId?: number
+  orgPath?: string
+  status?: number
+  remark?: string
+  createdAt?: string
+  updatedAt?: string
+}
+
+/**
+ * API Key
+ */
+export interface IdentityApiKey {
+  id: number
+  tenantId: string
+  ownerUserId: number
+  accessKey: string
+  scopes?: string
+  status?: number
+  expireAt?: string
+  lastUsedAt?: string
+  createdAt?: string
+  updatedAt?: string
+}
+
+/**
+ * API Key 创建结果（含一次性密钥）
+ */
+export interface IdentityApiKeyCreateResult extends IdentityApiKey {
+  secret?: string
+}
+
+/**
+ * 身份审计事件
+ */
+export interface IdentityAuditEvent {
+  id: number
+  tenantId: string
+  operatorId?: number
+  operatorType?: string
+  eventType?: string
+  resourceType?: string
+  resourceId?: string
+  action?: string
+  requestId?: string
+  sourceIp?: string
+  result?: number
+  errorMessage?: string
+  costMs?: number
+  occurredAt?: string
+}
+
+/**
+ * 当前登录用户画像
+ */
+export interface AuthProfile {
+  userId: number
+  tenantId: string
+  username: string
+  displayName: string
+  email?: string
+  mobile?: string
+  superAdmin?: boolean
+  roles?: string[]
+  permissions?: string[]
+}
+
+/**
+ * 登录响应
+ */
+export interface AuthLoginResult {
+  tokenName: string
+  tokenValue: string
+  tokenTimeout?: number
+  profile: AuthProfile
+}
