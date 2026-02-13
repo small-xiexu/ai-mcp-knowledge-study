@@ -1,5 +1,6 @@
 package com.xbk.knowledge.trigger.http;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.xbk.knowledge.api.dto.rag.RagGitAnalyzeRequest;
 import com.xbk.knowledge.api.dto.rag.RagTaskIdRequest;
 import com.xbk.knowledge.api.dto.rag.RagTaskQueryRequest;
@@ -39,6 +40,7 @@ public class RagController {
      * 出参：标签列表
      */
     @PostMapping("/tags")
+    @SaCheckPermission("agent:read")
     public Result<List<String>> listTags() {
         List<String> tags = ragAppService.listRagTags();
         return Result.success(tags);
@@ -52,6 +54,7 @@ public class RagController {
      * 出参：删除结果
      */
     @PostMapping("/delete")
+    @SaCheckPermission("agent:write")
     public Result<Boolean> deleteTag(@RequestParam("ragTag") String ragTag) {
         boolean success = ragAppService.deleteRagTag(ragTag);
         return Result.success(success);
@@ -65,6 +68,7 @@ public class RagController {
      * 出参：向量数量
      */
     @PostMapping("/count")
+    @SaCheckPermission("agent:read")
     public Result<Long> countTag(@RequestParam("ragTag") String ragTag) {
         long count = ragAppService.countByRagTag(ragTag);
         return Result.success(count);
@@ -78,6 +82,7 @@ public class RagController {
      * 出参：上传结果
      */
     @PostMapping(value = "/upload", headers = "content-type=multipart/form-data")
+    @SaCheckPermission("agent:write")
     public Result<Boolean> uploadFile(@RequestParam("ragTag") String ragTag,
                                       @RequestParam("file") List<MultipartFile> files) {
         boolean success = ragAppService.uploadFiles(ragTag, files);
@@ -92,6 +97,7 @@ public class RagController {
      * 出参：异步任务 ID
      */
     @PostMapping(value = "/upload/async", headers = "content-type=multipart/form-data")
+    @SaCheckPermission("agent:write")
     public Result<String> uploadFileAsync(@RequestParam("ragTag") String ragTag,
                                           @RequestParam("file") List<MultipartFile> files) {
         String taskId = ragAppService.uploadFilesAsync(ragTag, files);
@@ -106,6 +112,7 @@ public class RagController {
      * 出参：异步任务 ID
      */
     @PostMapping("/analyze")
+    @SaCheckPermission("agent:write")
     public Result<String> analyzeGitRepository(@Valid @RequestBody RagGitAnalyzeRequest request) {
         String taskId = ragAppService.analyzeGitRepository(
                 request.getRepoUrl(),
@@ -124,6 +131,7 @@ public class RagController {
      * 出参：任务状态详情
      */
     @PostMapping("/task/progress")
+    @SaCheckPermission("agent:read")
     public Result<RagTaskResponse> queryTask(@Valid @RequestBody RagTaskIdRequest request) {
         RagTask task = ragAppService.queryTask(request.getTaskId());
         if (task == null) {
@@ -141,6 +149,7 @@ public class RagController {
      * 出参：取消结果
      */
     @PostMapping("/task/cancel")
+    @SaCheckPermission("agent:write")
     public Result<Boolean> cancelTask(@Valid @RequestBody RagTaskIdRequest request) {
         boolean success = ragAppService.cancelTask(request.getTaskId());
         return Result.success(success);
@@ -154,6 +163,7 @@ public class RagController {
      * 出参：新任务 ID
      */
     @PostMapping("/task/retry")
+    @SaCheckPermission("agent:write")
     public Result<String> retryTask(@Valid @RequestBody RagTaskIdRequest request) {
         String newTaskId = ragAppService.retryTask(request.getTaskId());
         return Result.success("重试任务已创建", newTaskId);
@@ -167,6 +177,7 @@ public class RagController {
      * 出参：任务列表分页结果
      */
     @PostMapping("/task/list")
+    @SaCheckPermission("agent:read")
     public Result<PageResult<RagTaskResponse>> listTasks(@Valid @RequestBody RagTaskQueryRequest request) {
         request.validate();
         int offset = request.getOffset();

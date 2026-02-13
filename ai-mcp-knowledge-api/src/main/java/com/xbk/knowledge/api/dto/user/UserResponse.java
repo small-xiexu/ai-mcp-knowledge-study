@@ -29,11 +29,6 @@ public class UserResponse implements Serializable {
     private Long id;
 
     /**
-     * 租户ID。
-     */
-    private String tenantId;
-
-    /**
      * 用户名。
      */
     private String username;

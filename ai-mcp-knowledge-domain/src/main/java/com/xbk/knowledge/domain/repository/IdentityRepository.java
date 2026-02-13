@@ -21,13 +21,12 @@ import java.util.Optional;
 public interface IdentityRepository {
 
     /**
-     * 按租户与用户名查询用户。
+     * 按用户名查询用户。
      *
-     * @param tenantId 租户ID
      * @param username 用户名
      * @return 用户
      */
-    Optional<SysUser> findByTenantAndUsername(String tenantId, String username);
+    Optional<SysUser> findByUsername(String username);
 
     /**
      * 按用户ID查询用户。
@@ -40,20 +39,18 @@ public interface IdentityRepository {
     /**
      * 查询用户的角色编码列表。
      *
-     * @param tenantId 租户ID
-     * @param userId   用户ID
+     * @param userId 用户ID
      * @return 角色编码列表
      */
-    List<String> findRoleCodes(String tenantId, Long userId);
+    List<String> findRoleCodes(Long userId);
 
     /**
      * 查询用户的权限编码列表。
      *
-     * @param tenantId 租户ID
-     * @param userId   用户ID
+     * @param userId 用户ID
      * @return 权限编码列表
      */
-    List<String> findPermissionCodes(String tenantId, Long userId);
+    List<String> findPermissionCodes(Long userId);
 
     /**
      * 查询所有启用权限编码。
@@ -87,13 +84,20 @@ public interface IdentityRepository {
     SysUser insert(SysUser user);
 
     /**
-     * 判断租户内用户名是否已存在。
+     * 更新用户基础信息。
      *
-     * @param tenantId 租户ID
+     * @param user 用户实体
+     * @return 影响行数
+     */
+    int updateUser(SysUser user);
+
+    /**
+     * 判断用户名是否已存在。
+     *
      * @param username 用户名
      * @return 是否存在
      */
-    boolean existsByTenantAndUsername(String tenantId, String username);
+    boolean existsByUsername(String username);
 
     /**
      * 更新最后登录信息。
@@ -104,6 +108,16 @@ public interface IdentityRepository {
      * @return 影响行数
      */
     int updateLastLogin(Long userId, String loginIp, LocalDateTime loginTime);
+
+    /**
+     * 更新用户密码哈希。
+     *
+     * @param userId 用户ID
+     * @param passwordHash 密码哈希
+     * @param updateTime 更新时间
+     * @return 影响行数
+     */
+    int updatePassword(Long userId, String passwordHash, LocalDateTime updateTime);
 
     /**
      * 分页查询角色。
@@ -146,33 +160,30 @@ public interface IdentityRepository {
     Optional<SysRole> findRoleById(Long roleId);
 
     /**
-     * 判断租户内角色编码是否存在。
+     * 判断角色编码是否存在。
      *
-     * @param tenantId 租户ID
      * @param roleCode 角色编码
      * @param excludeRoleId 排除的角色ID
      * @return 是否存在
      */
-    boolean existsRoleCode(String tenantId, String roleCode, Long excludeRoleId);
+    boolean existsRoleCode(String roleCode, Long excludeRoleId);
 
     /**
      * 查询角色绑定的权限ID列表。
      *
-     * @param tenantId 租户ID
      * @param roleId 角色ID
      * @return 权限ID列表
      */
-    List<Long> findRolePermissionIds(String tenantId, Long roleId);
+    List<Long> findRolePermissionIds(Long roleId);
 
     /**
      * 重建角色权限绑定。
      *
-     * @param tenantId 租户ID
      * @param roleId 角色ID
      * @param permissionIds 权限ID列表
      * @param grantedBy 授权人
      */
-    void replaceRolePermissions(String tenantId, Long roleId, List<Long> permissionIds, Long grantedBy);
+    void replaceRolePermissions(Long roleId, List<Long> permissionIds, Long grantedBy);
 
     /**
      * 分页查询权限。
@@ -201,28 +212,25 @@ public interface IdentityRepository {
     /**
      * 查询用户角色ID列表。
      *
-     * @param tenantId 租户ID
      * @param userId 用户ID
      * @return 角色ID列表
      */
-    List<Long> findUserRoleIds(String tenantId, Long userId);
+    List<Long> findUserRoleIds(Long userId);
 
     /**
-     * 校验角色ID集合在租户内是否全部存在。
+     * 校验角色ID集合是否全部存在。
      *
-     * @param tenantId 租户ID
      * @param roleIds 角色ID集合
      * @return 命中数量
      */
-    long countRolesByIds(String tenantId, List<Long> roleIds);
+    long countRolesByIds(List<Long> roleIds);
 
     /**
      * 重建用户角色绑定。
      *
-     * @param tenantId 租户ID
      * @param userId 用户ID
      * @param roleIds 角色ID集合
      * @param grantedBy 授权人
      */
-    void replaceUserRoles(String tenantId, Long userId, List<Long> roleIds, Long grantedBy);
+    void replaceUserRoles(Long userId, List<Long> roleIds, Long grantedBy);
 }

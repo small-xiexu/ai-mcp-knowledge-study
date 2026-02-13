@@ -33,11 +33,6 @@ public class RolePermissionGrantRequest extends BaseRequest {
     private Long roleId;
 
     /**
-     * 租户ID（仅超管可指定）。
-     */
-    private String tenantId;
-
-    /**
      * 权限ID列表。
      */
     private List<Long> permissionIds;

@@ -29,14 +29,14 @@ public class AuditEventResponse implements Serializable {
     private Long id;
 
     /**
-     * 租户ID。
-     */
-    private String tenantId;
-
-    /**
      * 操作人ID。
      */
     private Long operatorId;
+
+    /**
+     * 操作人用户名。
+     */
+    private String operatorName;
 
     /**
      * 操作主体类型。

@@ -1,10 +1,12 @@
 package com.xbk.knowledge.infrastructure.audit;
 
 import com.xbk.knowledge.domain.model.entity.gateway.McpGateway;
+import com.xbk.knowledge.domain.model.entity.gateway.McpGatewayAuth;
 import com.xbk.knowledge.domain.model.entity.gateway.McpToolBinding;
 import com.xbk.knowledge.domain.model.entity.gateway.McpToolRegistry;
 import com.xbk.knowledge.domain.model.vo.common.IdQuery;
 import com.xbk.knowledge.domain.model.vo.gateway.ToolBindingQuery;
+import com.xbk.knowledge.domain.repository.gateway.McpGatewayAuthRepository;
 import com.xbk.knowledge.domain.repository.gateway.McpGatewayRepository;
 import com.xbk.knowledge.domain.repository.gateway.McpToolBindingRepository;
 import com.xbk.knowledge.domain.repository.gateway.McpToolRegistryRepository;
@@ -39,12 +41,17 @@ import java.util.Objects;
 public class GatewayAuditAspect {
 
     private static final String GATEWAY_TABLE = "mcp_gateway";
+    private static final String GATEWAY_AUTH_TABLE = "mcp_gateway_auth";
     private static final String TOOL_TABLE = "mcp_tool_registry";
     private static final String BINDING_TABLE = "mcp_tool_binding";
 
     private static final String OP_GATEWAY_INSTANCE_CREATE = "GATEWAY_INSTANCE_CREATE";
     private static final String OP_GATEWAY_INSTANCE_UPDATE = "GATEWAY_INSTANCE_UPDATE";
     private static final String OP_GATEWAY_INSTANCE_DELETE = "GATEWAY_INSTANCE_DELETE";
+    private static final String OP_GATEWAY_AUTH_CREATE = "GATEWAY_AUTH_CREATE";
+    private static final String OP_GATEWAY_AUTH_UPDATE = "GATEWAY_AUTH_UPDATE";
+    private static final String OP_GATEWAY_AUTH_ENABLE = "GATEWAY_AUTH_ENABLE";
+    private static final String OP_GATEWAY_AUTH_DISABLE = "GATEWAY_AUTH_DISABLE";
     private static final String OP_GATEWAY_TOOL_CREATE = "GATEWAY_TOOL_CREATE";
     private static final String OP_GATEWAY_TOOL_UPDATE = "GATEWAY_TOOL_UPDATE";
     private static final String OP_GATEWAY_TOOL_DELETE = "GATEWAY_TOOL_DELETE";
@@ -54,6 +61,7 @@ public class GatewayAuditAspect {
 
     private final AuditService auditService;
     private final McpGatewayRepository gatewayRepository;
+    private final McpGatewayAuthRepository gatewayAuthRepository;
     private final McpToolRegistryRepository toolRegistryRepository;
     private final McpToolBindingRepository toolBindingRepository;
 
@@ -102,6 +110,47 @@ public class GatewayAuditAspect {
             log.error("记录 Gateway 删除审计失败，id: {}", id, e);
         }
         return result;
+    }
+
+    /** 审计：网关凭证新增/更新 */
+    @Around("execution(* com.xbk.knowledge.trigger.http.GatewayManageController.saveGatewayAuth(..))")
+    public Object aroundSaveGatewayAuth(ProceedingJoinPoint joinPoint) throws Throwable {
+        Long id = extractLongField(firstArg(joinPoint), "id");
+        McpGatewayAuth oldValue = loadGatewayAuth(id);
+
+        Object result = joinPoint.proceed();
+        if (!isSuccess(result)) {
+            return result;
+        }
+
+        try {
+            McpGatewayAuth newValue = extractResultData(result, McpGatewayAuth.class);
+            Long recordId = newValue == null ? id : newValue.getId();
+            if (recordId == null) {
+                log.warn("Gateway 鉴权审计未记录，未解析到记录ID");
+                return result;
+            }
+            if (newValue == null) {
+                newValue = loadGatewayAuth(recordId);
+            }
+            String operation = oldValue == null ? OP_GATEWAY_AUTH_CREATE : OP_GATEWAY_AUTH_UPDATE;
+            auditService.recordAudit(GATEWAY_AUTH_TABLE, recordId, operation, oldValue, newValue);
+        } catch (Exception e) {
+            log.error("记录 Gateway 鉴权保存审计失败，id: {}", id, e);
+        }
+        return result;
+    }
+
+    /** 审计：网关凭证启用 */
+    @Around("execution(* com.xbk.knowledge.trigger.http.GatewayManageController.enableGatewayAuth(..))")
+    public Object aroundEnableGatewayAuth(ProceedingJoinPoint joinPoint) throws Throwable {
+        return aroundGatewayAuthStatusChange(joinPoint, OP_GATEWAY_AUTH_ENABLE);
+    }
+
+    /** 审计：网关凭证禁用 */
+    @Around("execution(* com.xbk.knowledge.trigger.http.GatewayManageController.disableGatewayAuth(..))")
+    public Object aroundDisableGatewayAuth(ProceedingJoinPoint joinPoint) throws Throwable {
+        return aroundGatewayAuthStatusChange(joinPoint, OP_GATEWAY_AUTH_DISABLE);
     }
 
     /** 审计：工具新增/更新 */
@@ -202,6 +251,23 @@ public class GatewayAuditAspect {
         return result;
     }
 
+    /** 通用网关凭证状态变更审计（启用/禁用共用） */
+    private Object aroundGatewayAuthStatusChange(ProceedingJoinPoint joinPoint, String operation) throws Throwable {
+        Long id = extractIdQuery(firstArg(joinPoint));
+        McpGatewayAuth oldValue = loadGatewayAuth(id);
+        Object result = joinPoint.proceed();
+        if (!isSuccess(result) || id == null) {
+            return result;
+        }
+        try {
+            McpGatewayAuth newValue = loadGatewayAuth(id);
+            auditService.recordAudit(GATEWAY_AUTH_TABLE, id, operation, oldValue, newValue);
+        } catch (Exception e) {
+            log.error("记录 Gateway 鉴权状态审计失败，id: {}, operation: {}", id, operation, e);
+        }
+        return result;
+    }
+
     /** 按主键加载网关实例快照（审计前置） */
     private McpGateway loadGateway(Long id) {
         if (id == null) {
@@ -216,6 +282,14 @@ public class GatewayAuditAspect {
             return null;
         }
         return toolRegistryRepository.findById(new IdQuery(id)).orElse(null);
+    }
+
+    /** 按主键加载网关鉴权快照（审计前置） */
+    private McpGatewayAuth loadGatewayAuth(Long id) {
+        if (id == null) {
+            return null;
+        }
+        return gatewayAuthRepository.findById(id).orElse(null);
     }
 
     /** 查询指定模型的工具绑定列表（审计前后对比用） */

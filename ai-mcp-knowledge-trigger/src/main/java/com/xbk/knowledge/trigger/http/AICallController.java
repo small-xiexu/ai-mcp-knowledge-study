@@ -1,5 +1,6 @@
 package com.xbk.knowledge.trigger.http;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.xbk.knowledge.types.common.Result;
 import com.xbk.knowledge.types.common.ResultCode;
 import com.xbk.knowledge.api.IAICallService;
@@ -65,6 +66,7 @@ public class AICallController implements IAICallService {
      */
     @Override
     @PostMapping("/chat")
+    @SaCheckPermission("agent:read")
     public Result<AIResponse> chat(@Valid @RequestBody AIRequest request) {
         try {
             
@@ -98,6 +100,7 @@ public class AICallController implements IAICallService {
      * @return SSE 响应
      */
     @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @SaCheckPermission("agent:read")
     public SseEmitter stream(@Valid @RequestBody AIRequest request, HttpServletResponse httpResponse) {
         
         httpResponse.setCharacterEncoding("UTF-8");
@@ -131,6 +134,7 @@ public class AICallController implements IAICallService {
      */
     @Override
     @PostMapping("/models")
+    @SaCheckPermission("agent:read")
     public Result<List<ModelInfo>> getAvailableModels() {
         // 调用应用服务查询模型配置
         EnabledQuery enabledQuery = new EnabledQuery(true);
@@ -167,6 +171,7 @@ public class AICallController implements IAICallService {
      */
     @Override
     @PostMapping("/models/recommend")
+    @SaCheckPermission("agent:read")
     public Result<ModelInfo> getRecommendedModel(@Valid @RequestBody ModelRecommendRequest request) {
         // 调用应用服务获取推荐模型
         String taskType = request.getTaskType();

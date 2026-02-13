@@ -36,11 +36,6 @@ public class SysRole {
     private Long id;
 
     /**
-     * 租户ID。
-     */
-    private String tenantId;
-
-    /**
      * 角色编码。
      */
     private String roleCode;

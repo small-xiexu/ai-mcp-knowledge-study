@@ -81,3 +81,14 @@ export interface ModelOption {
   modelName: string
   modelType: string
 }
+
+export interface GatewayCredential {
+  id?: number
+  gatewayId: string
+  apiKey: string
+  rateLimit?: number
+  expireTime?: string
+  status?: number
+  createdAt?: string
+  updatedAt?: string
+}

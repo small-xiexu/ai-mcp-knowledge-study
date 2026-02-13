@@ -28,14 +28,9 @@ public class AuditEventQueryRequest extends BaseRequest {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 租户ID（仅超管可指定）。
+     * 操作人关键词（用户名或ID）。
      */
-    private String tenantId;
-
-    /**
-     * 操作人ID。
-     */
-    private Long operatorId;
+    private String operatorKeyword;
 
     /**
      * 事件类型。

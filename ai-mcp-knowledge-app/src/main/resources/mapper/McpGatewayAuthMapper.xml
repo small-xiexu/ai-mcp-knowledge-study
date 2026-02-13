@@ -64,6 +64,20 @@
         where api_key = #{apiKey}
     </select>
 
+    <select id="findById" resultMap="McpGatewayAuthMap">
+        select
+            id,
+            gateway_id,
+            api_key,
+            rate_limit,
+            expire_time,
+            status,
+            created_at,
+            updated_at
+        from mcp_gateway_auth
+        where id = #{id}
+    </select>
+
     <select id="findByGatewayId" resultMap="McpGatewayAuthMap">
         select
             id,

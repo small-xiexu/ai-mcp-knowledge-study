@@ -1,6 +1,7 @@
 import request from '@/utils/request'
 import type { PageRequest, PageResult } from '@/types/api'
 import type {
+  GatewayCredential,
   GatewayInstance,
   GatewayTool,
   SaveGatewayToolRequest,
@@ -51,3 +52,26 @@ export const getModelToolBindings = (modelId: number) =>
 
 export const saveModelToolBindings = (modelId: number, toolIds: number[]) =>
   request.post<void>('/gateway/manage/bindings/model/save', { modelId, toolIds })
+
+export const listGatewayCredentials = (data: {
+  gatewayId: string
+  pageNum: number
+  pageSize: number
+  status?: number
+  apiKeyKeyword?: string
+}) => request.post<PageResult<GatewayCredential>>('/gateway/manage/auth/list', data)
+
+export const saveGatewayCredential = (data: {
+  id?: number
+  gatewayId: string
+  apiKey?: string
+  rateLimit?: number
+  expireTime?: string
+  status?: number
+}) => request.post<GatewayCredential>('/gateway/manage/auth/save', data)
+
+export const enableGatewayCredential = (id: number) =>
+  request.post<void>('/gateway/manage/auth/enable', { id })
+
+export const disableGatewayCredential = (id: number) =>
+  request.post<void>('/gateway/manage/auth/disable', { id })

@@ -27,11 +27,6 @@ public class OrgCreateRequest extends BaseRequest {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 租户ID（仅超管可指定）。
-     */
-    private String tenantId;
-
-    /**
      * 组织编码。
      */
     @NotBlank(message = "组织编码不能为空")

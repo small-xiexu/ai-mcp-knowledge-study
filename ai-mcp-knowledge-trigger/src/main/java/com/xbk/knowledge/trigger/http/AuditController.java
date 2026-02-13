@@ -1,5 +1,6 @@
 package com.xbk.knowledge.trigger.http;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.common.PageResultConverter;
 import com.xbk.knowledge.types.common.Result;
@@ -42,6 +43,7 @@ public class AuditController {
      * 出参：审计日志分页结果
      */
     @PostMapping("/list")
+    @SaCheckPermission("audit:read")
     public Result<PageResult<AuditResponse>> listAudits(@Valid @RequestBody AuditQueryRequest request) {
         /*
          * 目的：将接口层请求转为领域查询对象，避免接口字段直接泄露到领域层
@@ -76,6 +78,7 @@ public class AuditController {
      * @return 表名列表
      */
     @PostMapping("/tables")
+    @SaCheckPermission("audit:read")
     public Result<List<String>> listTableNames() {
         List<String> tableNames = auditAppService.listTableNames();
         return Result.success(tableNames);

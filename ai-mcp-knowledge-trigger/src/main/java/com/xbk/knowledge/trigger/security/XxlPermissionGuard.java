@@ -1,6 +1,12 @@
 package com.xbk.knowledge.trigger.security;
 
+import cn.dev33.satoken.exception.NotPermissionException;
+import com.xbk.knowledge.application.service.app.AuthAppService;
+import com.xbk.knowledge.application.service.app.IdentityContextService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * XXL 权限守卫
@@ -9,7 +15,11 @@ import org.springframework.stereotype.Component;
  * @author xiexu
  */
 @Component
+@RequiredArgsConstructor
 public class XxlPermissionGuard {
+
+    private final IdentityContextService identityContextService;
+    private final AuthAppService authAppService;
 
     /**
      * 任务查看权限校验
@@ -17,7 +27,7 @@ public class XxlPermissionGuard {
      * 为什么：接口层先校验权限，避免非法请求进入下游调用链。
      */
     public void assertCanView() {
-        // 最小权限占位，后续接入认证后替换
+        assertPermission("workflow:read");
     }
 
     /**
@@ -26,6 +36,14 @@ public class XxlPermissionGuard {
      * 为什么：编辑类操作风险更高，需要明确权限隔离。
      */
     public void assertCanEdit() {
-        // 最小权限占位，后续接入认证后替换
+        assertPermission("workflow:write");
+    }
+
+    private void assertPermission(String permissionCode) {
+        Long currentUserId = identityContextService.getCurrentUserId();
+        List<String> permissionCodes = authAppService.queryPermissionCodes(currentUserId);
+        if (permissionCodes == null || !permissionCodes.contains(permissionCode)) {
+            throw new NotPermissionException(permissionCode, null);
+        }
     }
 }

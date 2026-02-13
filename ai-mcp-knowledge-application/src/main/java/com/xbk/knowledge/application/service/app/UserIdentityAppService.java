@@ -33,21 +33,35 @@ public interface UserIdentityAppService {
     SysUser createUser(SysUser user, String rawPassword);
 
     /**
+     * 更新用户基础信息。
+     *
+     * @param user 用户实体
+     * @return 更新后的用户
+     */
+    SysUser updateUser(SysUser user);
+
+    /**
+     * 重置用户密码。
+     *
+     * @param userId 用户ID
+     * @param rawPassword 新密码明文
+     */
+    void resetPassword(Long userId, String rawPassword);
+
+    /**
      * 查询用户已分配角色ID列表。
      *
-     * @param tenantId 租户ID
      * @param userId 用户ID
      * @return 角色ID列表
      */
-    List<Long> queryRoleIds(String tenantId, Long userId);
+    List<Long> queryRoleIds(Long userId);
 
     /**
      * 重新绑定用户角色。
      *
-     * @param tenantId 操作租户ID
      * @param userId 目标用户ID
      * @param roleIds 角色ID集合
      * @param operatorId 操作人ID
      */
-    void grantRoles(String tenantId, Long userId, List<Long> roleIds, Long operatorId);
+    void grantRoles(Long userId, List<Long> roleIds, Long operatorId);
 }

@@ -79,9 +79,13 @@
             {{ formatDateTime(row.createdAt) }}
           </template>
         </el-table-column>
-        <el-table-column v-if="canWrite" label="操作" width="120" fixed="right">
+        <el-table-column v-if="canWrite" label="操作" width="260" fixed="right">
           <template #default="{ row }">
-            <el-button text class="action-btn" @click="handleGrantRole(row)">分配角色</el-button>
+            <div class="action-buttons">
+              <el-button text class="action-btn" @click="handleEdit(row)">编辑</el-button>
+              <el-button text class="action-btn" @click="handleOpenResetPassword(row)">重置密码</el-button>
+              <el-button text class="action-btn" @click="handleGrantRole(row)">分配角色</el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -100,20 +104,25 @@
     </el-card>
 
     <el-dialog
-      v-model="createDialogVisible"
-      title="新增用户"
+      v-model="userDialogVisible"
+      :title="userForm.id ? '编辑用户' : '新增用户'"
       width="620px"
       class="gemini-dialog"
       align-center
     >
       <el-form ref="userFormRef" :model="userForm" :rules="userRules" label-width="95px">
         <el-form-item label="用户名" prop="username">
-          <el-input v-model="userForm.username" class="gemini-input" placeholder="3-64位，建议英文+数字" />
+          <el-input
+            v-model="userForm.username"
+            class="gemini-input"
+            :disabled="Boolean(userForm.id)"
+            placeholder="3-64位，建议英文+数字"
+          />
         </el-form-item>
         <el-form-item label="显示名" prop="displayName">
           <el-input v-model="userForm.displayName" class="gemini-input" placeholder="请输入显示名" />
         </el-form-item>
-        <el-form-item label="登录密码" prop="password">
+        <el-form-item v-if="!userForm.id" label="登录密码" prop="password">
           <el-input
             v-model="userForm.password"
             class="gemini-input"
@@ -145,9 +154,44 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button class="gemini-btn-secondary" @click="createDialogVisible = false">取消</el-button>
+        <el-button class="gemini-btn-secondary" @click="userDialogVisible = false">取消</el-button>
         <el-button type="primary" class="gemini-btn-primary" :loading="submitLoading" @click="handleSubmitUser">
           保存
+        </el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog
+      v-model="resetDialogVisible"
+      :title="`重置密码 - ${resetTargetUser?.displayName || ''}`"
+      width="520px"
+      class="gemini-dialog"
+      align-center
+    >
+      <el-form ref="resetFormRef" :model="resetForm" :rules="resetRules" label-width="110px">
+        <el-form-item label="新密码" prop="password">
+          <el-input
+            v-model="resetForm.password"
+            class="gemini-input"
+            type="password"
+            show-password
+            placeholder="8-64位"
+          />
+        </el-form-item>
+        <el-form-item label="确认新密码" prop="confirmPassword">
+          <el-input
+            v-model="resetForm.confirmPassword"
+            class="gemini-input"
+            type="password"
+            show-password
+            placeholder="请再次输入新密码"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button class="gemini-btn-secondary" @click="resetDialogVisible = false">取消</el-button>
+        <el-button type="primary" class="gemini-btn-primary" :loading="submitLoading" @click="handleSubmitResetPassword">
+          确认重置
         </el-button>
       </template>
     </el-dialog>
@@ -194,7 +238,9 @@ import {
   getIdentityUserRoleIds,
   grantIdentityUserRoles,
   listIdentityRoles,
-  listIdentityUsers
+  listIdentityUsers,
+  resetIdentityUserPassword,
+  updateIdentityUser
 } from '@/api/identity'
 import { usePermission } from '@/composables/usePermission'
 import type { IdentityRole, IdentityUser } from '@/types/entity'
@@ -219,13 +265,17 @@ const pagination = reactive({
   total: 0
 })
 
-const createDialogVisible = ref(false)
+const userDialogVisible = ref(false)
+const resetDialogVisible = ref(false)
 const grantDialogVisible = ref(false)
 
 const userFormRef = ref<FormInstance>()
+const resetFormRef = ref<FormInstance>()
 const currentUser = ref<IdentityUser | null>(null)
+const resetTargetUser = ref<IdentityUser | null>(null)
 
 const userForm = reactive({
+  id: undefined as number | undefined,
   username: '',
   displayName: '',
   password: '',
@@ -235,10 +285,44 @@ const userForm = reactive({
   superAdmin: false
 })
 
+const resetForm = reactive({
+  userId: undefined as number | undefined,
+  password: '',
+  confirmPassword: ''
+})
+
 const grantForm = reactive({
   userId: undefined as number | undefined,
   roleIds: [] as number[]
 })
+
+const validateUserPassword = (_rule: any, value: string, callback: (error?: Error) => void) => {
+  if (userForm.id) {
+    callback()
+    return
+  }
+  if (!value) {
+    callback(new Error('请输入密码'))
+    return
+  }
+  if (value.length < 8 || value.length > 64) {
+    callback(new Error('密码长度需在8到64之间'))
+    return
+  }
+  callback()
+}
+
+const validateResetConfirmPassword = (_rule: any, value: string, callback: (error?: Error) => void) => {
+  if (!value) {
+    callback(new Error('请再次输入新密码'))
+    return
+  }
+  if (value !== resetForm.password) {
+    callback(new Error('两次输入密码不一致'))
+    return
+  }
+  callback()
+}
 
 const userRules: FormRules<typeof userForm> = {
   username: [
@@ -246,10 +330,15 @@ const userRules: FormRules<typeof userForm> = {
     { min: 3, max: 64, message: '用户名长度需在3到64之间', trigger: 'blur' }
   ],
   displayName: [{ required: true, message: '请输入显示名', trigger: 'blur' }],
+  password: [{ validator: validateUserPassword, trigger: 'blur' }]
+}
+
+const resetRules: FormRules<typeof resetForm> = {
   password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
+    { required: true, message: '请输入新密码', trigger: 'blur' },
     { min: 8, max: 64, message: '密码长度需在8到64之间', trigger: 'blur' }
-  ]
+  ],
+  confirmPassword: [{ validator: validateResetConfirmPassword, trigger: 'blur' }]
 }
 
 const fetchData = async () => {
@@ -275,7 +364,7 @@ const fetchRoles = async () => {
   try {
     const res = await listIdentityRoles({
       pageNum: 1,
-      pageSize: 200,
+      pageSize: 100,
       status: 1
     })
     roleOptions.value = res.data.records || []
@@ -299,6 +388,7 @@ const handleReset = () => {
 }
 
 const resetUserForm = () => {
+  userForm.id = undefined
   userForm.username = ''
   userForm.displayName = ''
   userForm.password = ''
@@ -311,7 +401,33 @@ const resetUserForm = () => {
 
 const handleAdd = () => {
   resetUserForm()
-  createDialogVisible.value = true
+  userDialogVisible.value = true
+}
+
+const handleEdit = (row: IdentityUser) => {
+  userForm.id = row.id
+  userForm.username = row.username
+  userForm.displayName = row.displayName
+  userForm.password = ''
+  userForm.email = row.email || ''
+  userForm.mobile = row.mobile || ''
+  userForm.status = row.status ?? 1
+  userForm.superAdmin = Boolean(row.superAdmin)
+  userDialogVisible.value = true
+}
+
+const resetPasswordForm = () => {
+  resetForm.userId = undefined
+  resetForm.password = ''
+  resetForm.confirmPassword = ''
+  resetFormRef.value?.clearValidate()
+}
+
+const handleOpenResetPassword = (row: IdentityUser) => {
+  resetTargetUser.value = row
+  resetPasswordForm()
+  resetForm.userId = row.id
+  resetDialogVisible.value = true
 }
 
 const handleSubmitUser = async () => {
@@ -324,20 +440,55 @@ const handleSubmitUser = async () => {
   }
   submitLoading.value = true
   try {
-    await createIdentityUser({
-      username: userForm.username,
-      displayName: userForm.displayName,
-      password: userForm.password,
-      email: userForm.email || undefined,
-      mobile: userForm.mobile || undefined,
-      status: userForm.status,
-      superAdmin: userForm.superAdmin
-    })
-    ElMessage.success('用户创建成功')
-    createDialogVisible.value = false
+    if (userForm.id) {
+      await updateIdentityUser({
+        id: userForm.id,
+        displayName: userForm.displayName,
+        email: userForm.email || undefined,
+        mobile: userForm.mobile || undefined,
+        status: userForm.status,
+        superAdmin: userForm.superAdmin
+      })
+      ElMessage.success('用户更新成功')
+    } else {
+      await createIdentityUser({
+        username: userForm.username,
+        displayName: userForm.displayName,
+        password: userForm.password,
+        email: userForm.email || undefined,
+        mobile: userForm.mobile || undefined,
+        status: userForm.status,
+        superAdmin: userForm.superAdmin
+      })
+      ElMessage.success('用户创建成功')
+    }
+    userDialogVisible.value = false
     fetchData()
   } catch (error: any) {
-    ElMessage.error(error.message || '创建用户失败')
+    ElMessage.error(error.message || '保存用户失败')
+  } finally {
+    submitLoading.value = false
+  }
+}
+
+const handleSubmitResetPassword = async () => {
+  if (!resetFormRef.value || !resetForm.userId) {
+    return
+  }
+  const valid = await resetFormRef.value.validate().catch(() => false)
+  if (!valid) {
+    return
+  }
+  submitLoading.value = true
+  try {
+    await resetIdentityUserPassword({
+      userId: resetForm.userId,
+      password: resetForm.password
+    })
+    ElMessage.success('密码重置成功')
+    resetDialogVisible.value = false
+  } catch (error: any) {
+    ElMessage.error(error.message || '密码重置失败')
   } finally {
     submitLoading.value = false
   }
@@ -417,6 +568,12 @@ onMounted(() => {
 <style scoped>
 .search-form {
   margin-bottom: 20px;
+}
+
+.action-buttons {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .role-wrapper {

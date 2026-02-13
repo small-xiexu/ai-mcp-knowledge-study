@@ -39,13 +39,19 @@ service.interceptors.response.use(
         handleUnauthorized()
       }
       ElMessage.error(res.message || '请求失败')
-      return Promise.reject(new Error(res.message || '请求失败'))
+      const handledError = new Error(res.message || '请求失败') as Error & { __handledByInterceptor?: boolean }
+      handledError.__handledByInterceptor = true
+      return Promise.reject(handledError)
     }
 
     return res as any
   },
   (error) => {
     console.error('Response error:', error)
+
+    if (error?.__handledByInterceptor) {
+      return Promise.reject(error)
+    }
 
     let message = '请求失败'
     if (error.response) {

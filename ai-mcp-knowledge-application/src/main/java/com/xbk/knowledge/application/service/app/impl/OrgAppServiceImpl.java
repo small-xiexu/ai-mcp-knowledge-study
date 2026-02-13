@@ -15,7 +15,6 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * 组织管理应用服务实现。
@@ -56,7 +55,7 @@ public class OrgAppServiceImpl implements OrgAppService {
         if (!StringUtils.hasText(org.getOrgCode())) {
             throw new BusinessException("组织编码不能为空");
         }
-        if (orgRepository.existsOrgCode(org.getTenantId(), org.getOrgCode(), null)) {
+        if (orgRepository.existsOrgCode(org.getOrgCode(), null)) {
             throw new BusinessException("组织编码已存在：" + org.getOrgCode());
         }
         if (!StringUtils.hasText(org.getOrgPath())) {
@@ -83,9 +82,6 @@ public class OrgAppServiceImpl implements OrgAppService {
         SysOrg existing = orgRepository
                 .findById(org.getId())
                 .orElseThrow(() -> new NotFoundException("组织不存在，id: " + org.getId()));
-        if (!Objects.equals(existing.getTenantId(), org.getTenantId())) {
-            throw new BusinessException("不允许跨租户更新组织");
-        }
         existing.setOrgName(org.getOrgName());
         existing.setParentId(org.getParentId());
         existing.setOrgPath(org.getOrgPath());
@@ -99,25 +95,18 @@ public class OrgAppServiceImpl implements OrgAppService {
     /**
      * 绑定用户主组织。
      *
-     * @param tenantId 租户ID
      * @param userId 用户ID
      * @param orgId 组织ID
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void bindUserPrimaryOrg(String tenantId, Long userId, Long orgId) {
+    public void bindUserPrimaryOrg(Long userId, Long orgId) {
         SysUser user = identityRepository
                 .findById(userId)
                 .orElseThrow(() -> new NotFoundException("用户不存在，id: " + userId));
-        if (!Objects.equals(user.getTenantId(), tenantId)) {
-            throw new BusinessException("不允许跨租户绑定组织");
-        }
         SysOrg org = orgRepository
                 .findById(orgId)
                 .orElseThrow(() -> new NotFoundException("组织不存在，id: " + orgId));
-        if (!Objects.equals(org.getTenantId(), tenantId)) {
-            throw new BusinessException("不允许跨租户绑定组织");
-        }
-        orgRepository.bindPrimaryOrg(tenantId, userId, orgId);
+        orgRepository.bindPrimaryOrg(user.getId(), org.getId());
     }
 }

@@ -23,6 +23,14 @@ public class McpGatewayAuthRepositoryImpl implements McpGatewayAuthRepository {
     private final McpGatewayAuthMapper mapper;
 
     @Override
+    public Optional<McpGatewayAuth> findById(Long id) {
+        if (id == null) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(mapper.findById(id));
+    }
+
+    @Override
     public Optional<McpGatewayAuth> findByApiKey(String apiKey) {
         if (apiKey == null) {
             return Optional.empty();

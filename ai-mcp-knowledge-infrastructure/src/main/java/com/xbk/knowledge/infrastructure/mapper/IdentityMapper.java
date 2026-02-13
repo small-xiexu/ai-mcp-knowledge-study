@@ -24,13 +24,12 @@ import java.util.List;
 public interface IdentityMapper extends BaseMapper<SysUser> {
 
     /**
-     * 按租户与用户名查询用户。
+     * 按用户名查询用户。
      *
-     * @param tenantId 租户ID
      * @param username 用户名
      * @return 用户实体
      */
-    SysUser findByTenantAndUsername(@Param("tenantId") String tenantId, @Param("username") String username);
+    SysUser findByUsername(@Param("username") String username);
 
     /**
      * 按用户ID查询用户。
@@ -43,20 +42,18 @@ public interface IdentityMapper extends BaseMapper<SysUser> {
     /**
      * 查询角色编码列表。
      *
-     * @param tenantId 租户ID
      * @param userId 用户ID
      * @return 角色编码列表
      */
-    List<String> findRoleCodes(@Param("tenantId") String tenantId, @Param("userId") Long userId);
+    List<String> findRoleCodes(@Param("userId") Long userId);
 
     /**
      * 查询权限编码列表。
      *
-     * @param tenantId 租户ID
      * @param userId 用户ID
      * @return 权限编码列表
      */
-    List<String> findPermissionCodes(@Param("tenantId") String tenantId, @Param("userId") Long userId);
+    List<String> findPermissionCodes(@Param("userId") Long userId);
 
     /**
      * 查询全部启用权限编码。
@@ -90,13 +87,20 @@ public interface IdentityMapper extends BaseMapper<SysUser> {
     int insertUser(SysUser user);
 
     /**
-     * 判断租户内用户名是否存在。
+     * 更新用户基础信息。
      *
-     * @param tenantId 租户ID
+     * @param user 用户实体
+     * @return 影响行数
+     */
+    int updateUser(SysUser user);
+
+    /**
+     * 判断用户名是否存在。
+     *
      * @param username 用户名
      * @return 数量
      */
-    long countByTenantAndUsername(@Param("tenantId") String tenantId, @Param("username") String username);
+    long countByUsername(@Param("username") String username);
 
     /**
      * 更新用户最后登录信息。
@@ -109,6 +113,18 @@ public interface IdentityMapper extends BaseMapper<SysUser> {
     int updateLastLogin(@Param("userId") Long userId,
                         @Param("loginIp") String loginIp,
                         @Param("loginTime") LocalDateTime loginTime);
+
+    /**
+     * 更新用户密码哈希。
+     *
+     * @param userId 用户ID
+     * @param passwordHash 密码哈希
+     * @param updateTime 更新时间
+     * @return 影响行数
+     */
+    int updatePassword(@Param("userId") Long userId,
+                       @Param("passwordHash") String passwordHash,
+                       @Param("updateTime") LocalDateTime updateTime);
 
     /**
      * 分页查询角色。
@@ -151,46 +167,40 @@ public interface IdentityMapper extends BaseMapper<SysUser> {
     SysRole findRoleById(@Param("roleId") Long roleId);
 
     /**
-     * 统计租户内角色编码数量。
+     * 统计角色编码数量。
      *
-     * @param tenantId 租户ID
      * @param roleCode 角色编码
      * @param excludeRoleId 排除角色ID
      * @return 数量
      */
-    long countByTenantAndRoleCode(@Param("tenantId") String tenantId,
-                                  @Param("roleCode") String roleCode,
-                                  @Param("excludeRoleId") Long excludeRoleId);
+    long countByRoleCode(@Param("roleCode") String roleCode,
+                         @Param("excludeRoleId") Long excludeRoleId);
 
     /**
      * 查询角色绑定权限ID列表。
      *
-     * @param tenantId 租户ID
      * @param roleId 角色ID
      * @return 权限ID列表
      */
-    List<Long> findRolePermissionIds(@Param("tenantId") String tenantId, @Param("roleId") Long roleId);
+    List<Long> findRolePermissionIds(@Param("roleId") Long roleId);
 
     /**
      * 删除角色权限关系。
      *
-     * @param tenantId 租户ID
      * @param roleId 角色ID
      * @return 影响行数
      */
-    int deleteRolePermissions(@Param("tenantId") String tenantId, @Param("roleId") Long roleId);
+    int deleteRolePermissions(@Param("roleId") Long roleId);
 
     /**
      * 插入角色权限关系。
      *
-     * @param tenantId 租户ID
      * @param roleId 角色ID
      * @param permissionId 权限ID
      * @param grantedBy 授权人ID
      * @return 影响行数
      */
-    int insertRolePermission(@Param("tenantId") String tenantId,
-                             @Param("roleId") Long roleId,
+    int insertRolePermission(@Param("roleId") Long roleId,
                              @Param("permissionId") Long permissionId,
                              @Param("grantedBy") Long grantedBy);
 
@@ -221,41 +231,36 @@ public interface IdentityMapper extends BaseMapper<SysUser> {
     /**
      * 查询用户角色ID列表。
      *
-     * @param tenantId 租户ID
      * @param userId 用户ID
      * @return 角色ID列表
      */
-    List<Long> findUserRoleIds(@Param("tenantId") String tenantId, @Param("userId") Long userId);
+    List<Long> findUserRoleIds(@Param("userId") Long userId);
 
     /**
-     * 按租户统计角色ID数量。
+     * 统计角色ID数量。
      *
-     * @param tenantId 租户ID
      * @param roleIds 角色ID集合
      * @return 命中数量
      */
-    long countRolesByIds(@Param("tenantId") String tenantId, @Param("roleIds") List<Long> roleIds);
+    long countRolesByIds(@Param("roleIds") List<Long> roleIds);
 
     /**
      * 删除用户角色关系。
      *
-     * @param tenantId 租户ID
      * @param userId 用户ID
      * @return 影响行数
      */
-    int deleteUserRoles(@Param("tenantId") String tenantId, @Param("userId") Long userId);
+    int deleteUserRoles(@Param("userId") Long userId);
 
     /**
      * 插入用户角色关系。
      *
-     * @param tenantId 租户ID
      * @param userId 用户ID
      * @param roleId 角色ID
      * @param grantedBy 授权人
      * @return 影响行数
      */
-    int insertUserRole(@Param("tenantId") String tenantId,
-                       @Param("userId") Long userId,
+    int insertUserRole(@Param("userId") Long userId,
                        @Param("roleId") Long roleId,
                        @Param("grantedBy") Long grantedBy);
 }

@@ -6,8 +6,8 @@
 
     <resultMap id="SysAuditEventMap" type="com.xbk.knowledge.domain.model.entity.SysAuditEvent">
         <id column="id" property="id"/>
-        <result column="tenant_id" property="tenantId"/>
         <result column="operator_id" property="operatorId"/>
+        <result column="operator_name" property="operatorName"/>
         <result column="operator_type" property="operatorType"/>
         <result column="event_type" property="eventType"/>
         <result column="resource_type" property="resourceType"/>
@@ -25,29 +25,28 @@
     </resultMap>
 
     <sql id="SysAuditEventColumns">
-        id,
-        tenant_id,
-        operator_id,
-        operator_type,
-        event_type,
-        resource_type,
-        resource_id,
-        action,
-        request_id,
-        source_ip,
-        user_agent,
-        old_value,
-        new_value,
-        result,
-        error_message,
-        cost_ms,
-        occurred_at
+        a.id,
+        a.operator_id,
+        u.username as operator_name,
+        a.operator_type,
+        a.event_type,
+        a.resource_type,
+        a.resource_id,
+        a.action,
+        a.request_id,
+        a.source_ip,
+        a.user_agent,
+        a.old_value,
+        a.new_value,
+        a.result,
+        a.error_message,
+        a.cost_ms,
+        a.occurred_at
     </sql>
 
     <insert id="insertEvent" parameterType="com.xbk.knowledge.domain.model.entity.SysAuditEvent"
             useGeneratedKeys="true" keyProperty="id">
         insert into sys_audit_event (
-            tenant_id,
             operator_id,
             operator_type,
             event_type,
@@ -64,7 +63,6 @@
             cost_ms,
             occurred_at
         ) values (
-            #{tenantId},
             #{operatorId},
             #{operatorType},
             #{eventType},
@@ -86,39 +84,47 @@
     <select id="findPage" resultMap="SysAuditEventMap">
         select
         <include refid="SysAuditEventColumns"/>
-        from sys_audit_event
-        where tenant_id = #{tenantId}
-        <if test="operatorId != null">
-            and operator_id = #{operatorId}
+        from sys_audit_event a
+        left join sys_user u on a.operator_id = u.id
+        where 1 = 1
+        <if test="operatorKeyword != null and operatorKeyword != ''">
+            and (
+                cast(a.operator_id as char) like concat('%', #{operatorKeyword}, '%')
+                or u.username like concat('%', #{operatorKeyword}, '%')
+            )
         </if>
         <if test="eventType != null and eventType != ''">
-            and event_type = #{eventType}
+            and a.event_type = #{eventType}
         </if>
         <if test="resourceType != null and resourceType != ''">
-            and resource_type = #{resourceType}
+            and a.resource_type = #{resourceType}
         </if>
         <if test="result != null">
-            and result = #{result}
+            and a.result = #{result}
         </if>
-        order by occurred_at desc, id desc
+        order by a.occurred_at desc, a.id desc
         limit #{pageSize} offset #{offset}
     </select>
 
     <select id="count" resultType="long">
         select count(1)
-        from sys_audit_event
-        where tenant_id = #{tenantId}
-        <if test="operatorId != null">
-            and operator_id = #{operatorId}
+        from sys_audit_event a
+        left join sys_user u on a.operator_id = u.id
+        where 1 = 1
+        <if test="operatorKeyword != null and operatorKeyword != ''">
+            and (
+                cast(a.operator_id as char) like concat('%', #{operatorKeyword}, '%')
+                or u.username like concat('%', #{operatorKeyword}, '%')
+            )
         </if>
         <if test="eventType != null and eventType != ''">
-            and event_type = #{eventType}
+            and a.event_type = #{eventType}
         </if>
         <if test="resourceType != null and resourceType != ''">
-            and resource_type = #{resourceType}
+            and a.resource_type = #{resourceType}
         </if>
         <if test="result != null">
-            and result = #{result}
+            and a.result = #{result}
         </if>
     </select>
 

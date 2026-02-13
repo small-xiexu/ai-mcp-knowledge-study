@@ -28,11 +28,6 @@ public class UserQueryRequest extends BaseRequest {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 租户ID（仅超管可传入）。
-     */
-    private String tenantId;
-
-    /**
      * 用户名关键词。
      */
     private String username;

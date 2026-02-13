@@ -5,9 +5,6 @@
       <p class="login-subtitle">统一身份登录</p>
 
       <el-form ref="formRef" :model="form" :rules="rules" class="login-form" label-position="top">
-        <el-form-item label="租户ID（可选）">
-          <el-input v-model="form.tenantId" class="gemini-input" placeholder="默认使用后端默认租户" />
-        </el-form-item>
         <el-form-item label="用户名" prop="username">
           <el-input
             v-model="form.username"
@@ -50,7 +47,6 @@ const loading = ref(false)
 const formRef = ref<FormInstance>()
 
 const form = reactive({
-  tenantId: '',
   username: '',
   password: ''
 })
@@ -61,17 +57,21 @@ const rules: FormRules<typeof form> = {
 }
 
 const handleLogin = async () => {
+  if (loading.value) {
+    return
+  }
+  loading.value = true
   if (!formRef.value) {
+    loading.value = false
     return
   }
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) {
+    loading.value = false
     return
   }
-  loading.value = true
   try {
     await authStore.login({
-      tenantId: form.tenantId || undefined,
       username: form.username,
       password: form.password
     })
@@ -79,7 +79,7 @@ const handleLogin = async () => {
     const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/dashboard'
     await router.replace(redirect)
   } catch (error: any) {
-    ElMessage.error(error.message || '登录失败')
+    console.error('Login failed:', error)
   } finally {
     loading.value = false
   }

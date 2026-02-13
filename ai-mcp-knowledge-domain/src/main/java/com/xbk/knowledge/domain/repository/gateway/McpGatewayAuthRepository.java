@@ -14,6 +14,8 @@ import java.util.Optional;
  */
 public interface McpGatewayAuthRepository {
 
+    Optional<McpGatewayAuth> findById(Long id);
+
     Optional<McpGatewayAuth> findByApiKey(String apiKey);
 
     List<McpGatewayAuth> findByGatewayId(GatewayIdQuery query);

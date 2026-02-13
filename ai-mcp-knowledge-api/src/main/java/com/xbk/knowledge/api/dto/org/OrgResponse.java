@@ -29,11 +29,6 @@ public class OrgResponse implements Serializable {
     private Long id;
 
     /**
-     * 租户ID。
-     */
-    private String tenantId;
-
-    /**
      * 组织编码。
      */
     private String orgCode;

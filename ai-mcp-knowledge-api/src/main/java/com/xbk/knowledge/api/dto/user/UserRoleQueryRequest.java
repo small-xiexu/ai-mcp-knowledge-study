@@ -30,9 +30,4 @@ public class UserRoleQueryRequest extends BaseRequest {
      */
     @NotNull(message = "用户ID不能为空")
     private Long userId;
-
-    /**
-     * 租户ID（仅超管可指定）。
-     */
-    private String tenantId;
 }

@@ -1,13 +1,12 @@
 package com.xbk.knowledge.trigger.http;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
-import cn.dev33.satoken.stp.SaTokenInfo;
-import cn.dev33.satoken.stp.StpUtil;
 import com.xbk.knowledge.api.dto.auth.AuthLoginRequest;
 import com.xbk.knowledge.api.dto.auth.AuthLoginResponse;
 import com.xbk.knowledge.api.dto.auth.AuthProfileResponse;
 import com.xbk.knowledge.application.model.identity.AuthProfile;
 import com.xbk.knowledge.application.service.app.AuthAppService;
+import com.xbk.knowledge.application.service.app.IdentityContextService;
 import com.xbk.knowledge.domain.model.entity.SysUser;
 import com.xbk.knowledge.types.common.Result;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +32,7 @@ import jakarta.validation.Valid;
 public class AuthController {
 
     private final AuthAppService authAppService;
+    private final IdentityContextService identityContextService;
 
     /**
      * 登录接口。
@@ -43,20 +43,15 @@ public class AuthController {
      */
     @PostMapping("/login")
     public Result<AuthLoginResponse> login(@Valid @RequestBody AuthLoginRequest request, HttpServletRequest httpRequest) {
-        SysUser user = authAppService.verifyLogin(
-                request.getTenantId(),
-                request.getUsername(),
-                request.getPassword()
-        );
-        StpUtil.login(user.getId());
+        SysUser user = authAppService.verifyLogin(request.getUsername(), request.getPassword());
+        identityContextService.login(user.getId());
         String loginIp = resolveClientIp(httpRequest);
         authAppService.recordLoginSuccess(user.getId(), loginIp);
         AuthProfile profile = authAppService.loadProfile(user.getId());
-        SaTokenInfo tokenInfo = StpUtil.getTokenInfo();
         AuthLoginResponse response = AuthLoginResponse.builder()
-                .tokenName(tokenInfo.getTokenName())
-                .tokenValue(tokenInfo.getTokenValue())
-                .tokenTimeout(tokenInfo.getTokenTimeout())
+                .tokenName(identityContextService.getTokenName())
+                .tokenValue(identityContextService.getTokenValue())
+                .tokenTimeout(identityContextService.getTokenTimeout())
                 .profile(toProfileResponse(profile))
                 .build();
         return Result.success("登录成功", response);
@@ -70,7 +65,7 @@ public class AuthController {
     @SaCheckLogin
     @PostMapping("/logout")
     public Result<Void> logout() {
-        StpUtil.logout();
+        identityContextService.logout();
         return Result.success();
     }
 
@@ -82,7 +77,7 @@ public class AuthController {
     @SaCheckLogin
     @GetMapping("/me")
     public Result<AuthProfileResponse> currentUser() {
-        Long userId = StpUtil.getLoginIdAsLong();
+        Long userId = identityContextService.getCurrentUserId();
         AuthProfile profile = authAppService.loadProfile(userId);
         return Result.success(toProfileResponse(profile));
     }
@@ -96,7 +91,6 @@ public class AuthController {
     private AuthProfileResponse toProfileResponse(AuthProfile profile) {
         return AuthProfileResponse.builder()
                 .userId(profile.getUserId())
-                .tenantId(profile.getTenantId())
                 .username(profile.getUsername())
                 .displayName(profile.getDisplayName())
                 .email(profile.getEmail())

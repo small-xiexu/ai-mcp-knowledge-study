@@ -2,31 +2,13 @@
   <div class="gemini-container">
     <el-card class="gemini-card">
       <el-form :inline="true" :model="searchForm" class="search-form">
-        <el-form-item label="操作人ID">
-          <el-input-number
-            v-model="searchForm.operatorId"
-            :min="1"
-            class="gemini-input-number"
-            controls-position="right"
-            placeholder="可选"
-          />
-        </el-form-item>
-        <el-form-item label="事件类型">
+        <el-form-item label="操作人">
           <el-input
-            v-model="searchForm.eventType"
+            v-model="searchForm.operatorKeyword"
             class="gemini-input"
-            placeholder="例如 ROLE_GRANT_PERMISSION"
+            placeholder="请输入用户名或ID"
             clearable
-            style="width: 220px"
-          />
-        </el-form-item>
-        <el-form-item label="资源类型">
-          <el-input
-            v-model="searchForm.resourceType"
-            class="gemini-input"
-            placeholder="例如 ROLE"
-            clearable
-            style="width: 180px"
+            style="width: 200px"
           />
         </el-form-item>
         <el-form-item label="结果">
@@ -56,11 +38,16 @@
 
       <el-table v-loading="loading" :data="tableData" class="gemini-table" style="width: 100%">
         <el-table-column prop="id" label="ID" width="90" />
-        <el-table-column prop="operatorId" label="操作人" width="110" />
-        <el-table-column prop="eventType" label="事件类型" min-width="180" show-overflow-tooltip />
-        <el-table-column prop="resourceType" label="资源类型" width="120" />
-        <el-table-column prop="resourceId" label="资源ID" width="120" show-overflow-tooltip />
-        <el-table-column prop="action" label="动作" width="110" />
+        <el-table-column label="操作人" width="180">
+          <template #default="{ row }">
+            {{ formatOperator(row) }}
+          </template>
+        </el-table-column>
+        <el-table-column label="动作" width="110">
+          <template #default="{ row }">
+            {{ formatAction(row.action) }}
+          </template>
+        </el-table-column>
         <el-table-column label="结果" width="100">
           <template #default="{ row }">
             <el-tag :type="row.result === 1 ? 'success' : 'danger'" effect="dark" style="border: none">
@@ -111,13 +98,12 @@
       align-center
     >
       <el-descriptions :column="2" border class="gemini-descriptions">
-        <el-descriptions-item label="租户ID">{{ currentEvent?.tenantId || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="操作人ID">{{ currentEvent?.operatorId || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="操作人">{{ formatOperator(currentEvent) }}</el-descriptions-item>
         <el-descriptions-item label="操作主体类型">{{ currentEvent?.operatorType || '-' }}</el-descriptions-item>
         <el-descriptions-item label="事件类型">{{ currentEvent?.eventType || '-' }}</el-descriptions-item>
         <el-descriptions-item label="资源类型">{{ currentEvent?.resourceType || '-' }}</el-descriptions-item>
         <el-descriptions-item label="资源ID">{{ currentEvent?.resourceId || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="动作">{{ currentEvent?.action || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="动作">{{ formatAction(currentEvent?.action) }}</el-descriptions-item>
         <el-descriptions-item label="请求ID">{{ currentEvent?.requestId || '-' }}</el-descriptions-item>
         <el-descriptions-item label="来源IP">{{ currentEvent?.sourceIp || '-' }}</el-descriptions-item>
         <el-descriptions-item label="耗时(ms)">{{ currentEvent?.costMs ?? '-' }}</el-descriptions-item>
@@ -154,9 +140,7 @@ const detailDialogVisible = ref(false)
 const currentEvent = ref<IdentityAuditEvent | null>(null)
 
 const searchForm = reactive({
-  operatorId: undefined as number | undefined,
-  eventType: '',
-  resourceType: '',
+  operatorKeyword: '',
   result: undefined as number | undefined
 })
 
@@ -172,9 +156,7 @@ const fetchData = async () => {
     const res = await listIdentityAuditEvents({
       pageNum: pagination.pageNum,
       pageSize: pagination.pageSize,
-      operatorId: searchForm.operatorId,
-      eventType: searchForm.eventType || undefined,
-      resourceType: searchForm.resourceType || undefined,
+      operatorKeyword: searchForm.operatorKeyword || undefined,
       result: searchForm.result
     })
     tableData.value = res.data.records || []
@@ -192,9 +174,7 @@ const handleSearch = () => {
 }
 
 const handleReset = () => {
-  searchForm.operatorId = undefined
-  searchForm.eventType = ''
-  searchForm.resourceType = ''
+  searchForm.operatorKeyword = ''
   searchForm.result = undefined
   pagination.pageNum = 1
   fetchData()
@@ -217,6 +197,39 @@ const handleCurrentChange = () => {
 const formatDateTime = (value?: string) => {
   if (!value) return '-'
   return value.replace('T', ' ').substring(0, 19)
+}
+
+const ACTION_TEXT_MAP: Record<string, string> = {
+  login: '登录',
+  logout: '登出',
+  create: '创建',
+  update: '更新',
+  revoke: '撤销',
+  bindUser: '绑定用户',
+  grantRoles: '分配角色',
+  grantPermissions: '分配权限',
+  resetPassword: '重置密码'
+}
+
+const formatAction = (action?: string) => {
+  if (!action) return '-'
+  return ACTION_TEXT_MAP[action] || action
+}
+
+const formatOperator = (event?: IdentityAuditEvent | null) => {
+  if (!event) return '-'
+  const operatorId = event.operatorId
+  const operatorName = event.operatorName
+  if (operatorName && operatorId != null) {
+    return `${operatorName}@${operatorId}`
+  }
+  if (operatorName) {
+    return operatorName
+  }
+  if (operatorId != null) {
+    return String(operatorId)
+  }
+  return '-'
 }
 
 onMounted(() => {

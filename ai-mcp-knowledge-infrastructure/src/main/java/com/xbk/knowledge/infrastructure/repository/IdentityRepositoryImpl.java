@@ -30,15 +30,14 @@ public class IdentityRepositoryImpl implements IdentityRepository {
     private final IdentityMapper identityMapper;
 
     /**
-     * 按租户与用户名查询用户。
+     * 按用户名查询用户。
      *
-     * @param tenantId 租户ID
      * @param username 用户名
      * @return 用户
      */
     @Override
-    public Optional<SysUser> findByTenantAndUsername(String tenantId, String username) {
-        SysUser user = identityMapper.findByTenantAndUsername(tenantId, username);
+    public Optional<SysUser> findByUsername(String username) {
+        SysUser user = identityMapper.findByUsername(username);
         return Optional.ofNullable(user);
     }
 
@@ -57,25 +56,23 @@ public class IdentityRepositoryImpl implements IdentityRepository {
     /**
      * 查询用户的角色编码列表。
      *
-     * @param tenantId 租户ID
-     * @param userId   用户ID
+     * @param userId 用户ID
      * @return 角色编码列表
      */
     @Override
-    public List<String> findRoleCodes(String tenantId, Long userId) {
-        return identityMapper.findRoleCodes(tenantId, userId);
+    public List<String> findRoleCodes(Long userId) {
+        return identityMapper.findRoleCodes(userId);
     }
 
     /**
      * 查询用户的权限编码列表。
      *
-     * @param tenantId 租户ID
-     * @param userId   用户ID
+     * @param userId 用户ID
      * @return 权限编码列表
      */
     @Override
-    public List<String> findPermissionCodes(String tenantId, Long userId) {
-        return identityMapper.findPermissionCodes(tenantId, userId);
+    public List<String> findPermissionCodes(Long userId) {
+        return identityMapper.findPermissionCodes(userId);
     }
 
     /**
@@ -123,15 +120,25 @@ public class IdentityRepositoryImpl implements IdentityRepository {
     }
 
     /**
-     * 判断租户内用户名是否已存在。
+     * 更新用户基础信息。
      *
-     * @param tenantId 租户ID
+     * @param user 用户实体
+     * @return 影响行数
+     */
+    @Override
+    public int updateUser(SysUser user) {
+        return identityMapper.updateUser(user);
+    }
+
+    /**
+     * 判断用户名是否已存在。
+     *
      * @param username 用户名
      * @return 是否存在
      */
     @Override
-    public boolean existsByTenantAndUsername(String tenantId, String username) {
-        return identityMapper.countByTenantAndUsername(tenantId, username) > 0;
+    public boolean existsByUsername(String username) {
+        return identityMapper.countByUsername(username) > 0;
     }
 
     /**
@@ -145,6 +152,19 @@ public class IdentityRepositoryImpl implements IdentityRepository {
     @Override
     public int updateLastLogin(Long userId, String loginIp, LocalDateTime loginTime) {
         return identityMapper.updateLastLogin(userId, loginIp, loginTime);
+    }
+
+    /**
+     * 更新用户密码哈希。
+     *
+     * @param userId 用户ID
+     * @param passwordHash 密码哈希
+     * @param updateTime 更新时间
+     * @return 影响行数
+     */
+    @Override
+    public int updatePassword(Long userId, String passwordHash, LocalDateTime updateTime) {
+        return identityMapper.updatePassword(userId, passwordHash, updateTime);
     }
 
     /**
@@ -204,46 +224,43 @@ public class IdentityRepositoryImpl implements IdentityRepository {
     }
 
     /**
-     * 判断租户内角色编码是否存在。
+     * 判断角色编码是否存在。
      *
-     * @param tenantId 租户ID
      * @param roleCode 角色编码
      * @param excludeRoleId 排除的角色ID
      * @return 是否存在
      */
     @Override
-    public boolean existsRoleCode(String tenantId, String roleCode, Long excludeRoleId) {
-        return identityMapper.countByTenantAndRoleCode(tenantId, roleCode, excludeRoleId) > 0;
+    public boolean existsRoleCode(String roleCode, Long excludeRoleId) {
+        return identityMapper.countByRoleCode(roleCode, excludeRoleId) > 0;
     }
 
     /**
      * 查询角色权限ID列表。
      *
-     * @param tenantId 租户ID
      * @param roleId 角色ID
      * @return 权限ID列表
      */
     @Override
-    public List<Long> findRolePermissionIds(String tenantId, Long roleId) {
-        return identityMapper.findRolePermissionIds(tenantId, roleId);
+    public List<Long> findRolePermissionIds(Long roleId) {
+        return identityMapper.findRolePermissionIds(roleId);
     }
 
     /**
      * 重建角色权限绑定。
      *
-     * @param tenantId 租户ID
      * @param roleId 角色ID
      * @param permissionIds 权限ID列表
      * @param grantedBy 授权人
      */
     @Override
-    public void replaceRolePermissions(String tenantId, Long roleId, List<Long> permissionIds, Long grantedBy) {
-        identityMapper.deleteRolePermissions(tenantId, roleId);
+    public void replaceRolePermissions(Long roleId, List<Long> permissionIds, Long grantedBy) {
+        identityMapper.deleteRolePermissions(roleId);
         if (permissionIds == null || permissionIds.isEmpty()) {
             return;
         }
         for (Long permissionId : permissionIds) {
-            identityMapper.insertRolePermission(tenantId, roleId, permissionId, grantedBy);
+            identityMapper.insertRolePermission(roleId, permissionId, grantedBy);
         }
     }
 
@@ -286,13 +303,12 @@ public class IdentityRepositoryImpl implements IdentityRepository {
     /**
      * 查询用户角色ID列表。
      *
-     * @param tenantId 租户ID
      * @param userId 用户ID
      * @return 角色ID列表
      */
     @Override
-    public List<Long> findUserRoleIds(String tenantId, Long userId) {
-        List<Long> roleIds = identityMapper.findUserRoleIds(tenantId, userId);
+    public List<Long> findUserRoleIds(Long userId) {
+        List<Long> roleIds = identityMapper.findUserRoleIds(userId);
         if (roleIds == null) {
             return Collections.emptyList();
         }
@@ -300,36 +316,34 @@ public class IdentityRepositoryImpl implements IdentityRepository {
     }
 
     /**
-     * 校验角色ID集合在租户内是否全部存在。
+     * 校验角色ID集合是否全部存在。
      *
-     * @param tenantId 租户ID
      * @param roleIds 角色ID集合
      * @return 命中数量
      */
     @Override
-    public long countRolesByIds(String tenantId, List<Long> roleIds) {
+    public long countRolesByIds(List<Long> roleIds) {
         if (roleIds == null || roleIds.isEmpty()) {
             return 0L;
         }
-        return identityMapper.countRolesByIds(tenantId, roleIds);
+        return identityMapper.countRolesByIds(roleIds);
     }
 
     /**
      * 重建用户角色绑定。
      *
-     * @param tenantId 租户ID
      * @param userId 用户ID
      * @param roleIds 角色ID集合
      * @param grantedBy 授权人
      */
     @Override
-    public void replaceUserRoles(String tenantId, Long userId, List<Long> roleIds, Long grantedBy) {
-        identityMapper.deleteUserRoles(tenantId, userId);
+    public void replaceUserRoles(Long userId, List<Long> roleIds, Long grantedBy) {
+        identityMapper.deleteUserRoles(userId);
         if (roleIds == null || roleIds.isEmpty()) {
             return;
         }
         for (Long roleId : roleIds) {
-            identityMapper.insertUserRole(tenantId, userId, roleId, grantedBy);
+            identityMapper.insertUserRole(userId, roleId, grantedBy);
         }
     }
 }

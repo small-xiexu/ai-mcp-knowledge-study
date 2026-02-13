@@ -17,11 +17,6 @@ import lombok.NoArgsConstructor;
 public class OrgQuery {
 
     /**
-     * 租户ID。
-     */
-    private String tenantId;
-
-    /**
      * 状态。
      */
     private Integer status;

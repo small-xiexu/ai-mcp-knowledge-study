@@ -14,7 +14,6 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * 角色管理应用服务实现。
@@ -40,7 +39,6 @@ public class RoleAppServiceImpl implements RoleAppService {
         Integer offset = query.getOffset() == null ? 0 : query.getOffset();
         Integer pageSize = query.getPageSize() == null ? 10 : query.getPageSize();
         RolePageQuery normalizedQuery = new RolePageQuery(
-                query.getTenantId(),
                 query.getRoleCode(),
                 query.getStatus(),
                 offset,
@@ -64,11 +62,11 @@ public class RoleAppServiceImpl implements RoleAppService {
         if (!StringUtils.hasText(role.getRoleCode())) {
             throw new BusinessException("角色编码不能为空");
         }
-        if (identityRepository.existsRoleCode(role.getTenantId(), role.getRoleCode(), null)) {
+        if (identityRepository.existsRoleCode(role.getRoleCode(), null)) {
             throw new BusinessException("角色编码已存在：" + role.getRoleCode());
         }
         if (!StringUtils.hasText(role.getRoleScope())) {
-            role.setRoleScope("TENANT");
+            role.setRoleScope("GLOBAL");
         }
         if (role.getStatus() == null) {
             role.setStatus(1);
@@ -92,10 +90,7 @@ public class RoleAppServiceImpl implements RoleAppService {
         SysRole existing = identityRepository
                 .findRoleById(roleId)
                 .orElseThrow(() -> new NotFoundException("角色不存在，id: " + roleId));
-        if (!Objects.equals(existing.getTenantId(), role.getTenantId())) {
-            throw new BusinessException("不允许跨租户更新角色");
-        }
-        if (identityRepository.existsRoleCode(role.getTenantId(), existing.getRoleCode(), roleId)) {
+        if (identityRepository.existsRoleCode(existing.getRoleCode(), roleId)) {
             throw new BusinessException("角色编码已存在：" + existing.getRoleCode());
         }
         existing.setRoleName(role.getRoleName());
@@ -110,44 +105,36 @@ public class RoleAppServiceImpl implements RoleAppService {
     /**
      * 查询角色已分配权限ID列表。
      *
-     * @param tenantId 租户ID
      * @param roleId 角色ID
      * @return 权限ID列表
      */
     @Override
-    public List<Long> queryPermissionIds(String tenantId, Long roleId) {
-        SysRole role = identityRepository
+    public List<Long> queryPermissionIds(Long roleId) {
+        identityRepository
                 .findRoleById(roleId)
                 .orElseThrow(() -> new NotFoundException("角色不存在，id: " + roleId));
-        if (!Objects.equals(role.getTenantId(), tenantId)) {
-            throw new BusinessException("不允许跨租户查询权限");
-        }
-        return identityRepository.findRolePermissionIds(tenantId, roleId);
+        return identityRepository.findRolePermissionIds(roleId);
     }
 
     /**
      * 绑定角色权限。
      *
-     * @param tenantId 租户ID
      * @param roleId 角色ID
      * @param permissionIds 权限ID列表
      * @param operatorId 操作人ID
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void grantPermissions(String tenantId, Long roleId, List<Long> permissionIds, Long operatorId) {
-        SysRole role = identityRepository
+    public void grantPermissions(Long roleId, List<Long> permissionIds, Long operatorId) {
+        identityRepository
                 .findRoleById(roleId)
                 .orElseThrow(() -> new NotFoundException("角色不存在，id: " + roleId));
-        if (!Objects.equals(role.getTenantId(), tenantId)) {
-            throw new BusinessException("不允许跨租户分配权限");
-        }
         if (permissionIds != null && !permissionIds.isEmpty()) {
             long permissionCount = identityRepository.countPermissionByIds(permissionIds);
             if (permissionCount != permissionIds.size()) {
                 throw new BusinessException("存在无效权限ID");
             }
         }
-        identityRepository.replaceRolePermissions(tenantId, roleId, permissionIds, operatorId);
+        identityRepository.replaceRolePermissions(roleId, permissionIds, operatorId);
     }
 }

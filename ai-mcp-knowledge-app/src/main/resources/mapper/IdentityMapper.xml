@@ -6,7 +6,6 @@
 
     <resultMap id="SysUserMap" type="com.xbk.knowledge.domain.model.entity.SysUser">
         <id column="id" property="id"/>
-        <result column="tenant_id" property="tenantId"/>
         <result column="username" property="username"/>
         <result column="display_name" property="displayName"/>
         <result column="email" property="email"/>
@@ -23,7 +22,6 @@
 
     <sql id="SysUserColumns">
         id,
-        tenant_id,
         username,
         display_name,
         email,
@@ -38,12 +36,11 @@
         updated_at
     </sql>
 
-    <select id="findByTenantAndUsername" resultMap="SysUserMap">
+    <select id="findByUsername" resultMap="SysUserMap">
         select
         <include refid="SysUserColumns"/>
         from sys_user
-        where tenant_id = #{tenantId}
-          and username = #{username}
+        where username = #{username}
         limit 1
     </select>
 
@@ -59,18 +56,16 @@
         select distinct r.role_code
         from sys_user_role ur
                  join sys_role r on ur.role_id = r.id
-        where ur.tenant_id = #{tenantId}
-          and ur.user_id = #{userId}
+        where ur.user_id = #{userId}
           and r.status = 1
     </select>
 
     <select id="findPermissionCodes" resultType="string">
         select distinct p.permission_code
         from sys_user_role ur
-                 join sys_role_permission rp on ur.role_id = rp.role_id and ur.tenant_id = rp.tenant_id
+                 join sys_role_permission rp on ur.role_id = rp.role_id
                  join sys_permission p on rp.permission_id = p.id
-        where ur.tenant_id = #{tenantId}
-          and ur.user_id = #{userId}
+        where ur.user_id = #{userId}
           and p.status = 1
     </select>
 
@@ -84,7 +79,7 @@
         select
         <include refid="SysUserColumns"/>
         from sys_user
-        where tenant_id = #{tenantId}
+        where 1 = 1
         <if test="username != null and username != ''">
             and username like concat('%', #{username}, '%')
         </if>
@@ -98,7 +93,7 @@
     <select id="count" resultType="long">
         select count(1)
         from sys_user
-        where tenant_id = #{tenantId}
+        where 1 = 1
         <if test="username != null and username != ''">
             and username like concat('%', #{username}, '%')
         </if>
@@ -110,7 +105,6 @@
     <insert id="insertUser" parameterType="com.xbk.knowledge.domain.model.entity.SysUser" useGeneratedKeys="true"
             keyProperty="id">
         insert into sys_user (
-            tenant_id,
             username,
             display_name,
             email,
@@ -121,7 +115,6 @@
             created_at,
             updated_at
         ) values (
-            #{tenantId},
             #{username},
             #{displayName},
             #{email},
@@ -134,11 +127,21 @@
         )
     </insert>
 
-    <select id="countByTenantAndUsername" resultType="long">
+    <update id="updateUser" parameterType="com.xbk.knowledge.domain.model.entity.SysUser">
+        update sys_user
+        set display_name = #{displayName},
+            email = #{email},
+            mobile = #{mobile},
+            status = #{status},
+            is_super_admin = #{isSuperAdmin},
+            updated_at = #{updatedAt}
+        where id = #{id}
+    </update>
+
+    <select id="countByUsername" resultType="long">
         select count(1)
         from sys_user
-        where tenant_id = #{tenantId}
-          and username = #{username}
+        where username = #{username}
     </select>
 
     <update id="updateLastLogin">
@@ -149,9 +152,15 @@
         where id = #{userId}
     </update>
 
+    <update id="updatePassword">
+        update sys_user
+        set password_hash = #{passwordHash},
+            updated_at = #{updateTime}
+        where id = #{userId}
+    </update>
+
     <resultMap id="SysRoleMap" type="com.xbk.knowledge.domain.model.entity.SysRole">
         <id column="id" property="id"/>
-        <result column="tenant_id" property="tenantId"/>
         <result column="role_code" property="roleCode"/>
         <result column="role_name" property="roleName"/>
         <result column="role_scope" property="roleScope"/>
@@ -163,7 +172,6 @@
 
     <sql id="SysRoleColumns">
         id,
-        tenant_id,
         role_code,
         role_name,
         role_scope,
@@ -177,7 +185,7 @@
         select
         <include refid="SysRoleColumns"/>
         from sys_role
-        where tenant_id = #{tenantId}
+        where 1 = 1
         <if test="roleCode != null and roleCode != ''">
             and role_code like concat('%', #{roleCode}, '%')
         </if>
@@ -191,7 +199,7 @@
     <select id="countRole" resultType="long">
         select count(1)
         from sys_role
-        where tenant_id = #{tenantId}
+        where 1 = 1
         <if test="roleCode != null and roleCode != ''">
             and role_code like concat('%', #{roleCode}, '%')
         </if>
@@ -203,7 +211,6 @@
     <insert id="insertRole" parameterType="com.xbk.knowledge.domain.model.entity.SysRole" useGeneratedKeys="true"
             keyProperty="id">
         insert into sys_role (
-            tenant_id,
             role_code,
             role_name,
             role_scope,
@@ -212,7 +219,6 @@
             created_at,
             updated_at
         ) values (
-            #{tenantId},
             #{roleCode},
             #{roleName},
             #{roleScope},
@@ -231,7 +237,6 @@
             remark = #{remark},
             updated_at = #{updatedAt}
         where id = #{id}
-          and tenant_id = #{tenantId}
     </update>
 
     <select id="findRoleById" resultMap="SysRoleMap">
@@ -242,11 +247,10 @@
         limit 1
     </select>
 
-    <select id="countByTenantAndRoleCode" resultType="long">
+    <select id="countByRoleCode" resultType="long">
         select count(1)
         from sys_role
-        where tenant_id = #{tenantId}
-          and role_code = #{roleCode}
+        where role_code = #{roleCode}
         <if test="excludeRoleId != null">
             and id != #{excludeRoleId}
         </if>
@@ -255,25 +259,21 @@
     <select id="findRolePermissionIds" resultType="long">
         select permission_id
         from sys_role_permission
-        where tenant_id = #{tenantId}
-          and role_id = #{roleId}
+        where role_id = #{roleId}
     </select>
 
     <delete id="deleteRolePermissions">
         delete from sys_role_permission
-        where tenant_id = #{tenantId}
-          and role_id = #{roleId}
+        where role_id = #{roleId}
     </delete>
 
     <insert id="insertRolePermission">
         insert into sys_role_permission (
-            tenant_id,
             role_id,
             permission_id,
             granted_by,
             granted_at
         ) values (
-            #{tenantId},
             #{roleId},
             #{permissionId},
             #{grantedBy},
@@ -348,15 +348,13 @@
     <select id="findUserRoleIds" resultType="long">
         select role_id
         from sys_user_role
-        where tenant_id = #{tenantId}
-          and user_id = #{userId}
+        where user_id = #{userId}
     </select>
 
     <select id="countRolesByIds" resultType="long">
         select count(1)
         from sys_role
-        where tenant_id = #{tenantId}
-          and id in
+        where id in
         <foreach collection="roleIds" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
@@ -364,19 +362,16 @@
 
     <delete id="deleteUserRoles">
         delete from sys_user_role
-        where tenant_id = #{tenantId}
-          and user_id = #{userId}
+        where user_id = #{userId}
     </delete>
 
     <insert id="insertUserRole">
         insert into sys_user_role (
-            tenant_id,
             user_id,
             role_id,
             granted_by,
             granted_at
         ) values (
-            #{tenantId},
             #{userId},
             #{roleId},
             #{grantedBy},

@@ -24,11 +24,6 @@ public class OrgQueryRequest extends BaseRequest {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 租户ID（仅超管可指定）。
-     */
-    private String tenantId;
-
-    /**
      * 状态。
      */
     private Integer status;

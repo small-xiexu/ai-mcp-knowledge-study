@@ -134,6 +134,9 @@ const activeMenu = computed(() => {
   if (route.path.startsWith('/gateway-tools/')) {
     return '/gateway-tools'
   }
+  if (route.path.startsWith('/mcp-credentials')) {
+    return '/mcp-servers'
+  }
   return route.path
 })
 

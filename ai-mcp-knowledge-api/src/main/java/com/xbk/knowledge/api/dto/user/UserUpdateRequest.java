@@ -8,14 +8,17 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 /**
- * 用户创建请求 DTO。
+ * 用户更新请求 DTO。
  *
- * 职责：接口层 DTO，用于承载新建用户参数。
+ * 职责：接口层 DTO，用于承载用户基础信息编辑参数。
  *
  * @author xiexu
  */
@@ -24,16 +27,15 @@ import jakarta.validation.constraints.Size;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class UserCreateRequest extends BaseRequest {
+public class UserUpdateRequest extends BaseRequest {
 
     private static final long serialVersionUID = 1L;
 
     /**
-     * 用户名。
+     * 用户ID。
      */
-    @NotBlank(message = "用户名不能为空")
-    @Size(min = 3, max = 64, message = "用户名长度应在3到64之间")
-    private String username;
+    @NotNull(message = "用户ID不能为空")
+    private Long id;
 
     /**
      * 显示名。
@@ -41,13 +43,6 @@ public class UserCreateRequest extends BaseRequest {
     @NotBlank(message = "显示名不能为空")
     @Size(max = 128, message = "显示名长度不能超过128")
     private String displayName;
-
-    /**
-     * 密码。
-     */
-    @NotBlank(message = "密码不能为空")
-    @Size(min = 8, max = 64, message = "密码长度应在8到64之间")
-    private String password;
 
     /**
      * 邮箱。
@@ -65,6 +60,9 @@ public class UserCreateRequest extends BaseRequest {
     /**
      * 账号状态：1启用、0禁用、2锁定。
      */
+    @NotNull(message = "账号状态不能为空")
+    @Min(value = 0, message = "账号状态不合法")
+    @Max(value = 2, message = "账号状态不合法")
     private Integer status;
 
     /**

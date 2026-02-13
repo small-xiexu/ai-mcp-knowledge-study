@@ -71,26 +71,24 @@ public class OrgRepositoryImpl implements OrgRepository {
     /**
      * 校验组织编码是否存在。
      *
-     * @param tenantId 租户ID
      * @param orgCode 组织编码
      * @param excludeId 排除ID
      * @return 是否存在
      */
     @Override
-    public boolean existsOrgCode(String tenantId, String orgCode, Long excludeId) {
-        return orgMapper.countByTenantAndOrgCode(tenantId, orgCode, excludeId) > 0;
+    public boolean existsOrgCode(String orgCode, Long excludeId) {
+        return orgMapper.countByOrgCode(orgCode, excludeId) > 0;
     }
 
     /**
      * 绑定用户主组织。
      *
-     * @param tenantId 租户ID
      * @param userId 用户ID
      * @param orgId 组织ID
      */
     @Override
-    public void bindPrimaryOrg(String tenantId, Long userId, Long orgId) {
-        orgMapper.deleteUserOrgs(tenantId, userId);
-        orgMapper.insertUserOrg(tenantId, userId, orgId, 1);
+    public void bindPrimaryOrg(Long userId, Long orgId) {
+        orgMapper.deleteUserOrgs(userId);
+        orgMapper.insertUserOrg(userId, orgId, 1);
     }
 }

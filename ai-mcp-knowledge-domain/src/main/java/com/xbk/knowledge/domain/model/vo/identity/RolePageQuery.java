@@ -17,11 +17,6 @@ import lombok.NoArgsConstructor;
 public class RolePageQuery {
 
     /**
-     * 租户ID。
-     */
-    private String tenantId;
-
-    /**
      * 角色编码关键词。
      */
     private String roleCode;

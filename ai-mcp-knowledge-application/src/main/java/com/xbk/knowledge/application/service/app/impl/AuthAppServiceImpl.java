@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,24 +25,20 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AuthAppServiceImpl implements AuthAppService {
 
-    private static final String DEFAULT_TENANT_ID = "default";
-
     private final IdentityRepository identityRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 
     /**
      * 校验登录凭证并返回用户。
      *
-     * @param tenantId    租户ID
      * @param username    用户名
      * @param rawPassword 明文密码
      * @return 用户实体
      */
     @Override
-    public SysUser verifyLogin(String tenantId, String username, String rawPassword) {
-        String resolvedTenantId = resolveTenantId(tenantId);
+    public SysUser verifyLogin(String username, String rawPassword) {
         SysUser user = identityRepository
-                .findByTenantAndUsername(resolvedTenantId, username)
+                .findByUsername(username)
                 .orElseThrow(() -> new BusinessException("用户名或密码错误"));
         validateUserStatus(user);
         boolean passwordMatched = bCryptPasswordEncoder.matches(rawPassword, user.getPasswordHash());
@@ -76,12 +71,10 @@ public class AuthAppServiceImpl implements AuthAppService {
         SysUser user = identityRepository
                 .findById(userId)
                 .orElseThrow(() -> new NotFoundException("用户不存在，id: " + userId));
-        String tenantId = user.getTenantId();
         List<String> roleCodes = queryRoleCodes(userId);
         List<String> permissionCodes = queryPermissionCodes(userId);
         return AuthProfile.builder()
                 .userId(user.getId())
-                .tenantId(tenantId)
                 .username(user.getUsername())
                 .displayName(user.getDisplayName())
                 .email(user.getEmail())
@@ -103,7 +96,7 @@ public class AuthAppServiceImpl implements AuthAppService {
         SysUser user = identityRepository
                 .findById(userId)
                 .orElseThrow(() -> new NotFoundException("用户不存在，id: " + userId));
-        return identityRepository.findRoleCodes(user.getTenantId(), userId);
+        return identityRepository.findRoleCodes(userId);
     }
 
     /**
@@ -120,20 +113,7 @@ public class AuthAppServiceImpl implements AuthAppService {
         if (isSuperAdmin(user)) {
             return identityRepository.findAllPermissionCodes();
         }
-        return identityRepository.findPermissionCodes(user.getTenantId(), userId);
-    }
-
-    /**
-     * 解析租户ID。
-     *
-     * @param tenantId 租户ID
-     * @return 解析后的租户ID
-     */
-    private String resolveTenantId(String tenantId) {
-        if (!StringUtils.hasText(tenantId)) {
-            return DEFAULT_TENANT_ID;
-        }
-        return tenantId.trim();
+        return identityRepository.findPermissionCodes(userId);
     }
 
     /**

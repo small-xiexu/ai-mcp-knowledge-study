@@ -11,11 +11,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * 用户管理应用服务实现。
@@ -28,8 +26,6 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class UserIdentityAppServiceImpl implements UserIdentityAppService {
 
-    private static final String DEFAULT_TENANT_ID = "default";
-
     private final IdentityRepository identityRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 
@@ -41,11 +37,9 @@ public class UserIdentityAppServiceImpl implements UserIdentityAppService {
      */
     @Override
     public PageResult<SysUser> queryUserPage(UserPageQuery query) {
-        String tenantId = resolveTenantId(query.getTenantId());
         Integer offset = query.getOffset() == null ? 0 : query.getOffset();
         Integer pageSize = query.getPageSize() == null ? 10 : query.getPageSize();
         UserPageQuery normalizedQuery = new UserPageQuery(
-                tenantId,
                 query.getUsername(),
                 query.getStatus(),
                 offset,
@@ -67,13 +61,11 @@ public class UserIdentityAppServiceImpl implements UserIdentityAppService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public SysUser createUser(SysUser user, String rawPassword) {
-        String tenantId = resolveTenantId(user.getTenantId());
         String username = user.getUsername();
-        if (identityRepository.existsByTenantAndUsername(tenantId, username)) {
+        if (identityRepository.existsByUsername(username)) {
             throw new BusinessException("用户名已存在：" + username);
         }
         LocalDateTime now = LocalDateTime.now();
-        user.setTenantId(tenantId);
         user.setPasswordHash(bCryptPasswordEncoder.encode(rawPassword));
         if (user.getStatus() == null) {
             user.setStatus(1);
@@ -87,59 +79,86 @@ public class UserIdentityAppServiceImpl implements UserIdentityAppService {
     }
 
     /**
+     * 更新用户基础信息。
+     *
+     * @param user 用户实体
+     * @return 更新后的用户
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public SysUser updateUser(SysUser user) {
+        SysUser existed = identityRepository
+                .findById(user.getId())
+                .orElseThrow(() -> new NotFoundException("用户不存在，id: " + user.getId()));
+        LocalDateTime now = LocalDateTime.now();
+        existed.setDisplayName(user.getDisplayName());
+        existed.setEmail(user.getEmail());
+        existed.setMobile(user.getMobile());
+        existed.setStatus(user.getStatus());
+        if (user.getIsSuperAdmin() != null) {
+            existed.setIsSuperAdmin(user.getIsSuperAdmin());
+        }
+        existed.setUpdatedAt(now);
+        int affected = identityRepository.updateUser(existed);
+        if (affected <= 0) {
+            throw new BusinessException("用户更新失败，id: " + user.getId());
+        }
+        return identityRepository.findById(user.getId()).orElse(existed);
+    }
+
+    /**
+     * 重置用户密码。
+     *
+     * @param userId 用户ID
+     * @param rawPassword 新密码明文
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void resetPassword(Long userId, String rawPassword) {
+        identityRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("用户不存在，id: " + userId));
+        int affected = identityRepository.updatePassword(
+                userId,
+                bCryptPasswordEncoder.encode(rawPassword),
+                LocalDateTime.now()
+        );
+        if (affected <= 0) {
+            throw new BusinessException("密码重置失败，id: " + userId);
+        }
+    }
+
+    /**
      * 查询用户已分配角色ID列表。
      *
-     * @param tenantId 租户ID
      * @param userId 用户ID
      * @return 角色ID列表
      */
     @Override
-    public List<Long> queryRoleIds(String tenantId, Long userId) {
-        SysUser user = identityRepository
-                .findById(userId)
+    public List<Long> queryRoleIds(Long userId) {
+        identityRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("用户不存在，id: " + userId));
-        if (!Objects.equals(user.getTenantId(), tenantId)) {
-            throw new BusinessException("不允许跨租户查询角色");
-        }
-        return identityRepository.findUserRoleIds(tenantId, userId);
+        return identityRepository.findUserRoleIds(userId);
     }
 
     /**
      * 重新绑定用户角色。
      *
-     * @param tenantId 操作租户ID
      * @param userId 目标用户ID
      * @param roleIds 角色ID集合
      * @param operatorId 操作人ID
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void grantRoles(String tenantId, Long userId, List<Long> roleIds, Long operatorId) {
-        SysUser user = identityRepository
+    public void grantRoles(Long userId, List<Long> roleIds, Long operatorId) {
+        identityRepository
                 .findById(userId)
                 .orElseThrow(() -> new NotFoundException("用户不存在，id: " + userId));
-        if (!Objects.equals(user.getTenantId(), tenantId)) {
-            throw new BusinessException("不允许跨租户分配角色");
-        }
         if (roleIds != null && !roleIds.isEmpty()) {
-            long roleCount = identityRepository.countRolesByIds(tenantId, roleIds);
+            long roleCount = identityRepository.countRolesByIds(roleIds);
             if (roleCount != roleIds.size()) {
                 throw new BusinessException("存在无效角色ID");
             }
         }
-        identityRepository.replaceUserRoles(tenantId, userId, roleIds, operatorId);
-    }
-
-    /**
-     * 解析租户ID。
-     *
-     * @param tenantId 租户ID
-     * @return 解析后的租户ID
-     */
-    private String resolveTenantId(String tenantId) {
-        if (!StringUtils.hasText(tenantId)) {
-            return DEFAULT_TENANT_ID;
-        }
-        return tenantId.trim();
+        identityRepository.replaceUserRoles(userId, roleIds, operatorId);
     }
 }

@@ -1,14 +1,16 @@
 package com.xbk.knowledge.trigger.http;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
-import cn.dev33.satoken.stp.StpUtil;
 import com.xbk.knowledge.api.dto.user.UserCreateRequest;
+import com.xbk.knowledge.api.dto.user.UserPasswordResetRequest;
 import com.xbk.knowledge.api.dto.user.UserQueryRequest;
 import com.xbk.knowledge.api.dto.user.UserRoleGrantRequest;
 import com.xbk.knowledge.api.dto.user.UserRoleQueryRequest;
 import com.xbk.knowledge.api.dto.user.UserResponse;
+import com.xbk.knowledge.api.dto.user.UserUpdateRequest;
 import com.xbk.knowledge.application.model.identity.AuthProfile;
 import com.xbk.knowledge.application.service.app.AuthAppService;
+import com.xbk.knowledge.application.service.app.IdentityContextService;
 import com.xbk.knowledge.application.service.app.UserIdentityAppService;
 import com.xbk.knowledge.domain.model.entity.SysUser;
 import com.xbk.knowledge.domain.model.vo.identity.UserPageQuery;
@@ -16,7 +18,6 @@ import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.common.PageResultConverter;
 import com.xbk.knowledge.types.common.Result;
 import lombok.RequiredArgsConstructor;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,6 +40,7 @@ public class UserIdentityController {
 
     private final UserIdentityAppService userIdentityAppService;
     private final AuthAppService authAppService;
+    private final IdentityContextService identityContextService;
 
     /**
      * 用户列表查询。
@@ -49,10 +51,7 @@ public class UserIdentityController {
     @SaCheckPermission("user:read")
     @PostMapping("/list")
     public Result<PageResult<UserResponse>> list(@Valid @RequestBody UserQueryRequest request) {
-        AuthProfile currentProfile = currentProfile();
-        String tenantId = resolveTenantId(currentProfile, request.getTenantId());
         UserPageQuery query = new UserPageQuery(
-                tenantId,
                 request.getUsername(),
                 request.getStatus(),
                 request.getOffset(),
@@ -72,11 +71,8 @@ public class UserIdentityController {
     @SaCheckPermission("user:write")
     @PostMapping("/create")
     public Result<UserResponse> create(@Valid @RequestBody UserCreateRequest request) {
-        AuthProfile currentProfile = currentProfile();
-        String tenantId = resolveTenantId(currentProfile, request.getTenantId());
         Integer isSuperAdmin = Boolean.TRUE.equals(request.getSuperAdmin()) ? 1 : 0;
         SysUser user = SysUser.builder()
-                .tenantId(tenantId)
                 .username(request.getUsername())
                 .displayName(request.getDisplayName())
                 .email(request.getEmail())
@@ -89,6 +85,41 @@ public class UserIdentityController {
     }
 
     /**
+     * 更新用户基础信息。
+     *
+     * @param request 更新请求
+     * @return 更新后的用户
+     */
+    @SaCheckPermission("user:write")
+    @PostMapping("/update")
+    public Result<UserResponse> update(@Valid @RequestBody UserUpdateRequest request) {
+        Integer isSuperAdmin = request.getSuperAdmin() == null ? null : (Boolean.TRUE.equals(request.getSuperAdmin()) ? 1 : 0);
+        SysUser user = SysUser.builder()
+                .id(request.getId())
+                .displayName(request.getDisplayName())
+                .email(request.getEmail())
+                .mobile(request.getMobile())
+                .status(request.getStatus())
+                .isSuperAdmin(isSuperAdmin)
+                .build();
+        SysUser updated = userIdentityAppService.updateUser(user);
+        return Result.success("用户更新成功", toUserResponse(updated));
+    }
+
+    /**
+     * 重置用户密码。
+     *
+     * @param request 密码重置请求
+     * @return 响应
+     */
+    @SaCheckPermission("user:write")
+    @PostMapping("/reset-password")
+    public Result<Void> resetPassword(@Valid @RequestBody UserPasswordResetRequest request) {
+        userIdentityAppService.resetPassword(request.getUserId(), request.getPassword());
+        return Result.success();
+    }
+
+    /**
      * 分配用户角色。
      *
      * @param request 角色分配请求
@@ -98,9 +129,7 @@ public class UserIdentityController {
     @PostMapping("/grant-roles")
     public Result<Void> grantRoles(@Valid @RequestBody UserRoleGrantRequest request) {
         AuthProfile currentProfile = currentProfile();
-        String tenantId = resolveTenantId(currentProfile, request.getTenantId());
-        Long operatorId = currentProfile.getUserId();
-        userIdentityAppService.grantRoles(tenantId, request.getUserId(), request.getRoleIds(), operatorId);
+        userIdentityAppService.grantRoles(request.getUserId(), request.getRoleIds(), currentProfile.getUserId());
         return Result.success();
     }
 
@@ -113,9 +142,7 @@ public class UserIdentityController {
     @SaCheckPermission("user:read")
     @PostMapping("/role-ids")
     public Result<List<Long>> roleIds(@Valid @RequestBody UserRoleQueryRequest request) {
-        AuthProfile currentProfile = currentProfile();
-        String tenantId = resolveTenantId(currentProfile, request.getTenantId());
-        List<Long> roleIds = userIdentityAppService.queryRoleIds(tenantId, request.getUserId());
+        List<Long> roleIds = userIdentityAppService.queryRoleIds(request.getUserId());
         return Result.success(roleIds);
     }
 
@@ -128,7 +155,6 @@ public class UserIdentityController {
     private UserResponse toUserResponse(SysUser user) {
         return UserResponse.builder()
                 .id(user.getId())
-                .tenantId(user.getTenantId())
                 .username(user.getUsername())
                 .displayName(user.getDisplayName())
                 .email(user.getEmail())
@@ -147,21 +173,7 @@ public class UserIdentityController {
      * @return 用户画像
      */
     private AuthProfile currentProfile() {
-        Long loginUserId = StpUtil.getLoginIdAsLong();
+        Long loginUserId = identityContextService.getCurrentUserId();
         return authAppService.loadProfile(loginUserId);
-    }
-
-    /**
-     * 解析目标租户ID。
-     *
-     * @param currentProfile 当前登录用户
-     * @param requestedTenantId 请求中的租户ID
-     * @return 目标租户ID
-     */
-    private String resolveTenantId(AuthProfile currentProfile, String requestedTenantId) {
-        if (Boolean.TRUE.equals(currentProfile.getSuperAdmin()) && StringUtils.hasText(requestedTenantId)) {
-            return requestedTenantId.trim();
-        }
-        return currentProfile.getTenantId();
     }
 }

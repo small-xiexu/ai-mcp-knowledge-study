@@ -1,7 +1,6 @@
 package com.xbk.knowledge.trigger.http;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
-import cn.dev33.satoken.stp.StpUtil;
 import com.xbk.knowledge.api.dto.role.RoleCreateRequest;
 import com.xbk.knowledge.api.dto.role.RolePermissionGrantRequest;
 import com.xbk.knowledge.api.dto.role.RolePermissionQueryRequest;
@@ -10,6 +9,7 @@ import com.xbk.knowledge.api.dto.role.RoleResponse;
 import com.xbk.knowledge.api.dto.role.RoleUpdateRequest;
 import com.xbk.knowledge.application.model.identity.AuthProfile;
 import com.xbk.knowledge.application.service.app.AuthAppService;
+import com.xbk.knowledge.application.service.app.IdentityContextService;
 import com.xbk.knowledge.application.service.app.RoleAppService;
 import com.xbk.knowledge.domain.model.entity.SysRole;
 import com.xbk.knowledge.domain.model.vo.identity.RolePageQuery;
@@ -17,7 +17,6 @@ import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.common.PageResultConverter;
 import com.xbk.knowledge.types.common.Result;
 import lombok.RequiredArgsConstructor;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,6 +39,7 @@ public class RoleController {
 
     private final RoleAppService roleAppService;
     private final AuthAppService authAppService;
+    private final IdentityContextService identityContextService;
 
     /**
      * 分页查询角色。
@@ -50,10 +50,7 @@ public class RoleController {
     @SaCheckPermission("role:read")
     @PostMapping("/list")
     public Result<PageResult<RoleResponse>> list(@Valid @RequestBody RoleQueryRequest request) {
-        AuthProfile currentProfile = currentProfile();
-        String tenantId = resolveTenantId(currentProfile, request.getTenantId());
         RolePageQuery query = new RolePageQuery(
-                tenantId,
                 request.getRoleCode(),
                 request.getStatus(),
                 request.getOffset(),
@@ -73,10 +70,7 @@ public class RoleController {
     @SaCheckPermission("role:write")
     @PostMapping("/create")
     public Result<RoleResponse> create(@Valid @RequestBody RoleCreateRequest request) {
-        AuthProfile currentProfile = currentProfile();
-        String tenantId = resolveTenantId(currentProfile, request.getTenantId());
         SysRole role = SysRole.builder()
-                .tenantId(tenantId)
                 .roleCode(request.getRoleCode())
                 .roleName(request.getRoleName())
                 .roleScope(request.getRoleScope())
@@ -96,11 +90,8 @@ public class RoleController {
     @SaCheckPermission("role:write")
     @PostMapping("/update")
     public Result<RoleResponse> update(@Valid @RequestBody RoleUpdateRequest request) {
-        AuthProfile currentProfile = currentProfile();
-        String tenantId = resolveTenantId(currentProfile, request.getTenantId());
         SysRole role = SysRole.builder()
                 .id(request.getId())
-                .tenantId(tenantId)
                 .roleName(request.getRoleName())
                 .roleScope(request.getRoleScope())
                 .status(request.getStatus())
@@ -120,9 +111,8 @@ public class RoleController {
     @PostMapping("/grant-permissions")
     public Result<Void> grantPermissions(@Valid @RequestBody RolePermissionGrantRequest request) {
         AuthProfile currentProfile = currentProfile();
-        String tenantId = resolveTenantId(currentProfile, request.getTenantId());
         Long operatorId = currentProfile.getUserId();
-        roleAppService.grantPermissions(tenantId, request.getRoleId(), request.getPermissionIds(), operatorId);
+        roleAppService.grantPermissions(request.getRoleId(), request.getPermissionIds(), operatorId);
         return Result.success();
     }
 
@@ -135,9 +125,7 @@ public class RoleController {
     @SaCheckPermission("role:read")
     @PostMapping("/permission-ids")
     public Result<List<Long>> permissionIds(@Valid @RequestBody RolePermissionQueryRequest request) {
-        AuthProfile currentProfile = currentProfile();
-        String tenantId = resolveTenantId(currentProfile, request.getTenantId());
-        List<Long> permissionIds = roleAppService.queryPermissionIds(tenantId, request.getRoleId());
+        List<Long> permissionIds = roleAppService.queryPermissionIds(request.getRoleId());
         return Result.success(permissionIds);
     }
 
@@ -150,7 +138,6 @@ public class RoleController {
     private RoleResponse toResponse(SysRole role) {
         return RoleResponse.builder()
                 .id(role.getId())
-                .tenantId(role.getTenantId())
                 .roleCode(role.getRoleCode())
                 .roleName(role.getRoleName())
                 .roleScope(role.getRoleScope())
@@ -167,21 +154,7 @@ public class RoleController {
      * @return 用户画像
      */
     private AuthProfile currentProfile() {
-        Long loginUserId = StpUtil.getLoginIdAsLong();
+        Long loginUserId = identityContextService.getCurrentUserId();
         return authAppService.loadProfile(loginUserId);
-    }
-
-    /**
-     * 解析目标租户ID。
-     *
-     * @param currentProfile 当前登录用户
-     * @param requestedTenantId 请求中的租户ID
-     * @return 目标租户ID
-     */
-    private String resolveTenantId(AuthProfile currentProfile, String requestedTenantId) {
-        if (Boolean.TRUE.equals(currentProfile.getSuperAdmin()) && StringUtils.hasText(requestedTenantId)) {
-            return requestedTenantId.trim();
-        }
-        return currentProfile.getTenantId();
     }
 }

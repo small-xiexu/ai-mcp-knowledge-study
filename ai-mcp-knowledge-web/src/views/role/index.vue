@@ -108,7 +108,6 @@
             style="width: 100%"
             popper-class="gemini-select-dropdown"
           >
-            <el-option label="租户" value="TENANT" />
             <el-option label="全局" value="GLOBAL" />
           </el-select>
         </el-form-item>
@@ -220,7 +219,7 @@ const roleForm = reactive({
   id: undefined as number | undefined,
   roleCode: '',
   roleName: '',
-  roleScope: 'TENANT',
+  roleScope: 'GLOBAL',
   status: 1,
   remark: ''
 })
@@ -261,7 +260,7 @@ const fetchPermissions = async () => {
   try {
     const res = await listIdentityPermissions({
       pageNum: 1,
-      pageSize: 200,
+      pageSize: 100,
       status: 1
     })
     permissionOptions.value = res.data.records || []
@@ -276,7 +275,7 @@ const resetRoleForm = () => {
   roleForm.id = undefined
   roleForm.roleCode = ''
   roleForm.roleName = ''
-  roleForm.roleScope = 'TENANT'
+  roleForm.roleScope = 'GLOBAL'
   roleForm.status = 1
   roleForm.remark = ''
   roleFormRef.value?.clearValidate()
@@ -303,7 +302,7 @@ const handleEdit = (row: IdentityRole) => {
   roleForm.id = row.id
   roleForm.roleCode = row.roleCode
   roleForm.roleName = row.roleName
-  roleForm.roleScope = row.roleScope || 'TENANT'
+  roleForm.roleScope = row.roleScope || 'GLOBAL'
   roleForm.status = row.status ?? 1
   roleForm.remark = row.remark || ''
   roleDialogVisible.value = true

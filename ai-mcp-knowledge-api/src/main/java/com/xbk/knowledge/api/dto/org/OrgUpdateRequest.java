@@ -33,11 +33,6 @@ public class OrgUpdateRequest extends BaseRequest {
     private Long id;
 
     /**
-     * 租户ID（仅超管可指定）。
-     */
-    private String tenantId;
-
-    /**
      * 组织名称。
      */
     @NotNull(message = "组织名称不能为空")

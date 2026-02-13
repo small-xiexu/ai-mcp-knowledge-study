@@ -42,19 +42,17 @@ public interface RoleAppService {
     /**
      * 查询角色已分配权限ID列表。
      *
-     * @param tenantId 租户ID
      * @param roleId 角色ID
      * @return 权限ID列表
      */
-    List<Long> queryPermissionIds(String tenantId, Long roleId);
+    List<Long> queryPermissionIds(Long roleId);
 
     /**
      * 绑定角色权限。
      *
-     * @param tenantId 租户ID
      * @param roleId 角色ID
      * @param permissionIds 权限ID列表
      * @param operatorId 操作人ID
      */
-    void grantPermissions(String tenantId, Long roleId, List<Long> permissionIds, Long operatorId);
+    void grantPermissions(Long roleId, List<Long> permissionIds, Long operatorId);
 }

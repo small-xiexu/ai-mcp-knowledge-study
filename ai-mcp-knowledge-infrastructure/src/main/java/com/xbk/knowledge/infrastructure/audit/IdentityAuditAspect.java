@@ -1,11 +1,9 @@
 package com.xbk.knowledge.infrastructure.audit;
 
-import cn.dev33.satoken.stp.StpUtil;
+import com.xbk.knowledge.application.service.app.IdentityContextService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xbk.knowledge.domain.model.entity.SysAuditEvent;
-import com.xbk.knowledge.domain.model.entity.SysUser;
-import com.xbk.knowledge.domain.repository.IdentityRepository;
 import com.xbk.knowledge.types.common.Result;
 import com.xbk.knowledge.types.trace.TraceIdUtils;
 import lombok.RequiredArgsConstructor;
@@ -20,8 +18,10 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * 身份域审计切面。
@@ -39,10 +39,19 @@ public class IdentityAuditAspect {
     private static final int SUCCESS = 1;
     private static final int FAILED = 0;
     private static final int ERROR_MESSAGE_MAX_LENGTH = 1000;
+    private static final String SENSITIVE_MASK = "***";
+    private static final Set<String> SENSITIVE_FIELDS = Set.of(
+            "password",
+            "passwordHash",
+            "apiKey",
+            "token",
+            "accessToken",
+            "refreshToken"
+    );
 
     private final IdentityAuditLogService identityAuditLogService;
-    private final IdentityRepository identityRepository;
     private final ObjectMapper objectMapper;
+    private final IdentityContextService identityContextService;
 
     /**
      * 拦截身份域关键写操作并落审计事件。
@@ -55,15 +64,15 @@ public class IdentityAuditAspect {
             "execution(* com.xbk.knowledge.trigger.http.AuthController.login(..)) || " +
             "execution(* com.xbk.knowledge.trigger.http.AuthController.logout(..)) || " +
             "execution(* com.xbk.knowledge.trigger.http.UserIdentityController.create(..)) || " +
+            "execution(* com.xbk.knowledge.trigger.http.UserIdentityController.update(..)) || " +
+            "execution(* com.xbk.knowledge.trigger.http.UserIdentityController.resetPassword(..)) || " +
             "execution(* com.xbk.knowledge.trigger.http.UserIdentityController.grantRoles(..)) || " +
             "execution(* com.xbk.knowledge.trigger.http.RoleController.create(..)) || " +
             "execution(* com.xbk.knowledge.trigger.http.RoleController.update(..)) || " +
             "execution(* com.xbk.knowledge.trigger.http.RoleController.grantPermissions(..)) || " +
             "execution(* com.xbk.knowledge.trigger.http.OrgController.create(..)) || " +
             "execution(* com.xbk.knowledge.trigger.http.OrgController.update(..)) || " +
-            "execution(* com.xbk.knowledge.trigger.http.OrgController.bindUser(..)) || " +
-            "execution(* com.xbk.knowledge.trigger.http.ApiKeyController.create(..)) || " +
-            "execution(* com.xbk.knowledge.trigger.http.ApiKeyController.revoke(..))"
+            "execution(* com.xbk.knowledge.trigger.http.OrgController.bindUser(..))"
     )
     public Object aroundIdentityWriteOperations(ProceedingJoinPoint joinPoint) throws Throwable {
         long start = System.currentTimeMillis();
@@ -71,7 +80,6 @@ public class IdentityAuditAspect {
         HttpServletRequest request = currentRequest();
         Object[] args = joinPoint.getArgs();
         Long operatorId = resolveOperatorId();
-        String tenantId = resolveTenantId(operatorId, args);
         String resourceType = resolveResourceType(request);
         String resourceId = resolveResourceId(args);
         String action = joinPoint.getSignature().getName();
@@ -99,7 +107,6 @@ public class IdentityAuditAspect {
                 long costMs = System.currentTimeMillis() - start;
                 String newValue = toJsonSafe(buildNewValue(extractResultData(result), eventType, executeResult));
                 SysAuditEvent event = SysAuditEvent.builder()
-                        .tenantId(tenantId)
                         .operatorId(operatorId)
                         .operatorType(operatorId == null ? "system" : "user")
                         .eventType(eventType)
@@ -174,13 +181,9 @@ public class IdentityAuditAspect {
             return snapshot;
         }
         Object requestObject = args[0];
-        if ("authz".equals(eventType)) {
-            Map<String, Object> requestMap = convertToMap(requestObject);
-            requestMap.remove("password");
-            snapshot.put("request", requestMap);
-            return snapshot;
-        }
-        snapshot.put("request", requestObject);
+        Map<String, Object> requestMap = convertToMap(requestObject);
+        sanitizeSensitiveValues(requestMap);
+        snapshot.put("request", requestMap);
         return snapshot;
     }
 
@@ -198,7 +201,13 @@ public class IdentityAuditAspect {
         if ("authz".equals(eventType)) {
             return snapshot;
         }
-        snapshot.put("data", resultData);
+        Object safeResultData = resultData;
+        if (resultData != null) {
+            Map<String, Object> resultMap = convertToMap(resultData);
+            sanitizeSensitiveValues(resultMap);
+            safeResultData = resultMap;
+        }
+        snapshot.put("data", safeResultData);
         return snapshot;
     }
 
@@ -239,34 +248,13 @@ public class IdentityAuditAspect {
      */
     private Long resolveOperatorId() {
         try {
-            if (!StpUtil.isLogin()) {
+            if (!identityContextService.isLogin()) {
                 return null;
             }
-            return StpUtil.getLoginIdAsLong();
+            return identityContextService.getCurrentUserId();
         } catch (Exception e) {
             return null;
         }
-    }
-
-    /**
-     * 解析租户ID。
-     *
-     * @param operatorId 操作人ID
-     * @param args 入参数组
-     * @return 租户ID
-     */
-    private String resolveTenantId(Long operatorId, Object[] args) {
-        if (operatorId != null) {
-            SysUser user = identityRepository.findById(operatorId).orElse(null);
-            if (user != null && user.getTenantId() != null) {
-                return user.getTenantId();
-            }
-        }
-        String tenantId = extractStringField(args, "tenantId");
-        if (tenantId != null && !tenantId.isBlank()) {
-            return tenantId;
-        }
-        return "default";
     }
 
     /**
@@ -288,9 +276,6 @@ public class IdentityAuditAspect {
         }
         if (uri.contains("/orgs")) {
             return "org";
-        }
-        if (uri.contains("/apikeys")) {
-            return "api_key";
         }
         if (uri.contains("/users")) {
             return "user";
@@ -462,5 +447,65 @@ public class IdentityAuditAspect {
             return text;
         }
         return text.substring(0, maxLength);
+    }
+
+    /**
+     * 递归脱敏敏感字段。
+     *
+     * @param sourceMap 原始 Map
+     */
+    private void sanitizeSensitiveValues(Map<String, Object> sourceMap) {
+        if (sourceMap == null || sourceMap.isEmpty()) {
+            return;
+        }
+        for (Map.Entry<String, Object> entry : sourceMap.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+            if (isSensitiveField(key)) {
+                entry.setValue(SENSITIVE_MASK);
+                continue;
+            }
+            if (value instanceof Map<?, ?> nestedMap) {
+                Map<String, Object> normalizedMap = convertToMap(nestedMap);
+                sanitizeSensitiveValues(normalizedMap);
+                entry.setValue(normalizedMap);
+                continue;
+            }
+            if (value instanceof List<?> nestedList) {
+                sanitizeSensitiveList(nestedList);
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void sanitizeSensitiveList(List<?> values) {
+        if (values == null || values.isEmpty()) {
+            return;
+        }
+        List<Object> mutableList = (List<Object>) values;
+        for (int i = 0; i < mutableList.size(); i++) {
+            Object item = mutableList.get(i);
+            if (item instanceof Map<?, ?> nestedMap) {
+                Map<String, Object> normalizedMap = convertToMap(nestedMap);
+                sanitizeSensitiveValues(normalizedMap);
+                mutableList.set(i, normalizedMap);
+                continue;
+            }
+            if (item instanceof List<?> nestedList) {
+                sanitizeSensitiveList(nestedList);
+            }
+        }
+    }
+
+    private boolean isSensitiveField(String fieldName) {
+        if (fieldName == null || fieldName.isBlank()) {
+            return false;
+        }
+        for (String sensitiveField : SENSITIVE_FIELDS) {
+            if (fieldName.equalsIgnoreCase(sensitiveField)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

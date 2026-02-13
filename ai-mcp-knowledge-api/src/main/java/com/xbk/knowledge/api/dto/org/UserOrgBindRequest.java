@@ -36,9 +36,4 @@ public class UserOrgBindRequest extends BaseRequest {
      */
     @NotNull(message = "组织ID不能为空")
     private Long orgId;
-
-    /**
-     * 租户ID（仅超管可指定）。
-     */
-    private String tenantId;
 }

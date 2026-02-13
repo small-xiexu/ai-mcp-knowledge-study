@@ -237,6 +237,10 @@ const operationLabelMap: Record<string, string> = {
   GATEWAY_TOOL_DELETE: '网关工具-删除',
   GATEWAY_TOOL_ENABLE: '网关工具-启用',
   GATEWAY_TOOL_DISABLE: '网关工具-禁用',
+  GATEWAY_AUTH_CREATE: '网关凭证-创建',
+  GATEWAY_AUTH_UPDATE: '网关凭证-更新',
+  GATEWAY_AUTH_ENABLE: '网关凭证-启用',
+  GATEWAY_AUTH_DISABLE: '网关凭证-禁用',
   GATEWAY_MODEL_BINDING_UPDATE: '网关模型绑定-更新'
 }
 

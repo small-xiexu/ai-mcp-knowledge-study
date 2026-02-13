@@ -1,5 +1,6 @@
 package com.xbk.knowledge.trigger.http;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.xbk.knowledge.types.common.Result;
 import com.xbk.knowledge.api.IMetricsService;
 import com.xbk.knowledge.api.dto.metrics.CallMetricsDTO;
@@ -55,6 +56,7 @@ public class MetricsController implements IMetricsService {
          */
         @Override
         @PostMapping("/calls")
+        @SaCheckPermission("audit:read")
         public Result<CallMetricsDTO> getCallMetrics(@RequestBody MetricsQueryRequest request) {
                 // 调用应用服务收集指标
                 Long modelId = request.getModelId();
@@ -89,6 +91,7 @@ public class MetricsController implements IMetricsService {
          */
         @Override
         @PostMapping("/success-rate")
+        @SaCheckPermission("audit:read")
         public Result<SuccessRateDTO> getSuccessRate(@RequestBody MetricsQueryRequest request) {
                 // 调用应用服务收集指标
                 Long modelId = request.getModelId();
@@ -121,6 +124,7 @@ public class MetricsController implements IMetricsService {
          */
         @Override
         @PostMapping("/response-time")
+        @SaCheckPermission("audit:read")
         public Result<ResponseTimeDTO> getResponseTime(@RequestBody MetricsQueryRequest request) {
                 // 调用应用服务收集指标
                 Long modelId = request.getModelId();
@@ -153,6 +157,7 @@ public class MetricsController implements IMetricsService {
          */
         @Override
         @PostMapping("/model-usage")
+        @SaCheckPermission("audit:read")
         public Result<List<ModelUsageDTO>> getModelUsage(@RequestBody ModelUsageQueryRequest request) {
                 // 调用应用服务收集指标
                 LocalDateTime startTime = request.getStartTime();

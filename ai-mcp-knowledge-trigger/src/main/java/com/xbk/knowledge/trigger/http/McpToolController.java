@@ -1,5 +1,6 @@
 package com.xbk.knowledge.trigger.http;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.xbk.knowledge.api.dto.mcp.McpToolResponse;
 import com.xbk.knowledge.application.model.dto.McpToolInfo;
 import com.xbk.knowledge.application.service.mcp.McpToolCatalogService;
@@ -33,6 +34,7 @@ public class McpToolController {
      * 出参：工具列表
      */
     @PostMapping("/list")
+    @SaCheckPermission("tool:read")
     public Result<List<McpToolResponse>> listTools() {
         List<McpToolInfo> tools = mcpToolCatalogService.listTools();
         /*

@@ -7,13 +7,14 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import java.util.List;
+import jakarta.validation.constraints.Size;
 
 /**
- * 用户角色绑定请求 DTO。
+ * 用户密码重置请求 DTO。
  *
- * 职责：接口层 DTO，用于承载用户角色分配参数。
+ * 职责：接口层 DTO，用于承载管理员重置用户密码参数。
  *
  * @author xiexu
  */
@@ -22,7 +23,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class UserRoleGrantRequest extends BaseRequest {
+public class UserPasswordResetRequest extends BaseRequest {
 
     private static final long serialVersionUID = 1L;
 
@@ -33,7 +34,9 @@ public class UserRoleGrantRequest extends BaseRequest {
     private Long userId;
 
     /**
-     * 角色ID列表。
+     * 新密码。
      */
-    private List<Long> roleIds;
+    @NotBlank(message = "新密码不能为空")
+    @Size(min = 8, max = 64, message = "密码长度应在8到64之间")
+    private String password;
 }

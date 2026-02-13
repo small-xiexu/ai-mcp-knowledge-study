@@ -1,5 +1,6 @@
 package com.xbk.knowledge.trigger.http;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xbk.knowledge.api.dto.common.IdRequest;
@@ -49,6 +50,7 @@ public class McpServerConfigController {
      * 出参：分页结果
      */
     @PostMapping("/list")
+    @SaCheckPermission("tool:read")
     public Result<PageResult<McpServerConfigResponse>> listConfigs(@Valid @RequestBody McpServerConfigQueryRequest request) {
         int offset = request.getOffset();
         Integer pageSize = request.getPageSize();
@@ -71,6 +73,7 @@ public class McpServerConfigController {
      * 出参：MCP Server 配置
      */
     @PostMapping("/get")
+    @SaCheckPermission("tool:read")
     public Result<McpServerConfigResponse> getConfig(@Valid @RequestBody IdRequest request) {
         Long id = request.getId();
         IdQuery idQuery = new IdQuery(id);
@@ -87,6 +90,7 @@ public class McpServerConfigController {
      * 出参：创建后的配置
      */
     @PostMapping("/create")
+    @SaCheckPermission("tool:write")
     public Result<McpServerConfigResponse> createConfig(@Valid @RequestBody McpServerConfigRequest request) {
         /*
          * 目的：从请求 DTO 组装领域实体，避免接口层结构泄露
@@ -105,6 +109,7 @@ public class McpServerConfigController {
      * 出参：更新后的配置
      */
     @PostMapping("/update")
+    @SaCheckPermission("tool:write")
     public Result<McpServerConfigResponse> updateConfig(@Valid @RequestBody McpServerConfigRequest request) {
         McpServerConfig config = buildFromRequest(request);
         config.setId(request.getId());
@@ -121,6 +126,7 @@ public class McpServerConfigController {
      * 出参：删除结果
      */
     @PostMapping("/delete")
+    @SaCheckPermission("tool:write")
     public Result<Void> deleteConfig(@Valid @RequestBody IdRequest request) {
         Long id = request.getId();
         IdQuery idQuery = new IdQuery(id);
@@ -136,6 +142,7 @@ public class McpServerConfigController {
      * 出参：更新后的配置
      */
     @PostMapping("/enable")
+    @SaCheckPermission("tool:write")
     public Result<McpServerConfigResponse> enableConfig(@Valid @RequestBody IdRequest request) {
         Long id = request.getId();
         IdQuery idQuery = new IdQuery(id);
@@ -152,6 +159,7 @@ public class McpServerConfigController {
      * 出参：更新后的配置
      */
     @PostMapping("/disable")
+    @SaCheckPermission("tool:write")
     public Result<McpServerConfigResponse> disableConfig(@Valid @RequestBody IdRequest request) {
         Long id = request.getId();
         IdQuery idQuery = new IdQuery(id);
@@ -168,6 +176,7 @@ public class McpServerConfigController {
      * 出参：操作结果
      */
     @PostMapping("/refresh")
+    @SaCheckPermission("tool:write")
     public Result<Void> refreshConfigs() {
         mcpServerConfigAppService.refreshEnabledServers();
         return Result.success("MCP Server 刷新成功", null);
@@ -181,6 +190,7 @@ public class McpServerConfigController {
      * 出参：操作结果
      */
     @PostMapping("/refresh-one")
+    @SaCheckPermission("tool:write")
     public Result<Void> refreshConfig(@Valid @RequestBody IdRequest request) {
         Long id = request.getId();
         IdQuery idQuery = new IdQuery(id);

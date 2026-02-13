@@ -34,8 +34,7 @@ public class AuditEventAppServiceImpl implements AuditEventAppService {
         Integer offset = query.getOffset() == null ? 0 : query.getOffset();
         Integer pageSize = query.getPageSize() == null ? 20 : query.getPageSize();
         AuditEventPageQuery normalizedQuery = new AuditEventPageQuery(
-                query.getTenantId(),
-                query.getOperatorId(),
+                query.getOperatorKeyword(),
                 query.getEventType(),
                 query.getResourceType(),
                 query.getResult(),

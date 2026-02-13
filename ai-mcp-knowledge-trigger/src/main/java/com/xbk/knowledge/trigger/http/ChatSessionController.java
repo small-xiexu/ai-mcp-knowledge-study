@@ -1,5 +1,6 @@
 package com.xbk.knowledge.trigger.http;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.xbk.knowledge.api.dto.ai.ChatMessageCreateRequest;
 import com.xbk.knowledge.api.dto.ai.ChatMessageResponse;
 import com.xbk.knowledge.api.dto.ai.ChatSessionCreateRequest;
@@ -44,6 +45,7 @@ public class ChatSessionController {
      * 出参：创建后的会话信息
      */
     @PostMapping
+    @SaCheckPermission("agent:write")
     public Result<ChatSessionResponse> createSession(@RequestBody ChatSessionCreateRequest request) {
         /*
          * 目的：将请求 DTO 转为领域实体，保持领域层不依赖接口层结构
@@ -65,6 +67,7 @@ public class ChatSessionController {
      * 出参：更新后的会话信息
      */
     @PostMapping("/update")
+    @SaCheckPermission("agent:write")
     public Result<ChatSessionResponse> updateSession(@RequestBody ChatSessionUpdateRequest request) {
         Long id = request.getId();
         ChatSession existing = chatSessionAppService.getSession(id);
@@ -86,6 +89,7 @@ public class ChatSessionController {
      * 出参：删除结果
      */
     @PostMapping("/delete")
+    @SaCheckPermission("agent:write")
     public Result<Void> deleteSession(@RequestBody IdRequest request) {
         Long id = request.getId();
         chatSessionAppService.deleteSession(id);
@@ -100,6 +104,7 @@ public class ChatSessionController {
      * 出参：会话详情
      */
     @PostMapping("/detail")
+    @SaCheckPermission("agent:read")
     public Result<ChatSessionResponse> getSession(@RequestBody IdRequest request) {
         Long id = request.getId();
         ChatSession session = chatSessionAppService.getSession(id);
@@ -117,6 +122,7 @@ public class ChatSessionController {
      * 出参：分页后的会话列表
      */
     @PostMapping("/list")
+    @SaCheckPermission("agent:read")
     public Result<PageResult<ChatSessionResponse>> listSessions(@RequestBody PageRequest request) {
         PageResult<ChatSession> page = chatSessionAppService.listSessions(request.getPageNum(), request.getPageSize());
         List<ChatSessionResponse> records = page.getRecords()
@@ -135,6 +141,7 @@ public class ChatSessionController {
      * 出参：保存后的消息
      */
     @PostMapping("/{id}/messages")
+    @SaCheckPermission("agent:write")
     public Result<ChatMessageResponse> appendMessage(@PathVariable("id") Long id,
                                                      @RequestBody ChatMessageCreateRequest request) {
         /*
@@ -161,6 +168,7 @@ public class ChatSessionController {
      * 出参：分页后的消息列表
      */
     @PostMapping("/messages/list")
+    @SaCheckPermission("agent:read")
     public Result<PageResult<ChatMessageResponse>> listMessages(@RequestBody ChatMessagePageRequest request) {
         PageResult<ChatMessage> page = chatSessionAppService.listMessages(
                 request.getSessionId(),
@@ -182,6 +190,7 @@ public class ChatSessionController {
      * 出参：清理结果
      */
     @PostMapping("/messages/delete")
+    @SaCheckPermission("agent:write")
     public Result<Void> deleteMessages(@RequestBody IdRequest request) {
         Long id = request.getId();
         chatSessionAppService.deleteMessages(id);

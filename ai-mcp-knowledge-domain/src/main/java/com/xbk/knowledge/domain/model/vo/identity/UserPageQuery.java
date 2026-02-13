@@ -17,11 +17,6 @@ import lombok.NoArgsConstructor;
 public class UserPageQuery {
 
     /**
-     * 租户ID。
-     */
-    private String tenantId;
-
-    /**
      * 用户名关键词。
      */
     private String username;

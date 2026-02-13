@@ -50,19 +50,17 @@ public interface OrgRepository {
     /**
      * 校验组织编码是否存在。
      *
-     * @param tenantId 租户ID
      * @param orgCode 组织编码
      * @param excludeId 排除ID
      * @return 是否存在
      */
-    boolean existsOrgCode(String tenantId, String orgCode, Long excludeId);
+    boolean existsOrgCode(String orgCode, Long excludeId);
 
     /**
      * 绑定用户主组织。
      *
-     * @param tenantId 租户ID
      * @param userId 用户ID
      * @param orgId 组织ID
      */
-    void bindPrimaryOrg(String tenantId, Long userId, Long orgId);
+    void bindPrimaryOrg(Long userId, Long orgId);
 }

@@ -1,5 +1,6 @@
 package com.xbk.knowledge.trigger.http;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.xbk.knowledge.api.dto.common.IdRequest;
 import com.xbk.knowledge.api.dto.task.TaskTypeCodeRequest;
 import com.xbk.knowledge.api.dto.task.TaskTypeQueryRequest;
@@ -48,6 +49,7 @@ public class TaskTypeController {
      * 出参：分页结果
      */
     @PostMapping("/list")
+    @SaCheckPermission("workflow:read")
     public Result<PageResult<TaskTypeResponse>> listTaskTypes(@Valid @RequestBody TaskTypeQueryRequest request) {
         /*
          * 目的：将分页参数转换为领域查询对象
@@ -76,6 +78,7 @@ public class TaskTypeController {
      * 出参：任务类型详情
      */
     @PostMapping("/get")
+    @SaCheckPermission("workflow:read")
     public Result<TaskTypeResponse> getTaskType(@Valid @RequestBody IdRequest request) {
         /*
          * 目的：通过应用层读取任务类型
@@ -99,6 +102,7 @@ public class TaskTypeController {
      * 出参：任务类型详情
      */
     @PostMapping("/get-by-code")
+    @SaCheckPermission("workflow:read")
     public Result<TaskTypeResponse> getTaskTypeByCode(@Valid @RequestBody TaskTypeCodeRequest request) {
         /*
          * 目的：按编码查询更适合内部路由
@@ -122,6 +126,7 @@ public class TaskTypeController {
      * 出参：创建的任务类型
      */
     @PostMapping("/create")
+    @SaCheckPermission("workflow:write")
     public Result<TaskTypeResponse> createTaskType(@Valid @RequestBody TaskTypeRequest request) {
         /*
          * 目的：构建领域对象，隔离接口层 DTO
@@ -148,6 +153,7 @@ public class TaskTypeController {
      * 出参：更新后的任务类型
      */
     @PostMapping("/update")
+    @SaCheckPermission("workflow:write")
     public Result<TaskTypeResponse> updateTaskType(@Valid @RequestBody TaskTypeRequest request) {
         /*
          * 目的：构建完整领域对象，保证字段映射一致
@@ -176,6 +182,7 @@ public class TaskTypeController {
      * 出参：删除结果
      */
     @PostMapping("/delete")
+    @SaCheckPermission("workflow:write")
     public Result<Void> deleteTaskType(@Valid @RequestBody IdRequest request) {
         /*
          * 目的：交由应用层完成删除与校验

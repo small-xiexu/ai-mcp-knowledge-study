@@ -1,8 +1,6 @@
 import request from '@/utils/request'
 import type { PageResult } from '@/types/api'
 import type {
-  IdentityApiKey,
-  IdentityApiKeyCreateResult,
   IdentityAuditEvent,
   IdentityOrg,
   IdentityPermission,
@@ -27,7 +25,6 @@ const toOffsetPayload = <T extends OffsetPageRequest>(data: T) => {
 }
 
 export interface UserListRequest extends OffsetPageRequest {
-  tenantId?: string
   username?: string
   status?: number
 }
@@ -36,7 +33,6 @@ export const listIdentityUsers = (data: UserListRequest) =>
   request.post<PageResult<IdentityUser>>('/users/list', toOffsetPayload(data))
 
 export const createIdentityUser = (data: {
-  tenantId?: string
   username: string
   displayName: string
   password: string
@@ -46,17 +42,28 @@ export const createIdentityUser = (data: {
   superAdmin?: boolean
 }) => request.post<IdentityUser>('/users/create', data)
 
+export const updateIdentityUser = (data: {
+  id: number
+  displayName: string
+  email?: string
+  mobile?: string
+  status: number
+  superAdmin?: boolean
+}) => request.post<IdentityUser>('/users/update', data)
+
+export const resetIdentityUserPassword = (data: {
+  userId: number
+  password: string
+}) => request.post<void>('/users/reset-password', data)
+
 export const grantIdentityUserRoles = (data: {
   userId: number
-  tenantId?: string
   roleIds: number[]
 }) => request.post<void>('/users/grant-roles', data)
 
-export const getIdentityUserRoleIds = (data: { userId: number; tenantId?: string }) =>
-  request.post<number[]>('/users/role-ids', data)
+export const getIdentityUserRoleIds = (data: { userId: number }) => request.post<number[]>('/users/role-ids', data)
 
 export interface RoleListRequest extends OffsetPageRequest {
-  tenantId?: string
   roleCode?: string
   status?: number
 }
@@ -65,7 +72,6 @@ export const listIdentityRoles = (data: RoleListRequest) =>
   request.post<PageResult<IdentityRole>>('/roles/list', toOffsetPayload(data))
 
 export const createIdentityRole = (data: {
-  tenantId?: string
   roleCode: string
   roleName: string
   roleScope?: string
@@ -75,7 +81,6 @@ export const createIdentityRole = (data: {
 
 export const updateIdentityRole = (data: {
   id: number
-  tenantId?: string
   roleName: string
   roleScope?: string
   status?: number
@@ -84,11 +89,10 @@ export const updateIdentityRole = (data: {
 
 export const grantIdentityRolePermissions = (data: {
   roleId: number
-  tenantId?: string
   permissionIds: number[]
 }) => request.post<void>('/roles/grant-permissions', data)
 
-export const getIdentityRolePermissionIds = (data: { roleId: number; tenantId?: string }) =>
+export const getIdentityRolePermissionIds = (data: { roleId: number }) =>
   request.post<number[]>('/roles/permission-ids', data)
 
 export interface PermissionListRequest extends OffsetPageRequest {
@@ -100,11 +104,9 @@ export interface PermissionListRequest extends OffsetPageRequest {
 export const listIdentityPermissions = (data: PermissionListRequest) =>
   request.post<PageResult<IdentityPermission>>('/permissions/list', toOffsetPayload(data))
 
-export const listIdentityOrgs = (data?: { tenantId?: string; status?: number }) =>
-  request.post<IdentityOrg[]>('/orgs/list', data || {})
+export const listIdentityOrgs = (data?: { status?: number }) => request.post<IdentityOrg[]>('/orgs/list', data || {})
 
 export const createIdentityOrg = (data: {
-  tenantId?: string
   orgCode: string
   orgName: string
   parentId?: number
@@ -115,7 +117,6 @@ export const createIdentityOrg = (data: {
 
 export const updateIdentityOrg = (data: {
   id: number
-  tenantId?: string
   orgName: string
   parentId?: number
   orgPath?: string
@@ -126,31 +127,10 @@ export const updateIdentityOrg = (data: {
 export const bindIdentityUserOrg = (data: {
   userId: number
   orgId: number
-  tenantId?: string
 }) => request.post<void>('/orgs/bind-user', data)
 
-export interface ApiKeyListRequest extends OffsetPageRequest {
-  tenantId?: string
-  ownerUserId?: number
-  status?: number
-}
-
-export const listIdentityApiKeys = (data: ApiKeyListRequest) =>
-  request.post<PageResult<IdentityApiKey>>('/apikeys/list', toOffsetPayload(data))
-
-export const createIdentityApiKey = (data?: {
-  tenantId?: string
-  ownerUserId?: number
-  scopes?: string[]
-  expireAt?: string
-}) => request.post<IdentityApiKeyCreateResult>('/apikeys/create', data || {})
-
-export const revokeIdentityApiKey = (data: { id: number; tenantId?: string }) =>
-  request.post<void>('/apikeys/revoke', data)
-
 export interface IdentityAuditEventListRequest extends OffsetPageRequest {
-  tenantId?: string
-  operatorId?: number
+  operatorKeyword?: string
   eventType?: string
   resourceType?: string
   result?: number

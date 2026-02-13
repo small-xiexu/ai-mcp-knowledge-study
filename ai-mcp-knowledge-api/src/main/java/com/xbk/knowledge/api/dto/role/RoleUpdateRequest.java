@@ -33,11 +33,6 @@ public class RoleUpdateRequest extends BaseRequest {
     private Long id;
 
     /**
-     * 租户ID（仅超管可指定）。
-     */
-    private String tenantId;
-
-    /**
      * 角色名称。
      */
     @NotNull(message = "角色名称不能为空")

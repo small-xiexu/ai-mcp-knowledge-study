@@ -1,20 +1,16 @@
 package com.xbk.knowledge.trigger.http;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
-import cn.dev33.satoken.stp.StpUtil;
 import com.xbk.knowledge.api.dto.org.OrgCreateRequest;
 import com.xbk.knowledge.api.dto.org.OrgQueryRequest;
 import com.xbk.knowledge.api.dto.org.OrgResponse;
 import com.xbk.knowledge.api.dto.org.OrgUpdateRequest;
 import com.xbk.knowledge.api.dto.org.UserOrgBindRequest;
-import com.xbk.knowledge.application.model.identity.AuthProfile;
-import com.xbk.knowledge.application.service.app.AuthAppService;
 import com.xbk.knowledge.application.service.app.OrgAppService;
 import com.xbk.knowledge.domain.model.entity.SysOrg;
 import com.xbk.knowledge.domain.model.vo.identity.OrgQuery;
 import com.xbk.knowledge.types.common.Result;
 import lombok.RequiredArgsConstructor;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,7 +33,6 @@ import java.util.stream.Collectors;
 public class OrgController {
 
     private final OrgAppService orgAppService;
-    private final AuthAppService authAppService;
 
     /**
      * 查询组织列表。
@@ -49,9 +44,7 @@ public class OrgController {
     @PostMapping("/list")
     public Result<List<OrgResponse>> list(@RequestBody(required = false) OrgQueryRequest request) {
         OrgQueryRequest safeRequest = request == null ? OrgQueryRequest.builder().build() : request;
-        AuthProfile currentProfile = currentProfile();
-        String tenantId = resolveTenantId(currentProfile, safeRequest.getTenantId());
-        OrgQuery query = new OrgQuery(tenantId, safeRequest.getStatus());
+        OrgQuery query = new OrgQuery(safeRequest.getStatus());
         List<SysOrg> orgs = orgAppService.queryList(query);
         List<OrgResponse> responses = orgs.stream().map(this::toResponse).collect(Collectors.toList());
         return Result.success(responses);
@@ -66,10 +59,7 @@ public class OrgController {
     @SaCheckPermission("user:write")
     @PostMapping("/create")
     public Result<OrgResponse> create(@Valid @RequestBody OrgCreateRequest request) {
-        AuthProfile currentProfile = currentProfile();
-        String tenantId = resolveTenantId(currentProfile, request.getTenantId());
         SysOrg org = SysOrg.builder()
-                .tenantId(tenantId)
                 .orgCode(request.getOrgCode())
                 .orgName(request.getOrgName())
                 .parentId(request.getParentId())
@@ -90,11 +80,8 @@ public class OrgController {
     @SaCheckPermission("user:write")
     @PostMapping("/update")
     public Result<OrgResponse> update(@Valid @RequestBody OrgUpdateRequest request) {
-        AuthProfile currentProfile = currentProfile();
-        String tenantId = resolveTenantId(currentProfile, request.getTenantId());
         SysOrg org = SysOrg.builder()
                 .id(request.getId())
-                .tenantId(tenantId)
                 .orgName(request.getOrgName())
                 .parentId(request.getParentId())
                 .orgPath(request.getOrgPath())
@@ -114,9 +101,7 @@ public class OrgController {
     @SaCheckPermission("user:write")
     @PostMapping("/bind-user")
     public Result<Void> bindUser(@Valid @RequestBody UserOrgBindRequest request) {
-        AuthProfile currentProfile = currentProfile();
-        String tenantId = resolveTenantId(currentProfile, request.getTenantId());
-        orgAppService.bindUserPrimaryOrg(tenantId, request.getUserId(), request.getOrgId());
+        orgAppService.bindUserPrimaryOrg(request.getUserId(), request.getOrgId());
         return Result.success();
     }
 
@@ -129,7 +114,6 @@ public class OrgController {
     private OrgResponse toResponse(SysOrg org) {
         return OrgResponse.builder()
                 .id(org.getId())
-                .tenantId(org.getTenantId())
                 .orgCode(org.getOrgCode())
                 .orgName(org.getOrgName())
                 .parentId(org.getParentId())
@@ -141,27 +125,4 @@ public class OrgController {
                 .build();
     }
 
-    /**
-     * 读取当前登录用户画像。
-     *
-     * @return 用户画像
-     */
-    private AuthProfile currentProfile() {
-        Long loginUserId = StpUtil.getLoginIdAsLong();
-        return authAppService.loadProfile(loginUserId);
-    }
-
-    /**
-     * 解析目标租户ID。
-     *
-     * @param currentProfile 当前登录用户
-     * @param requestedTenantId 请求中的租户ID
-     * @return 目标租户ID
-     */
-    private String resolveTenantId(AuthProfile currentProfile, String requestedTenantId) {
-        if (Boolean.TRUE.equals(currentProfile.getSuperAdmin()) && StringUtils.hasText(requestedTenantId)) {
-            return requestedTenantId.trim();
-        }
-        return currentProfile.getTenantId();
-    }
 }

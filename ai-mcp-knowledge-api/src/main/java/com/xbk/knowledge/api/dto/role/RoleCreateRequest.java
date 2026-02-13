@@ -28,11 +28,6 @@ public class RoleCreateRequest extends BaseRequest {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 租户ID（仅超管可指定）。
-     */
-    private String tenantId;
-
-    /**
      * 角色编码。
      */
     @NotBlank(message = "角色编码不能为空")

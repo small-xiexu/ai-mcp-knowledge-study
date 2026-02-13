@@ -41,9 +41,8 @@ public interface OrgAppService {
     /**
      * 绑定用户主组织。
      *
-     * @param tenantId 租户ID
      * @param userId 用户ID
      * @param orgId 组织ID
      */
-    void bindUserPrimaryOrg(String tenantId, Long userId, Long orgId);
+    void bindUserPrimaryOrg(Long userId, Long orgId);
 }

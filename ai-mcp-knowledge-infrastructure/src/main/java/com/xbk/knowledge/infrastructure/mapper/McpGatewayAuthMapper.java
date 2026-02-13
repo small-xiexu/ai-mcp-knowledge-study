@@ -27,6 +27,9 @@ public interface McpGatewayAuthMapper extends BaseMapper<McpGatewayAuth> {
     /** 按 API Key 精确查询鉴权记录 */
     McpGatewayAuth findByApiKey(String apiKey);
 
+    /** 按主键查询鉴权记录 */
+    McpGatewayAuth findById(Long id);
+
     /** 按 gatewayId 查询该网关下所有鉴权记录 */
     List<McpGatewayAuth> findByGatewayId(GatewayIdQuery query);
 }

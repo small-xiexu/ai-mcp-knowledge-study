@@ -53,35 +53,30 @@ public interface OrgMapper extends BaseMapper<SysOrg> {
     /**
      * 统计组织编码数量。
      *
-     * @param tenantId 租户ID
      * @param orgCode 组织编码
      * @param excludeId 排除ID
      * @return 数量
      */
-    long countByTenantAndOrgCode(@Param("tenantId") String tenantId,
-                                 @Param("orgCode") String orgCode,
-                                 @Param("excludeId") Long excludeId);
+    long countByOrgCode(@Param("orgCode") String orgCode,
+                        @Param("excludeId") Long excludeId);
 
     /**
      * 删除用户组织绑定。
      *
-     * @param tenantId 租户ID
      * @param userId 用户ID
      * @return 影响行数
      */
-    int deleteUserOrgs(@Param("tenantId") String tenantId, @Param("userId") Long userId);
+    int deleteUserOrgs(@Param("userId") Long userId);
 
     /**
      * 新增用户组织绑定。
      *
-     * @param tenantId 租户ID
      * @param userId 用户ID
      * @param orgId 组织ID
      * @param isPrimary 是否主组织
      * @return 影响行数
      */
-    int insertUserOrg(@Param("tenantId") String tenantId,
-                      @Param("userId") Long userId,
+    int insertUserOrg(@Param("userId") Long userId,
                       @Param("orgId") Long orgId,
                       @Param("isPrimary") Integer isPrimary);
 }

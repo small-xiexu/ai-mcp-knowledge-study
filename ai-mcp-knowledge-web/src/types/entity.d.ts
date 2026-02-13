@@ -408,7 +408,6 @@ export interface McpServerConfigRequest {
  */
 export interface IdentityUser {
   id: number
-  tenantId: string
   username: string
   displayName: string
   email?: string
@@ -425,7 +424,6 @@ export interface IdentityUser {
  */
 export interface IdentityRole {
   id: number
-  tenantId: string
   roleCode: string
   roleName: string
   roleScope?: string
@@ -455,7 +453,6 @@ export interface IdentityPermission {
  */
 export interface IdentityOrg {
   id: number
-  tenantId: string
   orgCode: string
   orgName: string
   parentId?: number
@@ -467,35 +464,12 @@ export interface IdentityOrg {
 }
 
 /**
- * API Key
- */
-export interface IdentityApiKey {
-  id: number
-  tenantId: string
-  ownerUserId: number
-  accessKey: string
-  scopes?: string
-  status?: number
-  expireAt?: string
-  lastUsedAt?: string
-  createdAt?: string
-  updatedAt?: string
-}
-
-/**
- * API Key 创建结果（含一次性密钥）
- */
-export interface IdentityApiKeyCreateResult extends IdentityApiKey {
-  secret?: string
-}
-
-/**
  * 身份审计事件
  */
 export interface IdentityAuditEvent {
   id: number
-  tenantId: string
   operatorId?: number
+  operatorName?: string
   operatorType?: string
   eventType?: string
   resourceType?: string
@@ -514,7 +488,6 @@ export interface IdentityAuditEvent {
  */
 export interface AuthProfile {
   userId: number
-  tenantId: string
   username: string
   displayName: string
   email?: string

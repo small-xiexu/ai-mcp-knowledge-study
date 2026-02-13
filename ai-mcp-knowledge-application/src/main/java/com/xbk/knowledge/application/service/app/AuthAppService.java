@@ -17,12 +17,11 @@ public interface AuthAppService {
     /**
      * 校验登录凭证并返回用户。
      *
-     * @param tenantId    租户ID
      * @param username    用户名
      * @param rawPassword 明文密码
      * @return 用户实体
      */
-    SysUser verifyLogin(String tenantId, String username, String rawPassword);
+    SysUser verifyLogin(String username, String rawPassword);
 
     /**
      * 记录登录成功信息。

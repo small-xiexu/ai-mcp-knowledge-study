@@ -29,11 +29,6 @@ public class AuthProfileResponse implements Serializable {
     private Long userId;
 
     /**
-     * 租户ID。
-     */
-    private String tenantId;
-
-    /**
      * 用户名。
      */
     private String username;

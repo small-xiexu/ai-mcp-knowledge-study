@@ -226,7 +226,7 @@ const fetchUsers = async () => {
   try {
     const res = await listIdentityUsers({
       pageNum: 1,
-      pageSize: 200,
+      pageSize: 100,
       status: 1
     })
     userOptions.value = res.data.records || []

@@ -10,7 +10,6 @@ import {
 } from '@/utils/auth'
 
 interface LoginPayload {
-  tenantId?: string
   username: string
   password: string
 }

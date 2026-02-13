@@ -30,9 +30,4 @@ public class RolePermissionQueryRequest extends BaseRequest {
      */
     @NotNull(message = "角色ID不能为空")
     private Long roleId;
-
-    /**
-     * 租户ID（仅超管可指定）。
-     */
-    private String tenantId;
 }
