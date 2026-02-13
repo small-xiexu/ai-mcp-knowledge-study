@@ -176,7 +176,18 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch, nextTick } from 'vue'
 import MarkdownIt from 'markdown-it'
-import hljs from 'highlight.js'
+import hljs from 'highlight.js/lib/core'
+import bash from 'highlight.js/lib/languages/bash'
+import java from 'highlight.js/lib/languages/java'
+import javascript from 'highlight.js/lib/languages/javascript'
+import json from 'highlight.js/lib/languages/json'
+import markdownLang from 'highlight.js/lib/languages/markdown'
+import plaintext from 'highlight.js/lib/languages/plaintext'
+import python from 'highlight.js/lib/languages/python'
+import sql from 'highlight.js/lib/languages/sql'
+import typescript from 'highlight.js/lib/languages/typescript'
+import xml from 'highlight.js/lib/languages/xml'
+import yaml from 'highlight.js/lib/languages/yaml'
 import 'highlight.js/styles/atom-one-dark.css'
 // @ts-ignore
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -192,6 +203,26 @@ import {
 } from '@/api/ai'
 import { listRagTags } from '@/api/rag'
 import type { AIRequest, ModelInfo, ChatSession, ChatMessage } from '@/types/entity'
+
+hljs.registerLanguage('bash', bash)
+hljs.registerLanguage('shell', bash)
+hljs.registerLanguage('java', java)
+hljs.registerLanguage('javascript', javascript)
+hljs.registerLanguage('js', javascript)
+hljs.registerLanguage('json', json)
+hljs.registerLanguage('markdown', markdownLang)
+hljs.registerLanguage('md', markdownLang)
+hljs.registerLanguage('plaintext', plaintext)
+hljs.registerLanguage('text', plaintext)
+hljs.registerLanguage('python', python)
+hljs.registerLanguage('py', python)
+hljs.registerLanguage('sql', sql)
+hljs.registerLanguage('typescript', typescript)
+hljs.registerLanguage('ts', typescript)
+hljs.registerLanguage('xml', xml)
+hljs.registerLanguage('html', xml)
+hljs.registerLanguage('yaml', yaml)
+hljs.registerLanguage('yml', yaml)
 
 const models = ref<ModelInfo[]>([])
 const ragTags = ref<string[]>([])
