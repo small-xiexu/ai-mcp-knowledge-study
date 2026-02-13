@@ -541,7 +541,8 @@ INSERT INTO sys_user (
 )
 VALUES (
     'admin', '平台管理员', 'admin@example.com',
-    '$2y$10$A6MDZ1cGYcEfjwTgoM0YJOkgxf8BHxeecIzsrG/4NRga54T0vfvzK',
+    -- 默认密码（仅建议本地开发使用）：123456
+    '$2y$10$cMMKYng7Nsk60ffdRUwP6eVu4oSYFymt37TAHYqcrUK.VPO.Y3Dn2',
     1, 1, @now, @now
 )
 ON DUPLICATE KEY UPDATE
