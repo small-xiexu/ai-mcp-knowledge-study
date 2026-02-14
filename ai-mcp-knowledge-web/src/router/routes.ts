@@ -12,106 +12,112 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/components/Layout/MainLayout.vue'),
     children: [
       {
+        path: 'workbench',
+        name: 'Workbench',
+        component: () => import('@/views/workbench/index.vue'),
+        meta: { title: '工作台', icon: 'House', group: 'common', order: 1 }
+      },
+      {
         path: 'dashboard',
         name: 'Dashboard',
         component: () => import('@/views/dashboard/index.vue'),
-        meta: { title: '监控看板', icon: 'DataAnalysis' }
+        meta: { title: '监控看板', icon: 'DataAnalysis', group: 'common', order: 60 }
       },
       {
         path: 'models',
         name: 'Models',
         component: () => import('@/views/model/index.vue'),
-        meta: { title: 'LLM 配置', icon: 'Setting', permission: 'agent:read' }
+        meta: { title: 'LLM 配置', icon: 'Setting', permission: 'agent:read', group: 'integration', order: 10 }
       },
       {
         path: 'ai-chat',
         name: 'AiChat',
         component: () => import('@/views/chat/index.vue'),
-        meta: { title: 'AI 对话', icon: 'ChatDotRound', permission: 'agent:read' }
+        meta: { title: 'AI 对话', icon: 'ChatDotRound', permission: 'agent:read', group: 'common', order: 10 }
       },
       {
         path: 'knowledge',
         name: 'Knowledge',
         component: () => import('@/views/knowledge/index.vue'),
-        meta: { title: '知识库管理', icon: 'Collection', permission: 'agent:read' }
+        meta: { title: '知识库管理', icon: 'Collection', permission: 'agent:read', group: 'knowledge', order: 10 }
       },
       {
         path: 'rag-tasks',
         name: 'RagTasks',
         component: () => import('@/views/rag-task/index.vue'),
-        meta: { title: '任务进度', icon: 'Clock', permission: 'agent:read' }
+        meta: { title: '导入任务', icon: 'Clock', permission: 'agent:read', group: 'knowledge', order: 20 }
       },
       {
         path: 'tasks',
         name: 'Tasks',
         component: () => import('@/views/task/index.vue'),
-        meta: { title: '任务策略', icon: 'List', permission: 'workflow:read' }
+        meta: { title: '策略配置', icon: 'List', permission: 'workflow:read', group: 'integration', order: 20 }
       },
       {
         path: 'xxl',
         name: 'XxlAdmin',
         component: () => import('@/views/xxl/index.vue'),
-        meta: { title: '任务中心', icon: 'Timer', permission: 'workflow:read' }
+        meta: { title: '任务中心', icon: 'Timer', permission: 'workflow:read', group: 'common', order: 40 }
       },
       {
         path: 'mcp-servers',
         name: 'McpServers',
         component: () => import('@/views/mcp/index.vue'),
-        meta: { title: 'MCP 配置', icon: 'Link', permission: 'tool:read' }
+        meta: { title: 'MCP 配置', icon: 'Link', permission: 'tool:read', group: 'integration', order: 30 }
       },
       {
         path: 'gateway-tools',
         name: 'GatewayTools',
         component: () => import('@/views/gateway/tools/index.vue'),
-        meta: { title: '网关工具', icon: 'Operation', permission: 'tool:read' }
+        meta: { title: '网关工具', icon: 'Operation', permission: 'tool:read', group: 'integration', order: 40 }
       },
       {
         path: 'gateway-tools/:gatewayId/tools',
         name: 'GatewayToolList',
         component: () => import('@/views/gateway/tools/index.vue'),
-        meta: { title: '工具配置', icon: 'Tools', hidden: true, permission: 'tool:read' }
+        meta: { title: '工具配置', icon: 'Tools', hidden: true, permission: 'tool:read', group: 'integration', order: 41 }
       },
       {
         path: 'users',
         name: 'Users',
         component: () => import('@/views/user/index.vue'),
-        meta: { title: '用户管理', icon: 'User', permission: 'user:read' }
+        meta: { title: '用户管理', icon: 'User', permission: 'user:read', group: 'org', order: 10 }
       },
       {
         path: 'roles',
         name: 'Roles',
         component: () => import('@/views/role/index.vue'),
-        meta: { title: '角色管理', icon: 'Avatar', permission: 'role:read' }
+        meta: { title: '角色管理', icon: 'Avatar', permission: 'role:read', group: 'org', order: 20 }
       },
       {
         path: 'orgs',
         name: 'Orgs',
         component: () => import('@/views/org/index.vue'),
-        meta: { title: '组织管理', icon: 'OfficeBuilding', permission: 'user:read' }
+        meta: { title: '组织管理', icon: 'OfficeBuilding', permission: 'user:read', group: 'org', order: 30 }
       },
       {
-        path: 'mcp-credentials',
-        name: 'McpCredentials',
+        path: 'credentials',
+        name: 'Credentials',
         component: () => import('@/views/gateway/credential/index.vue'),
-        meta: { title: '凭证管理', icon: 'Key', hidden: true, permission: 'tool:read' }
+        meta: { title: '凭证管理', icon: 'Key', permission: 'tool:read', group: 'integration', order: 50 }
       },
       {
         path: 'audit-events',
         name: 'AuditEvents',
         component: () => import('@/views/audit-event/index.vue'),
-        meta: { title: '身份审计', icon: 'Tickets', permission: 'audit:read' }
+        meta: { title: '身份审计', icon: 'Tickets', permission: 'audit:read', group: 'org', order: 40 }
       },
       {
         path: 'audit',
         name: 'Audit',
         component: () => import('@/views/audit/index.vue'),
-        meta: { title: '审计日志', icon: 'Document', permission: 'audit:read' }
+        meta: { title: '审计日志', icon: 'Document', permission: 'audit:read', group: 'org', order: 50 }
       }
     ]
   },
   {
     path: '/',
-    redirect: '/dashboard'
+    redirect: '/workbench'
   }
 ]
 

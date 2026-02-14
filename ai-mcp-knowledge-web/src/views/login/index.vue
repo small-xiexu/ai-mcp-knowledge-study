@@ -76,7 +76,7 @@ const handleLogin = async () => {
       password: form.password
     })
     ElMessage.success('登录成功')
-    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/dashboard'
+    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/workbench'
     await router.replace(redirect)
   } catch (error: any) {
     console.error('Login failed:', error)

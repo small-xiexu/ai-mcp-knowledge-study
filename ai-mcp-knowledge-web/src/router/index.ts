@@ -23,7 +23,7 @@ router.beforeEach(async (to) => {
         return true
       }
     }
-    const redirect = typeof to.query.redirect === 'string' ? to.query.redirect : '/dashboard'
+    const redirect = typeof to.query.redirect === 'string' ? to.query.redirect : '/workbench'
     return redirect
   }
 
@@ -48,7 +48,7 @@ router.beforeEach(async (to) => {
 
   const requiredPermission = typeof to.meta.permission === 'string' ? to.meta.permission : ''
   if (requiredPermission && !authStore.hasPermission(requiredPermission)) {
-    return '/dashboard'
+    return '/workbench'
   }
 
   return true

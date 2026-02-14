@@ -40,14 +40,6 @@
             重启所有连接
           </el-button>
           <el-button
-            v-if="canManageCredentials"
-            class="gemini-btn-secondary"
-            @click="goCredentialManager"
-          >
-            <el-icon><Key /></el-icon>
-            凭证管理
-          </el-button>
-          <el-button
             type="primary"
             class="gemini-btn-primary"
             @click="handleAdd"
@@ -193,10 +185,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { useRouter } from 'vue-router'
-import { Key, Plus, Refresh, RefreshRight } from '@element-plus/icons-vue'
+import { Plus, Refresh, RefreshRight } from '@element-plus/icons-vue'
 import {
   getMcpServerList,
   getMcpServerById,
@@ -207,12 +198,7 @@ import {
   refreshMcpServer
 } from '@/api/mcp'
 import McpServerForm from './components/McpServerForm.vue'
-import { usePermission } from '@/composables/usePermission'
 import type { McpServerConfig } from '@/types/entity'
-
-const router = useRouter()
-const { hasPermission } = usePermission()
-const canManageCredentials = computed(() => hasPermission('tool:write'))
 
 const loading = ref(false)
 const tableData = ref<McpServerConfig[]>([])
@@ -254,10 +240,6 @@ const handleRuntimeRefresh = async () => {
 const handleAdd = () => {
   currentConfig.value = null
   dialogVisible.value = true
-}
-
-const goCredentialManager = () => {
-  router.push({ name: 'McpCredentials' })
 }
 
 const handleEdit = async (row: McpServerConfig) => {

@@ -19,34 +19,64 @@
         </div>
       </div>
 
-
-
       <nav class="nav-menu">
-        <el-tooltip
-          v-for="route in menuRoutes"
-          :key="route.path"
-          :content="route.meta?.title"
-          placement="right"
-          :disabled="!appStore.sidebarCollapsed"
-          effect="dark"
-          :offset="12"
-        >
-          <router-link
-            :to="resolveMenuPath(route.path)"
-            class="nav-item"
-            :class="{ active: activeMenu === resolveMenuPath(route.path) }"
+        <!-- 折叠态：只展示扁平菜单（图标 + tooltip） -->
+        <template v-if="appStore.sidebarCollapsed">
+          <el-tooltip
+            v-for="r in flatMenuRoutes"
+            :key="r.path"
+            :content="r.meta?.title"
+            placement="right"
+            :disabled="!appStore.sidebarCollapsed"
+            effect="dark"
+            :offset="12"
           >
-            <div class="nav-icon-container">
-              <el-icon><component :is="route.meta?.icon" /></el-icon>
-            </div>
-            <span
-              v-show="!appStore.sidebarCollapsed"
-              class="nav-label"
+            <router-link
+              :to="resolveMenuPath(r.path)"
+              class="nav-item"
+              :class="{ active: activeMenu === resolveMenuPath(r.path) }"
             >
-              {{ route.meta?.title }}
-            </span>
-          </router-link>
-        </el-tooltip>
+              <div class="nav-icon-container">
+                <el-icon><component :is="r.meta?.icon" /></el-icon>
+              </div>
+              <span v-show="!appStore.sidebarCollapsed" class="nav-label">
+                {{ r.meta?.title }}
+              </span>
+            </router-link>
+          </el-tooltip>
+        </template>
+
+        <!-- 展开态：按分组展示，默认只展开“常用” -->
+        <template v-else>
+          <div
+            v-for="g in menuGroups"
+            :key="g.key"
+            class="menu-group"
+          >
+            <div class="menu-group-header" @click="toggleGroup(g.key)">
+              <span class="menu-group-title">{{ g.title }}</span>
+              <el-icon class="menu-group-arrow" :class="{ open: isGroupOpen(g.key) }">
+                <CaretBottom />
+              </el-icon>
+            </div>
+            <div v-show="isGroupOpen(g.key)" class="menu-group-items">
+              <router-link
+                v-for="r in g.routes"
+                :key="r.path"
+                :to="resolveMenuPath(r.path)"
+                class="nav-item"
+                :class="{ active: activeMenu === resolveMenuPath(r.path) }"
+              >
+                <div class="nav-icon-container">
+                  <el-icon><component :is="r.meta?.icon" /></el-icon>
+                </div>
+                <span class="nav-label">
+                  {{ r.meta?.title }}
+                </span>
+              </router-link>
+            </div>
+          </div>
+        </template>
       </nav>
 
       <div class="sidebar-bottom">
@@ -101,13 +131,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/store/app'
 import { useAuthStore } from '@/store/auth'
 import { usePermission } from '@/composables/usePermission'
 import routes from '@/router/routes'
-import { Menu as MenuIcon, Setting, ArrowDown, SwitchButton } from '@element-plus/icons-vue'
+import { Menu as MenuIcon, Setting, ArrowDown, SwitchButton, CaretBottom } from '@element-plus/icons-vue'
 
 const appStore = useAppStore()
 const authStore = useAuthStore()
@@ -115,8 +145,52 @@ const { hasPermission } = usePermission()
 const route = useRoute()
 const router = useRouter()
 
+type MenuGroupKey = 'common' | 'knowledge' | 'integration' | 'org'
 
-const menuRoutes = computed(() => {
+const groupDefs: Array<{ key: MenuGroupKey; title: string; defaultOpen: boolean; order: number }> = [
+  { key: 'common', title: '常用', defaultOpen: true, order: 1 },
+  { key: 'knowledge', title: '知识库', defaultOpen: false, order: 2 },
+  { key: 'integration', title: '配置与集成', defaultOpen: false, order: 3 },
+  { key: 'org', title: '组织与审计', defaultOpen: false, order: 4 }
+]
+
+const buildGroupOpen = (): Record<MenuGroupKey, boolean> => {
+  const defaults = groupDefs.reduce((acc, g) => {
+    acc[g.key] = g.defaultOpen
+    return acc
+  }, {} as Record<MenuGroupKey, boolean>)
+
+  const raw = localStorage.getItem('menuGroupOpen')
+  if (!raw) {
+    return defaults
+  }
+  try {
+    const parsed = JSON.parse(raw) as Partial<Record<MenuGroupKey, boolean>>
+    return { ...defaults, ...parsed }
+  } catch {
+    return defaults
+  }
+}
+
+const groupOpen = ref<Record<MenuGroupKey, boolean>>(buildGroupOpen())
+
+const toggleGroup = (key: MenuGroupKey) => {
+  groupOpen.value[key] = !groupOpen.value[key]
+  localStorage.setItem('menuGroupOpen', JSON.stringify(groupOpen.value))
+}
+
+const isGroupOpen = (key: MenuGroupKey) => {
+  return Boolean(groupOpen.value[key])
+}
+
+const normalizeGroupKey = (raw: unknown): MenuGroupKey => {
+  if (raw === 'integration' || raw === 'org' || raw === 'knowledge' || raw === 'common') {
+    return raw
+  }
+  return 'common'
+}
+
+const allMenuRoutes = computed(() => {
   const layoutRoute = routes.find(r => r.path === '/')
   return (layoutRoute?.children || []).filter(item => {
     if (item.meta?.hidden) {
@@ -130,21 +204,75 @@ const menuRoutes = computed(() => {
   })
 })
 
+const menuGroups = computed(() => {
+  const byKey: Record<MenuGroupKey, any[]> = {
+    common: [],
+    knowledge: [],
+    integration: [],
+    org: []
+  }
+
+  for (const r of allMenuRoutes.value) {
+    const raw = typeof r.meta?.group === 'string' ? r.meta.group : 'common'
+    const key = normalizeGroupKey(raw)
+    byKey[key].push(r)
+  }
+
+  const toOrder = (meta: any) => {
+    const v = meta?.order
+    return typeof v === 'number' ? v : 999
+  }
+
+  return groupDefs
+    .slice()
+    .sort((a, b) => a.order - b.order)
+    .map(def => ({
+      key: def.key,
+      title: def.title,
+      routes: byKey[def.key].slice().sort((a, b) => toOrder(a.meta) - toOrder(b.meta))
+    }))
+    .filter(g => g.routes.length > 0)
+})
+
+const flatMenuRoutes = computed(() => {
+  return menuGroups.value.flatMap(g => g.routes)
+})
+
 const activeMenu = computed(() => {
   if (route.path.startsWith('/gateway-tools/')) {
     return '/gateway-tools'
   }
-  if (route.path.startsWith('/mcp-credentials')) {
-    return '/mcp-servers'
-  }
   return route.path
 })
 
+const ensureActiveGroupOpen = () => {
+  const active = activeMenu.value
+  const matched = allMenuRoutes.value.find(r => resolveMenuPath(r.path) === active)
+  if (!matched) {
+    return
+  }
+  const key = normalizeGroupKey(typeof matched.meta?.group === 'string' ? matched.meta.group : 'common')
+  if (!groupOpen.value[key]) {
+    groupOpen.value[key] = true
+    localStorage.setItem('menuGroupOpen', JSON.stringify(groupOpen.value))
+  }
+}
+
+watch(
+  () => route.path,
+  () => {
+    if (!appStore.sidebarCollapsed) {
+      ensureActiveGroupOpen()
+    }
+  },
+  { immediate: true }
+)
+
 const currentPageTitle = computed(() => {
-  return route.meta.title || 'Dashboard'
+  return route.meta.title || '工作台'
 })
 
-const resolveMenuPath = (path?: string) => {
+function resolveMenuPath(path?: string) {
   if (!path) return '/'
   return path.startsWith('/') ? path : `/${path}`
 }
@@ -265,6 +393,46 @@ const handleUserCommand = async (command: string | number | object) => {
 
 .nav-menu {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.menu-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  margin: 6px 6px 2px;
+  border-radius: 14px;
+  color: var(--gemini-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.menu-group-header:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+  color: var(--gemini-text-primary);
+}
+
+.menu-group-arrow {
+  transition: transform 0.18s ease;
+  opacity: 0.9;
+}
+
+.menu-group-arrow.open {
+  transform: rotate(180deg);
+}
+
+.menu-group-items {
   display: flex;
   flex-direction: column;
   gap: 4px;
