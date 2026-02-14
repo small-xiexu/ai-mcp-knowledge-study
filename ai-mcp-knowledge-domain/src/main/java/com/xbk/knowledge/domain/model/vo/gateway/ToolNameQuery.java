@@ -1,6 +1,5 @@
 package com.xbk.knowledge.domain.model.vo.gateway;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,10 +11,22 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class ToolNameQuery {
+    /** 组织ID */
+    private Long orgId;
     /** 网关唯一标识 */
     private String gatewayId;
     /** 工具名称 */
     private String toolName;
+
+    public ToolNameQuery(String gatewayId, String toolName) {
+        this.gatewayId = gatewayId;
+        this.toolName = toolName;
+    }
+
+    public ToolNameQuery(Long orgId, String gatewayId, String toolName) {
+        this.orgId = orgId;
+        this.gatewayId = gatewayId;
+        this.toolName = toolName;
+    }
 }

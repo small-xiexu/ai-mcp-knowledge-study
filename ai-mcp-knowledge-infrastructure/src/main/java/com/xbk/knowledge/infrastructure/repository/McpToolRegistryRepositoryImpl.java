@@ -7,6 +7,7 @@ import com.xbk.knowledge.domain.model.vo.gateway.ToolNameQuery;
 import com.xbk.knowledge.domain.model.vo.gateway.ToolRegistryPageQuery;
 import com.xbk.knowledge.domain.repository.gateway.McpToolRegistryRepository;
 import com.xbk.knowledge.infrastructure.mapper.McpToolRegistryMapper;
+import com.xbk.knowledge.types.context.OrgContextHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -25,10 +26,18 @@ public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository 
 
     private final McpToolRegistryMapper mapper;
 
+    private Long currentOrgIdOrRoot() {
+        Long orgId = OrgContextHolder.currentOrgIdOrNull();
+        return orgId == null ? 1L : orgId;
+    }
+
     @Override
     public Optional<McpToolRegistry> findById(IdQuery query) {
         if (query == null || query.getId() == null) {
             return Optional.empty();
+        }
+        if (query.getOrgId() == null) {
+            query.setOrgId(currentOrgIdOrRoot());
         }
         return Optional.ofNullable(mapper.findById(query));
     }
@@ -38,6 +47,9 @@ public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository 
         if (query == null || query.getGatewayId() == null || query.getToolName() == null) {
             return Optional.empty();
         }
+        if (query.getOrgId() == null) {
+            query.setOrgId(currentOrgIdOrRoot());
+        }
         return Optional.ofNullable(mapper.findByGatewayIdAndToolName(query));
     }
 
@@ -45,6 +57,9 @@ public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository 
     public List<McpToolRegistry> findByGatewayId(GatewayIdQuery query) {
         if (query == null || query.getGatewayId() == null) {
             return Collections.emptyList();
+        }
+        if (query.getOrgId() == null) {
+            query.setOrgId(currentOrgIdOrRoot());
         }
         return mapper.findByGatewayId(query);
     }
@@ -54,6 +69,9 @@ public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository 
         if (query == null || query.getGatewayId() == null) {
             return Collections.emptyList();
         }
+        if (query.getOrgId() == null) {
+            query.setOrgId(currentOrgIdOrRoot());
+        }
         return mapper.findEnabledByGatewayId(query);
     }
 
@@ -62,6 +80,9 @@ public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository 
         if (query == null || query.getGatewayId() == null) {
             return Collections.emptyList();
         }
+        if (query.getOrgId() == null) {
+            query.setOrgId(currentOrgIdOrRoot());
+        }
         return mapper.findPage(query);
     }
 
@@ -69,6 +90,20 @@ public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository 
     public McpToolRegistry save(McpToolRegistry registry) {
         if (registry == null) {
             return null;
+        }
+        /*
+         * 目的：补齐 toolKey/riskLevel，保证治理字段稳定。
+         * 约束：Gateway HTTP 工具默认使用 gateway:{gatewayId}:{toolName} 作为 toolKey。
+         */
+        if (registry.getToolKey() == null || registry.getToolKey().isBlank()) {
+            String gatewayId = registry.getGatewayId();
+            String toolName = registry.getToolName();
+            if (gatewayId != null && !gatewayId.isBlank() && toolName != null && !toolName.isBlank()) {
+                registry.setToolKey("gateway:" + gatewayId + ":" + toolName);
+            }
+        }
+        if (registry.getRiskLevel() == null || registry.getRiskLevel().isBlank()) {
+            registry.setRiskLevel("MEDIUM");
         }
         if (registry.getId() == null) {
             mapper.insertToolRegistry(registry);
@@ -83,6 +118,9 @@ public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository 
         if (query == null || query.getId() == null) {
             return;
         }
+        if (query.getOrgId() == null) {
+            query.setOrgId(currentOrgIdOrRoot());
+        }
         mapper.deleteToolRegistryById(query);
     }
 
@@ -90,6 +128,9 @@ public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository 
     public long countByGatewayId(GatewayIdQuery query) {
         if (query == null || query.getGatewayId() == null) {
             return 0;
+        }
+        if (query.getOrgId() == null) {
+            query.setOrgId(currentOrgIdOrRoot());
         }
         return mapper.countByGatewayId(query);
     }

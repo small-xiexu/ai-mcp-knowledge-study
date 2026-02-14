@@ -6,6 +6,7 @@ import com.xbk.knowledge.domain.model.vo.common.IdQuery;
 import com.xbk.knowledge.domain.model.vo.gateway.GatewayIdQuery;
 import com.xbk.knowledge.domain.model.vo.gateway.GatewayPageQuery;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -38,6 +39,12 @@ public interface McpGatewayMapper extends BaseMapper<McpGateway> {
     /** 查询所有已启用的网关实例 */
     List<McpGateway> findAllEnabled();
 
+    /** 查询当前 org 下已启用的网关实例（强 org 隔离） */
+    List<McpGateway> findAllEnabledByOrgId(@Param("orgId") Long orgId);
+
     /** 统计网关总数 */
     long countAll();
+
+    /** 统计当前 org 下网关总数（强 org 隔离） */
+    long countAllByOrgId(@Param("orgId") Long orgId);
 }

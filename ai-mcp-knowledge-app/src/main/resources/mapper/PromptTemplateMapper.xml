@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.PromptTemplateMapper">
+
+    <resultMap id="PromptTemplateMap" type="com.xbk.knowledge.domain.model.entity.agent.PromptTemplate">
+        <id column="id" property="id"/>
+        <result column="scope" property="scope"/>
+        <result column="org_id" property="orgId"/>
+        <result column="template_code" property="templateCode"/>
+        <result column="template_name" property="templateName"/>
+        <result column="version_no" property="versionNo"/>
+        <result column="state" property="state"/>
+        <result column="content" property="content"/>
+        <result column="variable_spec_json" property="variableSpecJson"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="updated_by" property="updatedBy"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <insert id="insertTemplate" parameterType="com.xbk.knowledge.domain.model.entity.agent.PromptTemplate" useGeneratedKeys="true"
+            keyProperty="id">
+        insert into prompt_template (
+            scope,
+            org_id,
+            template_code,
+            template_name,
+            version_no,
+            state,
+            content,
+            variable_spec_json,
+            created_by,
+            updated_by,
+            created_at,
+            updated_at
+        ) values (
+            #{scope},
+            #{orgId},
+            #{templateCode},
+            #{templateName},
+            #{versionNo},
+            #{state},
+            #{content},
+            #{variableSpecJson},
+            #{createdBy},
+            #{updatedBy},
+            #{createdAt},
+            #{updatedAt}
+        )
+    </insert>
+
+    <update id="updateDraft" parameterType="com.xbk.knowledge.domain.model.entity.agent.PromptTemplate">
+        update prompt_template
+        set template_name = #{templateName},
+            content = #{content},
+            variable_spec_json = #{variableSpecJson},
+            updated_by = #{updatedBy},
+            updated_at = #{updatedAt}
+        where id = #{id}
+          and org_id = #{orgId}
+          and state = 'DRAFT'
+    </update>
+
+    <select id="findById" resultMap="PromptTemplateMap">
+        select
+            id,
+            scope,
+            org_id,
+            template_code,
+            template_name,
+            version_no,
+            state,
+            content,
+            variable_spec_json,
+            created_by,
+            updated_by,
+            created_at,
+            updated_at
+        from prompt_template
+        where id = #{id}
+          and (
+              scope = 'GLOBAL'
+              or org_id = #{orgId}
+          )
+        limit 1
+    </select>
+
+    <select id="count" resultType="long">
+        select count(1)
+        from prompt_template
+        where (
+            scope = 'GLOBAL'
+            or org_id = #{orgId}
+        )
+        <if test="scope != null and scope != ''">
+            and scope = #{scope}
+        </if>
+        <if test="state != null and state != ''">
+            and state = #{state}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            and (
+                template_code like concat('%', #{keyword}, '%')
+                or template_name like concat('%', #{keyword}, '%')
+            )
+        </if>
+    </select>
+
+    <select id="findPage" resultMap="PromptTemplateMap">
+        select
+            id,
+            scope,
+            org_id,
+            template_code,
+            template_name,
+            version_no,
+            state,
+            content,
+            variable_spec_json,
+            created_by,
+            updated_by,
+            created_at,
+            updated_at
+        from prompt_template
+        where (
+            scope = 'GLOBAL'
+            or org_id = #{orgId}
+        )
+        <if test="scope != null and scope != ''">
+            and scope = #{scope}
+        </if>
+        <if test="state != null and state != ''">
+            and state = #{state}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            and (
+                template_code like concat('%', #{keyword}, '%')
+                or template_name like concat('%', #{keyword}, '%')
+            )
+        </if>
+        order by scope asc, updated_at desc, id desc
+        limit #{pageSize} offset #{offset}
+    </select>
+
+    <select id="countByOrgIdAndCode" resultType="int">
+        select count(1)
+        from prompt_template
+        where org_id = #{orgId}
+          and template_code = #{templateCode}
+    </select>
+
+    <update id="publish">
+        update prompt_template
+        set state = 'PUBLISHED',
+            version_no = version_no + 1,
+            updated_by = #{updatedBy},
+            updated_at = now()
+        where id = #{id}
+          and org_id = #{orgId}
+          and state = 'DRAFT'
+    </update>
+
+    <update id="archive">
+        update prompt_template
+        set state = 'ARCHIVED',
+            updated_by = #{updatedBy},
+            updated_at = now()
+        where id = #{id}
+          and org_id = #{orgId}
+          and state in ('DRAFT', 'PUBLISHED')
+    </update>
+
+</mapper>
+

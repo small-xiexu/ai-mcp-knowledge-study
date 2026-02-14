@@ -1,0 +1,25 @@
+package com.xbk.knowledge.types.contract;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
+
+/**
+ * SSE 事件封装（delta/final 等）。
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class PlatformStreamEvent implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    private String name;
+
+    private Object data;
+}
+

@@ -1,6 +1,5 @@
 package com.xbk.knowledge.domain.model.vo.mcp;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -13,8 +12,10 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class McpServerNameQuery {
+
+    /** 组织ID */
+    private Long orgId;
 
     /**
      * MCP Server 名称
@@ -22,4 +23,13 @@ public class McpServerNameQuery {
      * 为什么：用于唯一性校验与定位配置
      */
     private String serverName;
+
+    public McpServerNameQuery(String serverName) {
+        this.serverName = serverName;
+    }
+
+    public McpServerNameQuery(Long orgId, String serverName) {
+        this.orgId = orgId;
+        this.serverName = serverName;
+    }
 }

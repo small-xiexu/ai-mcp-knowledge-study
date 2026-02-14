@@ -1,6 +1,5 @@
 package com.xbk.knowledge.domain.model.vo.gateway;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,12 +11,26 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class ToolRegistryPageQuery {
+    /** 组织ID */
+    private Long orgId;
     /** 所属网关ID */
     private String gatewayId;
     /** 分页偏移量 */
     private Integer offset;
     /** 每页大小 */
     private Integer pageSize;
+
+    public ToolRegistryPageQuery(String gatewayId, Integer offset, Integer pageSize) {
+        this.gatewayId = gatewayId;
+        this.offset = offset;
+        this.pageSize = pageSize;
+    }
+
+    public ToolRegistryPageQuery(Long orgId, String gatewayId, Integer offset, Integer pageSize) {
+        this.orgId = orgId;
+        this.gatewayId = gatewayId;
+        this.offset = offset;
+        this.pageSize = pageSize;
+    }
 }

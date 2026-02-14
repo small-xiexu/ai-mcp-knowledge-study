@@ -6,6 +6,7 @@ import com.xbk.knowledge.domain.model.vo.gateway.GatewayIdQuery;
 import com.xbk.knowledge.domain.model.vo.gateway.GatewayPageQuery;
 import com.xbk.knowledge.domain.repository.gateway.McpGatewayRepository;
 import com.xbk.knowledge.infrastructure.mapper.McpGatewayMapper;
+import com.xbk.knowledge.types.context.OrgContextHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -24,10 +25,18 @@ public class McpGatewayRepositoryImpl implements McpGatewayRepository {
 
     private final McpGatewayMapper mapper;
 
+    private Long currentOrgIdOrRoot() {
+        Long orgId = OrgContextHolder.currentOrgIdOrNull();
+        return orgId == null ? 1L : orgId;
+    }
+
     @Override
     public Optional<McpGateway> findByGatewayId(GatewayIdQuery query) {
         if (query == null || query.getGatewayId() == null) {
             return Optional.empty();
+        }
+        if (query.getOrgId() == null) {
+            query.setOrgId(currentOrgIdOrRoot());
         }
         return Optional.ofNullable(mapper.findByGatewayId(query));
     }
@@ -36,6 +45,9 @@ public class McpGatewayRepositoryImpl implements McpGatewayRepository {
     public Optional<McpGateway> findById(IdQuery query) {
         if (query == null || query.getId() == null) {
             return Optional.empty();
+        }
+        if (query.getOrgId() == null) {
+            query.setOrgId(currentOrgIdOrRoot());
         }
         return Optional.ofNullable(mapper.findById(query));
     }
@@ -58,6 +70,9 @@ public class McpGatewayRepositoryImpl implements McpGatewayRepository {
         if (query == null || query.getId() == null) {
             return;
         }
+        if (query.getOrgId() == null) {
+            query.setOrgId(currentOrgIdOrRoot());
+        }
         mapper.deleteGatewayById(query);
     }
 
@@ -66,16 +81,19 @@ public class McpGatewayRepositoryImpl implements McpGatewayRepository {
         if (query == null) {
             return Collections.emptyList();
         }
+        if (query.getOrgId() == null) {
+            query.setOrgId(currentOrgIdOrRoot());
+        }
         return mapper.findPage(query);
     }
 
     @Override
     public List<McpGateway> findAllEnabled() {
-        return mapper.findAllEnabled();
+        return mapper.findAllEnabledByOrgId(currentOrgIdOrRoot());
     }
 
     @Override
     public long countAll() {
-        return mapper.countAll();
+        return mapper.countAllByOrgId(currentOrgIdOrRoot());
     }
 }

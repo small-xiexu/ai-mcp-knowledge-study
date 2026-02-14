@@ -7,6 +7,7 @@
     <!-- 任务类型结果映射 -->
     <resultMap id="TaskTypeMap" type="com.xbk.knowledge.domain.model.entity.TaskType">
         <id column="id" property="id"/>
+        <result column="org_id" property="orgId"/>
         <result column="task_name" property="taskName"/>
         <result column="task_code" property="taskCode"/>
         <result column="description" property="description"/>
@@ -20,6 +21,7 @@
     <insert id="insertTaskType" parameterType="com.xbk.knowledge.domain.model.entity.TaskType" useGeneratedKeys="true"
             keyProperty="id">
         insert into ai_task_type (
+            org_id,
             task_name,
             task_code,
             description,
@@ -28,6 +30,7 @@
             created_at,
             updated_at
         ) values (
+            #{orgId},
             #{taskName},
             #{taskCode},
             #{description},
@@ -60,6 +63,7 @@
     <select id="findById" resultMap="TaskTypeMap">
         select
             id,
+            org_id,
             task_name,
             task_code,
             description,
@@ -75,6 +79,7 @@
     <select id="findByTaskCode" resultMap="TaskTypeMap">
         select
             id,
+            org_id,
             task_name,
             task_code,
             description,
@@ -90,6 +95,7 @@
     <select id="findPage" resultMap="TaskTypeMap">
         select
             id,
+            org_id,
             task_name,
             task_code,
             description,

@@ -1,9 +1,12 @@
 package com.xbk.knowledge.infrastructure.repository;
 
 import com.xbk.knowledge.domain.model.entity.gateway.McpToolBinding;
+import com.xbk.knowledge.domain.model.vo.common.IdQuery;
 import com.xbk.knowledge.domain.model.vo.gateway.ToolBindingQuery;
+import com.xbk.knowledge.domain.model.vo.gateway.ToolIdQuery;
 import com.xbk.knowledge.domain.repository.gateway.McpToolBindingRepository;
 import com.xbk.knowledge.infrastructure.mapper.McpToolBindingMapper;
+import com.xbk.knowledge.types.context.OrgContextHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -21,10 +24,18 @@ public class McpToolBindingRepositoryImpl implements McpToolBindingRepository {
 
     private final McpToolBindingMapper mapper;
 
+    private Long currentOrgIdOrRoot() {
+        Long orgId = OrgContextHolder.currentOrgIdOrNull();
+        return orgId == null ? 1L : orgId;
+    }
+
     @Override
     public List<McpToolBinding> findByBindTypeAndTargetId(ToolBindingQuery query) {
         if (query == null || query.getBindType() == null || query.getBindTargetId() == null) {
             return Collections.emptyList();
+        }
+        if (query.getOrgId() == null) {
+            query.setOrgId(currentOrgIdOrRoot());
         }
         return mapper.findByBindTypeAndTargetId(query);
     }
@@ -34,7 +45,8 @@ public class McpToolBindingRepositoryImpl implements McpToolBindingRepository {
         if (toolId == null) {
             return Collections.emptyList();
         }
-        return mapper.findByToolId(toolId);
+        ToolIdQuery query = new ToolIdQuery(currentOrgIdOrRoot(), toolId);
+        return mapper.findByToolId(query);
     }
 
     @Override
@@ -55,7 +67,7 @@ public class McpToolBindingRepositoryImpl implements McpToolBindingRepository {
         if (id == null) {
             return;
         }
-        mapper.deleteToolBindingById(id);
+        mapper.deleteToolBindingById(new IdQuery(currentOrgIdOrRoot(), id));
     }
 
     @Override
@@ -63,6 +75,6 @@ public class McpToolBindingRepositoryImpl implements McpToolBindingRepository {
         if (toolId == null) {
             return;
         }
-        mapper.deleteToolBindingByToolId(toolId);
+        mapper.deleteToolBindingByToolId(new ToolIdQuery(currentOrgIdOrRoot(), toolId));
     }
 }

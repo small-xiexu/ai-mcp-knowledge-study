@@ -1,6 +1,5 @@
 package com.xbk.knowledge.domain.model.vo.gateway;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,10 +11,22 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class ToolBindingQuery {
+    /** 组织ID */
+    private Long orgId;
     /** 绑定类型：MODEL/SESSION */
     private String bindType;
     /** 绑定目标ID */
     private Long bindTargetId;
+
+    public ToolBindingQuery(String bindType, Long bindTargetId) {
+        this.bindType = bindType;
+        this.bindTargetId = bindTargetId;
+    }
+
+    public ToolBindingQuery(Long orgId, String bindType, Long bindTargetId) {
+        this.orgId = orgId;
+        this.bindType = bindType;
+        this.bindTargetId = bindTargetId;
+    }
 }

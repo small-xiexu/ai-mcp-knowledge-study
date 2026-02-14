@@ -23,6 +23,20 @@ public class SysAuditEventRepositoryImpl implements SysAuditEventRepository {
     private final SysAuditEventMapper sysAuditEventMapper;
 
     /**
+     * 写入审计事件。
+     *
+     * @param event 审计事件
+     * @return 影响行数
+     */
+    @Override
+    public int insert(SysAuditEvent event) {
+        if (event == null) {
+            return 0;
+        }
+        return sysAuditEventMapper.insertEvent(event);
+    }
+
+    /**
      * 分页查询审计事件。
      *
      * @param query 查询条件

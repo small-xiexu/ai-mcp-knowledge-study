@@ -1,6 +1,7 @@
 package com.xbk.knowledge.infrastructure.config;
 
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
+import com.xbk.knowledge.types.context.OrgContextHolder;
 import org.apache.ibatis.reflection.MetaObject;
 import org.springframework.stereotype.Component;
 
@@ -28,6 +29,15 @@ public class MyBatisMetaObjectHandler implements MetaObjectHandler {
         LocalDateTime now = LocalDateTime.now();
         this.strictInsertFill(metaObject, "createdAt", LocalDateTime.class, now);
         this.strictInsertFill(metaObject, "updatedAt", LocalDateTime.class, now);
+        /*
+         * 目的：统一为包含 orgId 字段的实体补齐组织归属，支撑部门隔离。
+         * 约束：未注入 OrgContext 时默认回填 ROOT org（1），避免开发环境空指针。
+         */
+        if (metaObject != null && metaObject.hasSetter("orgId")) {
+            Long currentOrgId = OrgContextHolder.currentOrgIdOrNull();
+            Long orgId = currentOrgId != null ? currentOrgId : 1L;
+            this.strictInsertFill(metaObject, "orgId", Long.class, orgId);
+        }
     }
 
     /**

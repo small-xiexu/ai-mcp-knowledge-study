@@ -37,6 +37,11 @@ public class McpToolRegistry {
     private Long id;
 
     /**
+     * 组织ID。
+     */
+    private Long orgId;
+
+    /**
      * 网关唯一标识
      *
      * 为什么：关联所属网关，支持多网关工具隔离
@@ -49,6 +54,15 @@ public class McpToolRegistry {
      * 为什么：MCP 协议中工具的唯一标识符
      */
     private String toolName;
+
+    /**
+     * 工具唯一键（平台统一标识）。
+     *
+     * 约定：
+     * - Gateway HTTP 工具：gateway:{gatewayId}:{toolName}
+     * - MCP 工具：mcp:{serverName}:{toolName}
+     */
+    private String toolKey;
 
     /**
      * 工具描述
@@ -91,6 +105,13 @@ public class McpToolRegistry {
      * 为什么：提升瞬时故障下的调用成功率
      */
     private Integer retryTimes;
+
+    /**
+     * 风险等级：LOW/MEDIUM/HIGH。
+     *
+     * 为什么：治理门禁与审批策略需要风险分级；HIGH 默认生成审批单。
+     */
+    private String riskLevel;
 
     /**
      * 状态（0:禁用 1:启用）

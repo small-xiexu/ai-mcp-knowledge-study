@@ -63,4 +63,14 @@ public interface OrgRepository {
      * @param orgId 组织ID
      */
     void bindPrimaryOrg(Long userId, Long orgId);
+
+    /**
+     * 查询用户主组织ID。
+     *
+     * 为什么：实现单租户下的组织隔离与跨组织治理，需要明确操作者所属组织。
+     *
+     * @param userId 用户ID
+     * @return 主组织ID
+     */
+    Optional<Long> findPrimaryOrgId(Long userId);
 }

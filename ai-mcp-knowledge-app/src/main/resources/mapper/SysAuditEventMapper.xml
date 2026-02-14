@@ -7,11 +7,13 @@
     <resultMap id="SysAuditEventMap" type="com.xbk.knowledge.domain.model.entity.SysAuditEvent">
         <id column="id" property="id"/>
         <result column="operator_id" property="operatorId"/>
+        <result column="operator_org_id" property="operatorOrgId"/>
         <result column="operator_name" property="operatorName"/>
         <result column="operator_type" property="operatorType"/>
         <result column="event_type" property="eventType"/>
         <result column="resource_type" property="resourceType"/>
         <result column="resource_id" property="resourceId"/>
+        <result column="resource_org_id" property="resourceOrgId"/>
         <result column="action" property="action"/>
         <result column="request_id" property="requestId"/>
         <result column="source_ip" property="sourceIp"/>
@@ -27,11 +29,13 @@
     <sql id="SysAuditEventColumns">
         a.id,
         a.operator_id,
+        a.operator_org_id,
         u.username as operator_name,
         a.operator_type,
         a.event_type,
         a.resource_type,
         a.resource_id,
+        a.resource_org_id,
         a.action,
         a.request_id,
         a.source_ip,
@@ -48,10 +52,12 @@
             useGeneratedKeys="true" keyProperty="id">
         insert into sys_audit_event (
             operator_id,
+            operator_org_id,
             operator_type,
             event_type,
             resource_type,
             resource_id,
+            resource_org_id,
             action,
             request_id,
             source_ip,
@@ -64,10 +70,12 @@
             occurred_at
         ) values (
             #{operatorId},
+            #{operatorOrgId},
             #{operatorType},
             #{eventType},
             #{resourceType},
             #{resourceId},
+            #{resourceOrgId},
             #{action},
             #{requestId},
             #{sourceIp},

@@ -1,5 +1,8 @@
 package com.xbk.knowledge.application.context;
 
+import java.util.Collections;
+import java.util.Set;
+
 /**
  * Gateway 工具绑定上下文
  * 通过 ThreadLocal 传递当前会话和模型信息
@@ -19,7 +22,19 @@ public final class GatewayToolBindingContextHolder {
 
     /** 设置当前线程的绑定上下文 */
     public static void set(Long modelId, Long sessionId) {
-        CONTEXT.set(new BindingContext(modelId, sessionId));
+        CONTEXT.set(new BindingContext(modelId, sessionId, null, null));
+    }
+
+    /**
+     * 设置当前线程的绑定上下文（支持 AgentVersion allowlist）。
+     *
+     * 说明：
+     * - allowedToolKeys = null 表示“不启用 allowlist 过滤”（保持历史行为）。
+     * - allowedToolKeys = 空集合 表示“明确无可用工具”。
+     */
+    public static void set(Long modelId, Long sessionId, Long agentVersionId, Set<String> allowedToolKeys) {
+        Set<String> safeKeys = allowedToolKeys == null ? null : Collections.unmodifiableSet(allowedToolKeys);
+        CONTEXT.set(new BindingContext(modelId, sessionId, agentVersionId, safeKeys));
     }
 
     /** 获取当前线程的绑定上下文 */
@@ -37,10 +52,14 @@ public final class GatewayToolBindingContextHolder {
 
         private final Long modelId;
         private final Long sessionId;
+        private final Long agentVersionId;
+        private final Set<String> allowedToolKeys;
 
-        private BindingContext(Long modelId, Long sessionId) {
+        private BindingContext(Long modelId, Long sessionId, Long agentVersionId, Set<String> allowedToolKeys) {
             this.modelId = modelId;
             this.sessionId = sessionId;
+            this.agentVersionId = agentVersionId;
+            this.allowedToolKeys = allowedToolKeys;
         }
 
         public Long getModelId() {
@@ -49,6 +68,14 @@ public final class GatewayToolBindingContextHolder {
 
         public Long getSessionId() {
             return sessionId;
+        }
+
+        public Long getAgentVersionId() {
+            return agentVersionId;
+        }
+
+        public Set<String> getAllowedToolKeys() {
+            return allowedToolKeys;
         }
     }
 }

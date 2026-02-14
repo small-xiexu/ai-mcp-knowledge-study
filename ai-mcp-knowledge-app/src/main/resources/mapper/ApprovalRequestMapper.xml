@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.ApprovalRequestMapper">
+
+    <resultMap id="ApprovalRequestMap" type="com.xbk.knowledge.domain.model.entity.approval.ApprovalRequest">
+        <id column="id" property="id"/>
+        <result column="org_id" property="orgId"/>
+        <result column="approval_type" property="approvalType"/>
+        <result column="status" property="status"/>
+        <result column="run_id" property="runId"/>
+        <result column="agent_id" property="agentId"/>
+        <result column="agent_version_id" property="agentVersionId"/>
+        <result column="requester_id" property="requesterId"/>
+        <result column="requester_type" property="requesterType"/>
+        <result column="request_reason" property="requestReason"/>
+        <result column="approver_id" property="approverId"/>
+        <result column="decision_comment" property="decisionComment"/>
+        <result column="decided_at" property="decidedAt"/>
+        <result column="tool_key" property="toolKey"/>
+        <result column="risk_level" property="riskLevel"/>
+        <result column="arguments_snapshot_json" property="argumentsSnapshotJson"/>
+        <result column="arguments_digest" property="argumentsDigest"/>
+        <result column="expire_at" property="expireAt"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <insert id="insertRequest" parameterType="com.xbk.knowledge.domain.model.entity.approval.ApprovalRequest"
+            useGeneratedKeys="true" keyProperty="id">
+        insert into approval_request (
+            org_id,
+            approval_type,
+            status,
+            run_id,
+            agent_id,
+            agent_version_id,
+            requester_id,
+            requester_type,
+            request_reason,
+            approver_id,
+            decision_comment,
+            decided_at,
+            tool_key,
+            risk_level,
+            arguments_snapshot_json,
+            arguments_digest,
+            expire_at,
+            created_at,
+            updated_at
+        ) values (
+            #{orgId},
+            #{approvalType},
+            #{status},
+            #{runId},
+            #{agentId},
+            #{agentVersionId},
+            #{requesterId},
+            #{requesterType},
+            #{requestReason},
+            #{approverId},
+            #{decisionComment},
+            #{decidedAt},
+            #{toolKey},
+            #{riskLevel},
+            #{argumentsSnapshotJson},
+            #{argumentsDigest},
+            #{expireAt},
+            #{createdAt},
+            #{updatedAt}
+        )
+    </insert>
+
+    <select id="findById" resultMap="ApprovalRequestMap">
+        select
+            id,
+            org_id,
+            approval_type,
+            status,
+            run_id,
+            agent_id,
+            agent_version_id,
+            requester_id,
+            requester_type,
+            request_reason,
+            approver_id,
+            decision_comment,
+            decided_at,
+            tool_key,
+            risk_level,
+            arguments_snapshot_json,
+            arguments_digest,
+            expire_at,
+            created_at,
+            updated_at
+        from approval_request
+        where org_id = #{orgId}
+          and id = #{id}
+        limit 1
+    </select>
+
+    <select id="findLatestApproved" resultMap="ApprovalRequestMap">
+        select
+            id,
+            org_id,
+            approval_type,
+            status,
+            run_id,
+            agent_id,
+            agent_version_id,
+            requester_id,
+            requester_type,
+            request_reason,
+            approver_id,
+            decision_comment,
+            decided_at,
+            tool_key,
+            risk_level,
+            arguments_snapshot_json,
+            arguments_digest,
+            expire_at,
+            created_at,
+            updated_at
+        from approval_request
+        where org_id = #{orgId}
+          and run_id = #{runId}
+          and tool_key = #{toolKey}
+          and status = 'APPROVED'
+          and (expire_at is null or expire_at &gt;= #{now})
+        order by id desc
+        limit 1
+    </select>
+
+    <select id="findLatestPending" resultMap="ApprovalRequestMap">
+        select
+            id,
+            org_id,
+            approval_type,
+            status,
+            run_id,
+            agent_id,
+            agent_version_id,
+            requester_id,
+            requester_type,
+            request_reason,
+            approver_id,
+            decision_comment,
+            decided_at,
+            tool_key,
+            risk_level,
+            arguments_snapshot_json,
+            arguments_digest,
+            expire_at,
+            created_at,
+            updated_at
+        from approval_request
+        where org_id = #{orgId}
+          and run_id = #{runId}
+          and tool_key = #{toolKey}
+          and status = 'PENDING'
+          and (expire_at is null or expire_at &gt;= #{now})
+        order by id desc
+        limit 1
+    </select>
+
+    <update id="markApproved">
+        update approval_request
+        set status = 'APPROVED',
+            approver_id = #{approverId},
+            decision_comment = #{decisionComment},
+            decided_at = #{decidedAt}
+        where org_id = #{orgId}
+          and id = #{id}
+          and status = 'PENDING'
+    </update>
+
+    <update id="markRejected">
+        update approval_request
+        set status = 'REJECTED',
+            approver_id = #{approverId},
+            decision_comment = #{decisionComment},
+            decided_at = #{decidedAt}
+        where org_id = #{orgId}
+          and id = #{id}
+          and status = 'PENDING'
+    </update>
+
+    <select id="list" resultMap="ApprovalRequestMap">
+        select
+            id,
+            org_id,
+            approval_type,
+            status,
+            run_id,
+            agent_id,
+            agent_version_id,
+            requester_id,
+            requester_type,
+            request_reason,
+            approver_id,
+            decision_comment,
+            decided_at,
+            tool_key,
+            risk_level,
+            arguments_snapshot_json,
+            arguments_digest,
+            expire_at,
+            created_at,
+            updated_at
+        from approval_request
+        where org_id = #{orgId}
+        <if test="status != null and status != ''">
+            and status = #{status}
+        </if>
+        order by id desc
+        limit #{pageSize} offset #{offset}
+    </select>
+
+    <select id="count" resultType="long">
+        select count(1)
+        from approval_request
+        where org_id = #{orgId}
+        <if test="status != null and status != ''">
+            and status = #{status}
+        </if>
+    </select>
+
+    <select id="listExpiredPending" resultMap="ApprovalRequestMap">
+        select
+            id,
+            org_id,
+            approval_type,
+            status,
+            run_id,
+            agent_id,
+            agent_version_id,
+            requester_id,
+            requester_type,
+            request_reason,
+            approver_id,
+            decision_comment,
+            decided_at,
+            tool_key,
+            risk_level,
+            arguments_snapshot_json,
+            arguments_digest,
+            expire_at,
+            created_at,
+            updated_at
+        from approval_request
+        where status = 'PENDING'
+          and expire_at is not null
+          and expire_at &lt; #{now}
+        order by expire_at asc, id asc
+        limit #{limit}
+    </select>
+
+    <update id="markExpired">
+        update approval_request
+        set status = 'EXPIRED',
+            decision_comment = #{decisionComment},
+            decided_at = #{decidedAt}
+        where org_id = #{orgId}
+          and id = #{id}
+          and status = 'PENDING'
+    </update>
+
+</mapper>

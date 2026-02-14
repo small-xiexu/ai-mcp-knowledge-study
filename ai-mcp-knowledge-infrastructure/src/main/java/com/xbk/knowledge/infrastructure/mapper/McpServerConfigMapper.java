@@ -7,6 +7,7 @@ import com.xbk.knowledge.domain.model.vo.common.IdQuery;
 import com.xbk.knowledge.domain.model.vo.mcp.McpServerConfigPageQuery;
 import com.xbk.knowledge.domain.model.vo.mcp.McpServerNameQuery;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -91,4 +92,6 @@ public interface McpServerConfigMapper extends BaseMapper<McpServerConfig> {
      * 出参：总数
      */
     long countAll();
+
+    long countAllByOrgId(@Param("orgId") Long orgId);
 }

@@ -55,6 +55,8 @@ public class McpToolController {
          */
         McpToolResponse response = new McpToolResponse();
         response.setName(info.getName());
+        response.setToolKey(info.getToolKey());
+        response.setSource(info.getSource());
         response.setDescription(info.getDescription());
         response.setInputSchema(info.getInputSchema());
         return response;

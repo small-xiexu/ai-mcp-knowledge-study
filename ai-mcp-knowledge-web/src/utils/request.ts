@@ -2,6 +2,7 @@ import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse 
 import { ElMessage } from 'element-plus'
 import type { Result } from '@/types/api'
 import { clearAuthStorage, getAuthToken } from '@/utils/auth'
+import { getTargetOrgFromStorage } from '@/utils/org-scope'
 
 // 创建 axios 实例
 const service: AxiosInstance = axios.create({
@@ -19,6 +20,11 @@ service.interceptors.request.use(
     if (token) {
       config.headers = config.headers || {}
       config.headers[token.tokenName] = token.tokenValue
+    }
+    const targetOrg = getTargetOrgFromStorage()
+    if (targetOrg?.orgId) {
+      config.headers = config.headers || {}
+      config.headers['X-Target-Org-Id'] = String(targetOrg.orgId)
     }
     return config
   },

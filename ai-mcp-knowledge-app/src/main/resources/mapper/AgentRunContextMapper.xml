@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.AgentRunContextMapper">
+
+    <resultMap id="AgentRunContextMap" type="com.xbk.knowledge.domain.model.entity.agent.AgentRunContext">
+        <id column="id" property="id"/>
+        <result column="org_id" property="orgId"/>
+        <result column="run_id" property="runId"/>
+        <result column="status" property="status"/>
+        <result column="snapshot_json" property="snapshotJson"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <insert id="upsert" parameterType="com.xbk.knowledge.domain.model.entity.agent.AgentRunContext"
+            useGeneratedKeys="true" keyProperty="id">
+        insert into agent_run_context (
+            org_id,
+            run_id,
+            status,
+            snapshot_json,
+            created_at,
+            updated_at
+        ) values (
+            #{orgId},
+            #{runId},
+            #{status},
+            #{snapshotJson},
+            #{createdAt},
+            #{updatedAt}
+        )
+        on duplicate key update
+            status = values(status),
+            snapshot_json = values(snapshot_json),
+            updated_at = values(updated_at)
+    </insert>
+
+    <select id="findByRunId" resultMap="AgentRunContextMap">
+        select
+            id,
+            org_id,
+            run_id,
+            status,
+            snapshot_json,
+            created_at,
+            updated_at
+        from agent_run_context
+        where org_id = #{orgId}
+          and run_id = #{runId}
+        limit 1
+    </select>
+
+    <update id="updateStatus">
+        update agent_run_context
+        set status = #{status}
+        where org_id = #{orgId}
+          and run_id = #{runId}
+    </update>
+
+</mapper>
+

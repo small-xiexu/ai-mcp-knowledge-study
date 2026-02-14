@@ -6,6 +6,7 @@
 
     <resultMap id="RagTaskMap" type="com.xbk.knowledge.domain.model.entity.RagTask">
         <id column="id" property="id"/>
+        <result column="org_id" property="orgId"/>
         <result column="task_id" property="taskId"/>
         <result column="type" property="type"/>
         <result column="status" property="status"/>
@@ -21,6 +22,7 @@
 
     <insert id="insertTask" parameterType="com.xbk.knowledge.domain.model.entity.RagTask" useGeneratedKeys="true" keyProperty="id">
         insert into ai_rag_task (
+            org_id,
             task_id,
             type,
             status,
@@ -33,6 +35,7 @@
             created_at,
             updated_at
         ) values (
+            #{task.orgId},
             #{task.taskId},
             #{task.type},
             #{task.status},
@@ -63,6 +66,7 @@
     <select id="findByTaskId" resultMap="RagTaskMap">
         select
             id,
+            org_id,
             task_id,
             type,
             status,
@@ -82,6 +86,7 @@
     <select id="findPage" resultMap="RagTaskMap">
         select
             id,
+            org_id,
             task_id,
             type,
             status,
@@ -107,6 +112,7 @@
     <select id="findFailedTasksSince" resultMap="RagTaskMap">
         select
             id,
+            org_id,
             task_id,
             type,
             status,
@@ -129,6 +135,7 @@
     <select id="findProcessingTasksBefore" resultMap="RagTaskMap">
         select
             id,
+            org_id,
             task_id,
             type,
             status,

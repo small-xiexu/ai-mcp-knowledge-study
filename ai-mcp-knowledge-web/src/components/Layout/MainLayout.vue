@@ -100,6 +100,25 @@
           <el-icon class="title-arrow"><ArrowDown /></el-icon>
         </div>
         <div class="header-actions">
+          <div v-if="authStore.profile?.superAdmin" class="org-scope">
+            <span class="org-scope-label">目标组织</span>
+            <el-select
+              v-model="selectedOrgId"
+              filterable
+              clearable
+              placeholder="请选择 org"
+              class="org-scope-select"
+              @change="handleOrgChange"
+            >
+              <el-option
+                v-for="o in orgOptions"
+                :key="o.id"
+                :label="`${o.orgName} (${o.orgCode})`"
+                :value="o.id"
+              />
+            </el-select>
+            <span v-if="!selectedOrgId" class="org-scope-warning">未选择将无法写入</span>
+          </div>
           <el-dropdown trigger="click" popper-class="gemini-dropdown" @command="handleUserCommand">
             <div class="user-profile">
               <span class="pro-tag">{{ currentUserLabel }}</span>
@@ -138,6 +157,8 @@ import { useAuthStore } from '@/store/auth'
 import { usePermission } from '@/composables/usePermission'
 import routes from '@/router/routes'
 import { Menu as MenuIcon, Setting, ArrowDown, SwitchButton, CaretBottom } from '@element-plus/icons-vue'
+import { listIdentityOrgs } from '@/api/identity'
+import type { IdentityOrg } from '@/types/entity'
 
 const appStore = useAppStore()
 const authStore = useAuthStore()
@@ -233,6 +254,47 @@ const menuGroups = computed(() => {
     }))
     .filter(g => g.routes.length > 0)
 })
+
+const orgOptions = ref<IdentityOrg[]>([])
+const selectedOrgId = ref<number | null>(authStore.targetOrg?.orgId || null)
+
+const loadOrgs = async () => {
+  if (!authStore.profile?.superAdmin) {
+    return
+  }
+  try {
+    const res = await listIdentityOrgs()
+    orgOptions.value = res.data || []
+  } catch (e) {
+    // ignore
+  }
+}
+
+const handleOrgChange = (val: number | null) => {
+  if (!val) {
+    authStore.setTargetOrg(null)
+    return
+  }
+  const found = orgOptions.value.find(o => o.id === val)
+  authStore.setTargetOrg(found ? { orgId: found.id, orgName: found.orgName } : { orgId: val })
+}
+
+watch(
+  () => authStore.profile?.superAdmin,
+  (v) => {
+    if (v) {
+      loadOrgs()
+    }
+  },
+  { immediate: true }
+)
+
+watch(
+  () => authStore.targetOrg?.orgId,
+  (v) => {
+    selectedOrgId.value = v || null
+  }
+)
 
 const flatMenuRoutes = computed(() => {
   return menuGroups.value.flatMap(g => g.routes)
@@ -558,6 +620,28 @@ const handleUserCommand = async (command: string | number | object) => {
   align-items: center;
   gap: 12px;
   cursor: pointer;
+}
+
+.org-scope {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-right: 10px;
+}
+
+.org-scope-label {
+  color: var(--gemini-text-secondary);
+  font-size: 12px;
+}
+
+.org-scope-select {
+  width: 220px;
+}
+
+.org-scope-warning {
+  color: var(--gemini-danger);
+  font-size: 12px;
+  opacity: 0.9;
 }
 
 .pro-tag {

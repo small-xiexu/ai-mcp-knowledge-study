@@ -44,6 +44,7 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
     private final ObjectMapper objectMapper;
     private final DynamicMcpToolCallbackProvider toolCallbackProvider;
     private final Map<Long, McpSyncClient> clientRegistry = new ConcurrentHashMap<>();
+    private final Map<Long, McpServerMeta> metaRegistry = new ConcurrentHashMap<>();
     private final McpJsonMapper mcpJsonMapper;
 
     public McpServerRuntimeServiceImpl(ObjectMapper objectMapper,
@@ -80,6 +81,7 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
          */
         McpSyncClient existing = clientRegistry.remove(configId);
         closeQuietly(existing);
+        metaRegistry.remove(configId);
 
         /*
          * 目的：按配置创建客户端并完成初始化
@@ -87,6 +89,7 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
         McpSyncClient client = buildClient(config);
         client.initialize();
         clientRegistry.put(configId, client);
+        metaRegistry.put(configId, new McpServerMeta(config.getOrgId(), config.getServerName()));
         refreshToolCallbacks();
         log.info("MCP Server 已注册，id: {}, name: {}", configId, config.getServerName());
     }
@@ -105,6 +108,7 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
             return;
         }
         McpSyncClient client = clientRegistry.remove(id);
+        metaRegistry.remove(id);
         closeQuietly(client);
         refreshToolCallbacks();
         log.info("MCP Server 已注销，id: {}", id);
@@ -163,6 +167,7 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
             closeQuietly(client);
         }
         clientRegistry.clear();
+        metaRegistry.clear();
         refreshToolCallbacks();
     }
 
@@ -398,6 +403,26 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
      * 为什么：客户端变更后需要同步工具列表
      */
     private void refreshToolCallbacks() {
-        toolCallbackProvider.updateClients(new java.util.ArrayList<>(clientRegistry.values()));
+        java.util.ArrayList<DynamicMcpToolCallbackProvider.McpClientDescriptor> descriptors = new java.util.ArrayList<>();
+        for (Map.Entry<Long, McpSyncClient> entry : clientRegistry.entrySet()) {
+            Long configId = entry.getKey();
+            McpSyncClient client = entry.getValue();
+            McpServerMeta meta = metaRegistry.get(configId);
+            if (meta == null || meta.orgId == null || client == null) {
+                continue;
+            }
+            descriptors.add(new DynamicMcpToolCallbackProvider.McpClientDescriptor(meta.orgId, meta.serverName, client));
+        }
+        toolCallbackProvider.updateClients(descriptors);
+    }
+
+    private static final class McpServerMeta {
+        private final Long orgId;
+        private final String serverName;
+
+        private McpServerMeta(Long orgId, String serverName) {
+            this.orgId = orgId;
+            this.serverName = serverName;
+        }
     }
 }

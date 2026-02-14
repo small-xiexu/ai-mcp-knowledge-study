@@ -37,6 +37,11 @@ public class ModelCapability {
     private Long id;
 
     /**
+     * 组织ID。
+     */
+    private Long orgId;
+
+    /**
      * 模型ID（外键）
      *
      * 为什么：关联模型配置

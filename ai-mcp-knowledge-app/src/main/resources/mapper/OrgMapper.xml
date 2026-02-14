@@ -109,4 +109,13 @@
         )
     </insert>
 
+    <select id="findPrimaryOrgId" resultType="long">
+        select org_id
+        from sys_user_org
+        where user_id = #{userId}
+          and is_primary = 1
+        order by joined_at desc, id desc
+        limit 1
+    </select>
+
 </mapper>

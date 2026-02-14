@@ -6,24 +6,36 @@
 
     <resultMap id="ChatSessionMap" type="com.xbk.knowledge.domain.model.entity.ChatSession">
         <id column="id" property="id"/>
+        <result column="org_id" property="orgId"/>
+        <result column="owner_user_id" property="ownerUserId"/>
         <result column="title" property="title"/>
         <result column="model_id" property="modelId"/>
         <result column="rag_tags" property="ragTags"/>
+        <result column="agent_id" property="agentId"/>
+        <result column="agent_version_id" property="agentVersionId"/>
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
 
     <insert id="insertSession" parameterType="com.xbk.knowledge.domain.model.entity.ChatSession" useGeneratedKeys="true" keyProperty="id">
         insert into ai_chat_session (
+            org_id,
+            owner_user_id,
             title,
             model_id,
             rag_tags,
+            agent_id,
+            agent_version_id,
             created_at,
             updated_at
         ) values (
+            #{orgId},
+            #{ownerUserId},
             #{title},
             #{modelId},
             #{ragTags},
+            #{agentId},
+            #{agentVersionId},
             #{createdAt},
             #{updatedAt}
         )
@@ -46,9 +58,13 @@
     <select id="findById" resultMap="ChatSessionMap">
         select
             id,
+            org_id,
+            owner_user_id,
             title,
             model_id,
             rag_tags,
+            agent_id,
+            agent_version_id,
             created_at,
             updated_at
         from ai_chat_session
@@ -59,9 +75,13 @@
     <select id="findPage" resultMap="ChatSessionMap">
         select
             id,
+            org_id,
+            owner_user_id,
             title,
             model_id,
             rag_tags,
+            agent_id,
+            agent_version_id,
             created_at,
             updated_at
         from ai_chat_session

@@ -3,8 +3,10 @@ package com.xbk.knowledge.infrastructure.repository;
 import com.xbk.knowledge.domain.model.entity.gateway.McpToolMapping;
 import com.xbk.knowledge.domain.model.vo.common.IdQuery;
 import com.xbk.knowledge.domain.model.vo.gateway.ToolMappingQuery;
+import com.xbk.knowledge.domain.model.vo.gateway.ToolIdQuery;
 import com.xbk.knowledge.domain.repository.gateway.McpToolMappingRepository;
 import com.xbk.knowledge.infrastructure.mapper.McpToolMappingMapper;
+import com.xbk.knowledge.types.context.OrgContextHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -22,10 +24,18 @@ public class McpToolMappingRepositoryImpl implements McpToolMappingRepository {
 
     private final McpToolMappingMapper mapper;
 
+    private Long currentOrgIdOrRoot() {
+        Long orgId = OrgContextHolder.currentOrgIdOrNull();
+        return orgId == null ? 1L : orgId;
+    }
+
     @Override
     public List<McpToolMapping> findByToolIdAndMappingType(ToolMappingQuery query) {
         if (query == null || query.getToolId() == null || query.getMappingType() == null) {
             return Collections.emptyList();
+        }
+        if (query.getOrgId() == null) {
+            query.setOrgId(currentOrgIdOrRoot());
         }
         return mapper.findByToolIdAndMappingType(query);
     }
@@ -48,6 +58,9 @@ public class McpToolMappingRepositoryImpl implements McpToolMappingRepository {
         if (query == null || query.getId() == null) {
             return;
         }
+        if (query.getOrgId() == null) {
+            query.setOrgId(currentOrgIdOrRoot());
+        }
         mapper.deleteToolMappingById(query);
     }
 
@@ -56,6 +69,6 @@ public class McpToolMappingRepositoryImpl implements McpToolMappingRepository {
         if (toolId == null) {
             return;
         }
-        mapper.deleteToolMappingByToolId(toolId);
+        mapper.deleteToolMappingByToolId(new ToolIdQuery(currentOrgIdOrRoot(), toolId));
     }
 }

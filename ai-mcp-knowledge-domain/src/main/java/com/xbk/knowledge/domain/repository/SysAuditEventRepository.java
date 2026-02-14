@@ -15,6 +15,14 @@ import java.util.List;
 public interface SysAuditEventRepository {
 
     /**
+     * 写入审计事件。
+     *
+     * @param event 审计事件
+     * @return 影响行数
+     */
+    int insert(SysAuditEvent event);
+
+    /**
      * 分页查询审计事件。
      *
      * @param query 查询条件

@@ -1,6 +1,5 @@
 package com.xbk.knowledge.domain.model.vo.mcp;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -13,8 +12,10 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class McpServerConfigPageQuery {
+
+    /** 组织ID */
+    private Long orgId;
 
     /**
      * 偏移量
@@ -29,4 +30,15 @@ public class McpServerConfigPageQuery {
      * 为什么：控制单次返回数量
      */
     private Integer pageSize;
+
+    public McpServerConfigPageQuery(Integer offset, Integer pageSize) {
+        this.offset = offset;
+        this.pageSize = pageSize;
+    }
+
+    public McpServerConfigPageQuery(Long orgId, Integer offset, Integer pageSize) {
+        this.orgId = orgId;
+        this.offset = offset;
+        this.pageSize = pageSize;
+    }
 }

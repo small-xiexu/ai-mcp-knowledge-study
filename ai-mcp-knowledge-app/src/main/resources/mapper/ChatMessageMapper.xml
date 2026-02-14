@@ -6,6 +6,7 @@
 
     <resultMap id="ChatMessageMap" type="com.xbk.knowledge.domain.model.entity.ChatMessage">
         <id column="id" property="id"/>
+        <result column="org_id" property="orgId"/>
         <result column="session_id" property="sessionId"/>
         <result column="role" property="role"/>
         <result column="content" property="content"/>
@@ -18,6 +19,7 @@
 
     <insert id="insertMessage" parameterType="com.xbk.knowledge.domain.model.entity.ChatMessage" useGeneratedKeys="true" keyProperty="id">
         insert into ai_chat_message (
+            org_id,
             session_id,
             role,
             content,
@@ -27,6 +29,7 @@
             total_tokens,
             created_at
         ) values (
+            #{orgId},
             #{sessionId},
             #{role},
             #{content},
@@ -41,6 +44,7 @@
     <select id="findPage" resultMap="ChatMessageMap">
         select
             id,
+            org_id,
             session_id,
             role,
             content,

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.AgentMapper">
+
+    <resultMap id="AgentMap" type="com.xbk.knowledge.domain.model.entity.agent.Agent">
+        <id column="id" property="id"/>
+        <result column="org_id" property="orgId"/>
+        <result column="agent_code" property="agentCode"/>
+        <result column="agent_name" property="agentName"/>
+        <result column="description" property="description"/>
+        <result column="status" property="status"/>
+        <result column="current_published_version_id" property="currentPublishedVersionId"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="updated_by" property="updatedBy"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <insert id="insertAgent" parameterType="com.xbk.knowledge.domain.model.entity.agent.Agent" useGeneratedKeys="true"
+            keyProperty="id">
+        insert into agent (
+            org_id,
+            agent_code,
+            agent_name,
+            description,
+            status,
+            current_published_version_id,
+            created_by,
+            updated_by,
+            created_at,
+            updated_at
+        ) values (
+            #{orgId},
+            #{agentCode},
+            #{agentName},
+            #{description},
+            #{status},
+            #{currentPublishedVersionId},
+            #{createdBy},
+            #{updatedBy},
+            #{createdAt},
+            #{updatedAt}
+        )
+    </insert>
+
+    <update id="updateAgentByCode" parameterType="com.xbk.knowledge.domain.model.entity.agent.Agent">
+        update agent
+        set agent_name = #{agentName},
+            description = #{description},
+            status = #{status},
+            current_published_version_id = #{currentPublishedVersionId},
+            updated_by = #{updatedBy},
+            updated_at = #{updatedAt}
+        where org_id = #{orgId}
+          and agent_code = #{agentCode}
+    </update>
+
+    <select id="findByCode" resultMap="AgentMap">
+        select
+            id,
+            org_id,
+            agent_code,
+            agent_name,
+            description,
+            status,
+            current_published_version_id,
+            created_by,
+            updated_by,
+            created_at,
+            updated_at
+        from agent
+        where org_id = #{orgId}
+          and agent_code = #{agentCode}
+        limit 1
+    </select>
+
+    <select id="count" resultType="long">
+        select count(1)
+        from agent
+        where org_id = #{orgId}
+        <if test="status != null and status != ''">
+            and status = #{status}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            and (
+                agent_code like concat('%', #{keyword}, '%')
+                or agent_name like concat('%', #{keyword}, '%')
+            )
+        </if>
+    </select>
+
+    <select id="findPage" resultMap="AgentMap">
+        select
+            id,
+            org_id,
+            agent_code,
+            agent_name,
+            description,
+            status,
+            current_published_version_id,
+            created_by,
+            updated_by,
+            created_at,
+            updated_at
+        from agent
+        where org_id = #{orgId}
+        <if test="status != null and status != ''">
+            and status = #{status}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            and (
+                agent_code like concat('%', #{keyword}, '%')
+                or agent_name like concat('%', #{keyword}, '%')
+            )
+        </if>
+        order by updated_at desc, id asc
+        limit #{pageSize} offset #{offset}
+    </select>
+
+</mapper>
+

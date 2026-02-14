@@ -7,6 +7,7 @@
     <!-- MCP Server 配置字段映射 -->
     <resultMap id="McpServerConfigMap" type="com.xbk.knowledge.domain.model.entity.McpServerConfig">
         <id column="id" property="id"/>
+        <result column="org_id" property="orgId"/>
         <result column="server_name" property="serverName"/>
         <result column="server_type" property="serverType"/>
         <result column="enabled" property="enabled"/>
@@ -27,6 +28,7 @@
     <insert id="insertMcpServerConfig" parameterType="com.xbk.knowledge.domain.model.entity.McpServerConfig" useGeneratedKeys="true"
             keyProperty="id">
         insert into ai_mcp_server_config (
+            org_id,
             server_name,
             server_type,
             enabled,
@@ -43,6 +45,7 @@
             created_at,
             updated_at
         ) values (
+            #{orgId},
             #{serverName},
             #{serverType},
             #{enabled},
@@ -78,16 +81,19 @@
             init_timeout_ms = #{initTimeoutMs},
             updated_at = #{updatedAt}
         where id = #{id}
+          and org_id = #{orgId}
     </update>
 
     <delete id="deleteMcpServerConfigById">
         delete from ai_mcp_server_config
         where id = #{id}
+          and org_id = #{orgId}
     </delete>
 
     <select id="findById" resultMap="McpServerConfigMap">
         select
             id,
+            org_id,
             server_name,
             server_type,
             enabled,
@@ -105,11 +111,13 @@
             updated_at
         from ai_mcp_server_config
         where id = #{id}
+          and org_id = #{orgId}
     </select>
 
     <select id="findByName" resultMap="McpServerConfigMap">
         select
             id,
+            org_id,
             server_name,
             server_type,
             enabled,
@@ -127,11 +135,13 @@
             updated_at
         from ai_mcp_server_config
         where server_name = #{serverName}
+          and org_id = #{orgId}
     </select>
 
     <select id="findByEnabled" resultMap="McpServerConfigMap">
         select
             id,
+            org_id,
             server_name,
             server_type,
             enabled,
@@ -149,11 +159,13 @@
             updated_at
         from ai_mcp_server_config
         where enabled = #{enabled}
+          and org_id = #{orgId}
     </select>
 
     <select id="findPage" resultMap="McpServerConfigMap">
         select
             id,
+            org_id,
             server_name,
             server_type,
             enabled,
@@ -170,6 +182,7 @@
             created_at,
             updated_at
         from ai_mcp_server_config
+        where org_id = #{orgId}
         order by id desc
         limit #{pageSize} offset #{offset}
     </select>
@@ -177,5 +190,11 @@
     <select id="countAll" resultType="long">
         select count(1)
         from ai_mcp_server_config
+    </select>
+
+    <select id="countAllByOrgId" resultType="long">
+        select count(1)
+        from ai_mcp_server_config
+        where org_id = #{orgId}
     </select>
 </mapper>

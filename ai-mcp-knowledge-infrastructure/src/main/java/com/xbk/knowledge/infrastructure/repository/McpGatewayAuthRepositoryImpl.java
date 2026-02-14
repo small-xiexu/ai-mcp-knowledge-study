@@ -4,6 +4,7 @@ import com.xbk.knowledge.domain.model.entity.gateway.McpGatewayAuth;
 import com.xbk.knowledge.domain.model.vo.gateway.GatewayIdQuery;
 import com.xbk.knowledge.domain.repository.gateway.McpGatewayAuthRepository;
 import com.xbk.knowledge.infrastructure.mapper.McpGatewayAuthMapper;
+import com.xbk.knowledge.types.context.OrgContextHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -22,12 +23,17 @@ public class McpGatewayAuthRepositoryImpl implements McpGatewayAuthRepository {
 
     private final McpGatewayAuthMapper mapper;
 
+    private Long currentOrgIdOrRoot() {
+        Long orgId = OrgContextHolder.currentOrgIdOrNull();
+        return orgId == null ? 1L : orgId;
+    }
+
     @Override
     public Optional<McpGatewayAuth> findById(Long id) {
         if (id == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(mapper.findById(id));
+        return Optional.ofNullable(mapper.findByIdAndOrgId(currentOrgIdOrRoot(), id));
     }
 
     @Override
@@ -35,13 +41,16 @@ public class McpGatewayAuthRepositoryImpl implements McpGatewayAuthRepository {
         if (apiKey == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(mapper.findByApiKey(apiKey));
+        return Optional.ofNullable(mapper.findByApiKeyAndOrgId(currentOrgIdOrRoot(), apiKey));
     }
 
     @Override
     public List<McpGatewayAuth> findByGatewayId(GatewayIdQuery query) {
         if (query == null || query.getGatewayId() == null) {
             return Collections.emptyList();
+        }
+        if (query.getOrgId() == null) {
+            query.setOrgId(currentOrgIdOrRoot());
         }
         return mapper.findByGatewayId(query);
     }
@@ -64,6 +73,6 @@ public class McpGatewayAuthRepositoryImpl implements McpGatewayAuthRepository {
         if (id == null) {
             return;
         }
-        mapper.deleteGatewayAuthById(id);
+        mapper.deleteGatewayAuthByIdAndOrgId(currentOrgIdOrRoot(), id);
     }
 }

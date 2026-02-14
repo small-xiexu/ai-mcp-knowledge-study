@@ -79,4 +79,12 @@ public interface OrgMapper extends BaseMapper<SysOrg> {
     int insertUserOrg(@Param("userId") Long userId,
                       @Param("orgId") Long orgId,
                       @Param("isPrimary") Integer isPrimary);
+
+    /**
+     * 查询用户主组织ID。
+     *
+     * @param userId 用户ID
+     * @return 主组织ID
+     */
+    Long findPrimaryOrgId(@Param("userId") Long userId);
 }

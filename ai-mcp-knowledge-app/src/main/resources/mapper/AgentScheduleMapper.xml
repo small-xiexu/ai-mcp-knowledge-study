@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.AgentScheduleMapper">
+
+    <resultMap id="AgentScheduleResultMap" type="com.xbk.knowledge.domain.model.entity.agent.AgentSchedule">
+        <id column="id" property="id"/>
+        <result column="org_id" property="orgId"/>
+        <result column="agent_id" property="agentId"/>
+        <result column="agent_code" property="agentCode"/>
+        <result column="cron" property="cron"/>
+        <result column="enabled" property="enabled"/>
+        <result column="xxl_job_id" property="xxlJobId"/>
+        <result column="payload_template_json" property="payloadTemplateJson"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="updated_by" property="updatedBy"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <sql id="BaseColumns">
+        s.id, s.org_id, s.agent_id, a.agent_code as agent_code,
+        s.cron, s.enabled, s.xxl_job_id, s.payload_template_json,
+        s.created_by, s.updated_by, s.created_at, s.updated_at
+    </sql>
+
+    <insert id="insertSchedule" parameterType="com.xbk.knowledge.domain.model.entity.agent.AgentSchedule" useGeneratedKeys="true" keyProperty="id">
+        insert into agent_schedule (
+            org_id, agent_id, cron, enabled, xxl_job_id, payload_template_json,
+            created_by, updated_by, created_at, updated_at
+        ) values (
+            #{orgId}, #{agentId}, #{cron}, #{enabled}, #{xxlJobId}, #{payloadTemplateJson},
+            #{createdBy}, #{updatedBy}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <update id="updateSchedule" parameterType="com.xbk.knowledge.domain.model.entity.agent.AgentSchedule">
+        update agent_schedule
+        set
+            cron = #{cron},
+            payload_template_json = #{payloadTemplateJson},
+            updated_by = #{updatedBy},
+            updated_at = #{updatedAt}
+        where org_id = #{orgId} and id = #{id}
+    </update>
+
+    <update id="updateEnabled">
+        update agent_schedule
+        set enabled = #{enabled},
+            updated_by = #{updatedBy},
+            updated_at = now()
+        where org_id = #{orgId} and id = #{id}
+    </update>
+
+    <update id="updateXxlJobId">
+        update agent_schedule
+        set xxl_job_id = #{xxlJobId},
+            updated_by = #{updatedBy},
+            updated_at = now()
+        where org_id = #{orgId} and id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        delete from agent_schedule where org_id = #{orgId} and id = #{id}
+    </delete>
+
+    <select id="findById" resultMap="AgentScheduleResultMap" parameterType="com.xbk.knowledge.domain.model.vo.agent.AgentScheduleIdQuery">
+        select <include refid="BaseColumns"/>
+        from agent_schedule s
+        left join agent a on a.id = s.agent_id
+        where s.org_id = #{orgId} and s.id = #{id}
+        limit 1
+    </select>
+
+    <select id="findByOrgIdAndAgentId" resultMap="AgentScheduleResultMap">
+        select <include refid="BaseColumns"/>
+        from agent_schedule s
+        left join agent a on a.id = s.agent_id
+        where s.org_id = #{orgId} and s.agent_id = #{agentId}
+        limit 1
+    </select>
+
+    <select id="count" resultType="long" parameterType="com.xbk.knowledge.domain.model.vo.agent.AgentSchedulePageQuery">
+        select count(1)
+        from agent_schedule s
+        where s.org_id = #{orgId}
+        <if test="agentId != null">
+            and s.agent_id = #{agentId}
+        </if>
+        <if test="enabled != null">
+            and s.enabled = #{enabled}
+        </if>
+    </select>
+
+    <select id="findPage" resultMap="AgentScheduleResultMap" parameterType="com.xbk.knowledge.domain.model.vo.agent.AgentSchedulePageQuery">
+        select <include refid="BaseColumns"/>
+        from agent_schedule s
+        left join agent a on a.id = s.agent_id
+        where s.org_id = #{orgId}
+        <if test="agentId != null">
+            and s.agent_id = #{agentId}
+        </if>
+        <if test="enabled != null">
+            and s.enabled = #{enabled}
+        </if>
+        order by s.updated_at desc, s.id desc
+        limit #{offset}, #{pageSize}
+    </select>
+
+</mapper>

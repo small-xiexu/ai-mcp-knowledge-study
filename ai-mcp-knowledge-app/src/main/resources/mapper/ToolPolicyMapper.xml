@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.ToolPolicyMapper">
+
+    <resultMap id="ToolPolicyMap" type="com.xbk.knowledge.domain.model.entity.tool.ToolPolicy">
+        <id column="id" property="id"/>
+        <result column="org_id" property="orgId"/>
+        <result column="tool_key" property="toolKey"/>
+        <result column="risk_level" property="riskLevel"/>
+        <result column="approval_required" property="approvalRequired"/>
+        <result column="enabled" property="enabled"/>
+        <result column="remark" property="remark"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <select id="findEnabled" resultMap="ToolPolicyMap">
+        select
+            id,
+            org_id,
+            tool_key,
+            risk_level,
+            approval_required,
+            enabled,
+            remark,
+            created_at,
+            updated_at
+        from tool_policy
+        where org_id = #{orgId}
+          and tool_key = #{toolKey}
+          and enabled = 1
+        limit 1
+    </select>
+
+</mapper>
+

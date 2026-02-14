@@ -38,6 +38,18 @@ public class ChatSession {
     private Long id;
 
     /**
+     * 组织ID。
+     */
+    private Long orgId;
+
+    /**
+     * 会话归属用户ID。
+     *
+     * 为什么：部门内仍需要区分用户归属，便于权限与清理策略。
+     */
+    private Long ownerUserId;
+
+    /**
      * 会话标题
      *
      * 为什么：前端展示与检索需要标题
@@ -57,6 +69,16 @@ public class ChatSession {
      * 为什么：支持按标签检索与上下文增强
      */
     private String ragTags;
+
+    /**
+     * Agent ID（多 Agent 平台绑定）。
+     */
+    private Long agentId;
+
+    /**
+     * AgentVersion ID（多 Agent 平台绑定）。
+     */
+    private Long agentVersionId;
 
     /**
      * 创建时间

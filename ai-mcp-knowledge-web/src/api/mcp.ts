@@ -55,3 +55,9 @@ export const refreshMcpServers = () =>
  */
 export const refreshMcpServer = (id: number) =>
   request.post<void>('/mcp/servers/refresh-one', { id })
+
+/**
+ * 查询可用工具列表（含 toolKey）。
+ */
+export const listMcpTools = () =>
+  request.post<any[]>('/mcp/tools/list')

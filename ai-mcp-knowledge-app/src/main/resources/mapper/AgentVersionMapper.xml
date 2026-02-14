@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.AgentVersionMapper">
+
+    <resultMap id="AgentVersionMap" type="com.xbk.knowledge.domain.model.entity.agent.AgentVersion">
+        <id column="id" property="id"/>
+        <result column="org_id" property="orgId"/>
+        <result column="agent_id" property="agentId"/>
+        <result column="version_no" property="versionNo"/>
+        <result column="state" property="state"/>
+        <result column="change_summary" property="changeSummary"/>
+        <result column="prompt_template_id" property="promptTemplateId"/>
+        <result column="prompt_template_version_no" property="promptTemplateVersionNo"/>
+        <result column="template_params_json" property="templateParamsJson"/>
+        <result column="system_prompt_snapshot" property="systemPromptSnapshot"/>
+        <result column="output_contract_version" property="outputContractVersion"/>
+        <result column="output_contract_options_json" property="outputContractOptionsJson"/>
+        <result column="model_strategy_type" property="modelStrategyType"/>
+        <result column="task_type_code" property="taskTypeCode"/>
+        <result column="fixed_model_id" property="fixedModelId"/>
+        <result column="rag_mode" property="ragMode"/>
+        <result column="default_rag_tags_json" property="defaultRagTagsJson"/>
+        <result column="allowed_rag_tags_json" property="allowedRagTagsJson"/>
+        <result column="tool_policy_mode" property="toolPolicyMode"/>
+        <result column="allowed_tool_keys_json" property="allowedToolKeysJson"/>
+        <result column="tool_risk_policy_json" property="toolRiskPolicyJson"/>
+        <result column="timeout_ms" property="timeoutMs"/>
+        <result column="max_turns" property="maxTurns"/>
+        <result column="temperature" property="temperature"/>
+        <result column="repair_retry_times" property="repairRetryTimes"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="updated_by" property="updatedBy"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <insert id="insertAgentVersion" parameterType="com.xbk.knowledge.domain.model.entity.agent.AgentVersion" useGeneratedKeys="true"
+            keyProperty="id">
+        insert into agent_version (
+            org_id,
+            agent_id,
+            version_no,
+            state,
+            change_summary,
+            prompt_template_id,
+            prompt_template_version_no,
+            template_params_json,
+            system_prompt_snapshot,
+            output_contract_version,
+            output_contract_options_json,
+            model_strategy_type,
+            task_type_code,
+            fixed_model_id,
+            rag_mode,
+            default_rag_tags_json,
+            allowed_rag_tags_json,
+            tool_policy_mode,
+            allowed_tool_keys_json,
+            tool_risk_policy_json,
+            timeout_ms,
+            max_turns,
+            temperature,
+            repair_retry_times,
+            created_by,
+            updated_by,
+            created_at,
+            updated_at
+        ) values (
+            #{orgId},
+            #{agentId},
+            #{versionNo},
+            #{state},
+            #{changeSummary},
+            #{promptTemplateId},
+            #{promptTemplateVersionNo},
+            #{templateParamsJson},
+            #{systemPromptSnapshot},
+            #{outputContractVersion},
+            #{outputContractOptionsJson},
+            #{modelStrategyType},
+            #{taskTypeCode},
+            #{fixedModelId},
+            #{ragMode},
+            #{defaultRagTagsJson},
+            #{allowedRagTagsJson},
+            #{toolPolicyMode},
+            #{allowedToolKeysJson},
+            #{toolRiskPolicyJson},
+            #{timeoutMs},
+            #{maxTurns},
+            #{temperature},
+            #{repairRetryTimes},
+            #{createdBy},
+            #{updatedBy},
+            #{createdAt},
+            #{updatedAt}
+        )
+    </insert>
+
+    <update id="updateDraft" parameterType="com.xbk.knowledge.domain.model.entity.agent.AgentVersion">
+        update agent_version
+        set change_summary = #{changeSummary},
+            prompt_template_id = #{promptTemplateId},
+            template_params_json = #{templateParamsJson},
+            output_contract_version = #{outputContractVersion},
+            output_contract_options_json = #{outputContractOptionsJson},
+            model_strategy_type = #{modelStrategyType},
+            task_type_code = #{taskTypeCode},
+            fixed_model_id = #{fixedModelId},
+            rag_mode = #{ragMode},
+            default_rag_tags_json = #{defaultRagTagsJson},
+            allowed_rag_tags_json = #{allowedRagTagsJson},
+            tool_policy_mode = #{toolPolicyMode},
+            allowed_tool_keys_json = #{allowedToolKeysJson},
+            tool_risk_policy_json = #{toolRiskPolicyJson},
+            timeout_ms = #{timeoutMs},
+            max_turns = #{maxTurns},
+            temperature = #{temperature},
+            repair_retry_times = #{repairRetryTimes},
+            updated_by = #{updatedBy},
+            updated_at = #{updatedAt}
+        where org_id = #{orgId}
+          and id = #{id}
+          and state = 'DRAFT'
+    </update>
+
+    <select id="findById" resultMap="AgentVersionMap">
+        select
+            id,
+            org_id,
+            agent_id,
+            version_no,
+            state,
+            change_summary,
+            prompt_template_id,
+            prompt_template_version_no,
+            template_params_json,
+            system_prompt_snapshot,
+            output_contract_version,
+            output_contract_options_json,
+            model_strategy_type,
+            task_type_code,
+            fixed_model_id,
+            rag_mode,
+            default_rag_tags_json,
+            allowed_rag_tags_json,
+            tool_policy_mode,
+            allowed_tool_keys_json,
+            tool_risk_policy_json,
+            timeout_ms,
+            max_turns,
+            temperature,
+            repair_retry_times,
+            created_by,
+            updated_by,
+            created_at,
+            updated_at
+        from agent_version
+        where org_id = #{orgId}
+          and id = #{id}
+        limit 1
+    </select>
+
+    <select id="findPage" resultMap="AgentVersionMap">
+        select
+            id,
+            org_id,
+            agent_id,
+            version_no,
+            state,
+            change_summary,
+            prompt_template_id,
+            prompt_template_version_no,
+            template_params_json,
+            system_prompt_snapshot,
+            output_contract_version,
+            output_contract_options_json,
+            model_strategy_type,
+            task_type_code,
+            fixed_model_id,
+            rag_mode,
+            default_rag_tags_json,
+            allowed_rag_tags_json,
+            tool_policy_mode,
+            allowed_tool_keys_json,
+            tool_risk_policy_json,
+            timeout_ms,
+            max_turns,
+            temperature,
+            repair_retry_times,
+            created_by,
+            updated_by,
+            created_at,
+            updated_at
+        from agent_version
+        where org_id = #{orgId}
+          and agent_id = #{agentId}
+        order by version_no desc, id desc
+        limit #{pageSize} offset #{offset}
+    </select>
+
+    <select id="count" resultType="long">
+        select count(1)
+        from agent_version
+        where org_id = #{orgId}
+          and agent_id = #{agentId}
+    </select>
+
+    <select id="findMaxVersionNo" resultType="int">
+        select max(version_no)
+        from agent_version
+        where agent_id = #{agentId}
+    </select>
+
+    <select id="countByAgentIdAndVersionNo" resultType="int">
+        select count(1)
+        from agent_version
+        where agent_id = #{agentId}
+          and version_no = #{versionNo}
+    </select>
+
+    <update id="publish">
+        update agent_version
+        set state = 'PUBLISHED',
+            prompt_template_version_no = #{promptTemplateVersionNo},
+            template_params_json = #{templateParamsJson},
+            system_prompt_snapshot = #{systemPromptSnapshot},
+            updated_by = #{updatedBy},
+            updated_at = now()
+        where org_id = #{orgId}
+          and id = #{id}
+          and state = 'DRAFT'
+    </update>
+
+    <update id="updateState">
+        update agent_version
+        set state = #{toState},
+            updated_at = now()
+        where org_id = #{orgId}
+          and id = #{id}
+          and state = #{fromState}
+    </update>
+
+</mapper>

@@ -38,6 +38,11 @@ public class RagTask {
     private Long id;
 
     /**
+     * 组织ID。
+     */
+    private Long orgId;
+
+    /**
      * 任务ID（业务标识）
      *
      * 为什么：用于业务侧追踪任务

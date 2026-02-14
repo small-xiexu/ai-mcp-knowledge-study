@@ -37,6 +37,11 @@ public class ConfigAudit {
     private Long id;
 
     /**
+     * 组织ID（资源归属 org）。
+     */
+    private Long orgId;
+
+    /**
      * 表名
      *
      * 为什么：定位被审计的业务表

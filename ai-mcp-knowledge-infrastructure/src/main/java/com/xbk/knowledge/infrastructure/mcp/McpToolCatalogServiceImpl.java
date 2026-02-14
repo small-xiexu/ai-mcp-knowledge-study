@@ -3,6 +3,7 @@ package com.xbk.knowledge.infrastructure.mcp;
 import com.xbk.knowledge.application.model.dto.McpToolInfo;
 import com.xbk.knowledge.application.service.mcp.McpToolCatalogService;
 import com.xbk.knowledge.config.McpToolProperties;
+import com.xbk.knowledge.types.tool.ToolKeyAware;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.tool.definition.ToolDefinition;
@@ -86,8 +87,16 @@ public class McpToolCatalogServiceImpl implements McpToolCatalogService {
             if (definition == null || !StringUtils.hasText(definition.name())) {
                 continue;
             }
+            String toolKey = null;
+            String source = null;
+            if (callback instanceof ToolKeyAware aware) {
+                toolKey = aware.toolKey();
+                source = aware.toolSource();
+            }
             McpToolInfo info = McpToolInfo.builder()
                     .name(definition.name())
+                    .toolKey(toolKey)
+                    .source(source)
                     .description(StringUtils.hasText(definition.description()) ? definition.description() : "暂无描述")
                     .inputSchema(definition.inputSchema())
                     .build();

@@ -6,6 +6,7 @@
 
     <resultMap id="McpGatewayAuthMap" type="com.xbk.knowledge.domain.model.entity.gateway.McpGatewayAuth">
         <id column="id" property="id"/>
+        <result column="org_id" property="orgId"/>
         <result column="gateway_id" property="gatewayId"/>
         <result column="api_key" property="apiKey"/>
         <result column="rate_limit" property="rateLimit"/>
@@ -17,6 +18,7 @@
 
     <insert id="insertGatewayAuth" parameterType="com.xbk.knowledge.domain.model.entity.gateway.McpGatewayAuth" useGeneratedKeys="true" keyProperty="id">
         insert into mcp_gateway_auth (
+            org_id,
             gateway_id,
             api_key,
             rate_limit,
@@ -25,6 +27,7 @@
             created_at,
             updated_at
         ) values (
+            #{orgId},
             #{gatewayId},
             #{apiKey},
             #{rateLimit},
@@ -44,15 +47,23 @@
             status = #{status},
             updated_at = #{updatedAt}
         where id = #{id}
+          and org_id = #{orgId}
     </update>
 
     <delete id="deleteGatewayAuthById">
         delete from mcp_gateway_auth where id = #{id}
     </delete>
 
+    <delete id="deleteGatewayAuthByIdAndOrgId">
+        delete from mcp_gateway_auth
+        where org_id = #{orgId}
+          and id = #{id}
+    </delete>
+
     <select id="findByApiKey" resultMap="McpGatewayAuthMap">
         select
             id,
+            org_id,
             gateway_id,
             api_key,
             rate_limit,
@@ -64,9 +75,26 @@
         where api_key = #{apiKey}
     </select>
 
+    <select id="findByApiKeyAndOrgId" resultMap="McpGatewayAuthMap">
+        select
+            id,
+            org_id,
+            gateway_id,
+            api_key,
+            rate_limit,
+            expire_time,
+            status,
+            created_at,
+            updated_at
+        from mcp_gateway_auth
+        where org_id = #{orgId}
+          and api_key = #{apiKey}
+    </select>
+
     <select id="findById" resultMap="McpGatewayAuthMap">
         select
             id,
+            org_id,
             gateway_id,
             api_key,
             rate_limit,
@@ -78,9 +106,26 @@
         where id = #{id}
     </select>
 
+    <select id="findByIdAndOrgId" resultMap="McpGatewayAuthMap">
+        select
+            id,
+            org_id,
+            gateway_id,
+            api_key,
+            rate_limit,
+            expire_time,
+            status,
+            created_at,
+            updated_at
+        from mcp_gateway_auth
+        where org_id = #{orgId}
+          and id = #{id}
+    </select>
+
     <select id="findByGatewayId" resultMap="McpGatewayAuthMap">
         select
             id,
+            org_id,
             gateway_id,
             api_key,
             rate_limit,
@@ -90,6 +135,7 @@
             updated_at
         from mcp_gateway_auth
         where gateway_id = #{gatewayId}
+          and org_id = #{orgId}
         order by id desc
     </select>
 

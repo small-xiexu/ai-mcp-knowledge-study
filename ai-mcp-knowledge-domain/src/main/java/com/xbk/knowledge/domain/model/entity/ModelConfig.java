@@ -38,6 +38,13 @@ public class ModelConfig {
     private Long id;
 
     /**
+     * 组织ID。
+     *
+     * 为什么：单租户下按部门隔离模型配置；超级管理员可跨 org 管理但必须显式选择目标 org。
+     */
+    private Long orgId;
+
+    /**
      * 模型名称
      *
      * 为什么：用于唯一性校验与展示

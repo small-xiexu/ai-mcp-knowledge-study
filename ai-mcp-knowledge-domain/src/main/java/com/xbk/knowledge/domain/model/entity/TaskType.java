@@ -37,6 +37,11 @@ public class TaskType {
     private Long id;
 
     /**
+     * 组织ID。
+     */
+    private Long orgId;
+
+    /**
      * 任务名称
      *
      * 为什么：展示与识别任务类型

@@ -20,6 +20,7 @@ public interface McpToolSchemaMapper extends BaseMapper<McpToolSchema> {
     int updateToolSchema(McpToolSchema schema);
 
     /** 按 gatewayId + toolId 查询当前生效的 Schema 快照 */
-    McpToolSchema findActiveByGatewayIdAndToolId(@Param("gatewayId") String gatewayId,
+    McpToolSchema findActiveByGatewayIdAndToolId(@Param("orgId") Long orgId,
+                                                 @Param("gatewayId") String gatewayId,
                                                  @Param("toolId") Long toolId);
 }

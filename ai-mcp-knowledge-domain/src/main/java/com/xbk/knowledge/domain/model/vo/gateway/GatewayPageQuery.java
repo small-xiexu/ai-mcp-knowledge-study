@@ -1,6 +1,5 @@
 package com.xbk.knowledge.domain.model.vo.gateway;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,10 +11,22 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class GatewayPageQuery {
+    /** 组织ID */
+    private Long orgId;
     /** 分页偏移量 */
     private Integer offset;
     /** 每页大小 */
     private Integer pageSize;
+
+    public GatewayPageQuery(Integer offset, Integer pageSize) {
+        this.offset = offset;
+        this.pageSize = pageSize;
+    }
+
+    public GatewayPageQuery(Long orgId, Integer offset, Integer pageSize) {
+        this.orgId = orgId;
+        this.offset = offset;
+        this.pageSize = pageSize;
+    }
 }

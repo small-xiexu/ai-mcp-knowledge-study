@@ -38,6 +38,11 @@ public class McpServerConfig {
     private Long id;
 
     /**
+     * 组织ID。
+     */
+    private Long orgId;
+
+    /**
      * MCP Server 名称
      *
      * 为什么：配置唯一标识，用于选择与展示

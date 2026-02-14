@@ -91,4 +91,9 @@ public class OrgRepositoryImpl implements OrgRepository {
         orgMapper.deleteUserOrgs(userId);
         orgMapper.insertUserOrg(userId, orgId, 1);
     }
+
+    @Override
+    public Optional<Long> findPrimaryOrgId(Long userId) {
+        return Optional.ofNullable(orgMapper.findPrimaryOrgId(userId));
+    }
 }

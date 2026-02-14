@@ -16,6 +16,16 @@ public class McpToolResponse {
     private String name;
 
     /**
+     * 平台治理主键（toolKey）。
+     */
+    private String toolKey;
+
+    /**
+     * 工具来源（GATEWAY/MCP）。
+     */
+    private String source;
+
+    /**
      * 工具描述
      */
     private String description;

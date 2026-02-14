@@ -1,6 +1,5 @@
 package com.xbk.knowledge.domain.model.vo.gateway;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,8 +11,18 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class GatewayIdQuery {
+    /** 组织ID */
+    private Long orgId;
     /** 网关唯一标识 */
     private String gatewayId;
+
+    public GatewayIdQuery(String gatewayId) {
+        this.gatewayId = gatewayId;
+    }
+
+    public GatewayIdQuery(Long orgId, String gatewayId) {
+        this.orgId = orgId;
+        this.gatewayId = gatewayId;
+    }
 }

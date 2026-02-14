@@ -7,6 +7,7 @@
     <!-- 模型配置基础字段映射 -->
     <resultMap id="ModelConfigMap" type="com.xbk.knowledge.domain.model.entity.ModelConfig">
         <id column="id" property="id"/>
+        <result column="org_id" property="orgId"/>
         <result column="model_name" property="modelName"/>
         <result column="model_type" property="modelType"/>
         <result column="api_key" property="apiKey"/>
@@ -41,6 +42,7 @@
     <insert id="insertModelConfig" parameterType="com.xbk.knowledge.domain.model.entity.ModelConfig" useGeneratedKeys="true"
             keyProperty="id">
         insert into ai_model_config (
+            org_id,
             model_name,
             model_type,
             api_key,
@@ -51,6 +53,7 @@
             created_at,
             updated_at
         ) values (
+            #{orgId},
             #{modelName},
             #{modelType},
             #{apiKey},
@@ -84,6 +87,7 @@
     <select id="findById" resultMap="ModelConfigMap">
         select
             id,
+            org_id,
             model_name,
             model_type,
             api_key,
@@ -100,6 +104,7 @@
     <select id="findByIdWithCapability" resultMap="ModelConfigWithCapabilityMap">
         select
             mc.id,
+            mc.org_id,
             mc.model_name,
             mc.model_type,
             mc.api_key,
@@ -127,6 +132,7 @@
     <select id="findByModelName" resultMap="ModelConfigMap">
         select
             id,
+            org_id,
             model_name,
             model_type,
             api_key,
@@ -143,6 +149,7 @@
     <select id="findByEnabled" resultMap="ModelConfigMap">
         select
             id,
+            org_id,
             model_name,
             model_type,
             api_key,
@@ -159,6 +166,7 @@
     <select id="findEnabledTrue" resultMap="ModelConfigMap">
         select
             id,
+            org_id,
             model_name,
             model_type,
             api_key,
@@ -175,6 +183,7 @@
     <select id="findByEnabledOrderByPriorityDesc" resultMap="ModelConfigMap">
         select
             id,
+            org_id,
             model_name,
             model_type,
             api_key,
@@ -191,6 +200,7 @@
     <select id="findEnabledTrueWithCapability" resultMap="ModelConfigWithCapabilityMap">
         select
             mc.id,
+            mc.org_id,
             mc.model_name,
             mc.model_type,
             mc.api_key,
@@ -218,6 +228,7 @@
     <select id="findEnabledByIds" resultMap="ModelConfigMap">
         select
             id,
+            org_id,
             model_name,
             model_type,
             api_key,

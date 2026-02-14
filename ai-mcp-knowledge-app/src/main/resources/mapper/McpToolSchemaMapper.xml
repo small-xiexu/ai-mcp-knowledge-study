@@ -6,6 +6,7 @@
 
     <resultMap id="McpToolSchemaMap" type="com.xbk.knowledge.domain.model.entity.gateway.McpToolSchema">
         <id column="id" property="id"/>
+        <result column="org_id" property="orgId"/>
         <result column="gateway_id" property="gatewayId"/>
         <result column="tool_id" property="toolId"/>
         <result column="schema_version" property="schemaVersion"/>
@@ -19,6 +20,7 @@
 
     <insert id="insertToolSchema" parameterType="com.xbk.knowledge.domain.model.entity.gateway.McpToolSchema" useGeneratedKeys="true" keyProperty="id">
         insert into mcp_tool_schema (
+            org_id,
             gateway_id,
             tool_id,
             schema_version,
@@ -29,6 +31,7 @@
             created_at,
             updated_at
         ) values (
+            #{orgId},
             #{gatewayId},
             #{toolId},
             #{schemaVersion},
@@ -52,11 +55,13 @@
             is_active = #{isActive},
             updated_at = #{updatedAt}
         where id = #{id}
+          and org_id = #{orgId}
     </update>
 
     <select id="findActiveByGatewayIdAndToolId" resultMap="McpToolSchemaMap">
         select
             id,
+            org_id,
             gateway_id,
             tool_id,
             schema_version,
@@ -67,7 +72,8 @@
             created_at,
             updated_at
         from mcp_tool_schema
-        where gateway_id = #{gatewayId}
+        where org_id = #{orgId}
+          and gateway_id = #{gatewayId}
           and tool_id = #{toolId}
           and is_active = 1
         order by schema_version desc

@@ -36,6 +36,42 @@ const routes: RouteRecordRaw[] = [
         meta: { title: 'AI 对话', icon: 'ChatDotRound', permission: 'agent:read', group: 'common', order: 10 }
       },
       {
+        path: 'agents',
+        name: 'Agents',
+        component: () => import('@/views/agent-platform/agents/index.vue'),
+        meta: { title: 'Agent 管理', icon: 'Operation', permission: 'agent:read', group: 'common', order: 15 }
+      },
+      {
+        path: 'agents/:agentCode/versions',
+        name: 'AgentVersions',
+        component: () => import('@/views/agent-platform/agents/versions.vue'),
+        meta: { title: 'Agent 版本', icon: 'List', hidden: true, permission: 'agent:read', group: 'common', order: 16 }
+      },
+      {
+        path: 'templates',
+        name: 'PromptTemplates',
+        component: () => import('@/views/agent-platform/templates/index.vue'),
+        meta: { title: 'Prompt 模板', icon: 'Document', permission: 'agent:read', group: 'common', order: 16 }
+      },
+      {
+        path: 'approvals',
+        name: 'ToolApprovals',
+        component: () => import('@/views/agent-platform/approvals/index.vue'),
+        meta: { title: '工具审批', icon: 'Tickets', permission: 'tool:approve', group: 'common', order: 17 }
+      },
+      {
+        path: 'schedules',
+        name: 'AgentSchedules',
+        component: () => import('@/views/agent-platform/schedules/index.vue'),
+        meta: { title: 'Agent 调度', icon: 'Timer', permission: 'agent:read', group: 'common', order: 18 }
+      },
+      {
+        path: 'agent-playground',
+        name: 'AgentPlayground',
+        component: () => import('@/views/agent-platform/playground/index.vue'),
+        meta: { title: 'Agent 调用', icon: 'ChatDotRound', permission: 'agent:invoke', group: 'common', order: 19 }
+      },
+      {
         path: 'knowledge',
         name: 'Knowledge',
         component: () => import('@/views/knowledge/index.vue'),

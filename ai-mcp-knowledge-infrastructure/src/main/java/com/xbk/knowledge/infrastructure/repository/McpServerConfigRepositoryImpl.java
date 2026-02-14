@@ -7,6 +7,7 @@ import com.xbk.knowledge.domain.model.vo.mcp.McpServerConfigPageQuery;
 import com.xbk.knowledge.domain.model.vo.mcp.McpServerNameQuery;
 import com.xbk.knowledge.domain.repository.McpServerConfigRepository;
 import com.xbk.knowledge.infrastructure.mapper.McpServerConfigMapper;
+import com.xbk.knowledge.types.context.OrgContextHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -27,6 +28,11 @@ public class McpServerConfigRepositoryImpl implements McpServerConfigRepository 
 
     private final McpServerConfigMapper mcpServerConfigMapper;
 
+    private Long currentOrgIdOrRoot() {
+        Long orgId = OrgContextHolder.currentOrgIdOrNull();
+        return orgId == null ? 1L : orgId;
+    }
+
     /**
      * 根据名称查询 MCP Server 配置
      * 用于唯一性校验与快速定位
@@ -39,6 +45,9 @@ public class McpServerConfigRepositoryImpl implements McpServerConfigRepository 
     public Optional<McpServerConfig> findByName(McpServerNameQuery query) {
         if (query == null || query.getServerName() == null) {
             return Optional.empty();
+        }
+        if (query.getOrgId() == null) {
+            query.setOrgId(currentOrgIdOrRoot());
         }
         McpServerConfig config = mcpServerConfigMapper.findByName(query);
         return Optional.ofNullable(config);
@@ -56,6 +65,9 @@ public class McpServerConfigRepositoryImpl implements McpServerConfigRepository 
     public Optional<McpServerConfig> findById(IdQuery query) {
         if (query == null || query.getId() == null) {
             return Optional.empty();
+        }
+        if (query.getOrgId() == null) {
+            query.setOrgId(currentOrgIdOrRoot());
         }
         McpServerConfig config = mcpServerConfigMapper.findById(query);
         return Optional.ofNullable(config);
@@ -95,6 +107,9 @@ public class McpServerConfigRepositoryImpl implements McpServerConfigRepository 
         if (query == null || query.getId() == null) {
             return false;
         }
+        if (query.getOrgId() == null) {
+            query.setOrgId(currentOrgIdOrRoot());
+        }
         return mcpServerConfigMapper.findById(query) != null;
     }
 
@@ -110,6 +125,9 @@ public class McpServerConfigRepositoryImpl implements McpServerConfigRepository 
     public void deleteById(IdQuery query) {
         if (query == null || query.getId() == null) {
             return;
+        }
+        if (query.getOrgId() == null) {
+            query.setOrgId(currentOrgIdOrRoot());
         }
         mcpServerConfigMapper.deleteMcpServerConfigById(query);
     }
@@ -127,6 +145,9 @@ public class McpServerConfigRepositoryImpl implements McpServerConfigRepository 
         if (query == null) {
             return Collections.emptyList();
         }
+        if (query.getOrgId() == null) {
+            query.setOrgId(currentOrgIdOrRoot());
+        }
         return mcpServerConfigMapper.findPage(query);
     }
 
@@ -143,6 +164,9 @@ public class McpServerConfigRepositoryImpl implements McpServerConfigRepository 
         if (query == null) {
             return Collections.emptyList();
         }
+        if (query.getOrgId() == null) {
+            query.setOrgId(currentOrgIdOrRoot());
+        }
         return mcpServerConfigMapper.findByEnabled(query);
     }
 
@@ -156,6 +180,6 @@ public class McpServerConfigRepositoryImpl implements McpServerConfigRepository 
      */
     @Override
     public long countAll() {
-        return mcpServerConfigMapper.countAll();
+        return mcpServerConfigMapper.countAllByOrgId(currentOrgIdOrRoot());
     }
 }

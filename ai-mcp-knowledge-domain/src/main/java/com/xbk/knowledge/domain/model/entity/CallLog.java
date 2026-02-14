@@ -38,6 +38,11 @@ public class CallLog {
     private Long id;
 
     /**
+     * 组织ID。
+     */
+    private Long orgId;
+
+    /**
      * 模型ID
      *
      * 为什么：定位调用使用的模型配置
