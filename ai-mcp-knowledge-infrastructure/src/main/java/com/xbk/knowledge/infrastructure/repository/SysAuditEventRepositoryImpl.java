@@ -33,6 +33,10 @@ public class SysAuditEventRepositoryImpl implements SysAuditEventRepository {
         if (event == null) {
             return 0;
         }
+        // DB 约束：operator_org_id NOT NULL。系统流程/边界情况下兜底，避免审计写入导致主流程失败。
+        if (event.getOperatorOrgId() == null) {
+            event.setOperatorOrgId(0L);
+        }
         return sysAuditEventMapper.insertEvent(event);
     }
 

@@ -5,6 +5,7 @@ import com.xbk.knowledge.application.service.app.AgentAppService;
 import com.xbk.knowledge.application.service.app.AgentScheduleAppService;
 import com.xbk.knowledge.application.service.app.IdentityContextService;
 import com.xbk.knowledge.application.service.app.XxlJobAppService;
+import com.xbk.knowledge.application.support.xxl.XxlJobIdParser;
 import com.xbk.knowledge.domain.model.entity.XxlJobInfo;
 import com.xbk.knowledge.domain.model.entity.agent.Agent;
 import com.xbk.knowledge.domain.model.entity.agent.AgentSchedule;
@@ -183,7 +184,7 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
                     .glueType("BEAN")
                     .build();
             String result = xxlJobAppService.createJob(jobInfo);
-            Long jobId = parseJobIdOrNull(result);
+            Long jobId = XxlJobIdParser.parseJobIdOrNull(result);
             if (jobId == null) {
                 throw new BusinessException("创建 xxl-job 失败，result=" + result);
             }
@@ -229,30 +230,6 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
             ));
         } catch (Exception e) {
             return "{\"orgId\":" + orgId + ",\"scheduleId\":" + scheduleId + "}";
-        }
-    }
-
-    private Long parseJobIdOrNull(String result) {
-        if (!StringUtils.hasText(result)) {
-            return null;
-        }
-        String t = result.trim();
-        try {
-            // xxl-admin 常见返回：{code:200, content: "123"} 或直接 "123"
-            if (t.matches("^\\d+$")) {
-                return Long.parseLong(t);
-            }
-        } catch (Exception ignored) {
-        }
-        // 兜底：提取连续数字
-        String digits = t.replaceAll("\\D+", "");
-        if (!StringUtils.hasText(digits)) {
-            return null;
-        }
-        try {
-            return Long.parseLong(digits);
-        } catch (Exception e) {
-            return null;
         }
     }
 }

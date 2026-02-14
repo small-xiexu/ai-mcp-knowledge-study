@@ -60,6 +60,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '工具审批', icon: 'Tickets', permission: 'tool:approve', group: 'common', order: 17 }
       },
       {
+        path: 'tool-policies',
+        name: 'ToolPolicies',
+        component: () => import('@/views/agent-platform/tool-policy/index.vue'),
+        meta: { title: '工具策略', icon: 'Tools', permission: 'tool:read', group: 'common', order: 17.5 }
+      },
+      {
         path: 'schedules',
         name: 'AgentSchedules',
         component: () => import('@/views/agent-platform/schedules/index.vue'),

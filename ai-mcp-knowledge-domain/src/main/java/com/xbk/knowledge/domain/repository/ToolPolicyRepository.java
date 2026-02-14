@@ -1,7 +1,9 @@
 package com.xbk.knowledge.domain.repository;
 
 import com.xbk.knowledge.domain.model.entity.tool.ToolPolicy;
+import com.xbk.knowledge.domain.model.vo.tool.ToolPolicyPageQuery;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -14,5 +16,20 @@ import java.util.Optional;
 public interface ToolPolicyRepository {
 
     Optional<ToolPolicy> findEnabled(Long orgId, String toolKey);
-}
 
+    Optional<ToolPolicy> findById(Long orgId, Long id);
+
+    Optional<ToolPolicy> findByToolKey(Long orgId, String toolKey);
+
+    List<ToolPolicy> findPage(ToolPolicyPageQuery query);
+
+    long count(ToolPolicyPageQuery query);
+
+    ToolPolicy insert(ToolPolicy policy);
+
+    int update(ToolPolicy policy);
+
+    int updateEnabled(Long orgId, Long id, Integer enabled);
+
+    int deleteById(Long orgId, Long id);
+}

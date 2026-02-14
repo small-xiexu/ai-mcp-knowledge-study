@@ -111,7 +111,11 @@ public class AgentRuntimeController {
     /**
      * 通用 invoke（内部触发或外部调用统一入口）。
      *
-     * 说明：当 request.orgId 为空时使用当前上下文 orgId；否则按 request.orgId 运行（需配合 org 治理规则）。
+     * 说明：为保证组织隔离，HTTP 入口的 orgId 一律以当前 OrgContext 为准。
+     * - 普通用户：只能在自己的 org 下调用
+     * - 超管跨 org：必须通过 X-Target-Org-Id 显式选择目标组织（由 OrgContextFilter 注入）
+     *
+     * 注意：request.orgId 字段仅用于“无 OrgContext 的内部调用场景”的 DTO 复用（本入口会忽略该字段）。
      *
      * @param agentCode Agent 对外编码
      * @param request   调用请求
@@ -121,7 +125,7 @@ public class AgentRuntimeController {
     @SaCheckPermission("agent:invoke")
     public Result<PlatformContractV1> invoke(@PathVariable("agentCode") String agentCode,
                                             @Valid @RequestBody AgentRuntimeInvokeRequest request) {
-        Long orgId = request.getOrgId() != null ? request.getOrgId() : currentOrgId();
+        Long orgId = currentOrgId();
         PlatformContractV1 result = agentRuntimeAppService.invoke(
                 orgId,
                 agentCode,

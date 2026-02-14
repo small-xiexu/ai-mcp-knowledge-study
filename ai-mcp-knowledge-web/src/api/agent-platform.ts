@@ -83,6 +83,18 @@ export interface AgentSchedule {
   updatedAt?: string
 }
 
+export interface ToolPolicy {
+  id: number
+  orgId: number
+  toolKey: string
+  riskLevel: string
+  approvalRequired: number
+  enabled: number
+  remark?: string
+  createdAt?: string
+  updatedAt?: string
+}
+
 export interface PlatformContractV1 {
   meta?: {
     runId?: string
@@ -187,6 +199,29 @@ export const disableSchedule = (id: number) =>
 
 export const removeSchedule = (id: number) =>
   request.post<void>('/schedules/remove', { id })
+
+export const listToolPolicies = (data: { keyword?: string; enabled?: boolean; pageNum: number; pageSize: number }) =>
+  request.post<PageResult<ToolPolicy>>('/tool-policies/list', {
+    keyword: data.keyword,
+    enabled: data.enabled,
+    pageNum: data.pageNum,
+    pageSize: data.pageSize
+  })
+
+export const getToolPolicy = (id: number) =>
+  request.post<ToolPolicy>('/tool-policies/get', { id })
+
+export const saveToolPolicy = (data: { id?: number; toolKey: string; riskLevel?: string; approvalRequired?: boolean; enabled?: boolean; remark?: string }) =>
+  request.post<ToolPolicy>('/tool-policies/save', data)
+
+export const enableToolPolicy = (id: number) =>
+  request.post<ToolPolicy>('/tool-policies/enable', { id })
+
+export const disableToolPolicy = (id: number) =>
+  request.post<ToolPolicy>('/tool-policies/disable', { id })
+
+export const removeToolPolicy = (id: number) =>
+  request.post<void>('/tool-policies/remove', { id })
 
 export const agentChat = (agentCode: string, data: { sessionId?: number; content: string; ragTagsJson?: string }) =>
   request.post<PlatformContractV1>(`/agents/${agentCode}/chat`, data)

@@ -187,6 +187,12 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
         private final ToolCallback delegate;
         private final String toolKey;
         private final ToolDefinition toolDefinition;
+        private final String boundRunId;
+        private final Long boundOrgId;
+        private final Long boundOperatorId;
+        private final Long boundOperatorOrgId;
+        private final boolean bypassEnabled;
+        private final boolean toolInvokePermitted;
 
         private GovernedToolCallback(ToolCallback delegate, String toolKey, String functionName) {
             this.delegate = delegate;
@@ -197,6 +203,24 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
                     .description(def == null ? "" : def.description())
                     .inputSchema(def == null ? "{\"type\":\"object\",\"properties\":{}}" : def.inputSchema())
                     .build();
+
+            /*
+             * 重要：工具回调可能在异步/跨线程环境执行（例如流式/Reactive）。
+             * 为保证治理门禁一致性（orgId、runId、权限、审计归属），在构建回调时捕获上下文快照，
+             * call() 期间禁止再依赖 ThreadLocal（OrgContextHolder/StpUtil/MDC）获取关键字段。
+             */
+            this.boundRunId = TraceIdUtils.getOrCreateTraceId();
+            Long orgId = OrgContextHolder.currentOrgIdOrNull();
+            if (orgId == null) {
+                orgId = 1L;
+            }
+            this.boundOrgId = orgId;
+            OrgContext ctx = OrgContextHolder.get();
+            this.boundOperatorId = ctx == null ? null : ctx.operatorUserId();
+            this.boundOperatorOrgId = ctx == null ? null : ctx.operatorOrgId();
+            this.bypassEnabled = ToolInvokeBypassContextHolder.isEnabled();
+            boolean login = StpUtil.isLogin();
+            this.toolInvokePermitted = !login || StpUtil.hasPermission(PERMISSION_TOOL_INVOKE);
         }
 
         @Override
@@ -216,18 +240,14 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
 
         @Override
         public String call(String arguments, org.springframework.ai.chat.model.ToolContext toolContext) {
-            String runId = TraceIdUtils.getOrCreateTraceId();
-            Long orgId = OrgContextHolder.currentOrgIdOrNull();
-            if (orgId == null) {
-                orgId = 1L;
-            }
-            if (!ToolInvokeBypassContextHolder.isEnabled()
-                    && StpUtil.isLogin()
-                    && !StpUtil.hasPermission(PERMISSION_TOOL_INVOKE)) {
-                recordToolDeniedAndAudit(runId, orgId, "PERMISSION_DENIED");
+            String runId = boundRunId;
+            Long orgId = boundOrgId;
+            if (!bypassEnabled && !toolInvokePermitted) {
+                recordToolDeniedAndAudit(runId, orgId, "PERMISSION_DENIED", boundOperatorId, boundOperatorOrgId);
                 return "[PERMISSION_DENIED] 无权限调用工具（缺少权限: " + PERMISSION_TOOL_INVOKE + "），toolKey=" + toolKey;
             }
-            maybeRequireApproval(runId, orgId, toolKey, arguments);
+            String requesterType = boundOperatorId == null ? "system" : "user";
+            maybeRequireApproval(runId, orgId, toolKey, arguments, boundOperatorId, requesterType, boundOperatorId, boundOperatorOrgId);
             long startAt = System.nanoTime();
             boolean success = false;
             String errorMessage = null;
@@ -240,11 +260,11 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
                 throw e;
             } finally {
                 long latencyMs = (System.nanoTime() - startAt) / 1_000_000;
-                recordToolMetricsAndAudit(runId, orgId, success, latencyMs, errorMessage);
+                recordToolMetricsAndAudit(runId, orgId, success, latencyMs, errorMessage, boundOperatorId, boundOperatorOrgId);
             }
         }
 
-        private void recordToolDeniedAndAudit(String runId, Long orgId, String reason) {
+        private void recordToolDeniedAndAudit(String runId, Long orgId, String reason, Long operatorId, Long operatorOrgId) {
             try {
                 if (agentRunRepository != null && StringUtils.hasText(runId)) {
                     agentRunRepository.incrementToolDeniedCount(runId, orgId, 1);
@@ -257,10 +277,6 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
                 if (auditLogService == null || !StringUtils.hasText(toolKey)) {
                     return;
                 }
-                OrgContext ctx = OrgContextHolder.get();
-                Long operatorId = ctx == null ? null : ctx.operatorUserId();
-                Long operatorOrgId = ctx == null ? null : ctx.operatorOrgId();
-
                 SysAuditEvent event = SysAuditEvent.builder()
                         .operatorId(operatorId)
                         .operatorOrgId(operatorOrgId)
@@ -281,7 +297,13 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
             }
         }
 
-        private void recordToolMetricsAndAudit(String runId, Long orgId, boolean success, long latencyMs, String errorMessage) {
+        private void recordToolMetricsAndAudit(String runId,
+                                              Long orgId,
+                                              boolean success,
+                                              long latencyMs,
+                                              String errorMessage,
+                                              Long operatorId,
+                                              Long operatorOrgId) {
             try {
                 if (agentRunRepository != null && StringUtils.hasText(runId)) {
                     agentRunRepository.incrementToolCallCount(runId, orgId, 1);
@@ -294,10 +316,6 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
                 if (auditLogService == null || !StringUtils.hasText(toolKey)) {
                     return;
                 }
-                OrgContext ctx = OrgContextHolder.get();
-                Long operatorId = ctx == null ? null : ctx.operatorUserId();
-                Long operatorOrgId = ctx == null ? null : ctx.operatorOrgId();
-
                 SysAuditEvent event = SysAuditEvent.builder()
                         .operatorId(operatorId)
                         .operatorOrgId(operatorOrgId)
@@ -335,7 +353,14 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
          * - MCP 工具缺少内置 risk_level 时，以 tool_policy 为准；未配置默认 MEDIUM
          * - riskLevel=HIGH 或 tool_policy.approval_required=1 时触发审批
          */
-        private void maybeRequireApproval(String runId, Long orgId, String toolKey, String argumentsSnapshotJson) {
+        private void maybeRequireApproval(String runId,
+                                          Long orgId,
+                                          String toolKey,
+                                          String argumentsSnapshotJson,
+                                          Long requesterId,
+                                          String requesterType,
+                                          Long operatorId,
+                                          Long operatorOrgId) {
             if (!StringUtils.hasText(runId) || orgId == null || !StringUtils.hasText(toolKey) || approvalRequestRepository == null) {
                 return;
             }
@@ -392,10 +417,6 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
             if (run == null || run.getAgentId() == null || run.getAgentVersionId() == null) {
                 throw new BusinessException("工具审批门禁触发，但无法定位 agent_run 记录，runId=" + runId);
             }
-
-            OrgContext ctx = OrgContextHolder.get();
-            Long requesterId = ctx == null ? null : ctx.operatorUserId();
-            String requesterType = requesterId == null ? "system" : "user";
 
             String snapshot = StringUtils.hasText(argumentsSnapshotJson) ? argumentsSnapshotJson : "{}";
             String digest = snapshot.length() <= 500 ? snapshot : snapshot.substring(0, 500);

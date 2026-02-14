@@ -34,5 +34,122 @@
         limit 1
     </select>
 
-</mapper>
+    <select id="findById" resultMap="ToolPolicyMap">
+        select
+            id,
+            org_id,
+            tool_key,
+            risk_level,
+            approval_required,
+            enabled,
+            remark,
+            created_at,
+            updated_at
+        from tool_policy
+        where org_id = #{orgId}
+          and id = #{id}
+        limit 1
+    </select>
 
+    <select id="findByToolKey" resultMap="ToolPolicyMap">
+        select
+            id,
+            org_id,
+            tool_key,
+            risk_level,
+            approval_required,
+            enabled,
+            remark,
+            created_at,
+            updated_at
+        from tool_policy
+        where org_id = #{orgId}
+          and tool_key = #{toolKey}
+        limit 1
+    </select>
+
+    <select id="findPage" resultMap="ToolPolicyMap">
+        select
+            id,
+            org_id,
+            tool_key,
+            risk_level,
+            approval_required,
+            enabled,
+            remark,
+            created_at,
+            updated_at
+        from tool_policy
+        where org_id = #{q.orgId}
+        <if test="q.keyword != null and q.keyword != ''">
+            and tool_key like concat('%', #{q.keyword}, '%')
+        </if>
+        <if test="q.enabled != null">
+            and enabled = #{q.enabled}
+        </if>
+        order by updated_at desc, id desc
+        limit #{q.offset}, #{q.pageSize}
+    </select>
+
+    <select id="count" resultType="long">
+        select count(1)
+        from tool_policy
+        where org_id = #{q.orgId}
+        <if test="q.keyword != null and q.keyword != ''">
+            and tool_key like concat('%', #{q.keyword}, '%')
+        </if>
+        <if test="q.enabled != null">
+            and enabled = #{q.enabled}
+        </if>
+    </select>
+
+    <insert id="insertPolicy" useGeneratedKeys="true" keyProperty="id">
+        insert into tool_policy (
+            org_id,
+            tool_key,
+            risk_level,
+            approval_required,
+            enabled,
+            remark,
+            created_at,
+            updated_at
+        ) values (
+            #{orgId},
+            #{toolKey},
+            #{riskLevel},
+            #{approvalRequired},
+            #{enabled},
+            #{remark},
+            now(),
+            now()
+        )
+    </insert>
+
+    <update id="updatePolicy">
+        update tool_policy
+        set
+            risk_level = #{riskLevel},
+            approval_required = #{approvalRequired},
+            enabled = #{enabled},
+            remark = #{remark},
+            updated_at = now()
+        where org_id = #{orgId}
+          and id = #{id}
+    </update>
+
+    <update id="updateEnabled">
+        update tool_policy
+        set
+            enabled = #{enabled},
+            updated_at = now()
+        where org_id = #{orgId}
+          and id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        delete from tool_policy
+        where org_id = #{orgId}
+          and id = #{id}
+    </delete>
+
+</mapper>
