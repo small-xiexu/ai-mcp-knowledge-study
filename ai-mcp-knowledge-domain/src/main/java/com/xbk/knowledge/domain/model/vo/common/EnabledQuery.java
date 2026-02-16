@@ -30,10 +30,21 @@ public class EnabledQuery {
      */
     private Boolean enabled;
 
+    /**
+     * EnabledQuery。
+     *
+     * @param enabled 参数
+     */
     public EnabledQuery(Boolean enabled) {
         this.enabled = enabled;
     }
 
+    /**
+     * EnabledQuery。
+     *
+     * @param orgId 参数
+     * @param enabled 参数
+     */
     public EnabledQuery(Long orgId, Boolean enabled) {
         this.orgId = orgId;
         this.enabled = enabled;

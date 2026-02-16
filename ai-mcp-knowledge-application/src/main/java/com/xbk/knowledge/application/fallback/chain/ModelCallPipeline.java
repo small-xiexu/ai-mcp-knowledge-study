@@ -66,6 +66,12 @@ public class ModelCallPipeline {
             this.executor = executor;
         }
 
+        /**
+         * apply。
+         *
+         * @param context 参数
+         * @return 返回结果
+         */
         @Override
         public ModelCallOutcome apply(ModelCallContext context) {
             com.xbk.knowledge.application.model.dto.AICallResult result = executor.execute(context);

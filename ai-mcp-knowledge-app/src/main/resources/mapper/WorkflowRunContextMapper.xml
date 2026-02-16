@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.workflow.WorkflowRunContextMapper">
+
+    <resultMap id="WorkflowRunContextMap" type="com.xbk.knowledge.domain.model.entity.workflow.WorkflowRunContext">
+        <id column="id" property="id"/>
+        <result column="run_id" property="runId"/>
+        <result column="status" property="status"/>
+        <result column="snapshot_json" property="snapshotJson"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <insert id="upsert" parameterType="com.xbk.knowledge.domain.model.entity.workflow.WorkflowRunContext"
+            useGeneratedKeys="true" keyProperty="id">
+        insert into workflow_run_context (
+            run_id, status, snapshot_json, created_at, updated_at
+        ) values (
+            #{runId}, #{status}, #{snapshotJson}, now(), now()
+        )
+        on duplicate key update
+            status = values(status),
+            snapshot_json = values(snapshot_json),
+            updated_at = now()
+    </insert>
+
+    <select id="findByRunId" resultMap="WorkflowRunContextMap">
+        select
+            id, run_id, status, snapshot_json, created_at, updated_at
+        from workflow_run_context
+        where 1 = 1
+          and run_id = #{runId}
+        limit 1
+    </select>
+
+    <update id="updateStatus">
+        update workflow_run_context
+        set status = #{status},
+            updated_at = now()
+        where 1 = 1
+          and run_id = #{runId}
+    </update>
+
+    <delete id="deleteByRunIds">
+        delete from workflow_run_context
+        where 1 = 1
+          and run_id in
+        <foreach collection="runIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

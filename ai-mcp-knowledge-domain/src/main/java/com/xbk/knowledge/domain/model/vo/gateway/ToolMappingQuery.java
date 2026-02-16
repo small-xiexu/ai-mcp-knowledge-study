@@ -19,11 +19,24 @@ public class ToolMappingQuery {
     /** 映射类型：request/response */
     private String mappingType;
 
+    /**
+     * ToolMappingQuery。
+     *
+     * @param toolId 参数
+     * @param mappingType 参数
+     */
     public ToolMappingQuery(Long toolId, String mappingType) {
         this.toolId = toolId;
         this.mappingType = mappingType;
     }
 
+    /**
+     * ToolMappingQuery。
+     *
+     * @param orgId 参数
+     * @param toolId 参数
+     * @param mappingType 参数
+     */
     public ToolMappingQuery(Long orgId, Long toolId, String mappingType) {
         this.orgId = orgId;
         this.toolId = toolId;

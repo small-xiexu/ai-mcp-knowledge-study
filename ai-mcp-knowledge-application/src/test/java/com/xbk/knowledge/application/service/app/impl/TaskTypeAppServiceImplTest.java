@@ -1,7 +1,7 @@
 package com.xbk.knowledge.application.service.app.impl;
 
 import com.xbk.knowledge.domain.model.entity.TaskType;
-import com.xbk.knowledge.domain.service.ITaskTypeService;
+import com.xbk.knowledge.domain.service.task.ITaskTypeService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 

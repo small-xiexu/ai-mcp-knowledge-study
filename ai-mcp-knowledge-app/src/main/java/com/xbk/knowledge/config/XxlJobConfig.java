@@ -34,6 +34,11 @@ public class XxlJobConfig {
     @Value("${xxl.job.accessToken}")
     private String accessToken;
 
+    /**
+     * xxlJobExecutor。
+     *
+     * @return 返回结果
+     */
     @Bean
     public XxlJobSpringExecutor xxlJobExecutor() {
         log.info("初始化 XXL-Job 执行器");

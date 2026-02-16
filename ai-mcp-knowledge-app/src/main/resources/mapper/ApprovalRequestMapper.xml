@@ -2,16 +2,18 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xbk.knowledge.infrastructure.mapper.ApprovalRequestMapper">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.approval.ApprovalRequestMapper">
 
     <resultMap id="ApprovalRequestMap" type="com.xbk.knowledge.domain.model.entity.approval.ApprovalRequest">
         <id column="id" property="id"/>
-        <result column="org_id" property="orgId"/>
         <result column="approval_type" property="approvalType"/>
         <result column="status" property="status"/>
         <result column="run_id" property="runId"/>
         <result column="agent_id" property="agentId"/>
         <result column="agent_version_id" property="agentVersionId"/>
+        <result column="workflow_id" property="workflowId"/>
+        <result column="workflow_version_id" property="workflowVersionId"/>
+        <result column="node_key" property="nodeKey"/>
         <result column="requester_id" property="requesterId"/>
         <result column="requester_type" property="requesterType"/>
         <result column="request_reason" property="requestReason"/>
@@ -30,12 +32,14 @@
     <insert id="insertRequest" parameterType="com.xbk.knowledge.domain.model.entity.approval.ApprovalRequest"
             useGeneratedKeys="true" keyProperty="id">
         insert into approval_request (
-            org_id,
             approval_type,
             status,
             run_id,
             agent_id,
             agent_version_id,
+            workflow_id,
+            workflow_version_id,
+            node_key,
             requester_id,
             requester_type,
             request_reason,
@@ -50,12 +54,14 @@
             created_at,
             updated_at
         ) values (
-            #{orgId},
             #{approvalType},
             #{status},
             #{runId},
             #{agentId},
             #{agentVersionId},
+            #{workflowId},
+            #{workflowVersionId},
+            #{nodeKey},
             #{requesterId},
             #{requesterType},
             #{requestReason},
@@ -75,12 +81,14 @@
     <select id="findById" resultMap="ApprovalRequestMap">
         select
             id,
-            org_id,
             approval_type,
             status,
             run_id,
             agent_id,
             agent_version_id,
+            workflow_id,
+            workflow_version_id,
+            node_key,
             requester_id,
             requester_type,
             request_reason,
@@ -95,7 +103,7 @@
             created_at,
             updated_at
         from approval_request
-        where org_id = #{orgId}
+        where 1 = 1
           and id = #{id}
         limit 1
     </select>
@@ -103,12 +111,14 @@
     <select id="findLatestApproved" resultMap="ApprovalRequestMap">
         select
             id,
-            org_id,
             approval_type,
             status,
             run_id,
             agent_id,
             agent_version_id,
+            workflow_id,
+            workflow_version_id,
+            node_key,
             requester_id,
             requester_type,
             request_reason,
@@ -123,7 +133,7 @@
             created_at,
             updated_at
         from approval_request
-        where org_id = #{orgId}
+        where 1 = 1
           and run_id = #{runId}
           and tool_key = #{toolKey}
           and status = 'APPROVED'
@@ -135,12 +145,14 @@
     <select id="findLatestPending" resultMap="ApprovalRequestMap">
         select
             id,
-            org_id,
             approval_type,
             status,
             run_id,
             agent_id,
             agent_version_id,
+            workflow_id,
+            workflow_version_id,
+            node_key,
             requester_id,
             requester_type,
             request_reason,
@@ -155,7 +167,7 @@
             created_at,
             updated_at
         from approval_request
-        where org_id = #{orgId}
+        where 1 = 1
           and run_id = #{runId}
           and tool_key = #{toolKey}
           and status = 'PENDING'
@@ -170,7 +182,7 @@
             approver_id = #{approverId},
             decision_comment = #{decisionComment},
             decided_at = #{decidedAt}
-        where org_id = #{orgId}
+        where 1 = 1
           and id = #{id}
           and status = 'PENDING'
     </update>
@@ -181,7 +193,7 @@
             approver_id = #{approverId},
             decision_comment = #{decisionComment},
             decided_at = #{decidedAt}
-        where org_id = #{orgId}
+        where 1 = 1
           and id = #{id}
           and status = 'PENDING'
     </update>
@@ -189,12 +201,14 @@
     <select id="list" resultMap="ApprovalRequestMap">
         select
             id,
-            org_id,
             approval_type,
             status,
             run_id,
             agent_id,
             agent_version_id,
+            workflow_id,
+            workflow_version_id,
+            node_key,
             requester_id,
             requester_type,
             request_reason,
@@ -209,7 +223,7 @@
             created_at,
             updated_at
         from approval_request
-        where org_id = #{orgId}
+        where 1 = 1
         <if test="status != null and status != ''">
             and status = #{status}
         </if>
@@ -220,7 +234,7 @@
     <select id="count" resultType="long">
         select count(1)
         from approval_request
-        where org_id = #{orgId}
+        where 1 = 1
         <if test="status != null and status != ''">
             and status = #{status}
         </if>
@@ -229,12 +243,14 @@
     <select id="listExpiredPending" resultMap="ApprovalRequestMap">
         select
             id,
-            org_id,
             approval_type,
             status,
             run_id,
             agent_id,
             agent_version_id,
+            workflow_id,
+            workflow_version_id,
+            node_key,
             requester_id,
             requester_type,
             request_reason,
@@ -261,7 +277,7 @@
         set status = 'EXPIRED',
             decision_comment = #{decisionComment},
             decided_at = #{decidedAt}
-        where org_id = #{orgId}
+        where 1 = 1
           and id = #{id}
           and status = 'PENDING'
     </update>

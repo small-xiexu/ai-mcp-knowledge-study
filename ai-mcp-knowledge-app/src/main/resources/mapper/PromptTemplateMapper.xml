@@ -2,12 +2,11 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xbk.knowledge.infrastructure.mapper.PromptTemplateMapper">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.prompt.PromptTemplateMapper">
 
     <resultMap id="PromptTemplateMap" type="com.xbk.knowledge.domain.model.entity.agent.PromptTemplate">
         <id column="id" property="id"/>
         <result column="scope" property="scope"/>
-        <result column="org_id" property="orgId"/>
         <result column="template_code" property="templateCode"/>
         <result column="template_name" property="templateName"/>
         <result column="version_no" property="versionNo"/>
@@ -24,7 +23,6 @@
             keyProperty="id">
         insert into prompt_template (
             scope,
-            org_id,
             template_code,
             template_name,
             version_no,
@@ -37,7 +35,6 @@
             updated_at
         ) values (
             #{scope},
-            #{orgId},
             #{templateCode},
             #{templateName},
             #{versionNo},
@@ -59,7 +56,6 @@
             updated_by = #{updatedBy},
             updated_at = #{updatedAt}
         where id = #{id}
-          and org_id = #{orgId}
           and state = 'DRAFT'
     </update>
 
@@ -67,7 +63,6 @@
         select
             id,
             scope,
-            org_id,
             template_code,
             template_name,
             version_no,
@@ -82,7 +77,6 @@
         where id = #{id}
           and (
               scope = 'GLOBAL'
-              or org_id = #{orgId}
           )
         limit 1
     </select>
@@ -92,7 +86,6 @@
         from prompt_template
         where (
             scope = 'GLOBAL'
-            or org_id = #{orgId}
         )
         <if test="scope != null and scope != ''">
             and scope = #{scope}
@@ -112,7 +105,6 @@
         select
             id,
             scope,
-            org_id,
             template_code,
             template_name,
             version_no,
@@ -126,7 +118,6 @@
         from prompt_template
         where (
             scope = 'GLOBAL'
-            or org_id = #{orgId}
         )
         <if test="scope != null and scope != ''">
             and scope = #{scope}
@@ -147,7 +138,7 @@
     <select id="countByOrgIdAndCode" resultType="int">
         select count(1)
         from prompt_template
-        where org_id = #{orgId}
+        where 1 = 1
           and template_code = #{templateCode}
     </select>
 
@@ -158,7 +149,6 @@
             updated_by = #{updatedBy},
             updated_at = now()
         where id = #{id}
-          and org_id = #{orgId}
           and state = 'DRAFT'
     </update>
 
@@ -168,7 +158,6 @@
             updated_by = #{updatedBy},
             updated_at = now()
         where id = #{id}
-          and org_id = #{orgId}
           and state in ('DRAFT', 'PUBLISHED')
     </update>
 

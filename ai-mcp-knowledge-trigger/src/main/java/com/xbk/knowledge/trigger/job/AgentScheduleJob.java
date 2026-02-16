@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xbk.knowledge.application.service.app.AgentRuntimeAppService;
 import com.xbk.knowledge.domain.model.entity.agent.AgentSchedule;
 import com.xbk.knowledge.domain.model.vo.agent.AgentScheduleIdQuery;
-import com.xbk.knowledge.domain.repository.AgentScheduleRepository;
+import com.xbk.knowledge.domain.repository.agent.AgentScheduleRepository;
 import com.xbk.knowledge.types.context.OrgContext;
 import com.xbk.knowledge.types.context.OrgContextHolder;
 import com.xbk.knowledge.types.contract.PlatformContractV1;
@@ -43,6 +43,10 @@ public class AgentScheduleJob {
     private final AgentScheduleRepository agentScheduleRepository;
     private final AgentRuntimeAppService agentRuntimeAppService;
 
+    /**
+     * execute。
+     *
+     */
     @XxlJob("agentScheduleHandler")
     public void execute() {
         String param = XxlJobHelper.getJobParam();

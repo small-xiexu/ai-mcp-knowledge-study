@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.workflow.WorkflowNodeRunMapper">
+
+    <resultMap id="WorkflowNodeRunMap" type="com.xbk.knowledge.domain.model.entity.workflow.WorkflowNodeRun">
+        <id column="id" property="id"/>
+        <result column="run_id" property="runId"/>
+        <result column="node_key" property="nodeKey"/>
+        <result column="node_type" property="nodeType"/>
+        <result column="node_name" property="nodeName"/>
+        <result column="status" property="status"/>
+        <result column="model_id_used" property="modelIdUsed"/>
+        <result column="model_name_used" property="modelNameUsed"/>
+        <result column="prompt_tokens" property="promptTokens"/>
+        <result column="completion_tokens" property="completionTokens"/>
+        <result column="total_tokens" property="totalTokens"/>
+        <result column="tool_call_count" property="toolCallCount"/>
+        <result column="tool_denied_count" property="toolDeniedCount"/>
+        <result column="input_digest" property="inputDigest"/>
+        <result column="output_digest" property="outputDigest"/>
+        <result column="output_text" property="outputText"/>
+        <result column="output_truncated" property="outputTruncated"/>
+        <result column="approval_request_id" property="approvalRequestId"/>
+        <result column="cost_ms" property="costMs"/>
+        <result column="error_message" property="errorMessage"/>
+        <result column="started_at" property="startedAt"/>
+        <result column="ended_at" property="endedAt"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <insert id="insertNodeRun" parameterType="com.xbk.knowledge.domain.model.entity.workflow.WorkflowNodeRun"
+            useGeneratedKeys="true" keyProperty="id">
+        insert into workflow_node_run (
+            status,
+            model_id_used, model_name_used,
+            prompt_tokens, completion_tokens, total_tokens,
+            tool_call_count, tool_denied_count,
+            input_digest, output_digest, output_text, output_truncated,
+            approval_request_id,
+            cost_ms, error_message,
+            started_at, ended_at
+        ) values (
+            #{status},
+            #{modelIdUsed}, #{modelNameUsed},
+            #{promptTokens}, #{completionTokens}, #{totalTokens},
+            #{toolCallCount}, #{toolDeniedCount},
+            #{inputDigest}, #{outputDigest}, #{outputText}, #{outputTruncated},
+            #{approvalRequestId},
+            #{costMs}, #{errorMessage},
+            #{startedAt}, #{endedAt}
+        )
+    </insert>
+
+    <update id="updateNodeRun" parameterType="com.xbk.knowledge.domain.model.entity.workflow.WorkflowNodeRun">
+        update workflow_node_run
+        set status = #{status},
+            model_id_used = #{modelIdUsed},
+            model_name_used = #{modelNameUsed},
+            prompt_tokens = #{promptTokens},
+            completion_tokens = #{completionTokens},
+            total_tokens = #{totalTokens},
+            tool_call_count = #{toolCallCount},
+            tool_denied_count = #{toolDeniedCount},
+            input_digest = #{inputDigest},
+            output_digest = #{outputDigest},
+            output_text = #{outputText},
+            output_truncated = #{outputTruncated},
+            approval_request_id = #{approvalRequestId},
+            cost_ms = #{costMs},
+            error_message = #{errorMessage},
+            started_at = #{startedAt},
+            ended_at = #{endedAt},
+            updated_at = now()
+        where id = #{id}
+    </update>
+
+    <select id="findByRunIdAndNodeKey" resultMap="WorkflowNodeRunMap">
+        select
+            model_id_used, model_name_used,
+            prompt_tokens, completion_tokens, total_tokens,
+            tool_call_count, tool_denied_count,
+            input_digest, output_digest, output_text, output_truncated,
+            approval_request_id,
+            cost_ms, error_message,
+            started_at, ended_at,
+            created_at, updated_at
+        from workflow_node_run
+        where 1 = 1
+          and run_id = #{runId}
+          and node_key = #{nodeKey}
+        order by id desc
+        limit 1
+    </select>
+
+    <select id="listByRunId" resultMap="WorkflowNodeRunMap">
+        select
+            model_id_used, model_name_used,
+            prompt_tokens, completion_tokens, total_tokens,
+            tool_call_count, tool_denied_count,
+            input_digest, output_digest, output_text, output_truncated,
+            approval_request_id,
+            cost_ms, error_message,
+            started_at, ended_at,
+            created_at, updated_at
+        from workflow_node_run
+        where 1 = 1
+          and run_id = #{runId}
+        order by id asc
+    </select>
+
+    <update id="incrementToolCallCount">
+        update workflow_node_run
+        set tool_call_count = tool_call_count + #{delta},
+            updated_at = now()
+        where 1 = 1
+          and run_id = #{runId}
+          and node_key = #{nodeKey}
+    </update>
+
+    <update id="incrementToolDeniedCount">
+        update workflow_node_run
+        set tool_denied_count = tool_denied_count + #{delta},
+            updated_at = now()
+        where 1 = 1
+          and run_id = #{runId}
+          and node_key = #{nodeKey}
+    </update>
+
+    <delete id="deleteByRunIds">
+        delete from workflow_node_run
+        where 1 = 1
+          and run_id in
+        <foreach collection="runIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

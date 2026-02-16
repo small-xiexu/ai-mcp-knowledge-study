@@ -47,7 +47,7 @@
               prop="jobDesc"
               label="任务描述"
               min-width="200"
-              show-overflow-tooltip
+
             >
               <template #default="{ row }">
                 <span style="color: var(--gemini-text-primary); font-weight: 500;">{{ row.jobDesc }}</span>
@@ -57,7 +57,7 @@
               prop="executorHandler"
               label="Handler"
               min-width="160"
-              show-overflow-tooltip
+
             >
                <template #default="{ row }">
                 <span style="font-family: monospace; color: var(--gemini-accent);">{{ row.executorHandler }}</span>
@@ -67,7 +67,7 @@
               prop="scheduleConf"
               label="CRON"
               min-width="150"
-              show-overflow-tooltip
+
             >
                <template #default="{ row }">
                 <el-tag size="small" effect="dark" type="info" style="background: rgba(255,255,255,0.1); border: none;">
@@ -251,7 +251,7 @@
               prop="executorHandler"
               label="Handler"
               min-width="160"
-              show-overflow-tooltip
+
             >
                <template #default="{ row }">
                 <span style="font-family: monospace; color: var(--gemini-accent);">{{ row.executorHandler }}</span>

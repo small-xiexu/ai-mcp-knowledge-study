@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.workflow.WorkflowVersionMapper">
+
+    <resultMap id="WorkflowVersionMap" type="com.xbk.knowledge.domain.model.entity.workflow.WorkflowVersion">
+        <id column="id" property="id"/>
+        <result column="workflow_id" property="workflowId"/>
+        <result column="version_no" property="versionNo"/>
+        <result column="state" property="state"/>
+        <result column="change_summary" property="changeSummary"/>
+        <result column="graph_json" property="graphJson"/>
+        <result column="default_config_json" property="defaultConfigJson"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="updated_by" property="updatedBy"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <insert id="insertVersion" parameterType="com.xbk.knowledge.domain.model.entity.workflow.WorkflowVersion"
+            useGeneratedKeys="true" keyProperty="id">
+        insert into workflow_version (
+            graph_json, default_config_json,
+            created_by, updated_by, created_at, updated_at
+        ) values (
+            #{graphJson}, #{defaultConfigJson},
+            #{createdBy}, #{updatedBy}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <update id="updateVersion" parameterType="com.xbk.knowledge.domain.model.entity.workflow.WorkflowVersion">
+        update workflow_version
+        set state = #{state},
+            change_summary = #{changeSummary},
+            graph_json = #{graphJson},
+            default_config_json = #{defaultConfigJson},
+            updated_by = #{updatedBy},
+            updated_at = #{updatedAt}
+        where id = #{id}
+    </update>
+
+    <select id="findById" resultMap="WorkflowVersionMap">
+        select
+            graph_json, default_config_json,
+            created_by, updated_by, created_at, updated_at
+        from workflow_version
+        where 1 = 1
+          and id = #{id}
+        limit 1
+    </select>
+
+    <select id="listByWorkflowId" resultMap="WorkflowVersionMap">
+        select
+            graph_json, default_config_json,
+            created_by, updated_by, created_at, updated_at
+        from workflow_version
+        where 1 = 1
+          and workflow_id = #{workflowId}
+        order by version_no desc, id desc
+    </select>
+
+    <select id="findPublishedVersion" resultMap="WorkflowVersionMap">
+        select
+            graph_json, default_config_json,
+            created_by, updated_by, created_at, updated_at
+        from workflow_version
+        where 1 = 1
+          and workflow_id = #{workflowId}
+          and state = 'PUBLISHED'
+        order by version_no desc, id desc
+        limit 1
+    </select>
+
+</mapper>
+

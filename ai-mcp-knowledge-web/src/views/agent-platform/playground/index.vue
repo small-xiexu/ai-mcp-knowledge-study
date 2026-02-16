@@ -36,7 +36,10 @@
 
     <div class="gemini-card" style="margin-top: 14px">
       <div class="result-title">结果</div>
-      <pre class="result-pre">{{ resultText }}</pre>
+      <div v-if="showPretty && resultObj" class="pretty-box">
+        <ContractViewer :contract="resultObj" />
+      </div>
+      <pre v-else class="result-pre">{{ resultText }}</pre>
     </div>
   </div>
 </template>
@@ -45,10 +48,13 @@
 import { reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { agentChat, listAgents, type Agent, type PlatformContractV1 } from '@/api/agent-platform'
+import ContractViewer from '@/components/contract/ContractViewer.vue'
 
 const agentOptions = ref<Agent[]>([])
 const running = ref(false)
 const resultText = ref('')
+const resultObj = ref<PlatformContractV1 | null>(null)
+const showPretty = ref(true)
 
 const form = reactive({
   agentCode: '',
@@ -81,6 +87,7 @@ const run = async () => {
       ragTagsJson: form.ragTagsJson || undefined
     })
     const data = res.data as PlatformContractV1
+    resultObj.value = data
     resultText.value = JSON.stringify(data, null, 2)
     if (data?.status === 'PENDING_APPROVAL') {
       ElMessage.warning(`需要审批：approvalRequestId=${data.meta?.approvalRequestId}`)
@@ -102,6 +109,10 @@ loadAgents()
   font-weight: 600;
   margin-bottom: 10px;
 }
+.pretty-box {
+  max-height: 620px;
+  overflow: auto;
+}
 .result-pre {
   max-height: 520px;
   overflow: auto;
@@ -113,4 +124,3 @@ loadAgents()
   font-size: 12px;
 }
 </style>
-

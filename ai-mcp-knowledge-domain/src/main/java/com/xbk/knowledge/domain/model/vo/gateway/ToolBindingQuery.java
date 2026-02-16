@@ -19,11 +19,24 @@ public class ToolBindingQuery {
     /** 绑定目标ID */
     private Long bindTargetId;
 
+    /**
+     * ToolBindingQuery。
+     *
+     * @param bindType 参数
+     * @param bindTargetId 参数
+     */
     public ToolBindingQuery(String bindType, Long bindTargetId) {
         this.bindType = bindType;
         this.bindTargetId = bindTargetId;
     }
 
+    /**
+     * ToolBindingQuery。
+     *
+     * @param orgId 参数
+     * @param bindType 参数
+     * @param bindTargetId 参数
+     */
     public ToolBindingQuery(Long orgId, String bindType, Long bindTargetId) {
         this.orgId = orgId;
         this.bindType = bindType;

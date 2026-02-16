@@ -26,6 +26,13 @@ public class GatewayToolsCallHandler implements IRequestHandler {
 
     private final GatewayToolService gatewayToolService;
 
+    /**
+     * handle。
+     *
+     * @param gatewayId 参数
+     * @param request 参数
+     * @return 返回结果
+     */
     @Override
     public McpSchemaVO.JSONRPCResponse handle(String gatewayId, McpSchemaVO.JSONRPCRequest request) {
         Object requestId = request.getId();

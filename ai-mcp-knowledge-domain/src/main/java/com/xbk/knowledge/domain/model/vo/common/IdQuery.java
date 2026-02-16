@@ -30,10 +30,21 @@ public class IdQuery {
      */
     private Long id;
 
+    /**
+     * IdQuery。
+     *
+     * @param id 参数
+     */
     public IdQuery(Long id) {
         this.id = id;
     }
 
+    /**
+     * IdQuery。
+     *
+     * @param orgId 参数
+     * @param id 参数
+     */
     public IdQuery(Long orgId, Long id) {
         this.orgId = orgId;
         this.id = id;

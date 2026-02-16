@@ -44,6 +44,15 @@ public class ApprovalRequest {
 
     private Long agentVersionId;
 
+    private Long workflowId;
+
+    private Long workflowVersionId;
+
+    /**
+     * 触发审批的节点 key（Workflow 场景）。
+     */
+    private String nodeKey;
+
     private Long requesterId;
 
     private String requesterType;
@@ -72,4 +81,3 @@ public class ApprovalRequest {
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedAt;
 }
-

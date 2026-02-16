@@ -27,4 +27,21 @@ public interface ChatClientAssemblyService {
      * @return ChatClient
      */
     ChatClient buildChatClient(ModelConfig modelConfig, CallAdvisor... extraAdvisors);
+
+    /**
+     * 基于指定模型配置构建 ChatClient（可控制是否注入工具）。
+     *
+     * @param modelConfig 模型配置
+     * @param enableTools 是否启用工具注入
+     * @param extraAdvisors 额外 Advisors
+     * @return ChatClient
+     */
+    ChatClient buildChatClient(ModelConfig modelConfig, boolean enableTools, CallAdvisor... extraAdvisors);
+
+    /**
+     * 基于指定模型配置构建 ChatClient（不注入工具）。
+     */
+    default ChatClient buildChatClientNoTools(ModelConfig modelConfig, CallAdvisor... extraAdvisors) {
+        return buildChatClient(modelConfig, false, extraAdvisors);
+    }
 }

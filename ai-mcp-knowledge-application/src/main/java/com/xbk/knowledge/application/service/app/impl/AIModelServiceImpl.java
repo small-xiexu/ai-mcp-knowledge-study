@@ -13,7 +13,7 @@ import com.xbk.knowledge.application.service.selection.chain.ModelSelectionChain
 import com.xbk.knowledge.domain.model.aggregate.call.CallLogAggregate;
 import com.xbk.knowledge.domain.model.entity.CallLog;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
-import com.xbk.knowledge.domain.repository.CallLogRepository;
+import com.xbk.knowledge.domain.repository.metrics.CallLogRepository;
 import com.xbk.knowledge.types.enums.CallStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

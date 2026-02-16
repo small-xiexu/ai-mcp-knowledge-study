@@ -5,7 +5,9 @@ package com.xbk.knowledge.domain.model.vo.agent;
  *
  * @param orgId 组织ID
  * @param id    调度ID
- */
+ 
+  * @author xiexu
+  */
 public record AgentScheduleIdQuery(Long orgId, Long id) {
 }
 

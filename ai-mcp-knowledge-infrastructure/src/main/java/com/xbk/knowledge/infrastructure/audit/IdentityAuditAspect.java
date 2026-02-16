@@ -70,11 +70,14 @@ public class IdentityAuditAspect {
             "execution(* com.xbk.knowledge.trigger.http.UserIdentityController.grantRoles(..)) || " +
             "execution(* com.xbk.knowledge.trigger.http.RoleController.create(..)) || " +
             "execution(* com.xbk.knowledge.trigger.http.RoleController.update(..)) || " +
-            "execution(* com.xbk.knowledge.trigger.http.RoleController.grantPermissions(..)) || " +
-            "execution(* com.xbk.knowledge.trigger.http.OrgController.create(..)) || " +
-            "execution(* com.xbk.knowledge.trigger.http.OrgController.update(..)) || " +
-            "execution(* com.xbk.knowledge.trigger.http.OrgController.bindUser(..))"
+            "execution(* com.xbk.knowledge.trigger.http.RoleController.grantPermissions(..))"
     )
+    /**
+     * aroundIdentityWriteOperations。
+     *
+     * @param joinPoint 参数
+     * @return 返回结果
+     */
     public Object aroundIdentityWriteOperations(ProceedingJoinPoint joinPoint) throws Throwable {
         long start = System.currentTimeMillis();
         String requestId = TraceIdUtils.getOrCreateTraceId();

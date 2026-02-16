@@ -17,6 +17,12 @@ public abstract class AbstractModelSelectionHandler implements ModelSelectionHan
      */
     private ModelSelectionHandler next;
 
+    /**
+     * select。
+     *
+     * @param request 参数
+     * @return 返回结果
+     */
     @Override
     public ModelSelectionDecision select(AICallCommand request) {
         return doSelect(request);

@@ -618,7 +618,7 @@ const markdown = new MarkdownIt({
     }
     
     // Optimized Gemini Style: Minimalist icon-only copy button with refined feedback
-    return `<div class="code-block-wrapper"><div class="code-header"><div class="code-lang-wrapper"><span class="code-lang">${lang}</span></div><div class="copy-btn" title="复制代码"><svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><polyline points="20 6 9 17 4 12"></polyline></svg></div></div><pre class="hljs"><code>${highlighted}</code></pre></div>`
+    return `<div class="code-block-wrapper"><div class="code-header"><div class="code-lang-wrapper"><span class="code-lang">${lang}</span></div><div class="copy-btn"><svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><polyline points="20 6 9 17 4 12"></polyline></svg></div></div><pre class="hljs"><code>${highlighted}</code></pre></div>`
   }
 })
 

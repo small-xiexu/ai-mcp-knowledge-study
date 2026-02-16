@@ -29,6 +29,13 @@ public class GatewayToolsListHandler implements IRequestHandler {
     private final GatewayToolService gatewayToolService;
     private final ObjectMapper objectMapper;
 
+    /**
+     * handle。
+     *
+     * @param gatewayId 参数
+     * @param request 参数
+     * @return 返回结果
+     */
     @Override
     public McpSchemaVO.JSONRPCResponse handle(String gatewayId, McpSchemaVO.JSONRPCRequest request) {
         List<GatewayToolService.ToolDefinition> definitions = gatewayToolService.listTools(gatewayId);

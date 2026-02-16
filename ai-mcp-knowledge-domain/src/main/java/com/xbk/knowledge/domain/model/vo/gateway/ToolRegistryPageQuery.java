@@ -21,12 +21,27 @@ public class ToolRegistryPageQuery {
     /** 每页大小 */
     private Integer pageSize;
 
+    /**
+     * ToolRegistryPageQuery。
+     *
+     * @param gatewayId 参数
+     * @param offset 参数
+     * @param pageSize 参数
+     */
     public ToolRegistryPageQuery(String gatewayId, Integer offset, Integer pageSize) {
         this.gatewayId = gatewayId;
         this.offset = offset;
         this.pageSize = pageSize;
     }
 
+    /**
+     * ToolRegistryPageQuery。
+     *
+     * @param orgId 参数
+     * @param gatewayId 参数
+     * @param offset 参数
+     * @param pageSize 参数
+     */
     public ToolRegistryPageQuery(Long orgId, String gatewayId, Integer offset, Integer pageSize) {
         this.orgId = orgId;
         this.gatewayId = gatewayId;

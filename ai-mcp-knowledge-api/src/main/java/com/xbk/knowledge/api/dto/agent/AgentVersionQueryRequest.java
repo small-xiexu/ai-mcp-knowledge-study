@@ -7,7 +7,9 @@ import lombok.EqualsAndHashCode;
 
 /**
  * AgentVersion 列表查询请求。
- */
+ 
+  * @author xiexu
+  */
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class AgentVersionQueryRequest extends PageRequest {

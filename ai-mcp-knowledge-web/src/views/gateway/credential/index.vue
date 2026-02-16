@@ -73,7 +73,7 @@
       <el-table v-loading="loading" :data="tableData" class="gemini-table" style="width: 100%">
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="gatewayId" label="网关 ID" min-width="150" />
-        <el-table-column label="API Key" min-width="280" show-overflow-tooltip>
+        <el-table-column label="API Key" min-width="280">
           <template #default="{ row }">
             <span class="mono-text">{{ row.apiKey }}</span>
           </template>

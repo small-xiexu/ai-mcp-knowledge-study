@@ -2,11 +2,10 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xbk.knowledge.infrastructure.mapper.McpGatewayMapper">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.gateway.McpGatewayMapper">
 
     <resultMap id="McpGatewayMap" type="com.xbk.knowledge.domain.model.entity.gateway.McpGateway">
         <id column="id" property="id"/>
-        <result column="org_id" property="orgId"/>
         <result column="gateway_id" property="gatewayId"/>
         <result column="gateway_name" property="gatewayName"/>
         <result column="gateway_desc" property="gatewayDesc"/>
@@ -19,7 +18,6 @@
 
     <insert id="insertGateway" parameterType="com.xbk.knowledge.domain.model.entity.gateway.McpGateway" useGeneratedKeys="true" keyProperty="id">
         insert into mcp_gateway (
-            org_id,
             gateway_id,
             gateway_name,
             gateway_desc,
@@ -29,7 +27,6 @@
             created_at,
             updated_at
         ) values (
-            #{orgId},
             #{gatewayId},
             #{gatewayName},
             #{gatewayDesc},
@@ -51,19 +48,16 @@
             status = #{status},
             updated_at = #{updatedAt}
         where id = #{id}
-          and org_id = #{orgId}
     </update>
 
     <delete id="deleteGatewayById">
         delete from mcp_gateway
         where id = #{id}
-          and org_id = #{orgId}
     </delete>
 
     <select id="findById" resultMap="McpGatewayMap">
         select
             id,
-            org_id,
             gateway_id,
             gateway_name,
             gateway_desc,
@@ -74,13 +68,11 @@
             updated_at
         from mcp_gateway
         where id = #{id}
-          and org_id = #{orgId}
     </select>
 
     <select id="findByGatewayId" resultMap="McpGatewayMap">
         select
             id,
-            org_id,
             gateway_id,
             gateway_name,
             gateway_desc,
@@ -91,13 +83,11 @@
             updated_at
         from mcp_gateway
         where gateway_id = #{gatewayId}
-          and org_id = #{orgId}
     </select>
 
     <select id="findPage" resultMap="McpGatewayMap">
         select
             id,
-            org_id,
             gateway_id,
             gateway_name,
             gateway_desc,
@@ -107,7 +97,7 @@
             created_at,
             updated_at
         from mcp_gateway
-        where org_id = #{orgId}
+        where 1 = 1
         order by id desc
         limit #{pageSize} offset #{offset}
     </select>
@@ -115,7 +105,6 @@
     <select id="findAllEnabled" resultMap="McpGatewayMap">
         select
             id,
-            org_id,
             gateway_id,
             gateway_name,
             gateway_desc,
@@ -132,7 +121,6 @@
     <select id="findAllEnabledByOrgId" resultMap="McpGatewayMap">
         select
             id,
-            org_id,
             gateway_id,
             gateway_name,
             gateway_desc,
@@ -142,7 +130,7 @@
             created_at,
             updated_at
         from mcp_gateway
-        where org_id = #{orgId}
+        where 1 = 1
           and status = 1
         order by id desc
     </select>
@@ -154,7 +142,7 @@
     <select id="countAllByOrgId" resultType="long">
         select count(1)
         from mcp_gateway
-        where org_id = #{orgId}
+        where 1 = 1
     </select>
 
 </mapper>

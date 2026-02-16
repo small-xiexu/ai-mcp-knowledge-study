@@ -17,10 +17,21 @@ public class GatewayIdQuery {
     /** 网关唯一标识 */
     private String gatewayId;
 
+    /**
+     * GatewayIdQuery。
+     *
+     * @param gatewayId 参数
+     */
     public GatewayIdQuery(String gatewayId) {
         this.gatewayId = gatewayId;
     }
 
+    /**
+     * GatewayIdQuery。
+     *
+     * @param orgId 参数
+     * @param gatewayId 参数
+     */
     public GatewayIdQuery(Long orgId, String gatewayId) {
         this.orgId = orgId;
         this.gatewayId = gatewayId;

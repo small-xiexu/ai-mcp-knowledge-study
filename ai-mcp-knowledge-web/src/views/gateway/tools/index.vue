@@ -20,7 +20,7 @@
       <el-table :data="records" class="gemini-table" style="width: 100%" v-loading="loading">
         <el-table-column prop="toolName" label="工具名称" min-width="180" />
         <el-table-column prop="httpMethod" label="方法" width="90" />
-        <el-table-column prop="httpUrl" label="URL" min-width="240" show-overflow-tooltip />
+        <el-table-column prop="httpUrl" label="URL" min-width="240" />
         <el-table-column label="状态" width="90">
           <template #default="{ row }">
             <el-tag :type="row.status === 1 ? 'success' : 'info'">{{ row.status === 1 ? '启用' : '禁用' }}</el-tag>

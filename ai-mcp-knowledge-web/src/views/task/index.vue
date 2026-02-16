@@ -56,7 +56,7 @@
         <el-table-column
           label="备用模型"
           min-width="200"
-          show-overflow-tooltip
+
         >
           <template #default="{ row }">
             {{ getFallbackNames(row.fallbackModelIds) }}
@@ -66,7 +66,7 @@
           prop="description"
           label="描述"
           min-width="200"
-          show-overflow-tooltip
+
         />
         <el-table-column
           label="创建时间"

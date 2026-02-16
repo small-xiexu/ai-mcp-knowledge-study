@@ -29,12 +29,27 @@ public class DefaultFailoverExecutor extends AbstractFailoverExecutor {
     private final FailoverStrategy failoverStrategy;
     private final ModelCallPipeline modelCallPipeline;
 
+    /**
+     * buildPlan。
+     *
+     * @param primary 参数
+     * @param fallbacks 参数
+     * @param request 参数
+     * @return 返回结果
+     */
     @Override
     protected FailoverPlan buildPlan(ModelConfig primary, List<ModelConfig> fallbacks, AICallCommand request) {
         List<ModelConfig> candidates = failoverStrategy.orderCandidates(primary, fallbacks, request);
         return new DefaultFailoverPlan(candidates, primary, fallbacks);
     }
 
+    /**
+     * executeCandidate。
+     *
+     * @param candidate 参数
+     * @param request 参数
+     * @return 返回结果
+     */
     @Override
     protected ModelCallOutcome executeCandidate(FailoverCandidate candidate, AICallCommand request) {
         ModelConfig model = candidate.getModel();

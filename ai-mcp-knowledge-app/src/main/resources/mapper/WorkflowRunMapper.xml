@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.workflow.WorkflowRunMapper">
+
+    <resultMap id="WorkflowRunMap" type="com.xbk.knowledge.domain.model.entity.workflow.WorkflowRun">
+        <id column="run_id" property="runId"/>
+        <result column="workflow_id" property="workflowId"/>
+        <result column="workflow_code" property="workflowCode"/>
+        <result column="workflow_version_id" property="workflowVersionId"/>
+        <result column="trigger_source" property="triggerSource"/>
+        <result column="operator_id" property="operatorId"/>
+        <result column="operator_type" property="operatorType"/>
+        <result column="session_id" property="sessionId"/>
+        <result column="status" property="status"/>
+        <result column="current_node_key" property="currentNodeKey"/>
+        <result column="cost_ms" property="costMs"/>
+        <result column="error_message" property="errorMessage"/>
+        <result column="started_at" property="startedAt"/>
+        <result column="ended_at" property="endedAt"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <insert id="insertRun" parameterType="com.xbk.knowledge.domain.model.entity.workflow.WorkflowRun">
+        insert into workflow_run (
+            trigger_source, operator_id, operator_type, session_id,
+            status, current_node_key, cost_ms, error_message, started_at, ended_at
+        ) values (
+            #{triggerSource}, #{operatorId}, #{operatorType}, #{sessionId},
+            #{status}, #{currentNodeKey}, #{costMs}, #{errorMessage}, #{startedAt}, #{endedAt}
+        )
+    </insert>
+
+    <select id="findByRunId" resultMap="WorkflowRunMap">
+        select
+            trigger_source, operator_id, operator_type, session_id,
+            status, current_node_key, cost_ms, error_message, started_at, ended_at,
+            created_at, updated_at
+        from workflow_run
+        where 1 = 1
+          and run_id = #{runId}
+        limit 1
+    </select>
+
+    <update id="updateStatus">
+        update workflow_run
+        set status = #{status},
+            error_message = #{errorMessage},
+            ended_at = #{endedAt}
+        where 1 = 1
+          and run_id = #{runId}
+    </update>
+
+    <update id="updateStatusAndMetrics" parameterType="com.xbk.knowledge.domain.model.entity.workflow.WorkflowRun">
+        update workflow_run
+        set status = #{status},
+            current_node_key = #{currentNodeKey},
+            cost_ms = #{costMs},
+            error_message = #{errorMessage},
+            ended_at = #{endedAt}
+        where 1 = 1
+          and run_id = #{runId}
+    </update>
+
+    <select id="list" resultMap="WorkflowRunMap">
+        select
+            trigger_source, operator_id, operator_type, session_id,
+            status, current_node_key, cost_ms, error_message, started_at, ended_at,
+            created_at, updated_at
+        from workflow_run
+        where 1 = 1
+        <if test="status != null and status != ''">
+            and status = #{status}
+        </if>
+        order by started_at desc
+        limit #{pageSize} offset #{offset}
+    </select>
+
+    <select id="count" resultType="long">
+        select count(1)
+        from workflow_run
+        where 1 = 1
+        <if test="status != null and status != ''">
+            and status = #{status}
+        </if>
+    </select>
+
+    <delete id="deleteBefore">
+        delete from workflow_run
+        where 1 = 1
+          and started_at &lt; #{cutOff}
+        order by started_at asc
+        limit #{limit}
+    </delete>
+
+    <select id="listRunIdsBefore" resultType="string">
+        select run_id
+        from workflow_run
+        where 1 = 1
+          and started_at &lt; #{cutOff}
+        order by started_at asc
+        limit #{limit}
+    </select>
+
+    <delete id="deleteByRunIds">
+        delete from workflow_run
+        where 1 = 1
+          and run_id in
+        <foreach collection="runIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

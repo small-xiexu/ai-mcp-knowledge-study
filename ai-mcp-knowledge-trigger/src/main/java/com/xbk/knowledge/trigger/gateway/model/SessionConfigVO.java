@@ -39,6 +39,12 @@ public class SessionConfigVO {
     /** 会话是否活跃 */
     private volatile boolean active;
 
+    /**
+     * SessionConfigVO。
+     *
+     * @param sessionId 参数
+     * @param sink 参数
+     */
     public SessionConfigVO(String sessionId, Sinks.Many<ServerSentEvent<String>> sink) {
         this.sessionId = sessionId;
         this.sink = sink;

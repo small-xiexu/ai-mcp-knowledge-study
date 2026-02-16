@@ -16,7 +16,7 @@ import com.xbk.knowledge.domain.model.vo.gateway.ToolBindingQuery;
 import com.xbk.knowledge.domain.model.vo.gateway.ToolMappingQuery;
 import com.xbk.knowledge.domain.model.vo.gateway.ToolNameQuery;
 import com.xbk.knowledge.domain.model.vo.gateway.ToolRegistryPageQuery;
-import com.xbk.knowledge.domain.repository.ModelConfigRepository;
+import com.xbk.knowledge.domain.repository.model.ModelConfigRepository;
 import com.xbk.knowledge.domain.repository.gateway.McpGatewayAuthRepository;
 import com.xbk.knowledge.domain.repository.gateway.McpGatewayRepository;
 import com.xbk.knowledge.domain.repository.gateway.McpToolBindingRepository;
@@ -70,6 +70,12 @@ public class GatewayManageController {
     private final GatewayToolService gatewayToolService;
     private final GatewayObservabilityAppService gatewayObservabilityAppService;
 
+    /**
+     * listGatewayInstances。
+     *
+     * @param request 参数
+     * @return 返回结果
+     */
     @PostMapping("/instances/list")
     @SaCheckPermission("tool:read")
     public Result<PageResult<Map<String, Object>>> listGatewayInstances(@Valid @RequestBody PageRequest request) {
@@ -96,6 +102,12 @@ public class GatewayManageController {
         return Result.success(PageResult.of(records, total, request.getPageNum(), request.getPageSize()));
     }
 
+    /**
+     * saveGatewayInstance。
+     *
+     * @param request 参数
+     * @return 返回结果
+     */
     @PostMapping("/instances/save")
     @SaCheckPermission("tool:write")
     public Result<McpGateway> saveGatewayInstance(@RequestBody GatewayInstanceRequest request) {
@@ -130,6 +142,12 @@ public class GatewayManageController {
         return Result.success(saved);
     }
 
+    /**
+     * deleteGatewayInstance。
+     *
+     * @param query 参数
+     * @return 返回结果
+     */
     @PostMapping("/instances/delete")
     @SaCheckPermission("tool:write")
     public Result<Void> deleteGatewayInstance(@RequestBody IdQuery query) {
@@ -140,6 +158,12 @@ public class GatewayManageController {
         return Result.success();
     }
 
+    /**
+     * listGatewayAuth。
+     *
+     * @param request 参数
+     * @return 返回结果
+     */
     @PostMapping("/auth/list")
     @SaCheckPermission("tool:read")
     public Result<PageResult<Map<String, Object>>> listGatewayAuth(@RequestBody GatewayAuthListRequest request) {
@@ -191,6 +215,12 @@ public class GatewayManageController {
         return Result.success(PageResult.of(records, (long) filtered.size(), pageNum, pageSize));
     }
 
+    /**
+     * saveGatewayAuth。
+     *
+     * @param request 参数
+     * @return 返回结果
+     */
     @PostMapping("/auth/save")
     @SaCheckPermission("tool:write")
     public Result<McpGatewayAuth> saveGatewayAuth(@RequestBody SaveGatewayAuthRequest request) {
@@ -242,18 +272,36 @@ public class GatewayManageController {
         return Result.success(saved);
     }
 
+    /**
+     * enableGatewayAuth。
+     *
+     * @param query 参数
+     * @return 返回结果
+     */
     @PostMapping("/auth/enable")
     @SaCheckPermission("tool:write")
     public Result<Void> enableGatewayAuth(@RequestBody IdQuery query) {
         return updateGatewayAuthStatus(query, 1);
     }
 
+    /**
+     * disableGatewayAuth。
+     *
+     * @param query 参数
+     * @return 返回结果
+     */
     @PostMapping("/auth/disable")
     @SaCheckPermission("tool:write")
     public Result<Void> disableGatewayAuth(@RequestBody IdQuery query) {
         return updateGatewayAuthStatus(query, 0);
     }
 
+    /**
+     * listTools。
+     *
+     * @param request 参数
+     * @return 返回结果
+     */
     @PostMapping("/tools/list")
     @SaCheckPermission("tool:read")
     public Result<PageResult<Map<String, Object>>> listTools(@RequestBody ToolListRequest request) {
@@ -287,6 +335,12 @@ public class GatewayManageController {
         return Result.success(PageResult.of(rows, total, pageNum, pageSize));
     }
 
+    /**
+     * getTool。
+     *
+     * @param query 参数
+     * @return 返回结果
+     */
     @PostMapping("/tools/get")
     @SaCheckPermission("tool:read")
     public Result<Map<String, Object>> getTool(@RequestBody IdQuery query) {
@@ -309,6 +363,12 @@ public class GatewayManageController {
         return Result.success(data);
     }
 
+    /**
+     * saveTool。
+     *
+     * @param request 参数
+     * @return 返回结果
+     */
     @PostMapping("/tools/save")
     @SaCheckPermission("tool:write")
     public Result<McpToolRegistry> saveTool(@RequestBody SaveToolRequest request) {
@@ -346,6 +406,12 @@ public class GatewayManageController {
         return Result.success(saved);
     }
 
+    /**
+     * deleteTool。
+     *
+     * @param query 参数
+     * @return 返回结果
+     */
     @PostMapping("/tools/delete")
     @SaCheckPermission("tool:write")
     public Result<Void> deleteTool(@RequestBody IdQuery query) {
@@ -358,6 +424,12 @@ public class GatewayManageController {
         return Result.success();
     }
 
+    /**
+     * enableTool。
+     *
+     * @param query 参数
+     * @return 返回结果
+     */
     @PostMapping("/tools/enable")
     @SaCheckPermission("tool:write")
     public Result<Void> enableTool(@RequestBody IdQuery query) {
@@ -371,6 +443,12 @@ public class GatewayManageController {
         return Result.success();
     }
 
+    /**
+     * disableTool。
+     *
+     * @param query 参数
+     * @return 返回结果
+     */
     @PostMapping("/tools/disable")
     @SaCheckPermission("tool:write")
     public Result<Void> disableTool(@RequestBody IdQuery query) {
@@ -384,6 +462,12 @@ public class GatewayManageController {
         return Result.success();
     }
 
+    /**
+     * debugTool。
+     *
+     * @param request 参数
+     * @return 返回结果
+     */
     @PostMapping("/tools/debug")
     @SaCheckPermission("tool:invoke")
     public Result<Map<String, Object>> debugTool(@RequestBody ToolDebugRequest request) {
@@ -430,6 +514,12 @@ public class GatewayManageController {
         return Result.success(data);
     }
 
+    /**
+     * getModelBindings。
+     *
+     * @param request 参数
+     * @return 返回结果
+     */
     @PostMapping("/bindings/model/get")
     @SaCheckPermission("tool:read")
     public Result<Map<String, Object>> getModelBindings(@RequestBody ModelBindingQueryRequest request) {
@@ -456,6 +546,12 @@ public class GatewayManageController {
         return Result.success(data);
     }
 
+    /**
+     * saveModelBindings。
+     *
+     * @param request 参数
+     * @return 返回结果
+     */
     @PostMapping("/bindings/model/save")
     @SaCheckPermission("tool:write")
     public Result<Void> saveModelBindings(@RequestBody SaveModelBindingRequest request) {
@@ -499,6 +595,11 @@ public class GatewayManageController {
         return Result.success();
     }
 
+    /**
+     * allEnabledTools。
+     *
+     * @return 返回结果
+     */
     @PostMapping("/tools/all-enabled")
     @SaCheckPermission("tool:read")
     public Result<List<Map<String, Object>>> allEnabledTools() {
@@ -520,6 +621,11 @@ public class GatewayManageController {
         return Result.success(tools);
     }
 
+    /**
+     * enabledModels。
+     *
+     * @return 返回结果
+     */
     @PostMapping("/models/enabled")
     @SaCheckPermission("tool:read")
     public Result<List<Map<String, Object>>> enabledModels() {
@@ -535,6 +641,12 @@ public class GatewayManageController {
         return Result.success(result);
     }
 
+    /**
+     * queryGatewayMetrics。
+     *
+     * @param request 参数
+     * @return 返回结果
+     */
     @PostMapping("/metrics/overview")
     @SaCheckPermission("tool:read")
     public Result<Map<String, Object>> queryGatewayMetrics(@RequestBody GatewayMetricsQueryRequest request) {

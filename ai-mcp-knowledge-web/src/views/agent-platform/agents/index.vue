@@ -16,30 +16,39 @@
       </div>
     </div>
 
-    <div class="gemini-card">
+    <el-card class="gemini-card" shadow="never">
       <div class="table-toolbar">
-        <el-input
-          v-model="keyword"
-          placeholder="搜索 agentCode / agentName"
-          class="gemini-input"
-          style="width: 320px"
-          clearable
-          @keyup.enter="fetchData"
-        />
-        <el-select v-model="status" placeholder="状态" clearable class="gemini-select" style="width: 160px">
-          <el-option label="ENABLED" value="ENABLED" />
-          <el-option label="DISABLED" value="DISABLED" />
-        </el-select>
-        <el-button class="gemini-btn-secondary" @click="fetchData">
-          <el-icon><Search /></el-icon>
-          查询
-        </el-button>
+        <div class="toolbar-left">
+          <el-input
+            v-model="keyword"
+            placeholder="搜索 agentCode / 名称"
+            class="gemini-input"
+            style="width: 320px"
+            clearable
+            @keyup.enter="fetchData"
+          />
+          <el-select v-model="status" placeholder="状态" clearable class="gemini-select" style="width: 160px">
+            <el-option label="ENABLED" value="ENABLED" />
+            <el-option label="DISABLED" value="DISABLED" />
+          </el-select>
+          <el-button class="gemini-btn-secondary" @click="fetchData">
+            <el-icon><Search /></el-icon>
+            查询
+          </el-button>
+        </div>
+        <div class="toolbar-right">
+          <el-button class="gemini-btn-secondary" @click="fetchData">
+            <el-icon><Refresh /></el-icon>
+            刷新
+          </el-button>
+        </div>
       </div>
 
       <el-table v-loading="loading" :data="tableData" class="gemini-table" style="width: 100%">
         <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="agentCode" label="agentCode" min-width="160" show-overflow-tooltip />
-        <el-table-column prop="agentName" label="名称" min-width="160" show-overflow-tooltip />
+        <el-table-column prop="agentCode" label="agentCode" min-width="160" />
+        <el-table-column prop="agentName" label="名称" min-width="160" />
+        <el-table-column prop="description" label="描述" min-width="240" />
         <el-table-column prop="status" label="状态" width="130">
           <template #default="{ row }">
             <el-tag size="small" effect="dark" :type="row.status === 'ENABLED' ? 'success' : 'info'">
@@ -47,11 +56,11 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="currentPublishedVersionId" label="当前发布版本ID" min-width="140" show-overflow-tooltip />
+        <el-table-column prop="currentPublishedVersionId" label="当前发布版本ID" min-width="140" />
         <el-table-column label="更新时间" width="180">
           <template #default="{ row }">{{ formatDateTime(row.updatedAt) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right" align="right">
+        <el-table-column label="操作" width="220" align="right">
           <template #default="{ row }">
             <div class="action-buttons">
               <el-button link type="primary" class="action-btn" @click="openEdit(row)">
@@ -63,6 +72,14 @@
             </div>
           </template>
         </el-table-column>
+
+        <template #empty>
+          <div style="padding: 18px 0">
+            <el-empty description="暂无 Agent">
+              <el-button type="primary" class="gemini-btn-primary" @click="openCreate">新建 Agent</el-button>
+            </el-empty>
+          </div>
+        </template>
       </el-table>
 
       <div class="pager">
@@ -77,7 +94,7 @@
           @current-change="handlePageChange"
         />
       </div>
-    </div>
+    </el-card>
 
     <el-dialog v-model="dialogVisible" :title="dialogTitle" width="620px" class="gemini-dialog">
       <el-form :model="form" label-width="110px" class="gemini-form">
@@ -216,22 +233,4 @@ const handleSizeChange = (s: number) => {
 fetchData()
 </script>
 
-<style scoped lang="scss">
-.table-toolbar {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  margin-bottom: 14px;
-}
-.pager {
-  display: flex;
-  justify-content: flex-end;
-  padding-top: 12px;
-}
-.action-buttons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-}
-</style>
-
+<style scoped lang="scss"></style>

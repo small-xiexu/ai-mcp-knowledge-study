@@ -56,6 +56,19 @@ public class ChatClientAssemblyServiceImpl implements ChatClientAssemblyService 
      */
     @Override
     public ChatClient buildChatClient(ModelConfig modelConfig, CallAdvisor... extraAdvisors) {
+        return buildChatClient(modelConfig, true, extraAdvisors);
+    }
+
+    /**
+     * buildChatClient。
+     *
+     * @param modelConfig 参数
+     * @param enableTools 参数
+     * @param extraAdvisors 参数
+     * @return 返回结果
+     */
+    @Override
+    public ChatClient buildChatClient(ModelConfig modelConfig, boolean enableTools, CallAdvisor... extraAdvisors) {
         /*
          * 目的：由 Provider 负责模型实例化，保持扩展点一致
          */
@@ -65,6 +78,6 @@ public class ChatClientAssemblyServiceImpl implements ChatClientAssemblyService 
         /*
          * 目的：统一增强器装配（系统提示、工具、MCP 等）
          */
-        return chatClientEnhancer.enhance(chatModel, extraAdvisors);
+        return chatClientEnhancer.enhance(chatModel, enableTools, extraAdvisors);
     }
 }

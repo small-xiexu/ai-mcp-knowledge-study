@@ -18,7 +18,9 @@ import java.time.LocalDateTime;
  * AgentVersion 实体（草稿/发布/历史）。
  *
  * 对应表：agent_version
- */
+ 
+  * @author xiexu
+  */
 @TableName("agent_version")
 @Getter
 @Setter
@@ -50,6 +52,15 @@ public class AgentVersion {
     private String templateParamsJson;
 
     private String systemPromptSnapshot;
+
+    /**
+     * 绑定的 WorkflowVersion ID（可选）。
+     *
+     * 说明：
+     * - 非空时，AgentRuntime 会转发到 WorkflowRuntime 执行
+     * - 允许与 prompt_template 并存，但以 workflowVersionId 为优先
+     */
+    private Long workflowVersionId;
 
     private String outputContractVersion;
 
@@ -91,4 +102,3 @@ public class AgentVersion {
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedAt;
 }
-

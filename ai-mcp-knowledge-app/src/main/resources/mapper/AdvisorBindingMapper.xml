@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.advisor.AdvisorBindingMapper">
+
+    <resultMap id="AdvisorBindingMap" type="com.xbk.knowledge.domain.model.entity.advisor.AdvisorBinding">
+        <id column="id" property="id"/>
+        <result column="bind_type" property="bindType"/>
+        <result column="bind_target_id" property="bindTargetId"/>
+        <result column="advisor_id" property="advisorId"/>
+        <result column="order_no" property="orderNo"/>
+        <result column="enabled" property="enabled"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <resultMap id="AdvisorBindingViewMap" type="com.xbk.knowledge.domain.model.vo.advisor.AdvisorBindingView">
+        <id column="binding_id" property="bindingId"/>
+        <result column="bind_type" property="bindType"/>
+        <result column="bind_target_id" property="bindTargetId"/>
+        <result column="advisor_id" property="advisorId"/>
+        <result column="order_no" property="orderNo"/>
+        <result column="binding_enabled" property="bindingEnabled"/>
+        <result column="binding_created_at" property="bindingCreatedAt"/>
+        <result column="binding_updated_at" property="bindingUpdatedAt"/>
+
+        <result column="advisor_code" property="advisorCode"/>
+        <result column="advisor_name" property="advisorName"/>
+        <result column="advisor_type" property="advisorType"/>
+        <result column="advisor_enabled" property="advisorEnabled"/>
+        <result column="advisor_config_json" property="advisorConfigJson"/>
+        <result column="advisor_created_at" property="advisorCreatedAt"/>
+        <result column="advisor_updated_at" property="advisorUpdatedAt"/>
+    </resultMap>
+
+    <select id="listBindings" resultMap="AdvisorBindingMap">
+        select
+            id,
+            bind_type,
+            bind_target_id,
+            advisor_id,
+            order_no,
+            enabled,
+            created_at,
+            updated_at
+        from advisor_binding
+          and bind_type = #{q.bindType}
+          and bind_target_id = #{q.bindTargetId}
+        order by order_no asc, id asc
+    </select>
+
+    <select id="listBindingViews" resultMap="AdvisorBindingViewMap">
+        select
+            b.id as binding_id,
+            b.bind_type,
+            b.bind_target_id,
+            b.advisor_id,
+            b.order_no,
+            b.enabled as binding_enabled,
+            b.created_at as binding_created_at,
+            b.updated_at as binding_updated_at,
+            a.advisor_code,
+            a.advisor_name,
+            a.advisor_type,
+            a.enabled as advisor_enabled,
+            a.config_json as advisor_config_json,
+            a.created_at as advisor_created_at,
+            a.updated_at as advisor_updated_at
+        from advisor_binding b
+        inner join advisor a on a.id = b.advisor_id
+          and b.bind_type = #{q.bindType}
+          and b.bind_target_id = #{q.bindTargetId}
+        order by b.order_no asc, b.id asc
+    </select>
+
+    <delete id="deleteByTarget">
+        delete from advisor_binding
+          and bind_type = #{q.bindType}
+          and bind_target_id = #{q.bindTargetId}
+    </delete>
+
+    <insert id="insertBinding" useGeneratedKeys="true" keyProperty="id">
+        insert into advisor_binding (
+            bind_type,
+            bind_target_id,
+            advisor_id,
+            order_no,
+            enabled,
+            created_at,
+            updated_at
+        ) values (
+            #{bindType},
+            #{bindTargetId},
+            #{advisorId},
+            #{orderNo},
+            #{enabled},
+            now(),
+            now()
+        )
+    </insert>
+
+</mapper>
+

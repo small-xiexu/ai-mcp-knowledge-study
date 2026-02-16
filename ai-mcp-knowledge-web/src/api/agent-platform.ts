@@ -1,5 +1,6 @@
 import request from '@/utils/request'
 import type { PageResult, PageRequest } from '@/types/api'
+import type { PlatformContractV1 } from '@/types/workflow'
 
 export interface Agent {
   id: number
@@ -24,6 +25,7 @@ export interface AgentVersion {
   promptTemplateVersionNo?: number
   templateParamsJson?: string
   systemPromptSnapshot?: string
+  workflowVersionId?: number
   outputContractVersion?: string
   outputContractOptionsJson?: string
   modelStrategyType?: string
@@ -95,28 +97,8 @@ export interface ToolPolicy {
   updatedAt?: string
 }
 
-export interface PlatformContractV1 {
-  meta?: {
-    runId?: string
-    agentCode?: string
-    agentVersionId?: number
-    agentVersionNo?: number
-    orgId?: number
-    modelUsed?: string
-    costMs?: number
-    repairAttempts?: number
-    approvalRequestId?: number
-    pendingToolKey?: string
-    riskLevel?: string
-  }
-  status: string
-  answer: string
-  uncertainty: string
-  citations: Array<{ title: string; snippet: string; source: string }>
-  toolCalls: Array<{ toolKey: string; summary: string; resultSnippet: string }>
-  actionsNext: string[]
-  error?: { code: string; message: string; detail?: string }
-}
+// 统一使用 `src/types/workflow.d.ts` 中的 contract 定义（Agent/Workflow 都会返回 steps）。
+export type { PlatformContractV1 }
 
 export const listAgents = (data: PageRequest & { keyword?: string; status?: string }) =>
   request.post<PageResult<Agent>>('/agents/list', data)

@@ -20,30 +20,22 @@
       </div>
 
       <nav class="nav-menu">
-        <!-- 折叠态：只展示扁平菜单（图标 + tooltip） -->
+        <!-- 折叠态：只展示扁平菜单（图标） -->
         <template v-if="appStore.sidebarCollapsed">
-          <el-tooltip
+          <router-link
             v-for="r in flatMenuRoutes"
             :key="r.path"
-            :content="r.meta?.title"
-            placement="right"
-            :disabled="!appStore.sidebarCollapsed"
-            effect="dark"
-            :offset="12"
+            :to="resolveMenuPath(r.path)"
+            class="nav-item"
+            :class="{ active: activeMenu === resolveMenuPath(r.path) }"
           >
-            <router-link
-              :to="resolveMenuPath(r.path)"
-              class="nav-item"
-              :class="{ active: activeMenu === resolveMenuPath(r.path) }"
-            >
-              <div class="nav-icon-container">
-                <el-icon><component :is="r.meta?.icon" /></el-icon>
-              </div>
-              <span v-show="!appStore.sidebarCollapsed" class="nav-label">
-                {{ r.meta?.title }}
-              </span>
-            </router-link>
-          </el-tooltip>
+            <div class="nav-icon-container">
+              <el-icon><component :is="r.meta?.icon" /></el-icon>
+            </div>
+            <span v-show="!appStore.sidebarCollapsed" class="nav-label">
+              {{ r.meta?.title }}
+            </span>
+          </router-link>
         </template>
 
         <!-- 展开态：按分组展示，默认只展开“常用” -->
@@ -78,17 +70,6 @@
           </div>
         </template>
       </nav>
-
-      <div class="sidebar-bottom">
-        <el-tooltip content="设置" placement="right" :disabled="!appStore.sidebarCollapsed" effect="dark" :offset="12">
-          <div class="nav-item settings-item">
-            <div class="nav-icon-container">
-               <el-icon><Setting /></el-icon>
-            </div>
-            <span v-show="!appStore.sidebarCollapsed" class="nav-label">设置</span>
-          </div>
-        </el-tooltip>
-      </div>
     </aside>
 
     <!-- 主内容区 -->
@@ -100,25 +81,6 @@
           <el-icon class="title-arrow"><ArrowDown /></el-icon>
         </div>
         <div class="header-actions">
-          <div v-if="authStore.profile?.superAdmin" class="org-scope">
-            <span class="org-scope-label">目标组织</span>
-            <el-select
-              v-model="selectedOrgId"
-              filterable
-              clearable
-              placeholder="请选择 org"
-              class="org-scope-select"
-              @change="handleOrgChange"
-            >
-              <el-option
-                v-for="o in orgOptions"
-                :key="o.id"
-                :label="`${o.orgName} (${o.orgCode})`"
-                :value="o.id"
-              />
-            </el-select>
-            <span v-if="!selectedOrgId" class="org-scope-warning">未选择将无法写入</span>
-          </div>
           <el-dropdown trigger="click" popper-class="gemini-dropdown" @command="handleUserCommand">
             <div class="user-profile">
               <span class="pro-tag">{{ currentUserLabel }}</span>
@@ -156,9 +118,7 @@ import { useAppStore } from '@/store/app'
 import { useAuthStore } from '@/store/auth'
 import { usePermission } from '@/composables/usePermission'
 import routes from '@/router/routes'
-import { Menu as MenuIcon, Setting, ArrowDown, SwitchButton, CaretBottom } from '@element-plus/icons-vue'
-import { listIdentityOrgs } from '@/api/identity'
-import type { IdentityOrg } from '@/types/entity'
+import { Menu as MenuIcon, ArrowDown, SwitchButton, CaretBottom } from '@element-plus/icons-vue'
 
 const appStore = useAppStore()
 const authStore = useAuthStore()
@@ -166,13 +126,14 @@ const { hasPermission } = usePermission()
 const route = useRoute()
 const router = useRouter()
 
-type MenuGroupKey = 'common' | 'knowledge' | 'integration' | 'org'
+type MenuGroupKey = 'common' | 'agent' | 'knowledge' | 'integration' | 'org'
 
 const groupDefs: Array<{ key: MenuGroupKey; title: string; defaultOpen: boolean; order: number }> = [
   { key: 'common', title: '常用', defaultOpen: true, order: 1 },
-  { key: 'knowledge', title: '知识库', defaultOpen: false, order: 2 },
-  { key: 'integration', title: '配置与集成', defaultOpen: false, order: 3 },
-  { key: 'org', title: '组织与审计', defaultOpen: false, order: 4 }
+  { key: 'agent', title: 'Agent 平台', defaultOpen: true, order: 2 },
+  { key: 'knowledge', title: '知识库', defaultOpen: false, order: 3 },
+  { key: 'integration', title: '配置与集成', defaultOpen: false, order: 4 },
+  { key: 'org', title: '组织与审计', defaultOpen: false, order: 5 }
 ]
 
 const buildGroupOpen = (): Record<MenuGroupKey, boolean> => {
@@ -205,7 +166,7 @@ const isGroupOpen = (key: MenuGroupKey) => {
 }
 
 const normalizeGroupKey = (raw: unknown): MenuGroupKey => {
-  if (raw === 'integration' || raw === 'org' || raw === 'knowledge' || raw === 'common') {
+  if (raw === 'integration' || raw === 'org' || raw === 'knowledge' || raw === 'agent' || raw === 'common') {
     return raw
   }
   return 'common'
@@ -228,6 +189,7 @@ const allMenuRoutes = computed(() => {
 const menuGroups = computed(() => {
   const byKey: Record<MenuGroupKey, any[]> = {
     common: [],
+    agent: [],
     knowledge: [],
     integration: [],
     org: []
@@ -254,47 +216,6 @@ const menuGroups = computed(() => {
     }))
     .filter(g => g.routes.length > 0)
 })
-
-const orgOptions = ref<IdentityOrg[]>([])
-const selectedOrgId = ref<number | null>(authStore.targetOrg?.orgId || null)
-
-const loadOrgs = async () => {
-  if (!authStore.profile?.superAdmin) {
-    return
-  }
-  try {
-    const res = await listIdentityOrgs()
-    orgOptions.value = res.data || []
-  } catch (e) {
-    // ignore
-  }
-}
-
-const handleOrgChange = (val: number | null) => {
-  if (!val) {
-    authStore.setTargetOrg(null)
-    return
-  }
-  const found = orgOptions.value.find(o => o.id === val)
-  authStore.setTargetOrg(found ? { orgId: found.id, orgName: found.orgName } : { orgId: val })
-}
-
-watch(
-  () => authStore.profile?.superAdmin,
-  (v) => {
-    if (v) {
-      loadOrgs()
-    }
-  },
-  { immediate: true }
-)
-
-watch(
-  () => authStore.targetOrg?.orgId,
-  (v) => {
-    selectedOrgId.value = v || null
-  }
-)
 
 const flatMenuRoutes = computed(() => {
   return menuGroups.value.flatMap(g => g.routes)
@@ -387,6 +308,8 @@ const handleUserCommand = async (command: string | number | object) => {
   transition: width 0.3s cubic-bezier(0.2, 0, 0, 1), transform 0.3s ease;
   flex-shrink: 0;
   z-index: 100;
+  /* Keep layout stable; let the menu area scroll instead of the whole page. */
+  overflow: hidden;
 }
 
 .app-sidebar.collapsed {
@@ -458,6 +381,11 @@ const handleUserCommand = async (command: string | number | object) => {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  /* Make sidebar scrollable when menu exceeds viewport height */
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 4px;
 }
 
 .menu-group {
@@ -554,15 +482,6 @@ const handleUserCommand = async (command: string | number | object) => {
   color: inherit;
 }
 
-.sidebar-bottom {
-  margin-top: auto;
-  padding-bottom: 24px;
-}
-
-.settings-item {
-  margin-top: 10px;
-}
-
 /* Content Area */
 .app-content {
   flex: 1;
@@ -620,28 +539,6 @@ const handleUserCommand = async (command: string | number | object) => {
   align-items: center;
   gap: 12px;
   cursor: pointer;
-}
-
-.org-scope {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-right: 10px;
-}
-
-.org-scope-label {
-  color: var(--gemini-text-secondary);
-  font-size: 12px;
-}
-
-.org-scope-select {
-  width: 220px;
-}
-
-.org-scope-warning {
-  color: var(--gemini-danger);
-  font-size: 12px;
-  opacity: 0.9;
 }
 
 .pro-tag {

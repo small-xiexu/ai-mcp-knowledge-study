@@ -7,6 +7,7 @@
   /* Secondary surface/cards */
   --gemini-surface-dim: #0e0e10;
   /* Darker background for depth */
+  --gemini-card-bg: rgba(30, 31, 32, 0.72);
   --gemini-text-primary: #e3e3e3;
   /* Main text */
   --gemini-text-secondary: #c4c7c5;
@@ -29,7 +30,8 @@
   width: 100%;
   min-height: 100%;
   padding: 24px;
-  background-color: var(--gemini-bg-primary);
+  /* Use layout surface; avoid painting another large background block inside app-content. */
+  background-color: transparent;
   color: var(--gemini-text-primary);
   box-sizing: border-box;
 }
@@ -62,10 +64,26 @@
   background: var(--gemini-card-bg);
   border: 1px solid var(--gemini-border);
   border-radius: 16px;
-  padding: 0;
   overflow: hidden;
   backdrop-filter: blur(10px);
   margin-bottom: 24px;
+
+  /* div.gemini-card */
+  &:not(.el-card) {
+    padding: 18px 18px 12px;
+  }
+
+  /* ElCard root */
+  &.el-card {
+    padding: 0;
+    background: var(--gemini-card-bg);
+    border-color: var(--gemini-border);
+
+    .el-card__body {
+      padding: 18px 18px 12px;
+      color: var(--gemini-text-primary);
+    }
+  }
 
   .el-card__header {
     border-bottom: 1px solid var(--gemini-border);
@@ -75,9 +93,46 @@
   }
 
   .el-card__body {
-    padding: 24px;
+    padding: 18px 18px 12px;
     color: var(--gemini-text-primary);
   }
+}
+
+/* Common toolbar + pager (list pages) */
+.table-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+
+  .toolbar-left {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+  }
+}
+
+.pager {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 12px;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 /* Transparent Table */

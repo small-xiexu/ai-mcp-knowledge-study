@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xbk.knowledge.application.provider.ModelProviderFactory;
 import com.xbk.knowledge.application.service.app.ApprovalAppService;
 import com.xbk.knowledge.application.service.app.IdentityContextService;
+import com.xbk.knowledge.application.service.app.WorkflowRuntimeAppService;
 import com.xbk.knowledge.application.support.contract.PlatformContractV1OutputSupport;
 import com.xbk.knowledge.application.support.rag.AgentRagGovernanceSupport;
 import com.xbk.knowledge.application.support.rag.AgentRagGovernanceSupport.ResolvedRag;
@@ -14,12 +15,14 @@ import com.xbk.knowledge.domain.model.entity.agent.AgentRun;
 import com.xbk.knowledge.domain.model.entity.agent.AgentVersion;
 import com.xbk.knowledge.domain.model.entity.approval.ApprovalRequest;
 import com.xbk.knowledge.domain.model.vo.agent.AgentVersionIdQuery;
-import com.xbk.knowledge.domain.repository.AgentRunContextRepository;
-import com.xbk.knowledge.domain.repository.AgentRunRepository;
-import com.xbk.knowledge.domain.repository.AgentVersionRepository;
-import com.xbk.knowledge.domain.repository.ApprovalRequestRepository;
-import com.xbk.knowledge.domain.repository.SysAuditEventRepository;
-import com.xbk.knowledge.domain.service.IModelConfigService;
+import com.xbk.knowledge.domain.repository.agent.AgentRunContextRepository;
+import com.xbk.knowledge.domain.repository.agent.AgentRunRepository;
+import com.xbk.knowledge.domain.repository.agent.AgentVersionRepository;
+import com.xbk.knowledge.domain.repository.approval.ApprovalRequestRepository;
+import com.xbk.knowledge.domain.repository.audit.SysAuditEventRepository;
+import com.xbk.knowledge.domain.repository.workflow.WorkflowRunContextRepository;
+import com.xbk.knowledge.domain.repository.workflow.WorkflowRunRepository;
+import com.xbk.knowledge.domain.service.model.IModelConfigService;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.contract.PlatformContractV1;
 import com.xbk.knowledge.types.context.OrgContext;
@@ -76,10 +79,21 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
     private final PlatformContractV1OutputSupport outputSupport;
     private final SysAuditEventRepository sysAuditEventRepository;
     private final AgentRagGovernanceSupport ragGovernanceSupport;
+    private final WorkflowRuntimeAppService workflowRuntimeAppService;
+    private final WorkflowRunRepository workflowRunRepository;
+    private final WorkflowRunContextRepository workflowRunContextRepository;
 
+    /**
+     * list。
+     *
+     * @param orgId 参数
+     * @param status 参数
+     * @param offset 参数
+     * @param pageSize 参数
+     * @return 返回结果
+     */
     @Override
     public PageResult<ApprovalRequest> list(Long orgId, String status, int offset, int pageSize) {
-        OrgContextHolder.requireExplicitTargetOrgIfSuperAdmin();
         int safeOffset = Math.max(offset, 0);
         int safeSize = pageSize <= 0 ? 20 : Math.min(pageSize, 200);
         List<ApprovalRequest> list = approvalRequestRepository.list(orgId, status, safeOffset, safeSize);
@@ -88,16 +102,29 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
         return PageResult.of(list, total, pageNum, safeSize);
     }
 
+    /**
+     * get。
+     *
+     * @param orgId 参数
+     * @param id 参数
+     * @return 返回结果
+     */
     @Override
     public ApprovalRequest get(Long orgId, Long id) {
-        OrgContextHolder.requireExplicitTargetOrgIfSuperAdmin();
         return approvalRequestRepository.findById(orgId, id)
                 .orElseThrow(() -> new NotFoundException("审批单不存在，id=" + id));
     }
 
+    /**
+     * approve。
+     *
+     * @param orgId 参数
+     * @param id 参数
+     * @param decisionComment 参数
+     * @return 返回结果
+     */
     @Override
     public PlatformContractV1 approve(Long orgId, Long id, String decisionComment) {
-        OrgContextHolder.requireExplicitTargetOrgIfSuperAdmin();
         if (orgId == null || id == null) {
             throw new IllegalArgumentException("orgId/id 不能为空");
         }
@@ -124,65 +151,84 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
         }
         recordApprovalAudit(orgId, req.getRunId(), id, "APPROVED", now, null);
 
-        AgentRun run = agentRunRepository.findByRunId(orgId, req.getRunId())
-                .orElseThrow(() -> new NotFoundException("关联 run 不存在，runId=" + req.getRunId()));
-        agentRunRepository.updateStatus(orgId, req.getRunId(), "RUNNING", null, null);
+        // 分支：Agent 场景沿用旧逻辑；Workflow 场景交给 WorkflowRuntime 续跑
+        if (req.getAgentVersionId() != null) {
+            AgentRun run = agentRunRepository.findByRunId(orgId, req.getRunId())
+                    .orElseThrow(() -> new NotFoundException("关联 run 不存在，runId=" + req.getRunId()));
+            agentRunRepository.updateStatus(orgId, req.getRunId(), "RUNNING", null, null);
 
-        AgentVersion version = agentVersionRepository.findById(new AgentVersionIdQuery(orgId, req.getAgentVersionId()))
-                .orElseThrow(() -> new NotFoundException("关联 AgentVersion 不存在，id=" + req.getAgentVersionId()));
-        ModelConfig model = resolveModelForVersion(orgId, version);
+            AgentVersion version = agentVersionRepository.findById(new AgentVersionIdQuery(orgId, req.getAgentVersionId()))
+                    .orElseThrow(() -> new NotFoundException("关联 AgentVersion 不存在，id=" + req.getAgentVersionId()));
+            ModelConfig model = resolveModelForVersion(orgId, version);
 
-        // 执行工具（使用 toolKey 精确定位回调）
-        String toolResult = executeApprovedTool(req.getToolKey(), req.getArgumentsSnapshotJson(), req.getRunId());
+            // 执行工具（使用 toolKey 精确定位回调）
+            String toolResult = executeApprovedTool(req.getToolKey(), req.getArgumentsSnapshotJson(), req.getRunId());
 
-        // 继续调用模型（不启用工具，避免二次工具调用），强制输出 v1 JSON 并解析/修复
-        ContinuedOutput continued = continueRunByModel(version, model, run.getSessionId(), run.getAgentCode(), run.getRunId(), run.getOrgId(), run.getAgentVersionId(), toolResult);
+            // 继续调用模型（不启用工具，避免二次工具调用），强制输出 v1 JSON 并解析/修复
+            ContinuedOutput continued = continueRunByModel(version, model, run.getSessionId(), run.getAgentCode(), run.getRunId(), run.getOrgId(), run.getAgentVersionId(), toolResult);
 
-        long costMs = System.currentTimeMillis() - start;
-        agentRunRepository.updateStatusAndMetrics(AgentRun.builder()
-                .runId(run.getRunId())
-                .orgId(orgId)
-                .status("SUCCESS")
-                .modelIdUsed(model == null ? null : model.getId())
-                .modelNameUsed(model == null ? null : model.getModelName())
-                .totalTokens(null)
-                .toolCallCount(null)
-                .toolDeniedCount(null)
-                .repairAttempts(null)
-                .costMs(costMs)
-                .errorMessage(null)
-                .endedAt(LocalDateTime.now())
-                .build());
+            long costMs = System.currentTimeMillis() - start;
+            agentRunRepository.updateStatusAndMetrics(AgentRun.builder()
+                    .runId(run.getRunId())
+                    .orgId(orgId)
+                    .status("SUCCESS")
+                    .modelIdUsed(model == null ? null : model.getId())
+                    .modelNameUsed(model == null ? null : model.getModelName())
+                    .totalTokens(null)
+                    .toolCallCount(null)
+                    .toolDeniedCount(null)
+                    .repairAttempts(null)
+                    .costMs(costMs)
+                    .errorMessage(null)
+                    .endedAt(LocalDateTime.now())
+                    .build());
 
-        try {
-            agentRunContextRepository.updateStatus(orgId, run.getRunId(), "RESUMED");
-        } catch (Exception e) {
-            log.warn("更新 agent_run_context 状态失败，runId: {}", run.getRunId(), e);
+            try {
+                agentRunContextRepository.updateStatus(orgId, run.getRunId(), "RESUMED");
+            } catch (Exception e) {
+                log.warn("更新 agent_run_context 状态失败，runId: {}", run.getRunId(), e);
+            }
+
+            return PlatformContractV1.builder()
+                    .meta(PlatformContractV1.Meta.builder()
+                            .runId(run.getRunId())
+                            .agentCode(run.getAgentCode())
+                            .agentVersionId(version.getId())
+                            .agentVersionNo(version.getVersionNo())
+                            .orgId(orgId)
+                            .modelUsed(model == null ? null : model.getModelName())
+                            .costMs(costMs)
+                            .repairAttempts(0)
+                            .approvalRequestId(req.getId())
+                            .build())
+                    .status("SUCCESS")
+                    .answer(continued == null || continued.contract == null ? "" : continued.contract.getAnswer())
+                    .uncertainty(continued == null || continued.contract == null ? "" : continued.contract.getUncertainty())
+                    .citations(continued == null || continued.contract == null ? List.of() : continued.contract.getCitations())
+                    .toolCalls(continued == null || continued.contract == null ? List.of() : continued.contract.getToolCalls())
+                    .actionsNext(continued == null || continued.contract == null ? List.of() : continued.contract.getActionsNext())
+                    .build();
         }
 
-        return PlatformContractV1.builder()
-                .meta(PlatformContractV1.Meta.builder()
-                        .runId(run.getRunId())
-                        .agentCode(run.getAgentCode())
-                        .agentVersionId(version.getId())
-                        .agentVersionNo(version.getVersionNo())
-                        .orgId(orgId)
-                        .modelUsed(model == null ? null : model.getModelName())
-                        .costMs(costMs)
-                        .repairAttempts(0)
-                        .build())
-                .status("SUCCESS")
-                .answer(continued == null || continued.contract == null ? "" : continued.contract.getAnswer())
-                .uncertainty(continued == null || continued.contract == null ? "" : continued.contract.getUncertainty())
-                .citations(continued == null || continued.contract == null ? List.of() : continued.contract.getCitations())
-                .toolCalls(continued == null || continued.contract == null ? List.of() : continued.contract.getToolCalls())
-                .actionsNext(continued == null || continued.contract == null ? List.of() : continued.contract.getActionsNext())
-                .build();
+        if (req.getWorkflowVersionId() != null) {
+            // Workflow 续跑：由 WorkflowRuntime 负责执行工具 + 继续执行图
+            PlatformContractV1 result = workflowRuntimeAppService.resumeFromApproval(orgId, id);
+            return result;
+        }
+
+        throw new BusinessException("审批单缺少 agent/workflow 归属信息，无法续跑");
     }
 
+    /**
+     * reject。
+     *
+     * @param orgId 参数
+     * @param id 参数
+     * @param decisionComment 参数
+     * @return 返回结果
+     */
     @Override
     public ApprovalRequest reject(Long orgId, Long id, String decisionComment) {
-        OrgContextHolder.requireExplicitTargetOrgIfSuperAdmin();
         if (orgId == null || id == null) {
             throw new IllegalArgumentException("orgId/id 不能为空");
         }
@@ -200,11 +246,20 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
         recordApprovalAudit(orgId, req.getRunId(), id, "REJECTED", now, decisionComment);
 
         if (StringUtils.hasText(req.getRunId())) {
-            agentRunRepository.updateStatus(orgId, req.getRunId(), "CANCELLED", "审批拒绝", LocalDateTime.now());
-            try {
-                agentRunContextRepository.updateStatus(orgId, req.getRunId(), "EXPIRED");
-            } catch (Exception e) {
-                log.warn("更新 agent_run_context 状态失败（reject），runId: {}", req.getRunId(), e);
+            if (req.getAgentVersionId() != null) {
+                agentRunRepository.updateStatus(orgId, req.getRunId(), "CANCELLED", "审批拒绝", LocalDateTime.now());
+                try {
+                    agentRunContextRepository.updateStatus(orgId, req.getRunId(), "EXPIRED");
+                } catch (Exception e) {
+                    log.warn("更新 agent_run_context 状态失败（reject），runId: {}", req.getRunId(), e);
+                }
+            } else if (req.getWorkflowVersionId() != null) {
+                workflowRunRepository.updateStatus(orgId, req.getRunId(), "CANCELLED", "审批拒绝", LocalDateTime.now());
+                try {
+                    workflowRunContextRepository.updateStatus(orgId, req.getRunId(), "EXPIRED");
+                } catch (Exception e) {
+                    log.warn("更新 workflow_run_context 状态失败（reject），runId: {}", req.getRunId(), e);
+                }
             }
         }
         return approvalRequestRepository.findById(orgId, id)

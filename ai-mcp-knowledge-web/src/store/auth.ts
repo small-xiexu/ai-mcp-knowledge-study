@@ -8,7 +8,6 @@ import {
   saveAuthProfile,
   saveAuthToken
 } from '@/utils/auth'
-import { clearTargetOrgStorage, getTargetOrgFromStorage, saveTargetOrg, type StoredTargetOrg } from '@/utils/org-scope'
 
 interface LoginPayload {
   username: string
@@ -21,8 +20,7 @@ export const useAuthStore = defineStore('auth', {
     tokenValue: '',
     tokenTimeout: undefined as number | undefined,
     profile: null as AuthProfile | null,
-    initialized: false,
-    targetOrg: null as StoredTargetOrg | null
+    initialized: false
   }),
 
   getters: {
@@ -43,14 +41,12 @@ export const useAuthStore = defineStore('auth', {
       }
       const token = getAuthToken()
       const profile = getAuthProfileFromStorage()
-      const targetOrg = getTargetOrgFromStorage()
       if (token) {
         this.tokenName = token.tokenName
         this.tokenValue = token.tokenValue
         this.tokenTimeout = token.tokenTimeout
       }
       this.profile = profile
-      this.targetOrg = targetOrg
       this.initialized = true
     },
 
@@ -77,14 +73,7 @@ export const useAuthStore = defineStore('auth', {
       this.tokenValue = ''
       this.tokenTimeout = undefined
       this.profile = null
-      this.targetOrg = null
       clearAuthStorage()
-      clearTargetOrgStorage()
-    },
-
-    setTargetOrg(org: StoredTargetOrg | null) {
-      this.targetOrg = org
-      saveTargetOrg(org)
     },
 
     async login(payload: LoginPayload) {

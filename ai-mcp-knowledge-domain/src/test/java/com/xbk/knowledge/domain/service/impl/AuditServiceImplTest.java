@@ -2,7 +2,7 @@ package com.xbk.knowledge.domain.service.impl;
 
 import com.xbk.knowledge.domain.model.entity.ConfigAudit;
 import com.xbk.knowledge.domain.model.vo.audit.AuditQuery;
-import com.xbk.knowledge.domain.repository.ConfigAuditRepository;
+import com.xbk.knowledge.domain.repository.audit.ConfigAuditRepository;
 import com.xbk.knowledge.types.common.PageResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

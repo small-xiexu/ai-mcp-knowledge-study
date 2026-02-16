@@ -19,11 +19,24 @@ public class GatewayPageQuery {
     /** 每页大小 */
     private Integer pageSize;
 
+    /**
+     * GatewayPageQuery。
+     *
+     * @param offset 参数
+     * @param pageSize 参数
+     */
     public GatewayPageQuery(Integer offset, Integer pageSize) {
         this.offset = offset;
         this.pageSize = pageSize;
     }
 
+    /**
+     * GatewayPageQuery。
+     *
+     * @param orgId 参数
+     * @param offset 参数
+     * @param pageSize 参数
+     */
     public GatewayPageQuery(Long orgId, Integer offset, Integer pageSize) {
         this.orgId = orgId;
         this.offset = offset;

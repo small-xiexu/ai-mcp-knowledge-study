@@ -25,6 +25,9 @@ public class ApprovalResponse {
     private String runId;
     private Long agentId;
     private Long agentVersionId;
+    private Long workflowId;
+    private Long workflowVersionId;
+    private String nodeKey;
 
     private Long requesterId;
     private String requesterType;
@@ -42,4 +45,3 @@ public class ApprovalResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
-

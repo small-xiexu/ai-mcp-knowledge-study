@@ -2,8 +2,8 @@ package com.xbk.knowledge.application.service.app.impl;
 
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.model.vo.common.IdQuery;
-import com.xbk.knowledge.domain.repository.ModelActivationRepository;
-import com.xbk.knowledge.domain.service.IModelConfigService;
+import com.xbk.knowledge.domain.repository.model.ModelActivationRepository;
+import com.xbk.knowledge.domain.service.model.IModelConfigService;
 import com.xbk.knowledge.application.provider.ModelProviderFactory;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

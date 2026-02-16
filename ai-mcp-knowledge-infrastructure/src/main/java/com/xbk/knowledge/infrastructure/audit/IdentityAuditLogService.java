@@ -1,7 +1,7 @@
 package com.xbk.knowledge.infrastructure.audit;
 
 import com.xbk.knowledge.domain.model.entity.SysAuditEvent;
-import com.xbk.knowledge.infrastructure.mapper.SysAuditEventMapper;
+import com.xbk.knowledge.infrastructure.mapper.audit.SysAuditEventMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

@@ -85,13 +85,13 @@
           prop="oldValue"
           label="变更前"
           min-width="200"
-          show-overflow-tooltip
+
         />
         <el-table-column
           prop="newValue"
           label="变更后"
           min-width="200"
-          show-overflow-tooltip
+
         />
         <el-table-column
           label="操作时间"

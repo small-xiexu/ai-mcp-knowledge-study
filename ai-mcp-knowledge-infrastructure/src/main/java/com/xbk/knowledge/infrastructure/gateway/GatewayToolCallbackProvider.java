@@ -2,11 +2,11 @@ package com.xbk.knowledge.infrastructure.gateway;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xbk.knowledge.application.context.GatewayToolBindingContextHolder;
-import com.xbk.knowledge.domain.repository.AgentRunRepository;
-import com.xbk.knowledge.domain.repository.AgentRunContextRepository;
+import com.xbk.knowledge.domain.repository.agent.AgentRunRepository;
+import com.xbk.knowledge.domain.repository.agent.AgentRunContextRepository;
 import com.xbk.knowledge.domain.model.entity.approval.ApprovalRequest;
-import com.xbk.knowledge.domain.repository.ApprovalRequestRepository;
-import com.xbk.knowledge.domain.repository.ToolPolicyRepository;
+import com.xbk.knowledge.domain.repository.approval.ApprovalRequestRepository;
+import com.xbk.knowledge.domain.repository.tool.ToolPolicyRepository;
 import com.xbk.knowledge.domain.model.entity.gateway.McpGateway;
 import com.xbk.knowledge.domain.model.entity.gateway.McpToolBinding;
 import com.xbk.knowledge.domain.model.entity.gateway.McpToolRegistry;
@@ -492,11 +492,29 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
         }
         String digest = buildArgsDigest(safeArgs);
 
-        com.xbk.knowledge.domain.model.entity.agent.AgentRun run = agentRunRepository
-                .findByRunId(orgId, runId)
-                .orElse(null);
-        if (run == null || run.getAgentId() == null || run.getAgentVersionId() == null) {
-            throw new BusinessException("工具审批门禁触发，但无法定位 agent_run 记录，runId=" + runId);
+        Long agentId = null;
+        Long agentVersionId = null;
+        Long workflowId = null;
+        Long workflowVersionId = null;
+        String workflowNodeKey = null;
+
+        // 优先识别 Workflow 归属（即使同时存在 agent_run，也按 workflow 审批续跑）
+        com.xbk.knowledge.application.context.GatewayToolBindingContextHolder.BindingContext ctx =
+                com.xbk.knowledge.application.context.GatewayToolBindingContextHolder.get();
+        workflowId = ctx == null ? null : ctx.getWorkflowId();
+        workflowVersionId = ctx == null ? null : ctx.getWorkflowVersionId();
+        workflowNodeKey = ctx == null ? null : ctx.getWorkflowNodeKey();
+        if (workflowId == null || workflowVersionId == null || !StringUtils.hasText(workflowNodeKey)) {
+            // fallback：按 agent_run 归属
+            com.xbk.knowledge.domain.model.entity.agent.AgentRun run = agentRunRepository
+                    .findByRunId(orgId, runId)
+                    .orElse(null);
+            if (run != null && run.getAgentId() != null && run.getAgentVersionId() != null) {
+                agentId = run.getAgentId();
+                agentVersionId = run.getAgentVersionId();
+            } else {
+                throw new BusinessException("工具审批门禁触发，但无法定位运行归属（agent/workflow），runId=" + runId);
+            }
         }
 
         ApprovalRequest req = ApprovalRequest.builder()
@@ -504,8 +522,11 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
                 .approvalType("TOOL_INVOKE")
                 .status("PENDING")
                 .runId(runId)
-                .agentId(run.getAgentId())
-                .agentVersionId(run.getAgentVersionId())
+                .agentId(agentId)
+                .agentVersionId(agentVersionId)
+                .workflowId(workflowId)
+                .workflowVersionId(workflowVersionId)
+                .nodeKey(workflowNodeKey)
                 .requesterId(requesterId)
                 .requesterType(requesterType)
                 .requestReason(null)
@@ -519,7 +540,9 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
                 .expireAt(now.plusMinutes(30))
                 .build();
         approvalRequestRepository.insert(req);
-        upsertPendingToolSnapshot(orgId, runId, candidate.toolKey, riskLevel, digest, req.getId(), now);
+        if (agentId != null && agentVersionId != null) {
+            upsertPendingToolSnapshot(orgId, runId, candidate.toolKey, riskLevel, digest, req.getId(), now);
+        }
         recordApprovalCreatedAudit(runId, orgId, req, operatorId, operatorOrgId);
         throw new ApprovalRequiredException(req.getId(), candidate.toolKey, riskLevel, "工具调用需要审批（已生成审批单）");
     }
@@ -734,31 +757,64 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
             this.toolSource = toolSource;
         }
 
+        /**
+         * getToolDefinition。
+         *
+         * @return 返回结果
+         */
         @Override
         public org.springframework.ai.tool.definition.ToolDefinition getToolDefinition() {
             return delegate.getToolDefinition();
         }
 
+        /**
+         * getToolMetadata。
+         *
+         * @return 返回结果
+         */
         @Override
         public org.springframework.ai.tool.metadata.ToolMetadata getToolMetadata() {
             return delegate.getToolMetadata();
         }
 
+        /**
+         * call。
+         *
+         * @param toolInput 参数
+         * @return 返回结果
+         */
         @Override
         public String call(String toolInput) {
             return delegate.call(toolInput);
         }
 
+        /**
+         * call。
+         *
+         * @param toolInput 参数
+         * @param toolContext 参数
+         * @return 返回结果
+         */
         @Override
         public String call(String toolInput, org.springframework.ai.chat.model.ToolContext toolContext) {
             return delegate.call(toolInput, toolContext);
         }
 
+        /**
+         * toolKey。
+         *
+         * @return 返回结果
+         */
         @Override
         public String toolKey() {
             return toolKey;
         }
 
+        /**
+         * toolSource。
+         *
+         * @return 返回结果
+         */
         @Override
         public String toolSource() {
             return toolSource;

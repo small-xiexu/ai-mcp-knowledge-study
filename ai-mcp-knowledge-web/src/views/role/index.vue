@@ -52,7 +52,7 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="remark" label="备注" min-width="200" show-overflow-tooltip />
+        <el-table-column prop="remark" label="备注" min-width="200" />
         <el-table-column label="更新时间" width="180">
           <template #default="{ row }">
             {{ formatDateTime(row.updatedAt) }}

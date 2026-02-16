@@ -2,12 +2,11 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xbk.knowledge.infrastructure.mapper.ModelCapabilityMapper">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.model.ModelCapabilityMapper">
 
     <!-- 模型能力结果映射 -->
     <resultMap id="ModelCapabilityMap" type="com.xbk.knowledge.domain.model.entity.ModelCapability">
         <id column="id" property="id"/>
-        <result column="org_id" property="orgId"/>
         <result column="model_id" property="modelId"/>
         <result column="max_input_tokens" property="maxInputTokens"/>
         <result column="max_output_tokens" property="maxOutputTokens"/>
@@ -23,7 +22,6 @@
     <insert id="insertModelCapability" parameterType="com.xbk.knowledge.domain.model.entity.ModelCapability"
             useGeneratedKeys="true" keyProperty="id">
         insert into ai_model_capability (
-            org_id,
             model_id,
             max_input_tokens,
             max_output_tokens,
@@ -34,7 +32,6 @@
             created_at,
             updated_at
         ) values (
-            #{orgId},
             #{modelId},
             #{maxInputTokens},
             #{maxOutputTokens},
@@ -64,7 +61,6 @@
     <select id="findByModelId" resultMap="ModelCapabilityMap">
         select
             id,
-            org_id,
             model_id,
             max_input_tokens,
             max_output_tokens,

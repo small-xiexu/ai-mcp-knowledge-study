@@ -2,11 +2,10 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xbk.knowledge.infrastructure.mapper.AgentMapper">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.agent.AgentMapper">
 
     <resultMap id="AgentMap" type="com.xbk.knowledge.domain.model.entity.agent.Agent">
         <id column="id" property="id"/>
-        <result column="org_id" property="orgId"/>
         <result column="agent_code" property="agentCode"/>
         <result column="agent_name" property="agentName"/>
         <result column="description" property="description"/>
@@ -21,7 +20,6 @@
     <insert id="insertAgent" parameterType="com.xbk.knowledge.domain.model.entity.agent.Agent" useGeneratedKeys="true"
             keyProperty="id">
         insert into agent (
-            org_id,
             agent_code,
             agent_name,
             description,
@@ -32,7 +30,6 @@
             created_at,
             updated_at
         ) values (
-            #{orgId},
             #{agentCode},
             #{agentName},
             #{description},
@@ -53,14 +50,13 @@
             current_published_version_id = #{currentPublishedVersionId},
             updated_by = #{updatedBy},
             updated_at = #{updatedAt}
-        where org_id = #{orgId}
+        where 1 = 1
           and agent_code = #{agentCode}
     </update>
 
     <select id="findByCode" resultMap="AgentMap">
         select
             id,
-            org_id,
             agent_code,
             agent_name,
             description,
@@ -71,7 +67,7 @@
             created_at,
             updated_at
         from agent
-        where org_id = #{orgId}
+        where 1 = 1
           and agent_code = #{agentCode}
         limit 1
     </select>
@@ -79,7 +75,7 @@
     <select id="count" resultType="long">
         select count(1)
         from agent
-        where org_id = #{orgId}
+        where 1 = 1
         <if test="status != null and status != ''">
             and status = #{status}
         </if>
@@ -94,7 +90,6 @@
     <select id="findPage" resultMap="AgentMap">
         select
             id,
-            org_id,
             agent_code,
             agent_name,
             description,
@@ -105,7 +100,7 @@
             created_at,
             updated_at
         from agent
-        where org_id = #{orgId}
+        where 1 = 1
         <if test="status != null and status != ''">
             and status = #{status}
         </if>
@@ -119,5 +114,11 @@
         limit #{pageSize} offset #{offset}
     </select>
 
-</mapper>
+    <select id="countPublishedByOrgId" resultType="long">
+        select count(1)
+        from agent
+        where 1 = 1
+          and current_published_version_id is not null
+    </select>
 
+</mapper>

@@ -263,10 +263,20 @@ public class ChatSessionController {
         
         private Long sessionId;
 
+        /**
+         * getSessionId。
+         *
+         * @return 返回结果
+         */
         public Long getSessionId() {
             return sessionId;
         }
 
+        /**
+         * setSessionId。
+         *
+         * @param sessionId 参数
+         */
         public void setSessionId(Long sessionId) {
             this.sessionId = sessionId;
         }

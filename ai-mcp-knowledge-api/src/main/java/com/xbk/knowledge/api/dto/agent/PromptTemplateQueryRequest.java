@@ -6,7 +6,9 @@ import lombok.EqualsAndHashCode;
 
 /**
  * PromptTemplate 列表查询请求。
- */
+ 
+  * @author xiexu
+  */
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class PromptTemplateQueryRequest extends PageRequest {

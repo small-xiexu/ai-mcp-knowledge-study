@@ -61,7 +61,7 @@
           prop="baseUrl"
           label="Base URL"
           min-width="200"
-          show-overflow-tooltip
+
         >
           <template #default="{ row }">
             <span class="url-text">{{ row.baseUrl }}</span>

@@ -2,11 +2,10 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xbk.knowledge.infrastructure.mapper.RagTaskMapper">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.rag.RagTaskMapper">
 
     <resultMap id="RagTaskMap" type="com.xbk.knowledge.domain.model.entity.RagTask">
         <id column="id" property="id"/>
-        <result column="org_id" property="orgId"/>
         <result column="task_id" property="taskId"/>
         <result column="type" property="type"/>
         <result column="status" property="status"/>
@@ -22,7 +21,6 @@
 
     <insert id="insertTask" parameterType="com.xbk.knowledge.domain.model.entity.RagTask" useGeneratedKeys="true" keyProperty="id">
         insert into ai_rag_task (
-            org_id,
             task_id,
             type,
             status,
@@ -35,7 +33,6 @@
             created_at,
             updated_at
         ) values (
-            #{task.orgId},
             #{task.taskId},
             #{task.type},
             #{task.status},
@@ -66,7 +63,6 @@
     <select id="findByTaskId" resultMap="RagTaskMap">
         select
             id,
-            org_id,
             task_id,
             type,
             status,
@@ -86,7 +82,6 @@
     <select id="findPage" resultMap="RagTaskMap">
         select
             id,
-            org_id,
             task_id,
             type,
             status,
@@ -108,11 +103,40 @@
         from ai_rag_task
     </select>
 
+    <select id="countByOrgId" resultType="long">
+        select count(1)
+        from ai_rag_task
+        where 1 = 1
+    </select>
+
+    <select id="countByOrgIdAndStatus" resultType="long">
+        select count(1)
+        from ai_rag_task
+        where 1 = 1
+          and status = #{status}
+    </select>
+
+    <select id="countDistinctRagTagByOrgId" resultType="long">
+        select count(distinct rag_tag)
+        from ai_rag_task
+        where 1 = 1
+          and rag_tag is not null
+          and rag_tag != ''
+    </select>
+
+    <select id="countFailedTasksSinceByOrgId" resultType="long">
+        select count(1)
+        from ai_rag_task
+        where 1 = 1
+          and (status = 'FAILED' OR (status = 'COMPLETED' AND error_details IS NOT NULL))
+          AND created_at >= #{since}
+          AND (retry_count IS NULL OR retry_count &lt; 3)
+    </select>
+
     <!-- 查询失败的任务 -->
     <select id="findFailedTasksSince" resultMap="RagTaskMap">
         select
             id,
-            org_id,
             task_id,
             type,
             status,
@@ -135,7 +159,6 @@
     <select id="findProcessingTasksBefore" resultMap="RagTaskMap">
         select
             id,
-            org_id,
             task_id,
             type,
             status,

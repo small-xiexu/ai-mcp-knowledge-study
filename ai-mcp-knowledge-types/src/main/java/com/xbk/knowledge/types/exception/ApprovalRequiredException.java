@@ -16,6 +16,14 @@ public class ApprovalRequiredException extends RuntimeException {
     private final String toolKey;
     private final String riskLevel;
 
+    /**
+     * ApprovalRequiredException。
+     *
+     * @param approvalRequestId 参数
+     * @param toolKey 参数
+     * @param riskLevel 参数
+     * @param message 参数
+     */
     public ApprovalRequiredException(Long approvalRequestId, String toolKey, String riskLevel, String message) {
         super(message);
         this.approvalRequestId = approvalRequestId;

@@ -16,31 +16,45 @@
       </div>
     </div>
 
-    <div class="gemini-card">
+    <el-card class="gemini-card" shadow="never">
       <div class="table-toolbar">
-        <el-input v-model="keyword" placeholder="搜索 code/name" clearable style="width: 300px" @keyup.enter="fetchData" />
-        <el-select v-model="scope" placeholder="Scope" clearable style="width: 160px">
-          <el-option label="GLOBAL" value="GLOBAL" />
-          <el-option label="ORG" value="ORG" />
-        </el-select>
-        <el-select v-model="state" placeholder="State" clearable style="width: 160px">
-          <el-option label="DRAFT" value="DRAFT" />
-          <el-option label="PUBLISHED" value="PUBLISHED" />
-          <el-option label="ARCHIVED" value="ARCHIVED" />
-        </el-select>
-        <el-button class="gemini-btn-secondary" @click="fetchData">
-          <el-icon><Search /></el-icon>
-          查询
-        </el-button>
+        <div class="toolbar-left">
+          <el-input v-model="keyword" placeholder="搜索编码 / 名称" clearable style="width: 320px" @keyup.enter="fetchData" />
+          <el-select v-model="scope" placeholder="作用域" clearable style="width: 160px">
+            <el-option label="GLOBAL" value="GLOBAL" />
+            <el-option label="ORG" value="ORG" />
+          </el-select>
+          <el-select v-model="state" placeholder="状态" clearable style="width: 160px">
+            <el-option label="DRAFT" value="DRAFT" />
+            <el-option label="PUBLISHED" value="PUBLISHED" />
+            <el-option label="ARCHIVED" value="ARCHIVED" />
+          </el-select>
+          <el-button class="gemini-btn-secondary" @click="fetchData">
+            <el-icon><Search /></el-icon>
+            查询
+          </el-button>
+        </div>
+        <div class="toolbar-right">
+          <el-button class="gemini-btn-secondary" @click="fetchData">
+            <el-icon><Refresh /></el-icon>
+            刷新
+          </el-button>
+        </div>
       </div>
 
       <el-table v-loading="loading" :data="tableData" class="gemini-table" style="width: 100%">
         <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="scope" label="Scope" width="110" />
-        <el-table-column prop="templateCode" label="Code" min-width="160" show-overflow-tooltip />
-        <el-table-column prop="templateName" label="Name" min-width="180" show-overflow-tooltip />
-        <el-table-column prop="versionNo" label="Ver" width="80" />
-        <el-table-column prop="state" label="State" width="130">
+        <el-table-column prop="scope" label="作用域" width="110">
+          <template #default="{ row }">
+            <el-tag size="small" effect="dark" :type="row.scope === 'GLOBAL' ? 'info' : 'success'">
+              {{ row.scope }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="templateCode" label="编码" min-width="180" />
+        <el-table-column prop="templateName" label="名称" min-width="200" />
+        <el-table-column prop="versionNo" label="版本" width="90" />
+        <el-table-column prop="state" label="状态" width="130">
           <template #default="{ row }">
             <el-tag size="small" effect="dark" :type="row.state === 'PUBLISHED' ? 'success' : (row.state === 'DRAFT' ? 'warning' : 'info')">
               {{ row.state }}
@@ -50,7 +64,7 @@
         <el-table-column label="更新时间" width="180">
           <template #default="{ row }">{{ formatDateTime(row.updatedAt) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="260" fixed="right" align="right">
+        <el-table-column label="操作" width="300" align="right">
           <template #default="{ row }">
             <div class="action-buttons">
               <el-button link type="primary" class="action-btn" @click="openContent(row)">
@@ -68,6 +82,14 @@
             </div>
           </template>
         </el-table-column>
+
+        <template #empty>
+          <div style="padding: 18px 0">
+            <el-empty description="暂无模板">
+              <el-button type="primary" class="gemini-btn-primary" @click="openCreate">新建模板</el-button>
+            </el-empty>
+          </div>
+        </template>
       </el-table>
 
       <div class="pager">
@@ -82,7 +104,7 @@
           @current-change="handlePageChange"
         />
       </div>
-    </div>
+    </el-card>
 
     <el-dialog v-model="editVisible" :title="editTitle" width="920px" class="gemini-dialog">
       <el-form :model="form" label-width="120px" class="gemini-form">
@@ -274,22 +296,6 @@ fetchData()
 </script>
 
 <style scoped lang="scss">
-.table-toolbar {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  margin-bottom: 14px;
-}
-.pager {
-  display: flex;
-  justify-content: flex-end;
-  padding-top: 12px;
-}
-.action-buttons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-}
 .content-pre {
   max-height: 560px;
   overflow: auto;
@@ -301,4 +307,3 @@ fetchData()
   font-size: 12px;
 }
 </style>
-

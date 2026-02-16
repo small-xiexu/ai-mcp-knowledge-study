@@ -4,7 +4,7 @@ import com.xbk.knowledge.domain.model.vo.metrics.CallMetrics;
 import com.xbk.knowledge.domain.model.vo.metrics.MetricsQuery;
 import com.xbk.knowledge.domain.model.vo.metrics.ModelUsage;
 import com.xbk.knowledge.domain.model.vo.metrics.ModelUsageQuery;
-import com.xbk.knowledge.domain.repository.CallLogRepository;
+import com.xbk.knowledge.domain.repository.metrics.CallLogRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

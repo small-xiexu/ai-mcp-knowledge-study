@@ -5,7 +5,7 @@ import com.xbk.knowledge.domain.model.entity.TaskType;
 import com.xbk.knowledge.domain.model.vo.common.IdQuery;
 import com.xbk.knowledge.domain.model.vo.task.TaskTypeCodeQuery;
 import com.xbk.knowledge.domain.model.vo.task.TaskTypePageQuery;
-import com.xbk.knowledge.domain.service.ITaskTypeService;
+import com.xbk.knowledge.domain.service.task.ITaskTypeService;
 import com.xbk.knowledge.types.common.PageResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

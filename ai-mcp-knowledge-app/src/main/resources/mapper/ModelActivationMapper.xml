@@ -2,11 +2,10 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xbk.knowledge.infrastructure.mapper.ModelActivationMapper">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.model.ModelActivationMapper">
 
     <resultMap id="ModelActivationMap" type="com.xbk.knowledge.domain.model.entity.ModelActivation">
         <id column="id" property="id"/>
-        <result column="org_id" property="orgId"/>
         <result column="chat_model_id" property="chatModelId"/>
         <result column="embedding_model_id" property="embeddingModelId"/>
         <result column="created_at" property="createdAt"/>
@@ -16,7 +15,6 @@
     <select id="findActivation" resultMap="ModelActivationMap">
         select
             id,
-            org_id,
             chat_model_id,
             embedding_model_id,
             created_at,
@@ -27,13 +25,11 @@
 
     <insert id="insertActivation" parameterType="com.xbk.knowledge.domain.model.entity.ModelActivation">
         insert into ai_model_activation (
-            org_id,
             chat_model_id,
             embedding_model_id,
             created_at,
             updated_at
         ) values (
-            #{activation.orgId},
             #{activation.chatModelId},
             #{activation.embeddingModelId},
             #{activation.createdAt},

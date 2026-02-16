@@ -8,7 +8,7 @@
     </div>
 
     <el-row :gutter="20" class="quick-actions">
-      <el-col :xs="24" :sm="24" :md="8">
+      <el-col :xs="24" :sm="12" :md="6">
         <div class="action-card primary" @click="go('/ai-chat')">
           <div class="card-top">
             <div class="card-icon">
@@ -23,7 +23,24 @@
         </div>
       </el-col>
 
-      <el-col :xs="24" :sm="24" :md="8">
+      <el-col :xs="24" :sm="12" :md="6">
+        <div class="action-card" @click="go('/agents')">
+          <div class="card-top">
+            <div class="card-icon">
+              <el-icon><Operation /></el-icon>
+            </div>
+            <div class="card-title">Agent 管理</div>
+          </div>
+          <div class="card-desc">
+            当前组织共 {{ summary?.agent?.total ?? 0 }} 个 Agent，已发布 {{ summary?.agent?.published ?? 0 }} 个。
+          </div>
+          <div class="card-cta">
+            <el-button class="gemini-btn-secondary" @click.stop="go('/agents')">进入</el-button>
+          </div>
+        </div>
+      </el-col>
+
+      <el-col :xs="24" :sm="12" :md="6">
         <div class="action-card" @click="go('/knowledge')">
           <div class="card-top">
             <div class="card-icon">
@@ -38,7 +55,7 @@
         </div>
       </el-col>
 
-      <el-col :xs="24" :sm="24" :md="8">
+      <el-col :xs="24" :sm="12" :md="6">
         <div class="action-card" @click="go('/rag-tasks')">
           <div class="card-top">
             <div class="card-icon">
@@ -46,7 +63,10 @@
             </div>
             <div class="card-title">查看导入任务</div>
           </div>
-          <div class="card-desc">跟踪导入、向量化、任务执行进度与结果。</div>
+          <div class="card-desc">
+            任务 {{ summary?.knowledge?.ragTaskTotal ?? 0 }}，处理中 {{ summary?.knowledge?.ragTaskProcessing ?? 0 }}，
+            近 7 天失败 {{ summary?.knowledge?.ragTaskFailedRecent ?? 0 }}。
+          </div>
           <div class="card-cta">
             <el-button class="gemini-btn-secondary" @click.stop="go('/rag-tasks')">进入</el-button>
           </div>
@@ -54,11 +74,92 @@
       </el-col>
     </el-row>
 
-    <el-card class="gemini-card guide-card" shadow="never">
+    <el-row :gutter="20">
+      <el-col :xs="24" :md="14">
+        <el-card class="gemini-card guide-card" shadow="never">
+          <template #header>
+            <div class="guide-header">
+              <el-icon><Connection /></el-icon>
+              <span>多 Agent 治理闭环</span>
+              <span v-if="summaryLoading" class="loading-hint">加载中...</span>
+            </div>
+          </template>
+
+          <div class="governance-stats">
+            <div class="stat">
+              <div class="stat-label">工具策略</div>
+              <div class="stat-value">{{ summary?.tool?.toolPolicyEnabled ?? 0 }} / {{ summary?.tool?.toolPolicyTotal ?? 0 }}</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">待审批</div>
+              <div class="stat-value" :class="{ danger: (summary?.tool?.approvalsPending ?? 0) > 0 }">
+                {{ summary?.tool?.approvalsPending ?? 0 }}
+              </div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">启用调度</div>
+              <div class="stat-value">{{ summary?.schedule?.enabled ?? 0 }} / {{ summary?.schedule?.total ?? 0 }}</div>
+            </div>
+            <div class="stat">
+              <div class="stat-label">GLOBAL 模板</div>
+              <div class="stat-value">{{ summary?.prompt?.globalPublished ?? 0 }}</div>
+            </div>
+          </div>
+
+          <div class="guide-steps v2">
+            <div v-for="s in (summary?.guideSteps || [])" :key="s.key" class="step v2" :class="stepClass(s.status)">
+              <div class="step-left">
+                <div class="step-badge">{{ stepBadge(s.status) }}</div>
+                <div class="step-body">
+                  <div class="step-title">{{ s.title }}</div>
+                  <div v-if="s.message" class="step-desc">{{ s.message }}</div>
+                </div>
+              </div>
+              <el-button
+                v-if="s.actionPath && s.actionLabel"
+                text
+                class="link-btn"
+                @click="go(s.actionPath)"
+              >
+                {{ s.actionLabel }}
+              </el-button>
+            </div>
+
+            <div v-if="(summary?.guideSteps || []).length === 0" class="empty-guide">
+              暂无数据
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+
+      <el-col :xs="24" :md="10">
+        <el-card class="gemini-card guide-card" shadow="never">
+          <template #header>
+            <div class="guide-header">
+              <el-icon><Connection /></el-icon>
+              <span>常见入口</span>
+            </div>
+          </template>
+
+          <div class="link-grid">
+            <el-button class="gemini-btn-secondary" @click="go('/models')">LLM 配置</el-button>
+            <el-button class="gemini-btn-secondary" @click="go('/templates')">Prompt 模板</el-button>
+            <el-button class="gemini-btn-secondary" @click="go('/tool-policies')">工具策略</el-button>
+            <el-button class="gemini-btn-secondary" @click="go('/approvals')">工具审批</el-button>
+            <el-button class="gemini-btn-secondary" @click="go('/schedules')">Agent 调度</el-button>
+            <el-button class="gemini-btn-secondary" @click="go('/agent-playground')">Agent 调用</el-button>
+            <el-button class="gemini-btn-secondary" @click="go('/xxl')">任务中心</el-button>
+            <el-button class="gemini-btn-secondary" @click="go('/dashboard')">监控看板</el-button>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <el-card class="gemini-card guide-card legacy" shadow="never">
       <template #header>
         <div class="guide-header">
           <el-icon><Connection /></el-icon>
-          <span>常见流程</span>
+          <span>知识库与集成（补充）</span>
         </div>
       </template>
 
@@ -105,7 +206,6 @@
           <div class="link-grid">
             <el-button class="gemini-btn-secondary" @click="go('/users')">用户管理</el-button>
             <el-button class="gemini-btn-secondary" @click="go('/roles')">角色管理</el-button>
-            <el-button class="gemini-btn-secondary" @click="go('/orgs')">组织管理</el-button>
             <el-button class="gemini-btn-secondary" @click="go('/audit-events')">身份审计</el-button>
             <el-button class="gemini-btn-secondary" @click="go('/audit')">审计日志</el-button>
           </div>
@@ -116,14 +216,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { ChatDotRound, Clock, Collection, Connection } from '@element-plus/icons-vue'
+import { ChatDotRound, Clock, Collection, Connection, Operation } from '@element-plus/icons-vue'
+import { getWorkbenchSummary } from '@/api/workbench'
+import type { WorkbenchSummary } from '@/types/workbench'
 
 const router = useRouter()
 
 const expandAdvanced = ref(false)
 const advancedOpen = ref<string[]>([])
+
+const summaryLoading = ref(false)
+const summary = ref<WorkbenchSummary | null>(null)
 
 watch(
   () => expandAdvanced.value,
@@ -140,6 +245,32 @@ watch(
 const go = async (path: string) => {
   await router.push(path)
 }
+
+const loadSummary = async () => {
+  summaryLoading.value = true
+  try {
+    const res = await getWorkbenchSummary()
+    summary.value = res.data || null
+  } finally {
+    summaryLoading.value = false
+  }
+}
+
+const stepClass = (status?: string) => {
+  if (status === 'DONE') return 'done'
+  if (status === 'BLOCKED') return 'blocked'
+  return 'todo'
+}
+
+const stepBadge = (status?: string) => {
+  if (status === 'DONE') return '已完成'
+  if (status === 'BLOCKED') return '已拦截'
+  return '待处理'
+}
+
+onMounted(() => {
+  loadSummary()
+})
 </script>
 
 <style scoped>
@@ -234,6 +365,68 @@ const go = async (path: string) => {
   margin-bottom: 12px;
 }
 
+.guide-steps.v2 {
+  margin-bottom: 0;
+}
+
+.step.v2 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 12px 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.step-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.step-badge {
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--gemini-text-secondary);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.step.todo .step-badge {
+  color: var(--gemini-accent);
+  border-color: rgba(138, 180, 248, 0.35);
+  background: rgba(138, 180, 248, 0.10);
+}
+
+.step.done .step-badge {
+  color: var(--gemini-success);
+  border-color: rgba(129, 201, 149, 0.35);
+  background: rgba(129, 201, 149, 0.10);
+}
+
+.step.blocked {
+  border-color: rgba(242, 139, 130, 0.30);
+  background: rgba(242, 139, 130, 0.07);
+}
+
+.step.blocked .step-badge {
+  color: var(--gemini-danger);
+  border-color: rgba(242, 139, 130, 0.35);
+  background: rgba(242, 139, 130, 0.10);
+}
+
+.empty-guide {
+  padding: 12px 2px;
+  color: var(--gemini-text-secondary);
+  font-size: 13px;
+}
+
 .step {
   display: flex;
   align-items: center;
@@ -278,6 +471,43 @@ const go = async (path: string) => {
   color: var(--gemini-accent);
 }
 
+.governance-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.stat {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 10px 10px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--gemini-text-secondary);
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--gemini-text-primary);
+}
+
+.stat-value.danger {
+  color: var(--gemini-danger);
+}
+
+.loading-hint {
+  margin-left: 10px;
+  font-size: 12px;
+  color: var(--gemini-text-secondary);
+  font-weight: 400;
+}
+
 .advanced-collapse {
   --el-collapse-header-bg-color: transparent;
   --el-collapse-content-bg-color: transparent;
@@ -305,10 +535,18 @@ const go = async (path: string) => {
   .link-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .governance-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 520px) {
   .link-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .governance-stats {
     grid-template-columns: 1fr;
   }
 }

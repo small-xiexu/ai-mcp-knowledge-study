@@ -12,18 +12,26 @@
       </div>
     </div>
 
-    <div class="gemini-card">
+    <el-card class="gemini-card" shadow="never">
       <div class="table-toolbar">
-        <el-select v-model="status" placeholder="状态" clearable style="width: 180px">
-          <el-option label="PENDING" value="PENDING" />
-          <el-option label="APPROVED" value="APPROVED" />
-          <el-option label="REJECTED" value="REJECTED" />
-          <el-option label="EXPIRED" value="EXPIRED" />
-        </el-select>
-        <el-button class="gemini-btn-secondary" @click="fetchData">
-          <el-icon><Search /></el-icon>
-          查询
-        </el-button>
+        <div class="toolbar-left">
+          <el-select v-model="status" placeholder="状态" clearable style="width: 180px">
+            <el-option label="PENDING" value="PENDING" />
+            <el-option label="APPROVED" value="APPROVED" />
+            <el-option label="REJECTED" value="REJECTED" />
+            <el-option label="EXPIRED" value="EXPIRED" />
+          </el-select>
+          <el-button class="gemini-btn-secondary" @click="fetchData">
+            <el-icon><Search /></el-icon>
+            查询
+          </el-button>
+        </div>
+        <div class="toolbar-right">
+          <el-button class="gemini-btn-secondary" @click="fetchData">
+            <el-icon><Refresh /></el-icon>
+            刷新
+          </el-button>
+        </div>
       </div>
 
       <el-table v-loading="loading" :data="tableData" class="gemini-table" style="width: 100%">
@@ -35,13 +43,14 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="toolKey" label="toolKey" min-width="220" show-overflow-tooltip />
+        <el-table-column prop="toolKey" label="toolKey" min-width="220" />
         <el-table-column prop="riskLevel" label="risk" width="120" />
-        <el-table-column prop="runId" label="runId" min-width="240" show-overflow-tooltip />
+        <el-table-column prop="argumentsDigest" label="参数摘要" min-width="200" />
+        <el-table-column prop="runId" label="runId" min-width="240" />
         <el-table-column label="过期时间" width="180">
           <template #default="{ row }">{{ formatDateTime(row.expireAt) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="220" fixed="right" align="right">
+        <el-table-column label="操作" width="240" align="right">
           <template #default="{ row }">
             <div class="action-buttons">
               <el-button link type="primary" class="action-btn" @click="openDetail(row)">
@@ -68,6 +77,12 @@
             </div>
           </template>
         </el-table-column>
+
+        <template #empty>
+          <div style="padding: 18px 0">
+            <el-empty description="暂无审批单" />
+          </div>
+        </template>
       </el-table>
 
       <div class="pager">
@@ -82,7 +97,7 @@
           @current-change="handlePageChange"
         />
       </div>
-    </div>
+    </el-card>
 
     <el-dialog v-model="detailVisible" title="审批单详情" width="860px" class="gemini-dialog">
       <pre class="detail-pre">{{ JSON.stringify(currentDetail, null, 2) }}</pre>
@@ -175,22 +190,6 @@ fetchData()
 </script>
 
 <style scoped lang="scss">
-.table-toolbar {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  margin-bottom: 14px;
-}
-.pager {
-  display: flex;
-  justify-content: flex-end;
-  padding-top: 12px;
-}
-.action-buttons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-}
 .detail-pre {
   max-height: 560px;
   overflow: auto;
@@ -202,4 +201,3 @@ fetchData()
   font-size: 12px;
 }
 </style>
-

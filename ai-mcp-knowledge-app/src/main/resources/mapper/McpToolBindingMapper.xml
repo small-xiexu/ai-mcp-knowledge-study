@@ -2,11 +2,10 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xbk.knowledge.infrastructure.mapper.McpToolBindingMapper">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.gateway.McpToolBindingMapper">
 
     <resultMap id="McpToolBindingMap" type="com.xbk.knowledge.domain.model.entity.gateway.McpToolBinding">
         <id column="id" property="id"/>
-        <result column="org_id" property="orgId"/>
         <result column="gateway_id" property="gatewayId"/>
         <result column="tool_id" property="toolId"/>
         <result column="bind_type" property="bindType"/>
@@ -18,7 +17,6 @@
 
     <insert id="insertToolBinding" parameterType="com.xbk.knowledge.domain.model.entity.gateway.McpToolBinding" useGeneratedKeys="true" keyProperty="id">
         insert into mcp_tool_binding (
-            org_id,
             gateway_id,
             tool_id,
             bind_type,
@@ -27,7 +25,6 @@
             created_at,
             updated_at
         ) values (
-            #{orgId},
             #{gatewayId},
             #{toolId},
             #{bindType},
@@ -47,25 +44,21 @@
             enabled = #{enabled},
             updated_at = #{updatedAt}
         where id = #{id}
-          and org_id = #{orgId}
     </update>
 
     <delete id="deleteToolBindingById">
         delete from mcp_tool_binding
         where id = #{id}
-          and org_id = #{orgId}
     </delete>
 
     <delete id="deleteToolBindingByToolId">
         delete from mcp_tool_binding
         where tool_id = #{toolId}
-          and org_id = #{orgId}
     </delete>
 
     <select id="findByBindTypeAndTargetId" resultMap="McpToolBindingMap">
         select
             id,
-            org_id,
             gateway_id,
             tool_id,
             bind_type,
@@ -74,7 +67,7 @@
             created_at,
             updated_at
         from mcp_tool_binding
-        where org_id = #{orgId}
+        where 1 = 1
           and bind_type = #{bindType}
           and bind_target_id = #{bindTargetId}
     </select>
@@ -82,7 +75,6 @@
     <select id="findByToolId" resultMap="McpToolBindingMap">
         select
             id,
-            org_id,
             gateway_id,
             tool_id,
             bind_type,
@@ -92,7 +84,6 @@
             updated_at
         from mcp_tool_binding
         where tool_id = #{toolId}
-          and org_id = #{orgId}
     </select>
 
 </mapper>

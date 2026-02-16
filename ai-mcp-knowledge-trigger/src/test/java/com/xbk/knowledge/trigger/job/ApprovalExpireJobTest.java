@@ -2,10 +2,10 @@ package com.xbk.knowledge.trigger.job;
 
 import com.xbk.knowledge.domain.model.entity.SysAuditEvent;
 import com.xbk.knowledge.domain.model.entity.approval.ApprovalRequest;
-import com.xbk.knowledge.domain.repository.AgentRunContextRepository;
-import com.xbk.knowledge.domain.repository.AgentRunRepository;
-import com.xbk.knowledge.domain.repository.ApprovalRequestRepository;
-import com.xbk.knowledge.domain.repository.SysAuditEventRepository;
+import com.xbk.knowledge.domain.repository.agent.AgentRunContextRepository;
+import com.xbk.knowledge.domain.repository.agent.AgentRunRepository;
+import com.xbk.knowledge.domain.repository.approval.ApprovalRequestRepository;
+import com.xbk.knowledge.domain.repository.audit.SysAuditEventRepository;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;

@@ -13,7 +13,9 @@ import lombok.NoArgsConstructor;
  * AgentVersion 草稿创建/更新请求。
  *
  * 说明：本阶段优先保证“可发布/可回滚”的闭环，字段允许逐步扩展。
- */
+ 
+  * @author xiexu
+  */
 @Data
 @Builder
 @NoArgsConstructor
@@ -45,6 +47,11 @@ public class AgentVersionDraftRequest extends BaseRequest {
      * 模板参数 JSON（对象）。
      */
     private String templateParamsJson;
+
+    /**
+     * 绑定 WorkflowVersion ID（可选；非空时 Agent 调用转 Workflow 执行）。
+     */
+    private Long workflowVersionId;
 
     /**
      * 模型策略：TASK_TYPE_POLICY/FIXED_MODEL
@@ -90,4 +97,3 @@ public class AgentVersionDraftRequest extends BaseRequest {
      */
     private Integer versionNo;
 }
-

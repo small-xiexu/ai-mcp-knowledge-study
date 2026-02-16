@@ -13,11 +13,22 @@ public abstract class AbstractModelCallPolicy implements ModelCallPolicy {
      */
     private ModelCallPolicy next;
 
+    /**
+     * next。
+     *
+     * @return 返回结果
+     */
     @Override
     public ModelCallPolicy next() {
         return next;
     }
 
+    /**
+     * appendNext。
+     *
+     * @param next 参数
+     * @return 返回结果
+     */
     @Override
     public ModelCallPolicy appendNext(ModelCallPolicy next) {
         this.next = next;

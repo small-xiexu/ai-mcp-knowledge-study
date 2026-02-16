@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.workflow.WorkflowMapper">
+
+    <resultMap id="WorkflowMap" type="com.xbk.knowledge.domain.model.entity.workflow.Workflow">
+        <id column="id" property="id"/>
+        <result column="workflow_code" property="workflowCode"/>
+        <result column="workflow_name" property="workflowName"/>
+        <result column="description" property="description"/>
+        <result column="status" property="status"/>
+        <result column="current_published_version_id" property="currentPublishedVersionId"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="updated_by" property="updatedBy"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <insert id="insertWorkflow" parameterType="com.xbk.knowledge.domain.model.entity.workflow.Workflow"
+            useGeneratedKeys="true" keyProperty="id">
+        insert into workflow (
+            created_by, updated_by, created_at, updated_at
+        ) values (
+            #{createdBy}, #{updatedBy}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <update id="updateWorkflow" parameterType="com.xbk.knowledge.domain.model.entity.workflow.Workflow">
+        update workflow
+        set workflow_name = #{workflowName},
+            description = #{description},
+            status = #{status},
+            current_published_version_id = #{currentPublishedVersionId},
+            updated_by = #{updatedBy},
+            updated_at = #{updatedAt}
+        where id = #{id}
+    </update>
+
+    <select id="findById" resultMap="WorkflowMap">
+        select
+            created_by, updated_by, created_at, updated_at
+        from workflow
+        where id = #{id}
+        limit 1
+    </select>
+
+    <select id="findByCode" resultMap="WorkflowMap">
+        select
+            created_by, updated_by, created_at, updated_at
+        from workflow
+        where 1 = 1
+          and workflow_code = #{workflowCode}
+        limit 1
+    </select>
+
+    <select id="list" resultMap="WorkflowMap">
+        select
+            created_by, updated_by, created_at, updated_at
+        from workflow
+        where 1 = 1
+        <if test="keyword != null and keyword != ''">
+            and (workflow_code like concat('%', #{keyword}, '%')
+                 or workflow_name like concat('%', #{keyword}, '%'))
+        </if>
+        order by id desc
+        limit #{pageSize} offset #{offset}
+    </select>
+
+    <select id="count" resultType="long">
+        select count(1)
+        from workflow
+        where 1 = 1
+        <if test="keyword != null and keyword != ''">
+            and (workflow_code like concat('%', #{keyword}, '%')
+                 or workflow_name like concat('%', #{keyword}, '%'))
+        </if>
+    </select>
+
+</mapper>
+

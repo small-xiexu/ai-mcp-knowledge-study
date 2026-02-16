@@ -17,7 +17,9 @@ import java.time.LocalDateTime;
  * PromptTemplate 实体（模板资产，支持 GLOBAL/ORG）。
  *
  * 对应表：prompt_template
- */
+ 
+  * @author xiexu
+  */
 @TableName("prompt_template")
 @Getter
 @Setter

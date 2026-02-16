@@ -2,7 +2,6 @@ import request from '@/utils/request'
 import type { PageResult } from '@/types/api'
 import type {
   IdentityAuditEvent,
-  IdentityOrg,
   IdentityPermission,
   IdentityRole,
   IdentityUser
@@ -103,31 +102,6 @@ export interface PermissionListRequest extends OffsetPageRequest {
 
 export const listIdentityPermissions = (data: PermissionListRequest) =>
   request.post<PageResult<IdentityPermission>>('/permissions/list', toOffsetPayload(data))
-
-export const listIdentityOrgs = (data?: { status?: number }) => request.post<IdentityOrg[]>('/orgs/list', data || {})
-
-export const createIdentityOrg = (data: {
-  orgCode: string
-  orgName: string
-  parentId?: number
-  orgPath?: string
-  status?: number
-  remark?: string
-}) => request.post<IdentityOrg>('/orgs/create', data)
-
-export const updateIdentityOrg = (data: {
-  id: number
-  orgName: string
-  parentId?: number
-  orgPath?: string
-  status?: number
-  remark?: string
-}) => request.post<IdentityOrg>('/orgs/update', data)
-
-export const bindIdentityUserOrg = (data: {
-  userId: number
-  orgId: number
-}) => request.post<void>('/orgs/bind-user', data)
 
 export interface IdentityAuditEventListRequest extends OffsetPageRequest {
   operatorKeyword?: string

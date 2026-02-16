@@ -3,7 +3,7 @@ package com.xbk.knowledge.application.service.app.impl;
 import com.xbk.knowledge.application.service.app.AuditAppService;
 import com.xbk.knowledge.domain.model.entity.ConfigAudit;
 import com.xbk.knowledge.domain.model.vo.audit.AuditQuery;
-import com.xbk.knowledge.domain.service.IAuditService;
+import com.xbk.knowledge.domain.service.audit.IAuditService;
 import com.xbk.knowledge.types.common.PageResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

@@ -127,22 +127,14 @@
               >
                 编辑
               </el-button>
-              <el-tooltip
-                :content="row.enabled ? '重新建立运行时连接' : '请先启用配置方可连接'"
-                placement="top"
-                :show-after="500"
+              <el-button
+                text
+                class="action-btn"
+                :disabled="!row.enabled"
+                @click="handleRefresh(row)"
               >
-                <div style="display: inline-block;">
-                  <el-button
-                    text
-                    class="action-btn"
-                    :disabled="!row.enabled"
-                    @click="handleRefresh(row)"
-                  >
-                    开启连接
-                  </el-button>
-                </div>
-              </el-tooltip>
+                开启连接
+              </el-button>
               <el-button
                 text
                 class="action-btn"

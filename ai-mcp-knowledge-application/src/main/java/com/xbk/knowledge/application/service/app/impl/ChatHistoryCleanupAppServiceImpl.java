@@ -1,8 +1,8 @@
 package com.xbk.knowledge.application.service.app.impl;
 
 import com.xbk.knowledge.application.service.app.ChatHistoryCleanupAppService;
-import com.xbk.knowledge.domain.repository.ChatMessageRepository;
-import com.xbk.knowledge.domain.repository.ChatSessionRepository;
+import com.xbk.knowledge.domain.repository.chat.ChatMessageRepository;
+import com.xbk.knowledge.domain.repository.chat.ChatSessionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -13,7 +13,9 @@ import java.util.List;
  * 平台标准输出结构（Platform Contract v1）。
  *
  * 约束：无论成功/失败，都必须返回可解析结构。
- */
+ 
+  * @author xiexu
+  */
 @Data
 @Builder
 @NoArgsConstructor
@@ -40,6 +42,16 @@ public class PlatformContractV1 implements Serializable {
     private List<String> actionsNext = new ArrayList<>();
 
     /**
+     * 运行明细（面向用户可见）。
+     *
+     * 说明：
+     * - Agent/Workflow 均可填充
+     * - outputText 可能被截断或脱敏
+     */
+    @Builder.Default
+    private List<StepTrace> steps = new ArrayList<>();
+
+    /**
      * SUCCESS/FAILED/PENDING_APPROVAL。
      */
     private String status;
@@ -62,6 +74,12 @@ public class PlatformContractV1 implements Serializable {
         private String modelUsed;
         private Long costMs;
         private Integer repairAttempts;
+
+        // Workflow 相关（Workflow 场景可选）
+        private Long workflowId;
+        private String workflowCode;
+        private Long workflowVersionId;
+        private Integer workflowVersionNo;
 
         // 审批相关（PENDING_APPROVAL 时必填）
         private Long approvalRequestId;
@@ -104,5 +122,35 @@ public class PlatformContractV1 implements Serializable {
         private String message;
         private String detail;
     }
-}
 
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class StepTrace implements Serializable {
+        private static final long serialVersionUID = 1L;
+
+        private String nodeKey;
+        private String nodeType;
+        private String nodeName;
+        private String status;
+
+        private Long costMs;
+
+        private Integer promptTokens;
+        private Integer completionTokens;
+        private Integer totalTokens;
+
+        private Integer toolCallCount;
+        private Integer toolDeniedCount;
+
+        private String inputDigest;
+        private String outputDigest;
+
+        private String outputText;
+        private Boolean outputTruncated;
+
+        private Long approvalRequestId;
+        private String errorMessage;
+    }
+}

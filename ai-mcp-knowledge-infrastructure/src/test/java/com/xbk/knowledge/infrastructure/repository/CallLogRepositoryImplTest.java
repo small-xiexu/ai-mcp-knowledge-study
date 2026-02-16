@@ -3,7 +3,7 @@ package com.xbk.knowledge.infrastructure.repository;
 import com.xbk.knowledge.domain.model.aggregate.call.CallLogAggregate;
 import com.xbk.knowledge.domain.model.entity.CallLog;
 import com.xbk.knowledge.domain.model.vo.model.ModelIdQuery;
-import com.xbk.knowledge.infrastructure.mapper.CallLogMapper;
+import com.xbk.knowledge.infrastructure.mapper.metrics.CallLogMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 

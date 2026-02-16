@@ -18,14 +18,27 @@ public final class ToolInvokeBypassContextHolder {
         throw new IllegalStateException("Utility class");
     }
 
+    /**
+     * enable。
+     *
+     */
     public static void enable() {
         BYPASS.set(Boolean.TRUE);
     }
 
+    /**
+     * clear。
+     *
+     */
     public static void clear() {
         BYPASS.remove();
     }
 
+    /**
+     * isEnabled。
+     *
+     * @return 返回结果
+     */
     public static boolean isEnabled() {
         Boolean v = BYPASS.get();
         return Boolean.TRUE.equals(v);

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.workflow.WorkflowEdgeMapper">
+
+    <resultMap id="WorkflowEdgeMap" type="com.xbk.knowledge.domain.model.entity.workflow.WorkflowEdge">
+        <id column="id" property="id"/>
+        <result column="workflow_version_id" property="workflowVersionId"/>
+        <result column="source_key" property="sourceKey"/>
+        <result column="target_key" property="targetKey"/>
+        <result column="edge_type" property="edgeType"/>
+        <result column="condition_expr" property="conditionExpr"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <insert id="insertEdge" parameterType="com.xbk.knowledge.domain.model.entity.workflow.WorkflowEdge"
+            useGeneratedKeys="true" keyProperty="id">
+        insert into workflow_edge (
+            created_at, updated_at
+        ) values (
+            #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <delete id="deleteByVersion">
+        delete from workflow_edge
+        where 1 = 1
+          and workflow_version_id = #{workflowVersionId}
+    </delete>
+
+    <select id="listEdges" resultMap="WorkflowEdgeMap">
+        select
+            created_at, updated_at
+        from workflow_edge
+        where 1 = 1
+          and workflow_version_id = #{workflowVersionId}
+        order by id asc
+    </select>
+
+</mapper>
+

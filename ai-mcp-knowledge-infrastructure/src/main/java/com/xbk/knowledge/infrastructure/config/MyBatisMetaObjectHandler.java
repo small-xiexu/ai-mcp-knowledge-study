@@ -30,8 +30,8 @@ public class MyBatisMetaObjectHandler implements MetaObjectHandler {
         this.strictInsertFill(metaObject, "createdAt", LocalDateTime.class, now);
         this.strictInsertFill(metaObject, "updatedAt", LocalDateTime.class, now);
         /*
-         * 目的：统一为包含 orgId 字段的实体补齐组织归属，支撑部门隔离。
-         * 约束：未注入 OrgContext 时默认回填 ROOT org（1），避免开发环境空指针。
+         * 目的：统一为包含 orgId 字段的实体补齐组织归属。
+         * 约束：未注入 OrgContext 时默认回填组织ID（1），避免空值导致写入失败。
          */
         if (metaObject != null && metaObject.hasSetter("orgId")) {
             Long currentOrgId = OrgContextHolder.currentOrgIdOrNull();

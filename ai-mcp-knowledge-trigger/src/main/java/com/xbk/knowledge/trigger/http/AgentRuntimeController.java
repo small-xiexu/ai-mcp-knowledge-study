@@ -111,9 +111,7 @@ public class AgentRuntimeController {
     /**
      * 通用 invoke（内部触发或外部调用统一入口）。
      *
-     * 说明：为保证组织隔离，HTTP 入口的 orgId 一律以当前 OrgContext 为准。
-     * - 普通用户：只能在自己的 org 下调用
-     * - 超管跨 org：必须通过 X-Target-Org-Id 显式选择目标组织（由 OrgContextFilter 注入）
+     * 说明：为保证组织归属一致，HTTP 入口的 orgId 一律以当前 OrgContext 为准。
      *
      * 注意：request.orgId 字段仅用于“无 OrgContext 的内部调用场景”的 DTO 复用（本入口会忽略该字段）。
      *

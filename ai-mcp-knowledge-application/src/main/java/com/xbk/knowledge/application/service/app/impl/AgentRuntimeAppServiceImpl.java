@@ -3,8 +3,10 @@ package com.xbk.knowledge.application.service.app.impl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xbk.knowledge.application.context.GatewayToolBindingContextHolder;
-import com.xbk.knowledge.application.provider.ModelProviderFactory;
 import com.xbk.knowledge.application.service.app.AgentRuntimeAppService;
+import com.xbk.knowledge.application.service.app.ChatClientAssemblyService;
+import com.xbk.knowledge.application.service.app.WorkflowRuntimeAppService;
+import com.xbk.knowledge.application.service.runtime.AdvisorRuntimeService;
 import com.xbk.knowledge.application.support.contract.PlatformContractV1OutputSupport;
 import com.xbk.knowledge.application.support.rag.AgentRagGovernanceSupport;
 import com.xbk.knowledge.application.support.rag.AgentRagGovernanceSupport.ResolvedRag;
@@ -13,13 +15,19 @@ import com.xbk.knowledge.domain.model.entity.agent.Agent;
 import com.xbk.knowledge.domain.model.entity.agent.AgentRun;
 import com.xbk.knowledge.domain.model.entity.agent.AgentRunContext;
 import com.xbk.knowledge.domain.model.entity.agent.AgentVersion;
+import com.xbk.knowledge.domain.model.entity.workflow.Workflow;
+import com.xbk.knowledge.domain.model.entity.workflow.WorkflowVersion;
 import com.xbk.knowledge.domain.model.vo.agent.AgentCodeQuery;
 import com.xbk.knowledge.domain.model.vo.agent.AgentVersionIdQuery;
-import com.xbk.knowledge.domain.repository.AgentRepository;
-import com.xbk.knowledge.domain.repository.AgentRunRepository;
-import com.xbk.knowledge.domain.repository.AgentRunContextRepository;
-import com.xbk.knowledge.domain.repository.AgentVersionRepository;
-import com.xbk.knowledge.domain.service.IModelConfigService;
+import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.model.vo.workflow.WorkflowVersionIdQuery;
+import com.xbk.knowledge.domain.repository.agent.AgentRepository;
+import com.xbk.knowledge.domain.repository.agent.AgentRunRepository;
+import com.xbk.knowledge.domain.repository.agent.AgentRunContextRepository;
+import com.xbk.knowledge.domain.repository.agent.AgentVersionRepository;
+import com.xbk.knowledge.domain.repository.workflow.WorkflowRepository;
+import com.xbk.knowledge.domain.repository.workflow.WorkflowVersionRepository;
+import com.xbk.knowledge.domain.service.model.IModelConfigService;
 import com.xbk.knowledge.types.contract.PlatformContractV1;
 import com.xbk.knowledge.types.contract.PlatformStreamEvent;
 import com.xbk.knowledge.types.context.OrgContext;
@@ -38,7 +46,6 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.metadata.Usage;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.springframework.ai.tool.ToolCallbackProvider;
 import reactor.core.publisher.Flux;
 
 import java.time.LocalDateTime;
@@ -49,6 +56,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.slf4j.MDC;
 
 /**
  * Agent 运行入口应用服务实现。
@@ -57,7 +65,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  * - 必须按 org+agentCode 找到 Agent
  * - 必须使用当前发布版本（Agent.current_published_version_id）
  * - 输出 Platform Contract v1（先不做结构化解析修复；P1 再加）
- * - 工具调用暂不启用（避免跨 org 工具泄漏；Iteration 3 再做 allowlist + toolKey）
+ * - 工具调用暂不启用（先保证主链路稳定；Iteration 3 再做 allowlist + toolKey）
+ *
+ * @author xiexu
  */
 @Slf4j
 @Service
@@ -69,20 +79,38 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
     private final AgentRunRepository agentRunRepository;
     private final AgentRunContextRepository agentRunContextRepository;
     private final IModelConfigService modelConfigService;
-    private final ModelProviderFactory modelProviderFactory;
-    private final ToolCallbackProvider toolCallbackProvider;
+    private final ChatClientAssemblyService chatClientAssemblyService;
+    private final AdvisorRuntimeService advisorRuntimeService;
     private final ObjectMapper objectMapper;
     private final PlatformContractV1OutputSupport outputSupport;
     private final AgentRagGovernanceSupport ragGovernanceSupport;
+    private final WorkflowRuntimeAppService workflowRuntimeAppService;
+    private final WorkflowVersionRepository workflowVersionRepository;
+    private final WorkflowRepository workflowRepository;
 
+    /**
+     * chat。
+     *
+     * @param orgId 参数
+     * @param agentCode 参数
+     * @param sessionId 参数
+     * @param content 参数
+     * @param ragTagsJson 参数
+     * @return 返回结果
+     */
     @Override
     public PlatformContractV1 chat(Long orgId, String agentCode, Long sessionId, String content, String ragTagsJson) {
-        OrgContextHolder.requireExplicitTargetOrgIfSuperAdmin();
         long start = System.currentTimeMillis();
         String runId = TraceIdUtils.getOrCreateTraceId();
 
         Agent agent = loadAgent(orgId, agentCode);
         AgentVersion version = loadPublishedVersion(orgId, agent);
+
+        // Agent 绑定 Workflow：直接走 WorkflowRuntime（并返回 steps 明细）
+        if (version != null && version.getWorkflowVersionId() != null) {
+            return chatByWorkflow(orgId, agentCode, agent, version, sessionId, content, start, runId);
+        }
+
         ModelConfig model = resolveModelForVersion(orgId, version);
 
         OrgContext ctx = OrgContextHolder.get();
@@ -135,7 +163,7 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                 return buildRagRequiredNoHitContract(runId, orgId, agentCode, version, costMs, rag);
             }
 
-            ParsedOutput parsed = callOnce(model, version, sessionId, content, rag);
+            ParsedOutput parsed = callOnce(orgId, runId, model, version, sessionId, content, rag);
             long costMs = System.currentTimeMillis() - start;
 
             AgentRun toUpdate = AgentRun.builder()
@@ -188,9 +216,113 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         }
     }
 
+    private PlatformContractV1 chatByWorkflow(Long orgId,
+                                              String agentCode,
+                                              Agent agent,
+                                              AgentVersion version,
+                                              Long sessionId,
+                                              String content,
+                                              long start,
+                                              String runId) {
+        if (workflowRuntimeAppService == null || workflowVersionRepository == null || workflowRepository == null) {
+            throw new BusinessException("WorkflowRuntime 依赖未注入，无法按 workflowVersionId 执行");
+        }
+        Long wfVersionId = version.getWorkflowVersionId();
+        WorkflowVersion wfVersion = workflowVersionRepository.findById(
+                        WorkflowVersionIdQuery.builder().orgId(orgId).id(wfVersionId).build())
+                .orElseThrow(() -> new NotFoundException("绑定的 WorkflowVersion 不存在，id=" + wfVersionId));
+        Workflow wf = workflowRepository.findById(new IdQuery(orgId, wfVersion.getWorkflowId()))
+                .orElseThrow(() -> new NotFoundException("绑定的 Workflow 不存在，id=" + wfVersion.getWorkflowId()));
+
+        OrgContext ctx = OrgContextHolder.get();
+        Long operatorId = ctx == null ? null : ctx.operatorUserId();
+        String operatorType = operatorId == null ? "system" : "user";
+
+        // 仍写入 agent_run，便于审计；工具审批会优先按 workflow 归属生成审批单（见 ToolCallbackProvider 的逻辑修正）
+        AgentRun run = AgentRun.builder()
+                .runId(runId)
+                .orgId(orgId)
+                .agentId(agent == null ? null : agent.getId())
+                .agentCode(agentCode)
+                .agentVersionId(version.getId())
+                .runType("CHAT_SYNC_WORKFLOW")
+                .triggerSource("HTTP")
+                .operatorId(operatorId)
+                .operatorType(operatorType)
+                .sessionId(sessionId)
+                .status("RUNNING")
+                .modelIdUsed(null)
+                .modelNameUsed(null)
+                .promptTokens(0)
+                .completionTokens(0)
+                .totalTokens(0)
+                .toolCallCount(0)
+                .toolDeniedCount(0)
+                .repairAttempts(0)
+                .startedAt(LocalDateTime.now())
+                .build();
+        agentRunRepository.insert(run);
+
+        String prev = MDC.get(TraceIdUtils.TRACE_ID_KEY);
+        MDC.put(TraceIdUtils.TRACE_ID_KEY, runId);
+        try {
+            PlatformContractV1 contract = workflowRuntimeAppService.run(
+                    orgId,
+                    wf.getWorkflowCode(),
+                    sessionId,
+                    content,
+                    null,
+                    wfVersionId
+            );
+            long costMs = System.currentTimeMillis() - start;
+
+            // agent_run 状态同步（workflow_run 由 workflowRuntime 自行维护）
+            try {
+                agentRunRepository.updateStatusAndMetrics(AgentRun.builder()
+                        .runId(runId)
+                        .orgId(orgId)
+                        .status(contract == null ? "FAILED" : contract.getStatus())
+                        .costMs(costMs)
+                        .endedAt(LocalDateTime.now())
+                        .build());
+            } catch (Exception ignore) {
+            }
+
+            // 补齐 agent 元信息，确保调用方（Agent 调用入口）仍能识别 agent 归属
+            if (contract != null) {
+                PlatformContractV1.Meta meta = contract.getMeta();
+                if (meta == null) {
+                    meta = new PlatformContractV1.Meta();
+                    contract.setMeta(meta);
+                }
+                meta.setRunId(runId);
+                meta.setOrgId(orgId);
+                meta.setAgentCode(agentCode);
+                meta.setAgentVersionId(version.getId());
+                meta.setAgentVersionNo(version.getVersionNo());
+            }
+            return contract;
+        } finally {
+            if (prev == null) {
+                MDC.remove(TraceIdUtils.TRACE_ID_KEY);
+            } else {
+                MDC.put(TraceIdUtils.TRACE_ID_KEY, prev);
+            }
+        }
+    }
+
+    /**
+     * stream。
+     *
+     * @param orgId 参数
+     * @param agentCode 参数
+     * @param sessionId 参数
+     * @param content 参数
+     * @param ragTagsJson 参数
+     * @return 返回结果
+     */
     @Override
     public Flux<PlatformStreamEvent> stream(Long orgId, String agentCode, Long sessionId, String content, String ragTagsJson) {
-        OrgContextHolder.requireExplicitTargetOrgIfSuperAdmin();
         long start = System.currentTimeMillis();
         String runId = TraceIdUtils.getOrCreateTraceId();
 
@@ -254,7 +386,7 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         StringBuilder answerBuffer = new StringBuilder();
         Set<String> allowedToolKeys = parseAllowedToolKeys(version == null ? null : version.getAllowedToolKeysJson());
 
-        ChatClient chatClient = buildChatClient(model);
+        ChatClient chatClient = buildChatClient(orgId, runId, model, version, sessionId);
         Long modelId = model == null ? null : model.getId();
         Long agentVersionId = version == null ? null : version.getId();
 
@@ -371,16 +503,34 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                 });
     }
 
+    /**
+     * invoke。
+     *
+     * @param orgId 参数
+     * @param agentCode 参数
+     * @param sessionId 参数
+     * @param content 参数
+     * @param ragTagsJson 参数
+     * @return 返回结果
+     */
     @Override
     public PlatformContractV1 invoke(Long orgId, String agentCode, Long sessionId, String content, String ragTagsJson) {
         // 内部触发同样走 current published version
         return chat(orgId, agentCode, sessionId, content, ragTagsJson);
     }
 
+    /**
+     * runJob。
+     *
+     * @param orgId 参数
+     * @param agentCode 参数
+     * @param content 参数
+     * @param ragTagsJson 参数
+     * @return 返回结果
+     */
     @Override
     public PlatformContractV1 runJob(Long orgId, String agentCode, String content, String ragTagsJson) {
         // XXL 调度触发：与 chat 的核心逻辑一致，但 runType/triggerSource 固定，并且操作者为 system
-        OrgContextHolder.requireExplicitTargetOrgIfSuperAdmin();
         long start = System.currentTimeMillis();
         String runId = TraceIdUtils.getOrCreateTraceId();
 
@@ -434,7 +584,7 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                 return buildRagRequiredNoHitContract(runId, orgId, agentCode, version, costMs, rag);
             }
 
-            ParsedOutput parsed = callOnce(model, version, null, content, rag);
+            ParsedOutput parsed = callOnce(orgId, runId, model, version, null, content, rag);
             long costMs = System.currentTimeMillis() - start;
             agentRunRepository.updateStatusAndMetrics(AgentRun.builder()
                     .runId(runId)
@@ -537,13 +687,13 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                 .orElseThrow(() -> new BusinessException("当前组织未配置可用模型"));
     }
 
-    private ParsedOutput callOnce(ModelConfig model, AgentVersion version, Long sessionId, String userContent) {
-        return callOnce(model, version, sessionId, userContent, null);
+    private ParsedOutput callOnce(Long orgId, String runId, ModelConfig model, AgentVersion version, Long sessionId, String userContent) {
+        return callOnce(orgId, runId, model, version, sessionId, userContent, null);
     }
 
-    private ParsedOutput callOnce(ModelConfig model, AgentVersion version, Long sessionId, String userContent, ResolvedRag rag) {
+    private ParsedOutput callOnce(Long orgId, String runId, ModelConfig model, AgentVersion version, Long sessionId, String userContent, ResolvedRag rag) {
         Set<String> allowedToolKeys = parseAllowedToolKeys(version == null ? null : version.getAllowedToolKeysJson());
-        ChatClient chatClient = buildChatClient(model);
+        ChatClient chatClient = buildChatClient(orgId, runId, model, version, sessionId);
         Prompt prompt = buildPromptWithContract(version, userContent, rag);
         Long modelId = model == null ? null : model.getId();
         Long agentVersionId = version == null ? null : version.getId();
@@ -561,26 +711,23 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         }
     }
 
-    private ChatClient buildChatClient(ModelConfig modelConfig) {
+    private ChatClient buildChatClient(Long orgId, String runId, ModelConfig modelConfig, AgentVersion version, Long sessionId) {
         if (modelConfig == null) {
             throw new BusinessException("未找到可用模型");
         }
-        ChatClient base = modelProviderFactory.createChatClient(modelConfig);
         boolean modelToolEnabled = modelConfig.getToolEnabled() == null || Boolean.TRUE.equals(modelConfig.getToolEnabled());
-        if (!modelToolEnabled || toolCallbackProvider == null) {
-            return base;
-        }
-
-        return base.mutate()
-                .defaultToolCallbacks(toolCallbackProvider)
-                .build();
+        Long agentVersionId = version == null ? null : version.getId();
+        org.springframework.ai.chat.client.advisor.api.CallAdvisor[] extra = agentVersionId == null
+                ? new org.springframework.ai.chat.client.advisor.api.CallAdvisor[0]
+                : advisorRuntimeService.resolveForAgentVersion(orgId, agentVersionId, runId, sessionId);
+        return chatClientAssemblyService.buildChatClient(modelConfig, modelToolEnabled, extra);
     }
 
     private ChatClient buildChatClientNoTools(ModelConfig modelConfig) {
         if (modelConfig == null) {
             throw new BusinessException("未找到可用模型");
         }
-        return modelProviderFactory.createChatClient(modelConfig);
+        return chatClientAssemblyService.buildChatClientNoTools(modelConfig);
     }
 
     private Prompt buildPromptWithContract(AgentVersion version, String userContent) {
@@ -732,6 +879,8 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                 .citations(parsed == null ? List.of() : parsed.contract.getCitations())
                 .toolCalls(parsed == null ? List.of() : parsed.contract.getToolCalls())
                 .actionsNext(parsed == null ? List.of() : parsed.contract.getActionsNext())
+                // Agent 普通调用也返回 steps：P0 先给最小可用的“单步 LLM”明细
+                .steps(List.of(buildAgentSingleStep("SUCCESS", costMs, parsed == null ? null : parsed.contract)))
                 .build();
     }
 
@@ -762,6 +911,14 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                         .message("Agent 运行失败")
                         .detail(message)
                         .build())
+                .steps(List.of(PlatformContractV1.StepTrace.builder()
+                        .nodeKey("agent.llm")
+                        .nodeType("LLM")
+                        .nodeName("Agent LLM")
+                        .status("FAILED")
+                        .costMs(costMs)
+                        .errorMessage(truncate(message, 1000))
+                        .build()))
                 .build();
     }
 
@@ -789,6 +946,32 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                 .status("PENDING_APPROVAL")
                 .answer("")
                 .uncertainty("")
+                .steps(List.of(PlatformContractV1.StepTrace.builder()
+                        .nodeKey("agent.llm")
+                        .nodeType("LLM")
+                        .nodeName("Agent LLM")
+                        .status("PENDING_APPROVAL")
+                        .costMs(costMs)
+                        .approvalRequestId(approval == null ? null : approval.getApprovalRequestId())
+                        .errorMessage(approval == null ? null : truncate(approval.getMessage(), 1000))
+                        .build()))
+                .build();
+    }
+
+    private PlatformContractV1.StepTrace buildAgentSingleStep(String status, long costMs, PlatformContractV1 contract) {
+        String out = contract == null ? "" : (contract.getAnswer() == null ? "" : contract.getAnswer());
+        boolean truncated = out != null && out.length() > 16000;
+        if (truncated) {
+            out = out.substring(0, 16000);
+        }
+        return PlatformContractV1.StepTrace.builder()
+                .nodeKey("agent.llm")
+                .nodeType("LLM")
+                .nodeName("Agent LLM")
+                .status(status)
+                .costMs(costMs)
+                .outputText(out)
+                .outputTruncated(truncated)
                 .build();
     }
 

@@ -2,12 +2,11 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xbk.knowledge.infrastructure.mapper.ConfigAuditMapper">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.audit.ConfigAuditMapper">
 
     <!-- 配置审计结果映射 -->
     <resultMap id="ConfigAuditMap" type="com.xbk.knowledge.domain.model.entity.ConfigAudit">
         <id column="id" property="id"/>
-        <result column="org_id" property="orgId"/>
         <result column="table_name" property="tableName"/>
         <result column="record_id" property="recordId"/>
         <result column="operation" property="operation"/>
@@ -21,7 +20,6 @@
     <insert id="insertConfigAudit" parameterType="com.xbk.knowledge.domain.model.entity.ConfigAudit"
             useGeneratedKeys="true" keyProperty="id">
         insert into ai_config_audit (
-            org_id,
             table_name,
             record_id,
             operation,
@@ -30,7 +28,6 @@
             operator,
             created_at
         ) values (
-            #{orgId},
             #{tableName},
             #{recordId},
             #{operation},
@@ -45,7 +42,6 @@
     <select id="findByConditions" resultMap="ConfigAuditMap">
         select
             id,
-            org_id,
             table_name,
             record_id,
             operation,

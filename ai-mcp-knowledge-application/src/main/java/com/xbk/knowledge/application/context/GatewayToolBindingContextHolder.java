@@ -22,7 +22,7 @@ public final class GatewayToolBindingContextHolder {
 
     /** 设置当前线程的绑定上下文 */
     public static void set(Long modelId, Long sessionId) {
-        CONTEXT.set(new BindingContext(modelId, sessionId, null, null));
+        CONTEXT.set(new BindingContext(modelId, sessionId, null, null, null, null, null));
     }
 
     /**
@@ -34,7 +34,20 @@ public final class GatewayToolBindingContextHolder {
      */
     public static void set(Long modelId, Long sessionId, Long agentVersionId, Set<String> allowedToolKeys) {
         Set<String> safeKeys = allowedToolKeys == null ? null : Collections.unmodifiableSet(allowedToolKeys);
-        CONTEXT.set(new BindingContext(modelId, sessionId, agentVersionId, safeKeys));
+        CONTEXT.set(new BindingContext(modelId, sessionId, agentVersionId, null, null, null, safeKeys));
+    }
+
+    /**
+     * Workflow 场景绑定上下文（支持节点级 allowlist 与审批定位）。
+     */
+    public static void setWorkflow(Long modelId,
+                                   Long sessionId,
+                                   Long workflowId,
+                                   Long workflowVersionId,
+                                   String nodeKey,
+                                   Set<String> allowedToolKeys) {
+        Set<String> safeKeys = allowedToolKeys == null ? null : Collections.unmodifiableSet(allowedToolKeys);
+        CONTEXT.set(new BindingContext(modelId, sessionId, null, workflowId, workflowVersionId, nodeKey, safeKeys));
     }
 
     /** 获取当前线程的绑定上下文 */
@@ -53,27 +66,86 @@ public final class GatewayToolBindingContextHolder {
         private final Long modelId;
         private final Long sessionId;
         private final Long agentVersionId;
+        private final Long workflowId;
+        private final Long workflowVersionId;
+        private final String workflowNodeKey;
         private final Set<String> allowedToolKeys;
 
-        private BindingContext(Long modelId, Long sessionId, Long agentVersionId, Set<String> allowedToolKeys) {
+        private BindingContext(Long modelId,
+                               Long sessionId,
+                               Long agentVersionId,
+                               Long workflowId,
+                               Long workflowVersionId,
+                               String workflowNodeKey,
+                               Set<String> allowedToolKeys) {
             this.modelId = modelId;
             this.sessionId = sessionId;
             this.agentVersionId = agentVersionId;
+            this.workflowId = workflowId;
+            this.workflowVersionId = workflowVersionId;
+            this.workflowNodeKey = workflowNodeKey;
             this.allowedToolKeys = allowedToolKeys;
         }
 
+        /**
+         * getModelId。
+         *
+         * @return 返回结果
+         */
         public Long getModelId() {
             return modelId;
         }
 
+        /**
+         * getSessionId。
+         *
+         * @return 返回结果
+         */
         public Long getSessionId() {
             return sessionId;
         }
 
+        /**
+         * getAgentVersionId。
+         *
+         * @return 返回结果
+         */
         public Long getAgentVersionId() {
             return agentVersionId;
         }
 
+        /**
+         * getWorkflowId。
+         *
+         * @return 返回结果
+         */
+        public Long getWorkflowId() {
+            return workflowId;
+        }
+
+        /**
+         * getWorkflowVersionId。
+         *
+         * @return 返回结果
+         */
+        public Long getWorkflowVersionId() {
+            return workflowVersionId;
+        }
+
+        /**
+         * getWorkflowNodeKey。
+         *
+         * @return 返回结果
+         */
+        public String getWorkflowNodeKey() {
+            return workflowNodeKey;
+        }
+
+        /**
+         * getAllowedToolKeys。
+         *
+         * @return 返回结果
+         */
         public Set<String> getAllowedToolKeys() {
             return allowedToolKeys;
         }

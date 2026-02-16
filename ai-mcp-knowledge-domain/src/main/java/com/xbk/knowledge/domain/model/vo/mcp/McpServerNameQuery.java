@@ -24,10 +24,21 @@ public class McpServerNameQuery {
      */
     private String serverName;
 
+    /**
+     * McpServerNameQuery。
+     *
+     * @param serverName 参数
+     */
     public McpServerNameQuery(String serverName) {
         this.serverName = serverName;
     }
 
+    /**
+     * McpServerNameQuery。
+     *
+     * @param orgId 参数
+     * @param serverName 参数
+     */
     public McpServerNameQuery(Long orgId, String serverName) {
         this.orgId = orgId;
         this.serverName = serverName;

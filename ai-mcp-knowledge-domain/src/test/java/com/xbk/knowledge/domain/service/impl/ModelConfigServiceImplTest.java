@@ -8,7 +8,7 @@ import com.xbk.knowledge.domain.model.vo.common.IdQuery;
 import com.xbk.knowledge.domain.model.vo.model.ModelConfigPageQuery;
 import com.xbk.knowledge.domain.model.vo.model.ModelNameQuery;
 import com.xbk.knowledge.domain.model.vo.task.TaskTypeQuery;
-import com.xbk.knowledge.domain.repository.ModelConfigRepository;
+import com.xbk.knowledge.domain.repository.model.ModelConfigRepository;
 import com.xbk.knowledge.types.exception.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -3,7 +3,7 @@ package com.xbk.knowledge.infrastructure.repository;
 import com.xbk.knowledge.domain.model.aggregate.task.TaskTypeAggregate;
 import com.xbk.knowledge.domain.model.entity.TaskType;
 import com.xbk.knowledge.domain.model.vo.task.TaskTypeCodeQuery;
-import com.xbk.knowledge.infrastructure.mapper.TaskTypeMapper;
+import com.xbk.knowledge.infrastructure.mapper.task.TaskTypeMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 

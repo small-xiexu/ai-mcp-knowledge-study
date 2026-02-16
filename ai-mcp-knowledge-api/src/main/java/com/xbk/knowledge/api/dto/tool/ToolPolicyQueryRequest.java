@@ -6,7 +6,9 @@ import lombok.EqualsAndHashCode;
 
 /**
  * 工具风险策略分页查询请求。
- */
+ 
+  * @author xiexu
+  */
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class ToolPolicyQueryRequest extends PageRequest {

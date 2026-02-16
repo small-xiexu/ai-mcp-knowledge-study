@@ -9,7 +9,9 @@ import java.io.Serializable;
 
 /**
  * SSE 事件封装（delta/final 等）。
- */
+ 
+  * @author xiexu
+  */
 @Data
 @Builder
 @NoArgsConstructor

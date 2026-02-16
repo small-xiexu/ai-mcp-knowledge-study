@@ -8,7 +8,9 @@ package com.xbk.knowledge.domain.model.vo.tool;
  * @param enabled 启用状态（1/0，可空表示不筛选）
  * @param offset 偏移量
  * @param pageSize 页大小
- */
+ 
+  * @author xiexu
+  */
 public record ToolPolicyPageQuery(Long orgId,
                                  String keyword,
                                  Integer enabled,

@@ -10,7 +10,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -18,18 +17,13 @@ import java.io.IOException;
 /**
  * HTTP 组织上下文过滤器。
  *
- * 职责：为每个 HTTP 请求注入 OrgContext，支撑：
- * - 部门隔离（org_id 过滤与写入归属）
- * - 超管跨组织管理需显式选择 targetOrgId
- */
+ * 职责：为每个 HTTP 请求注入 OrgContext，统一组织归属。
+ 
+  * @author xiexu
+  */
 @Component
 @RequiredArgsConstructor
 public class OrgContextFilter extends OncePerRequestFilter {
-
-    /**
-     * 超管跨组织管理的目标组织ID请求头。
-     */
-    public static final String TARGET_ORG_HEADER = "X-Target-Org-Id";
 
     private final OrgContextService orgContextService;
 
@@ -41,12 +35,8 @@ public class OrgContextFilter extends OncePerRequestFilter {
         try {
             if (StpUtil.isLogin()) {
                 Long userId = StpUtil.getLoginIdAsLong();
-                String targetOrgIdText = request.getHeader(TARGET_ORG_HEADER);
-                OrgContext context = orgContextService.resolve(userId, targetOrgIdText);
+                OrgContext context = orgContextService.resolve(userId);
                 OrgContextHolder.set(context);
-                if (context != null && StringUtils.hasText(targetOrgIdText)) {
-                    response.setHeader(TARGET_ORG_HEADER, targetOrgIdText);
-                }
             }
             filterChain.doFilter(request, response);
         } finally {
@@ -58,4 +48,3 @@ public class OrgContextFilter extends OncePerRequestFilter {
         }
     }
 }
-

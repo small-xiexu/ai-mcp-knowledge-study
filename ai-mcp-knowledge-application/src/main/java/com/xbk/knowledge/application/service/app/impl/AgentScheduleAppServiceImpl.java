@@ -12,7 +12,7 @@ import com.xbk.knowledge.domain.model.entity.agent.AgentSchedule;
 import com.xbk.knowledge.domain.model.vo.agent.AgentCodeQuery;
 import com.xbk.knowledge.domain.model.vo.agent.AgentScheduleIdQuery;
 import com.xbk.knowledge.domain.model.vo.agent.AgentSchedulePageQuery;
-import com.xbk.knowledge.domain.service.IAgentScheduleService;
+import com.xbk.knowledge.domain.service.agent.IAgentScheduleService;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.context.OrgContextHolder;
 import com.xbk.knowledge.types.exception.BusinessException;
@@ -46,20 +46,38 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
     private final XxlJobAppService xxlJobAppService;
     private final ObjectMapper objectMapper;
 
+    /**
+     * queryPage。
+     *
+     * @param query 参数
+     * @return 返回结果
+     */
     @Override
     public PageResult<AgentSchedule> queryPage(AgentSchedulePageQuery query) {
         return agentScheduleService.queryPage(query);
     }
 
+    /**
+     * queryById。
+     *
+     * @param query 参数
+     * @return 返回结果
+     */
     @Override
     public AgentSchedule queryById(AgentScheduleIdQuery query) {
         return agentScheduleService.queryById(query);
     }
 
+    /**
+     * create。
+     *
+     * @param schedule 参数
+     * @param agentCode 参数
+     * @return 返回结果
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public AgentSchedule create(AgentSchedule schedule, String agentCode) {
-        OrgContextHolder.requireExplicitTargetOrgIfSuperAdmin();
         if (schedule == null || schedule.getOrgId() == null) {
             throw new IllegalArgumentException("orgId 不能为空");
         }
@@ -83,10 +101,16 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
         return created;
     }
 
+    /**
+     * update。
+     *
+     * @param schedule 参数
+     * @param agentCode 参数
+     * @return 返回结果
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public AgentSchedule update(AgentSchedule schedule, String agentCode) {
-        OrgContextHolder.requireExplicitTargetOrgIfSuperAdmin();
         if (schedule == null || schedule.getOrgId() == null || schedule.getId() == null) {
             throw new IllegalArgumentException("orgId/id 不能为空");
         }
@@ -108,10 +132,16 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
         return updated;
     }
 
+    /**
+     * enable。
+     *
+     * @param orgId 参数
+     * @param id 参数
+     * @return 返回结果
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public AgentSchedule enable(Long orgId, Long id) {
-        OrgContextHolder.requireExplicitTargetOrgIfSuperAdmin();
         Long userId = identityContextService.getCurrentUserId();
         AgentSchedule schedule = agentScheduleService.enable(orgId, id, userId);
         if (schedule.getXxlJobId() == null) {
@@ -125,10 +155,16 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
         return schedule;
     }
 
+    /**
+     * disable。
+     *
+     * @param orgId 参数
+     * @param id 参数
+     * @return 返回结果
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public AgentSchedule disable(Long orgId, Long id) {
-        OrgContextHolder.requireExplicitTargetOrgIfSuperAdmin();
         Long userId = identityContextService.getCurrentUserId();
         AgentSchedule schedule = agentScheduleService.disable(orgId, id, userId);
         if (schedule.getXxlJobId() != null) {
@@ -137,10 +173,15 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
         return schedule;
     }
 
+    /**
+     * remove。
+     *
+     * @param orgId 参数
+     * @param id 参数
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void remove(Long orgId, Long id) {
-        OrgContextHolder.requireExplicitTargetOrgIfSuperAdmin();
         AgentSchedule existed = agentScheduleService.queryById(new AgentScheduleIdQuery(orgId, id));
         if (existed.getXxlJobId() != null) {
             try {

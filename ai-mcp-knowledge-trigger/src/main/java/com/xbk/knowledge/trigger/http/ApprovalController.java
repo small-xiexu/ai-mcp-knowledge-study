@@ -99,6 +99,9 @@ public class ApprovalController {
                 .runId(approval.getRunId())
                 .agentId(approval.getAgentId())
                 .agentVersionId(approval.getAgentVersionId())
+                .workflowId(approval.getWorkflowId())
+                .workflowVersionId(approval.getWorkflowVersionId())
+                .nodeKey(approval.getNodeKey())
                 .requesterId(approval.getRequesterId())
                 .requesterType(approval.getRequesterType())
                 .requestReason(approval.getRequestReason())
@@ -124,4 +127,3 @@ public class ApprovalController {
         return orgId != null ? orgId : 1L;
     }
 }
-

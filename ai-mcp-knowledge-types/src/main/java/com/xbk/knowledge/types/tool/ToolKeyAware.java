@@ -6,7 +6,9 @@ package com.xbk.knowledge.types.tool;
  * 说明：
  * - LLM 侧使用的是 tool function name（ToolDefinition.name）
  * - 平台治理/审计/审批使用的是 toolKey（稳定、可追溯）
- */
+ 
+  * @author xiexu
+  */
 public interface ToolKeyAware {
 
     /**

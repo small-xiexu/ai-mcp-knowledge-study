@@ -15,6 +15,12 @@ public final class XxlJobIdParser {
     private XxlJobIdParser() {
     }
 
+    /**
+     * parseJobIdOrNull。
+     *
+     * @param content 参数
+     * @return 返回结果
+     */
     public static Long parseJobIdOrNull(String content) {
         if (!StringUtils.hasText(content)) {
             return null;

@@ -3,7 +3,7 @@ package com.xbk.knowledge.application.service.app.impl;
 import com.xbk.knowledge.application.service.app.ToolPolicyAppService;
 import com.xbk.knowledge.domain.model.entity.tool.ToolPolicy;
 import com.xbk.knowledge.domain.model.vo.tool.ToolPolicyPageQuery;
-import com.xbk.knowledge.domain.repository.ToolPolicyRepository;
+import com.xbk.knowledge.domain.repository.tool.ToolPolicyRepository;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.context.OrgContextHolder;
 import com.xbk.knowledge.types.exception.BusinessException;
@@ -29,6 +29,12 @@ public class ToolPolicyAppServiceImpl implements ToolPolicyAppService {
 
     private final ToolPolicyRepository toolPolicyRepository;
 
+    /**
+     * queryPage。
+     *
+     * @param query 参数
+     * @return 返回结果
+     */
     @Override
     public PageResult<ToolPolicy> queryPage(ToolPolicyPageQuery query) {
         if (query == null || query.orgId() == null) {
@@ -49,6 +55,13 @@ public class ToolPolicyAppServiceImpl implements ToolPolicyAppService {
         return PageResult.of(records, total, pageNum, pageSize);
     }
 
+    /**
+     * get。
+     *
+     * @param orgId 参数
+     * @param id 参数
+     * @return 返回结果
+     */
     @Override
     public ToolPolicy get(Long orgId, Long id) {
         if (orgId == null || id == null) {
@@ -58,10 +71,15 @@ public class ToolPolicyAppServiceImpl implements ToolPolicyAppService {
                 .orElseThrow(() -> new NotFoundException("工具策略不存在，id=" + id));
     }
 
+    /**
+     * save。
+     *
+     * @param policy 参数
+     * @return 返回结果
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ToolPolicy save(ToolPolicy policy) {
-        OrgContextHolder.requireExplicitTargetOrgIfSuperAdmin();
         if (policy == null || policy.getOrgId() == null) {
             throw new IllegalArgumentException("orgId 不能为空");
         }
@@ -101,10 +119,16 @@ public class ToolPolicyAppServiceImpl implements ToolPolicyAppService {
         return get(policy.getOrgId(), existed.getId());
     }
 
+    /**
+     * enable。
+     *
+     * @param orgId 参数
+     * @param id 参数
+     * @return 返回结果
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ToolPolicy enable(Long orgId, Long id) {
-        OrgContextHolder.requireExplicitTargetOrgIfSuperAdmin();
         ToolPolicy existed = get(orgId, id);
         int affected = toolPolicyRepository.updateEnabled(orgId, id, 1);
         if (affected <= 0) {
@@ -113,10 +137,16 @@ public class ToolPolicyAppServiceImpl implements ToolPolicyAppService {
         return get(orgId, existed.getId());
     }
 
+    /**
+     * disable。
+     *
+     * @param orgId 参数
+     * @param id 参数
+     * @return 返回结果
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ToolPolicy disable(Long orgId, Long id) {
-        OrgContextHolder.requireExplicitTargetOrgIfSuperAdmin();
         ToolPolicy existed = get(orgId, id);
         int affected = toolPolicyRepository.updateEnabled(orgId, id, 0);
         if (affected <= 0) {
@@ -125,10 +155,15 @@ public class ToolPolicyAppServiceImpl implements ToolPolicyAppService {
         return get(orgId, existed.getId());
     }
 
+    /**
+     * remove。
+     *
+     * @param orgId 参数
+     * @param id 参数
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void remove(Long orgId, Long id) {
-        OrgContextHolder.requireExplicitTargetOrgIfSuperAdmin();
         get(orgId, id);
         int affected = toolPolicyRepository.deleteById(orgId, id);
         if (affected <= 0) {

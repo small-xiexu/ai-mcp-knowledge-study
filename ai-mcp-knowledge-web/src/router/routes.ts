@@ -39,43 +39,79 @@ const routes: RouteRecordRaw[] = [
         path: 'agents',
         name: 'Agents',
         component: () => import('@/views/agent-platform/agents/index.vue'),
-        meta: { title: 'Agent 管理', icon: 'Operation', permission: 'agent:read', group: 'common', order: 15 }
+        meta: { title: 'Agent 管理', icon: 'Operation', permission: 'agent:read', group: 'agent', order: 10 }
       },
       {
         path: 'agents/:agentCode/versions',
         name: 'AgentVersions',
         component: () => import('@/views/agent-platform/agents/versions.vue'),
-        meta: { title: 'Agent 版本', icon: 'List', hidden: true, permission: 'agent:read', group: 'common', order: 16 }
+        meta: { title: 'Agent 版本', icon: 'List', hidden: true, permission: 'agent:read', group: 'agent', order: 11 }
+      },
+      {
+        path: 'workflows',
+        name: 'Workflows',
+        component: () => import('@/views/workflow/index.vue'),
+        meta: { title: 'Workflow 管理', icon: 'Connection', permission: 'workflow:read', group: 'agent', order: 15 }
+      },
+      {
+        path: 'workflows/:workflowCode/versions',
+        name: 'WorkflowVersions',
+        component: () => import('@/views/workflow/versions.vue'),
+        meta: { title: 'Workflow 版本', icon: 'List', hidden: true, permission: 'workflow:read', group: 'agent', order: 16 }
+      },
+      {
+        path: 'workflows/:workflowCode/editor',
+        name: 'WorkflowEditor',
+        component: () => import('@/views/workflow/editor.vue'),
+        meta: { title: 'Workflow 编辑', icon: 'EditPen', hidden: true, permission: 'workflow:write', group: 'agent', order: 17 }
+      },
+      {
+        path: 'workflow-playground',
+        name: 'WorkflowPlayground',
+        component: () => import('@/views/workflow/playground.vue'),
+        meta: { title: 'Workflow 调用', icon: 'ChatDotRound', permission: 'workflow:invoke', group: 'agent', order: 18 }
+      },
+      {
+        path: 'workflow-runs',
+        name: 'WorkflowRuns',
+        component: () => import('@/views/workflow/runs.vue'),
+        meta: { title: 'Workflow 运行记录', icon: 'Timer', permission: 'workflow:read', group: 'agent', order: 19 }
+      },
+      {
+        path: 'workflow-runs/:runId',
+        name: 'WorkflowRunDetail',
+        component: () => import('@/views/run/workflow-run-detail.vue'),
+        meta: { title: '运行详情', icon: 'Document', hidden: true, permission: 'workflow:read', group: 'agent', order: 19 }
       },
       {
         path: 'templates',
         name: 'PromptTemplates',
         component: () => import('@/views/agent-platform/templates/index.vue'),
-        meta: { title: 'Prompt 模板', icon: 'Document', permission: 'agent:read', group: 'common', order: 16 }
+        meta: { title: 'Prompt 模板', icon: 'Document', permission: 'agent:read', group: 'agent', order: 20 }
       },
       {
         path: 'approvals',
         name: 'ToolApprovals',
         component: () => import('@/views/agent-platform/approvals/index.vue'),
-        meta: { title: '工具审批', icon: 'Tickets', permission: 'tool:approve', group: 'common', order: 17 }
+        meta: { title: '工具审批', icon: 'Tickets', permission: 'tool:approve', group: 'agent', order: 30 }
       },
       {
         path: 'tool-policies',
         name: 'ToolPolicies',
         component: () => import('@/views/agent-platform/tool-policy/index.vue'),
-        meta: { title: '工具策略', icon: 'Tools', permission: 'tool:read', group: 'common', order: 17.5 }
+        meta: { title: '工具策略', icon: 'Tools', permission: 'tool:read', group: 'agent', order: 40 }
       },
       {
         path: 'schedules',
         name: 'AgentSchedules',
         component: () => import('@/views/agent-platform/schedules/index.vue'),
-        meta: { title: 'Agent 调度', icon: 'Timer', permission: 'agent:read', group: 'common', order: 18 }
+        meta: { title: 'Agent 调度', icon: 'Timer', permission: 'agent:read', group: 'agent', order: 50 }
       },
       {
         path: 'agent-playground',
         name: 'AgentPlayground',
         component: () => import('@/views/agent-platform/playground/index.vue'),
-        meta: { title: 'Agent 调用', icon: 'ChatDotRound', permission: 'agent:invoke', group: 'common', order: 19 }
+        meta: { title: 'Agent 调用', icon: 'ChatDotRound', permission: 'agent:invoke', group: 'agent', order: 60 }
       },
       {
         path: 'knowledge',
@@ -94,6 +130,12 @@ const routes: RouteRecordRaw[] = [
         name: 'Tasks',
         component: () => import('@/views/task/index.vue'),
         meta: { title: '策略配置', icon: 'List', permission: 'workflow:read', group: 'integration', order: 20 }
+      },
+      {
+        path: 'advisors',
+        name: 'Advisors',
+        component: () => import('@/views/advisor/index.vue'),
+        meta: { title: 'Advisor 配置', icon: 'Setting', permission: 'advisor:read', group: 'integration', order: 25 }
       },
       {
         path: 'xxl',
@@ -130,12 +172,6 @@ const routes: RouteRecordRaw[] = [
         name: 'Roles',
         component: () => import('@/views/role/index.vue'),
         meta: { title: '角色管理', icon: 'Avatar', permission: 'role:read', group: 'org', order: 20 }
-      },
-      {
-        path: 'orgs',
-        name: 'Orgs',
-        component: () => import('@/views/org/index.vue'),
-        meta: { title: '组织管理', icon: 'OfficeBuilding', permission: 'user:read', group: 'org', order: 30 }
       },
       {
         path: 'credentials',

@@ -3,7 +3,7 @@ package com.xbk.knowledge.application.service.app.impl;
 import com.xbk.knowledge.application.service.app.RoleAppService;
 import com.xbk.knowledge.domain.model.entity.SysRole;
 import com.xbk.knowledge.domain.model.vo.identity.RolePageQuery;
-import com.xbk.knowledge.domain.repository.IdentityRepository;
+import com.xbk.knowledge.domain.repository.identity.IdentityRepository;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.exception.BusinessException;
 import com.xbk.knowledge.types.exception.NotFoundException;

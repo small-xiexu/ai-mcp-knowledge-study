@@ -67,6 +67,12 @@ public class GatewayObservabilityAppServiceImpl implements GatewayObservabilityA
         window.record(event, now);
     }
 
+    /**
+     * queryMetrics。
+     *
+     * @param query 参数
+     * @return 返回结果
+     */
     @Override
     public GatewayMetricsReport queryMetrics(MetricsQuery query) {
         int recentMinutes = normalizeRecentMinutes(query == null ? null : query.recentMinutes());

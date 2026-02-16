@@ -19,11 +19,24 @@ public class ToolNameQuery {
     /** 工具名称 */
     private String toolName;
 
+    /**
+     * ToolNameQuery。
+     *
+     * @param gatewayId 参数
+     * @param toolName 参数
+     */
     public ToolNameQuery(String gatewayId, String toolName) {
         this.gatewayId = gatewayId;
         this.toolName = toolName;
     }
 
+    /**
+     * ToolNameQuery。
+     *
+     * @param orgId 参数
+     * @param gatewayId 参数
+     * @param toolName 参数
+     */
     public ToolNameQuery(Long orgId, String gatewayId, String toolName) {
         this.orgId = orgId;
         this.gatewayId = gatewayId;

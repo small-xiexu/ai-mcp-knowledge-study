@@ -121,17 +121,29 @@ public class CircuitBreaker {
         private long openTime = 0;
 
         
+        /**
+         * recordSuccess。
+         *
+         */
         public void recordSuccess() {
             this.consecutiveFailures = 0;
             this.open = false;
         }
 
         
+        /**
+         * recordFailure。
+         *
+         */
         public void recordFailure() {
             this.consecutiveFailures++;
         }
 
         
+        /**
+         * open。
+         *
+         */
         public void open() {
             this.open = true;
             this
@@ -140,6 +152,10 @@ public class CircuitBreaker {
         }
 
         
+        /**
+         * halfOpen。
+         *
+         */
         public void halfOpen() {
             this.open = false;
             // 保持失败计数，如果再次失败会立即熔断

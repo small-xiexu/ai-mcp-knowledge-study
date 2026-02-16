@@ -3,8 +3,8 @@ package com.xbk.knowledge.application.service.rag;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xbk.knowledge.domain.model.entity.RagTask;
-import com.xbk.knowledge.domain.model.vo.FileProcessError;
-import com.xbk.knowledge.domain.repository.RagTaskRepository;
+import com.xbk.knowledge.domain.model.vo.rag.FileProcessError;
+import com.xbk.knowledge.domain.repository.rag.RagTaskRepository;
 import com.xbk.knowledge.types.enums.RagTaskStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -111,6 +111,13 @@ public class RagTaskProcessor {
 
             AtomicInteger totalFiles = new AtomicInteger(0);
             Files.walkFileTree(repoDir.toPath(), new SimpleFileVisitor<Path>() {
+                /**
+                 * visitFile。
+                 *
+                 * @param file 参数
+                 * @param attrs 参数
+                 * @return 返回结果
+                 */
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
                     if (isCancelled(taskId)) {
@@ -133,6 +140,14 @@ public class RagTaskProcessor {
 
             AtomicInteger current = new AtomicInteger(0);
             Files.walkFileTree(repoDir.toPath(), new SimpleFileVisitor<Path>() {
+                /**
+                 * 逐文件解析并写入向量库。
+                 *
+                 * @param file 文件路径
+                 * @param attrs 文件属性
+                 * @return 遍历控制结果
+                 * @throws IOException IO 异常
+                 */
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                     if (isCancelled(taskId)) {
@@ -464,12 +479,28 @@ public class RagTaskProcessor {
             return;
         }
         Files.walkFileTree(directory.toPath(), new SimpleFileVisitor<Path>() {
+            /**
+             * 删除遍历到的文件。
+             *
+             * @param file 文件路径
+             * @param attrs 文件属性
+             * @return 遍历控制结果
+             * @throws IOException IO 异常
+             */
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                 Files.deleteIfExists(file);
                 return FileVisitResult.CONTINUE;
             }
 
+            /**
+             * 删除遍历完成的目录。
+             *
+             * @param dir 目录路径
+             * @param exc 异常信息
+             * @return 遍历控制结果
+             * @throws IOException IO 异常
+             */
             @Override
             public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
                 Files.deleteIfExists(dir);

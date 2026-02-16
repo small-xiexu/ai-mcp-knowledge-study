@@ -3,7 +3,7 @@ package com.xbk.knowledge.application.service.app.impl;
 import com.xbk.knowledge.application.service.app.PermissionAppService;
 import com.xbk.knowledge.domain.model.entity.SysPermission;
 import com.xbk.knowledge.domain.model.vo.identity.PermissionPageQuery;
-import com.xbk.knowledge.domain.repository.IdentityRepository;
+import com.xbk.knowledge.domain.repository.identity.IdentityRepository;
 import com.xbk.knowledge.types.common.PageResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

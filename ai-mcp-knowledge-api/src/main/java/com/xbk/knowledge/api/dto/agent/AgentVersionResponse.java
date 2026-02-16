@@ -9,7 +9,9 @@ import java.time.LocalDateTime;
 
 /**
  * AgentVersion 响应 DTO。
- */
+ 
+  * @author xiexu
+  */
 @Data
 @Builder
 @NoArgsConstructor
@@ -35,6 +37,8 @@ public class AgentVersionResponse {
     private String templateParamsJson;
 
     private String systemPromptSnapshot;
+
+    private Long workflowVersionId;
 
     private String outputContractVersion;
 
@@ -68,4 +72,3 @@ public class AgentVersionResponse {
 
     private LocalDateTime updatedAt;
 }
-

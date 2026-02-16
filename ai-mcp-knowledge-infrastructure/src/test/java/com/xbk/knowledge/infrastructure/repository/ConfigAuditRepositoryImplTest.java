@@ -3,7 +3,7 @@ package com.xbk.knowledge.infrastructure.repository;
 import com.xbk.knowledge.domain.model.aggregate.audit.ConfigAuditAggregate;
 import com.xbk.knowledge.domain.model.entity.ConfigAudit;
 import com.xbk.knowledge.domain.model.vo.audit.AuditQuery;
-import com.xbk.knowledge.infrastructure.mapper.ConfigAuditMapper;
+import com.xbk.knowledge.infrastructure.mapper.audit.ConfigAuditMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 

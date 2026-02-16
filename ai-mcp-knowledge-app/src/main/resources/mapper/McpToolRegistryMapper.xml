@@ -2,11 +2,10 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xbk.knowledge.infrastructure.mapper.McpToolRegistryMapper">
+<mapper namespace="com.xbk.knowledge.infrastructure.mapper.gateway.McpToolRegistryMapper">
 
     <resultMap id="McpToolRegistryMap" type="com.xbk.knowledge.domain.model.entity.gateway.McpToolRegistry">
         <id column="id" property="id"/>
-        <result column="org_id" property="orgId"/>
         <result column="gateway_id" property="gatewayId"/>
         <result column="tool_name" property="toolName"/>
         <result column="tool_key" property="toolKey"/>
@@ -24,7 +23,6 @@
 
     <insert id="insertToolRegistry" parameterType="com.xbk.knowledge.domain.model.entity.gateway.McpToolRegistry" useGeneratedKeys="true" keyProperty="id">
         insert into mcp_tool_registry (
-            org_id,
             gateway_id,
             tool_name,
             tool_key,
@@ -39,7 +37,6 @@
             created_at,
             updated_at
         ) values (
-            #{orgId},
             #{gatewayId},
             #{toolName},
             #{toolKey},
@@ -71,19 +68,16 @@
             status = #{status},
             updated_at = #{updatedAt}
         where id = #{id}
-          and org_id = #{orgId}
     </update>
 
     <delete id="deleteToolRegistryById">
         delete from mcp_tool_registry
         where id = #{id}
-          and org_id = #{orgId}
     </delete>
 
     <select id="findById" resultMap="McpToolRegistryMap">
         select
             id,
-            org_id,
             gateway_id,
             tool_name,
             tool_key,
@@ -99,13 +93,11 @@
             updated_at
         from mcp_tool_registry
         where id = #{id}
-          and org_id = #{orgId}
     </select>
 
     <select id="findByGatewayIdAndToolName" resultMap="McpToolRegistryMap">
         select
             id,
-            org_id,
             gateway_id,
             tool_name,
             tool_key,
@@ -121,14 +113,12 @@
             updated_at
         from mcp_tool_registry
         where gateway_id = #{gatewayId}
-          and org_id = #{orgId}
           and tool_name = #{toolName}
     </select>
 
     <select id="findByGatewayId" resultMap="McpToolRegistryMap">
         select
             id,
-            org_id,
             gateway_id,
             tool_name,
             tool_key,
@@ -144,14 +134,12 @@
             updated_at
         from mcp_tool_registry
         where gateway_id = #{gatewayId}
-          and org_id = #{orgId}
         order by id desc
     </select>
 
     <select id="findEnabledByGatewayId" resultMap="McpToolRegistryMap">
         select
             id,
-            org_id,
             gateway_id,
             tool_name,
             tool_key,
@@ -167,7 +155,6 @@
             updated_at
         from mcp_tool_registry
         where gateway_id = #{gatewayId}
-          and org_id = #{orgId}
           and status = 1
         order by id desc
     </select>
@@ -175,7 +162,6 @@
     <select id="findPage" resultMap="McpToolRegistryMap">
         select
             id,
-            org_id,
             gateway_id,
             tool_name,
             tool_key,
@@ -191,7 +177,6 @@
             updated_at
         from mcp_tool_registry
         where gateway_id = #{gatewayId}
-          and org_id = #{orgId}
         order by id desc
         limit #{pageSize} offset #{offset}
     </select>
@@ -200,7 +185,6 @@
         select count(1)
         from mcp_tool_registry
         where gateway_id = #{gatewayId}
-          and org_id = #{orgId}
     </select>
 
 </mapper>

@@ -8,7 +8,9 @@ import lombok.NoArgsConstructor;
  * PromptTemplate 分页查询条件（含 org 边界）。
  *
  * 说明：列表默认返回（GLOBAL + 当前 org 的 ORG 模板）。
- */
+ 
+  * @author xiexu
+  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

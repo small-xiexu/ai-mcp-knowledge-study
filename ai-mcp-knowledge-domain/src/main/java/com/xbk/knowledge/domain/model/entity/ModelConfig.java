@@ -40,7 +40,7 @@ public class ModelConfig {
     /**
      * 组织ID。
      *
-     * 为什么：单租户下按部门隔离模型配置；超级管理员可跨 org 管理但必须显式选择目标 org。
+     * 为什么：用于模型配置的组织归属标识；单组织模式下默认归属为 1。
      */
     private Long orgId;
 

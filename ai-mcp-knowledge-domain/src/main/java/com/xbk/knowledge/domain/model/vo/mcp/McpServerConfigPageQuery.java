@@ -31,11 +31,24 @@ public class McpServerConfigPageQuery {
      */
     private Integer pageSize;
 
+    /**
+     * McpServerConfigPageQuery。
+     *
+     * @param offset 参数
+     * @param pageSize 参数
+     */
     public McpServerConfigPageQuery(Integer offset, Integer pageSize) {
         this.offset = offset;
         this.pageSize = pageSize;
     }
 
+    /**
+     * McpServerConfigPageQuery。
+     *
+     * @param orgId 参数
+     * @param offset 参数
+     * @param pageSize 参数
+     */
     public McpServerConfigPageQuery(Long orgId, Integer offset, Integer pageSize) {
         this.orgId = orgId;
         this.offset = offset;
