@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xbk.knowledge.infrastructure.mapper.workflow.WorkflowRunContextMapper">
+<mapper namespace="com.xbk.knowledge.infrastructure.dao.IWorkflowRunContextDao">
 
-    <resultMap id="WorkflowRunContextMap" type="com.xbk.knowledge.domain.model.entity.workflow.WorkflowRunContext">
+    <resultMap id="WorkflowRunContextMap" type="com.xbk.knowledge.infrastructure.dao.po.WorkflowRunContextPO">
         <id column="id" property="id"/>
         <result column="run_id" property="runId"/>
         <result column="status" property="status"/>
@@ -13,7 +13,7 @@
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
 
-    <insert id="upsert" parameterType="com.xbk.knowledge.domain.model.entity.workflow.WorkflowRunContext"
+    <insert id="upsert" parameterType="com.xbk.knowledge.infrastructure.dao.po.WorkflowRunContextPO"
             useGeneratedKeys="true" keyProperty="id">
         insert into workflow_run_context (
             run_id, status, snapshot_json, created_at, updated_at

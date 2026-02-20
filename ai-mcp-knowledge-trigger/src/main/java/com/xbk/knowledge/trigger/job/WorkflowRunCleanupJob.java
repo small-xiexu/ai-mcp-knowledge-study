@@ -1,10 +1,8 @@
 package com.xbk.knowledge.trigger.job;
 
-import com.xbk.knowledge.domain.repository.workflow.WorkflowNodeRunRepository;
-import com.xbk.knowledge.domain.repository.workflow.WorkflowRunContextRepository;
-import com.xbk.knowledge.domain.repository.workflow.WorkflowRunRepository;
-import com.xbk.knowledge.types.context.OrgContext;
-import com.xbk.knowledge.types.context.OrgContextHolder;
+import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowNodeRunRepository;
+import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowRunContextRepository;
+import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowRunRepository;
 import com.xbk.knowledge.types.trace.TraceIdUtils;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
@@ -43,33 +41,20 @@ public class WorkflowRunCleanupJob {
         LocalDateTime cutOff = LocalDateTime.now().minusDays(RETENTION_DAYS);
 
         int totalDeleted = 0;
-        Long orgId = OrgContextHolder.SINGLE_ORG_ID;
-
-        OrgContext previous = OrgContextHolder.get();
-        try {
-            OrgContextHolder.set(new OrgContext(null, orgId, orgId, false, true));
-
-            int batches = 0;
-            while (batches++ < MAX_BATCHES) {
-                List<String> runIds = workflowRunRepository.listRunIdsBefore(orgId, cutOff, BATCH_LIMIT);
-                if (runIds == null || runIds.isEmpty()) {
-                    break;
-                }
-                int d1 = workflowNodeRunRepository.deleteByRunIds(orgId, runIds);
-                int d2 = workflowRunContextRepository.deleteByRunIds(orgId, runIds);
-                int d3 = workflowRunRepository.deleteByRunIds(orgId, runIds);
-                totalDeleted += d3;
-                XxlJobHelper.log("cleanup orgId={}, runIds={}, nodeRunsDeleted={}, ctxDeleted={}, runsDeleted={}",
-                        orgId, runIds.size(), d1, d2, d3);
-                if (d3 <= 0) {
-                    break;
-                }
+        Long scopeId = 1L;
+        int batches = 0;
+        while (batches++ < MAX_BATCHES) {
+            List<String> runIds = workflowRunRepository.listRunIdsBefore(cutOff, BATCH_LIMIT);
+            if (runIds == null || runIds.isEmpty()) {
+                break;
             }
-        } finally {
-            if (previous == null) {
-                OrgContextHolder.clear();
-            } else {
-                OrgContextHolder.set(previous);
+            int d1 = workflowNodeRunRepository.deleteByRunIds(runIds);
+            int d2 = workflowRunContextRepository.deleteByRunIds(runIds);
+            int d3 = workflowRunRepository.deleteByRunIds(runIds);
+            totalDeleted += d3;
+            XxlJobHelper.log("cleanup scopeId={}, runIds={}, nodeRunsDeleted={}, ctxDeleted={}, runsDeleted={}",  runIds.size(), d1, d2, d3);
+            if (d3 <= 0) {
+                break;
             }
         }
 

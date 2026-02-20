@@ -1,16 +1,4 @@
 /**
- * 模型能力
- */
-export interface ModelCapability {
-  maxInputTokens: number
-  maxOutputTokens: number
-  supportFunctionCalling: boolean
-  supportVision: boolean
-  supportStreaming: boolean
-  qualityScore: number
-}
-
-/**
  * 模型配置（响应）
  */
 export interface ModelConfig {
@@ -21,24 +9,10 @@ export interface ModelConfig {
   baseUrl: string
   enabled: boolean
   toolEnabled?: boolean
-  priority: number
-  capability?: ModelCapability
   createdAt: string
   updatedAt: string
   activeChat?: boolean
   activeEmbedding?: boolean
-}
-
-/**
- * 模型能力（请求）
- */
-export interface ModelCapabilityRequest {
-  maxTokens?: number
-  temperature?: number
-  topP?: number
-  qualityScore?: number
-  speedScore?: number
-  costScore?: number
 }
 
 /**
@@ -52,8 +26,6 @@ export interface ModelConfigRequest {
   baseUrl: string
   enabled?: boolean
   toolEnabled?: boolean
-  priority?: number
-  capability?: ModelCapabilityRequest
 }
 
 /**
@@ -65,7 +37,6 @@ export interface ModelInfo {
   modelType: string
   qualityScore?: number
   enabled?: boolean
-  capability?: ModelCapability
 }
 
 /**
@@ -73,7 +44,6 @@ export interface ModelInfo {
  */
 export interface AIRequest {
   content: string
-  taskType?: string
   systemPrompt?: string
   parameters?: Record<string, any>
   strategy?: string
@@ -89,7 +59,6 @@ export interface AIRequest {
 export interface AIResponse {
   content: string
   modelUsed: string
-  tokensUsed?: number
   responseTime: number
   success: boolean
   errorMessage?: string
@@ -118,9 +87,6 @@ export interface ChatMessage {
   role: string
   content: string
   modelId?: number
-  promptTokens?: number
-  completionTokens?: number
-  totalTokens?: number
   createdAt: string
 }
 
@@ -150,9 +116,6 @@ export interface ChatMessageCreateRequest {
   role: string
   content: string
   modelId?: number
-  promptTokens?: number
-  completionTokens?: number
-  totalTokens?: number
 }
 
 /**
@@ -334,33 +297,6 @@ export interface ConfigAudit {
 }
 
 /**
- * 任务类型
- */
-export interface TaskType {
-  id: number
-  taskName: string
-  taskCode: string
-  description?: string
-  preferredModelId: number
-  preferredModelName?: string
-  fallbackModelIds?: string
-  createdAt: string
-  updatedAt: string
-}
-
-/**
- * 任务类型请求
- */
-export interface TaskTypeRequest {
-  id?: number
-  taskName: string
-  taskCode: string
-  description?: string
-  preferredModelId: number
-  fallbackModelIds?: string
-}
-
-/**
  * MCP Server 配置（响应）
  */
 export interface McpServerConfig {
@@ -444,21 +380,6 @@ export interface IdentityPermission {
   resourceType?: string
   action?: string
   status?: number
-  createdAt?: string
-  updatedAt?: string
-}
-
-/**
- * 组织
- */
-export interface IdentityOrg {
-  id: number
-  orgCode: string
-  orgName: string
-  parentId?: number
-  orgPath?: string
-  status?: number
-  remark?: string
   createdAt?: string
   updatedAt?: string
 }

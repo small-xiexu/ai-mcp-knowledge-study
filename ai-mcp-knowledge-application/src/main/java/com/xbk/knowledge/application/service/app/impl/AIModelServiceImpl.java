@@ -1,26 +1,22 @@
 package com.xbk.knowledge.application.service.app.impl;
 
-import com.xbk.knowledge.application.fallback.handler.FallbackHandler;
 import com.xbk.knowledge.application.fallback.core.ModelCallContext;
 import com.xbk.knowledge.application.fallback.executor.ModelCallExecutor;
 import com.xbk.knowledge.application.model.dto.AICallCommand;
 import com.xbk.knowledge.application.model.dto.AICallResult;
 import com.xbk.knowledge.application.model.dto.ModelSelectionDecision;
-import com.xbk.knowledge.application.model.dto.ModelSelectionResult;
 import com.xbk.knowledge.application.service.app.AIModelService;
-import com.xbk.knowledge.application.service.selector.ModelSelector;
 import com.xbk.knowledge.application.service.selection.chain.ModelSelectionChain;
 import com.xbk.knowledge.domain.model.aggregate.call.CallLogAggregate;
 import com.xbk.knowledge.domain.model.entity.CallLog;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
-import com.xbk.knowledge.domain.repository.metrics.CallLogRepository;
+import com.xbk.knowledge.domain.model.adapter.repository.metrics.CallLogRepository;
 import com.xbk.knowledge.types.enums.CallStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * AI 模型统一服务实现类
@@ -34,11 +30,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AIModelServiceImpl implements AIModelService {
 
-    private final ModelSelector modelSelector;
     private final ModelSelectionChain modelSelectionChain;
     private final ModelCallExecutor modelCallExecutor;
     private final CallLogRepository callLogRepository;
-    private final FallbackHandler fallbackHandler;
 
     /**
      * 统一聊天入口
@@ -53,58 +47,13 @@ public class AIModelServiceImpl implements AIModelService {
         String content = request.getContent();
         log.info("开始处理 chat 请求，content: {}", content);
 
-        /*
-         * 目的：明确选择链路优先级，确保策略一致性
-         */
-        ModelConfig selectedModel;
         ModelSelectionDecision decision = modelSelectionChain.select(request);
-        if (decision.isUseTaskType()) {
-            /*
-             * 目的：任务类型有明确业务语义，优先使用任务配置模型
-             */
-            request.setTaskType(decision.getTaskType());
-            return chatByTaskType(request);
-        }
-        selectedModel = decision.getSelectedModel();
+        ModelConfig selectedModel = decision.getSelectedModel();
 
         /*
          * 目的：统一走核心执行逻辑，保持日志与异常处理一致
          */
         return executeCall(selectedModel, request, false);
-    }
-
-    /**
-     * 按任务类型调用
-     * 保证任务语义优先并统一降级策略的处理路径
-     *
-     * 为什么：任务类型决定默认/兜底模型选择，避免误用模型
-     * 入参：聊天调用命令（包含任务类型）
-     * 出参：模型调用结果
-     */
-    @Override
-    public AICallResult chatByTaskType(AICallCommand request) {
-        String content = request.getContent();
-        String taskType = request.getTaskType();
-        log.info("开始处理 chatByTaskType 请求，taskType: {}, content: {}", taskType, content);
-
-        /*
-         * 目的：按任务类型选择主模型与降级模型
-         */
-        ModelSelectionResult selectionResult = modelSelector.selectModel(taskType);
-        ModelConfig primaryModel = selectionResult.getPrimaryModel();
-        List<ModelConfig> fallbackModels = selectionResult.getFallbackModels();
-
-        /*
-         * 目的：由降级处理器统一执行主备调用
-         */
-        AICallResult response = fallbackHandler.executeWithFallback(primaryModel, fallbackModels, request);
-
-        /*
-         * 目的：记录调用日志，保障任务链路可追溯
-         */
-        recordCallLog(primaryModel, request, response);
-
-        return response;
     }
 
     /**
@@ -174,12 +123,10 @@ public class AIModelServiceImpl implements AIModelService {
      */
     private CallLog buildCallLog(ModelConfig modelConfig, AICallCommand request) {
         Long modelId = modelConfig.getId();
-        String taskType = request.getTaskType();
         String requestContent = request.getContent();
         String truncatedRequestContent = truncateContent(requestContent, 5000);
         return CallLog.builder()
                 .modelId(modelId)
-                .taskType(taskType)
                 .requestContent(truncatedRequestContent)
                 .build();
     }
@@ -290,46 +237,4 @@ public class AIModelServiceImpl implements AIModelService {
         return content.substring(0, maxLength) + "...";
     }
 
-    /**
-     * 记录调用日志
-     *
-     * 为什么：统一保存调用日志，便于查询与审计
-     * 入参：模型配置、请求对象、响应对象
-     * 出参：无
-     */
-    private void recordCallLog(ModelConfig modelConfig, AICallCommand request, AICallResult response) {
-        Long modelId = modelConfig.getId();
-        String taskType = request.getTaskType();
-        String requestContent = request.getContent();
-        String responseContent = response.getContent();
-        Integer tokensUsed = response.getTokensUsed();
-        Long responseTime = response.getResponseTime();
-        Boolean success = response.getSuccess();
-        Boolean fallback = response.getFallback();
-        String errorMessage = response.getErrorMessage();
-        String truncatedRequestContent = truncateContent(requestContent, 5000);
-        String truncatedResponseContent = truncateContent(responseContent, 5000);
-        Integer safeTokensUsed = tokensUsed != null ? tokensUsed : 0;
-        Long safeResponseTime = responseTime != null ? responseTime : 0L;
-        CallStatus status = Boolean.TRUE.equals(success)
-                ? (Boolean.TRUE.equals(fallback) ? CallStatus.FALLBACK : CallStatus.SUCCESS)
-                : CallStatus.FAILED;
-        LocalDateTime createdAt = LocalDateTime.now();
-        CallLog callLog = CallLog.builder()
-                .modelId(modelId)
-                .taskType(taskType)
-                .requestContent(truncatedRequestContent)
-                .responseContent(truncatedResponseContent)
-                .tokensUsed(safeTokensUsed)
-                .responseTime(safeResponseTime)
-                .status(status)
-                .errorMessage(errorMessage)
-                .createdAt(createdAt)
-                .build();
-
-        CallLogAggregate aggregate = CallLogAggregate.builder()
-                .callLog(callLog)
-                .build();
-        callLogRepository.save(aggregate);
-    }
 }

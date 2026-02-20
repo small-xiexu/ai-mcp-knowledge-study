@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xbk.knowledge.infrastructure.mapper.identity.IdentityMapper">
+<mapper namespace="com.xbk.knowledge.infrastructure.dao.IIdentityDao">
 
-    <resultMap id="SysUserMap" type="com.xbk.knowledge.domain.model.entity.SysUser">
+    <resultMap id="SysUserMap" type="com.xbk.knowledge.infrastructure.dao.po.SysUserPO">
         <id column="id" property="id"/>
         <result column="username" property="username"/>
         <result column="display_name" property="displayName"/>
@@ -102,7 +102,7 @@
         </if>
     </select>
 
-    <insert id="insertUser" parameterType="com.xbk.knowledge.domain.model.entity.SysUser" useGeneratedKeys="true"
+    <insert id="insertUser" parameterType="com.xbk.knowledge.infrastructure.dao.po.SysUserPO" useGeneratedKeys="true"
             keyProperty="id">
         insert into sys_user (
             username,
@@ -127,7 +127,7 @@
         )
     </insert>
 
-    <update id="updateUser" parameterType="com.xbk.knowledge.domain.model.entity.SysUser">
+    <update id="updateUser" parameterType="com.xbk.knowledge.infrastructure.dao.po.SysUserPO">
         update sys_user
         set display_name = #{displayName},
             email = #{email},
@@ -159,7 +159,7 @@
         where id = #{userId}
     </update>
 
-    <resultMap id="SysRoleMap" type="com.xbk.knowledge.domain.model.entity.SysRole">
+    <resultMap id="SysRoleMap" type="com.xbk.knowledge.infrastructure.dao.po.SysRolePO">
         <id column="id" property="id"/>
         <result column="role_code" property="roleCode"/>
         <result column="role_name" property="roleName"/>
@@ -208,7 +208,7 @@
         </if>
     </select>
 
-    <insert id="insertRole" parameterType="com.xbk.knowledge.domain.model.entity.SysRole" useGeneratedKeys="true"
+    <insert id="insertRole" parameterType="com.xbk.knowledge.infrastructure.dao.po.SysRolePO" useGeneratedKeys="true"
             keyProperty="id">
         insert into sys_role (
             role_code,
@@ -229,7 +229,7 @@
         )
     </insert>
 
-    <update id="updateRole" parameterType="com.xbk.knowledge.domain.model.entity.SysRole">
+    <update id="updateRole" parameterType="com.xbk.knowledge.infrastructure.dao.po.SysRolePO">
         update sys_role
         set role_name = #{roleName},
             role_scope = #{roleScope},
@@ -281,7 +281,7 @@
         )
     </insert>
 
-    <resultMap id="SysPermissionMap" type="com.xbk.knowledge.domain.model.entity.SysPermission">
+    <resultMap id="SysPermissionMap" type="com.xbk.knowledge.infrastructure.dao.po.SysPermissionPO">
         <id column="id" property="id"/>
         <result column="permission_code" property="permissionCode"/>
         <result column="permission_name" property="permissionName"/>

@@ -1,11 +1,11 @@
 package com.xbk.knowledge.trigger.job;
 
 import com.xbk.knowledge.domain.model.entity.SysAuditEvent;
-import com.xbk.knowledge.domain.model.entity.approval.ApprovalRequest;
-import com.xbk.knowledge.domain.repository.agent.AgentRunContextRepository;
-import com.xbk.knowledge.domain.repository.agent.AgentRunRepository;
-import com.xbk.knowledge.domain.repository.approval.ApprovalRequestRepository;
-import com.xbk.knowledge.domain.repository.audit.SysAuditEventRepository;
+import com.xbk.knowledge.domain.approval.model.entity.ApprovalRequest;
+import com.xbk.knowledge.domain.agent.adapter.repository.AgentRunContextRepository;
+import com.xbk.knowledge.domain.agent.adapter.repository.AgentRunRepository;
+import com.xbk.knowledge.domain.approval.adapter.repository.ApprovalRequestRepository;
+import com.xbk.knowledge.domain.model.adapter.repository.audit.SysAuditEventRepository;
 import com.xbk.knowledge.types.trace.TraceIdUtils;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.RequiredArgsConstructor;
@@ -32,9 +32,9 @@ public class ApprovalExpireJob {
     private static final int BATCH_SIZE = 200;
     private static final int MAX_LOOP = 50;
     /**
-     * 系统内部流程的 operator_org_id 占位值（数据库字段 NOT NULL）。
+     * 系统内部流程的 operator_scope_id 占位值（数据库字段 NOT NULL）。
      */
-    private static final long SYSTEM_OPERATOR_ORG_ID = 0L;
+    private static final long SYSTEM_OPERATOR_SCOPE_ID = 0L;
 
     private final ApprovalRequestRepository approvalRequestRepository;
     private final AgentRunRepository agentRunRepository;
@@ -56,7 +56,7 @@ public class ApprovalExpireJob {
                 break;
             }
             for (ApprovalRequest req : expired) {
-                if (req == null || req.getId() == null || req.getOrgId() == null) {
+                if (req == null || req.getId() == null) {
                     continue;
                 }
                 try {
@@ -72,20 +72,19 @@ public class ApprovalExpireJob {
     }
 
     private void handleOne(ApprovalRequest req, LocalDateTime now) {
-        Long orgId = req.getOrgId();
         Long id = req.getId();
         String runId = req.getRunId();
 
-        int updated = approvalRequestRepository.markExpired(orgId, id, "审批超时自动过期", now);
+        int updated = approvalRequestRepository.markExpired(id, "审批超时自动过期", now);
         if (updated <= 0) {
             return;
         }
 
         if (StringUtils.hasText(runId)) {
             // run 终态：FAILED（可解释）
-            agentRunRepository.updateStatus(orgId, runId, "FAILED", "审批超时（EXPIRED）", now);
+            agentRunRepository.updateStatus(runId, "FAILED", "审批超时（EXPIRED）", now);
             try {
-                agentRunContextRepository.updateStatus(orgId, runId, "EXPIRED");
+                agentRunContextRepository.updateStatus(runId, "EXPIRED");
             } catch (Exception e) {
                 log.warn("更新 agent_run_context 失败（EXPIRED），runId: {}", runId, e);
             }
@@ -108,12 +107,12 @@ public class ApprovalExpireJob {
         try {
             SysAuditEvent event = SysAuditEvent.builder()
                     .operatorId(null)
-                    .operatorOrgId(SYSTEM_OPERATOR_ORG_ID)
+                    .operatorScopeId(SYSTEM_OPERATOR_SCOPE_ID)
                     .operatorType("system")
                     .eventType("TOOL_APPROVAL")
                     .resourceType("approval_request")
                     .resourceId(String.valueOf(req.getId()))
-                    .resourceOrgId(req.getOrgId())
+                    .resourceScopeId(1L)
                     .action("EXPIRED")
                     .requestId(runId)
                     .result(1)

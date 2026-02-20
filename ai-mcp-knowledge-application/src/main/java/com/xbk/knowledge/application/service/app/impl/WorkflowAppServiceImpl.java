@@ -2,19 +2,18 @@ package com.xbk.knowledge.application.service.app.impl;
 
 import com.xbk.knowledge.application.service.app.IdentityContextService;
 import com.xbk.knowledge.application.service.app.WorkflowAppService;
-import com.xbk.knowledge.domain.model.entity.workflow.Workflow;
-import com.xbk.knowledge.domain.model.entity.workflow.WorkflowEdge;
-import com.xbk.knowledge.domain.model.entity.workflow.WorkflowNode;
-import com.xbk.knowledge.domain.model.entity.workflow.WorkflowVersion;
+import com.xbk.knowledge.domain.workflow.model.entity.Workflow;
+import com.xbk.knowledge.domain.workflow.model.entity.WorkflowEdge;
+import com.xbk.knowledge.domain.workflow.model.entity.WorkflowNode;
+import com.xbk.knowledge.domain.workflow.model.entity.WorkflowVersion;
 import com.xbk.knowledge.domain.model.vo.common.IdQuery;
-import com.xbk.knowledge.domain.model.vo.workflow.WorkflowCodeQuery;
-import com.xbk.knowledge.domain.model.vo.workflow.WorkflowVersionIdQuery;
-import com.xbk.knowledge.domain.model.vo.workflow.WorkflowVersionListQuery;
-import com.xbk.knowledge.domain.repository.workflow.WorkflowGraphRepository;
-import com.xbk.knowledge.domain.repository.workflow.WorkflowRepository;
-import com.xbk.knowledge.domain.repository.workflow.WorkflowVersionRepository;
+import com.xbk.knowledge.domain.workflow.model.valobj.WorkflowCodeQuery;
+import com.xbk.knowledge.domain.workflow.model.valobj.WorkflowVersionIdQuery;
+import com.xbk.knowledge.domain.workflow.model.valobj.WorkflowVersionListQuery;
+import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowGraphRepository;
+import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowRepository;
+import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowVersionRepository;
 import com.xbk.knowledge.types.common.PageResult;
-import com.xbk.knowledge.types.context.OrgContextHolder;
 import com.xbk.knowledge.types.exception.BusinessException;
 import com.xbk.knowledge.types.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -43,18 +42,18 @@ public class WorkflowAppServiceImpl implements WorkflowAppService {
     /**
      * list。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      * @param keyword 参数
      * @param offset 参数
      * @param pageSize 参数
      * @return 返回结果
      */
     @Override
-    public PageResult<Workflow> list(Long orgId, String keyword, int offset, int pageSize) {
+    public PageResult<Workflow> list(String keyword, int offset, int pageSize) {
         int safeOffset = Math.max(offset, 0);
         int safeSize = pageSize <= 0 ? 20 : Math.min(pageSize, 200);
-        List<Workflow> list = workflowRepository.list(orgId, keyword, safeOffset, safeSize);
-        long total = workflowRepository.count(orgId, keyword);
+        List<Workflow> list = workflowRepository.list(keyword, safeOffset, safeSize);
+        long total = workflowRepository.count(keyword);
         int pageNum = safeSize == 0 ? 1 : (safeOffset / safeSize) + 1;
         return PageResult.of(list, total, pageNum, safeSize);
     }
@@ -62,41 +61,37 @@ public class WorkflowAppServiceImpl implements WorkflowAppService {
     /**
      * get。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      * @param id 参数
      * @return 返回结果
      */
     @Override
-    public Workflow get(Long orgId, Long id) {
-        return workflowRepository.findById(new IdQuery(orgId, id))
+    public Workflow get(Long id) {
+        return workflowRepository.findById(new IdQuery(id))
                 .orElseThrow(() -> new NotFoundException("Workflow 不存在，id=" + id));
     }
 
     /**
      * create。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      * @param workflow 参数
      * @return 返回结果
      */
     @Override
-    public Workflow create(Long orgId, Workflow workflow) {
-        if (orgId == null) {
-            throw new IllegalArgumentException("orgId 不能为空");
-        }
+    public Workflow create(Workflow workflow) {
         if (workflow == null) {
             throw new IllegalArgumentException("workflow 不能为空");
         }
         if (!StringUtils.hasText(workflow.getWorkflowCode()) || !StringUtils.hasText(workflow.getWorkflowName())) {
             throw new BusinessException("workflowCode/workflowName 不能为空");
         }
-        workflowRepository.findByCode(WorkflowCodeQuery.builder().orgId(orgId).workflowCode(workflow.getWorkflowCode()).build())
+        workflowRepository.findByCode(WorkflowCodeQuery.builder().workflowCode(workflow.getWorkflowCode()).build())
                 .ifPresent(existed -> {
                     throw new BusinessException("WorkflowCode 已存在: " + workflow.getWorkflowCode());
                 });
 
         Long operatorId = identityContextService.getCurrentUserId();
-        workflow.setOrgId(orgId);
         workflow.setStatus(StringUtils.hasText(workflow.getStatus()) ? workflow.getStatus() : "ENABLED");
         workflow.setCreatedBy(operatorId);
         workflow.setUpdatedBy(operatorId);
@@ -109,19 +104,16 @@ public class WorkflowAppServiceImpl implements WorkflowAppService {
     /**
      * update。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      * @param workflow 参数
      * @return 返回结果
      */
     @Override
-    public Workflow update(Long orgId, Workflow workflow) {
-        if (orgId == null) {
-            throw new IllegalArgumentException("orgId 不能为空");
-        }
+    public Workflow update(Workflow workflow) {
         if (workflow == null || workflow.getId() == null) {
             throw new IllegalArgumentException("workflow/id 不能为空");
         }
-        Workflow existed = get(orgId, workflow.getId());
+        Workflow existed = get(workflow.getId());
         existed.setWorkflowName(workflow.getWorkflowName());
         existed.setDescription(workflow.getDescription());
         if (StringUtils.hasText(workflow.getStatus())) {
@@ -133,26 +125,25 @@ public class WorkflowAppServiceImpl implements WorkflowAppService {
         if (affected <= 0) {
             throw new BusinessException("更新失败，id=" + workflow.getId());
         }
-        return get(orgId, workflow.getId());
+        return get(workflow.getId());
     }
 
     /**
      * createVersion。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      * @param workflowId 参数
      * @param changeSummary 参数
      * @return 返回结果
      */
     @Override
-    public WorkflowVersion createVersion(Long orgId, Long workflowId, String changeSummary) {
-        if (orgId == null || workflowId == null) {
-            throw new IllegalArgumentException("orgId/workflowId 不能为空");
+    public WorkflowVersion createVersion(Long workflowId, String changeSummary) {
+        if (workflowId == null) {
+            throw new IllegalArgumentException("workflowId 不能为空");
         }
-        Workflow wf = workflowRepository.findById(new IdQuery(orgId, workflowId))
+        Workflow wf = workflowRepository.findById(new IdQuery(workflowId))
                 .orElseThrow(() -> new NotFoundException("Workflow 不存在，id=" + workflowId));
         List<WorkflowVersion> versions = workflowVersionRepository.listByWorkflowId(WorkflowVersionListQuery.builder()
-                .orgId(orgId)
                 .workflowId(workflowId)
                 .build());
         int nextNo = 1;
@@ -166,7 +157,6 @@ public class WorkflowAppServiceImpl implements WorkflowAppService {
         }
         Long operatorId = identityContextService.getCurrentUserId();
         WorkflowVersion v = WorkflowVersion.builder()
-                .orgId(orgId)
                 .workflowId(workflowId)
                 .versionNo(nextNo)
                 .state("DRAFT")
@@ -186,14 +176,13 @@ public class WorkflowAppServiceImpl implements WorkflowAppService {
     /**
      * listVersions。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      * @param workflowId 参数
      * @return 返回结果
      */
     @Override
-    public List<WorkflowVersion> listVersions(Long orgId, Long workflowId) {
+    public List<WorkflowVersion> listVersions(Long workflowId) {
         return workflowVersionRepository.listByWorkflowId(WorkflowVersionListQuery.builder()
-                .orgId(orgId)
                 .workflowId(workflowId)
                 .build());
     }
@@ -201,39 +190,39 @@ public class WorkflowAppServiceImpl implements WorkflowAppService {
     /**
      * getVersion。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      * @param workflowVersionId 参数
      * @return 返回结果
      */
     @Override
-    public WorkflowVersion getVersion(Long orgId, Long workflowVersionId) {
-        if (orgId == null || workflowVersionId == null) {
-            throw new IllegalArgumentException("orgId/workflowVersionId 不能为空");
+    public WorkflowVersion getVersion(Long workflowVersionId) {
+        if (workflowVersionId == null) {
+            throw new IllegalArgumentException("workflowVersionId 不能为空");
         }
-        return workflowVersionRepository.findById(WorkflowVersionIdQuery.builder().orgId(orgId).id(workflowVersionId).build())
+        return workflowVersionRepository.findById(WorkflowVersionIdQuery.builder().id(workflowVersionId).build())
                 .orElseThrow(() -> new NotFoundException("WorkflowVersion 不存在，id=" + workflowVersionId));
     }
 
     /**
      * publishVersion。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      * @param workflowVersionId 参数
      * @return 返回结果
      */
     @Override
-    public WorkflowVersion publishVersion(Long orgId, Long workflowVersionId) {
-        if (orgId == null || workflowVersionId == null) {
-            throw new IllegalArgumentException("orgId/workflowVersionId 不能为空");
+    public WorkflowVersion publishVersion(Long workflowVersionId) {
+        if (workflowVersionId == null) {
+            throw new IllegalArgumentException("workflowVersionId 不能为空");
         }
-        WorkflowVersion v = workflowVersionRepository.findById(WorkflowVersionIdQuery.builder().orgId(orgId).id(workflowVersionId).build())
+        WorkflowVersion v = workflowVersionRepository.findById(WorkflowVersionIdQuery.builder().id(workflowVersionId).build())
                 .orElseThrow(() -> new NotFoundException("WorkflowVersion 不存在，id=" + workflowVersionId));
 
-        Workflow wf = workflowRepository.findById(new IdQuery(orgId, v.getWorkflowId()))
+        Workflow wf = workflowRepository.findById(new IdQuery(v.getWorkflowId()))
                 .orElseThrow(() -> new NotFoundException("Workflow 不存在，id=" + v.getWorkflowId()));
 
         // archive old published
-        workflowVersionRepository.findPublishedVersion(orgId, v.getWorkflowId()).ifPresent(old -> {
+        workflowVersionRepository.findPublishedVersion(v.getWorkflowId()).ifPresent(old -> {
             if (old.getId() != null && !old.getId().equals(v.getId())) {
                 old.setState("ARCHIVED");
                 old.setUpdatedBy(identityContextService.getCurrentUserId());
@@ -252,21 +241,20 @@ public class WorkflowAppServiceImpl implements WorkflowAppService {
         wf.setUpdatedAt(LocalDateTime.now());
         workflowRepository.updateById(wf);
 
-        return workflowVersionRepository.findById(WorkflowVersionIdQuery.builder().orgId(orgId).id(v.getId()).build())
+        return workflowVersionRepository.findById(WorkflowVersionIdQuery.builder().id(v.getId()).build())
                 .orElseThrow(() -> new NotFoundException("WorkflowVersion 不存在，id=" + workflowVersionId));
     }
 
     @Override
-    public WorkflowVersion saveGraph(Long orgId,
-                                    Long workflowVersionId,
+    public WorkflowVersion saveGraph(Long workflowVersionId,
                                     String graphJson,
                                     String defaultConfigJson,
                                     List<WorkflowNode> nodes,
                                     List<WorkflowEdge> edges) {
-        if (orgId == null || workflowVersionId == null) {
-            throw new IllegalArgumentException("orgId/workflowVersionId 不能为空");
+        if (workflowVersionId == null) {
+            throw new IllegalArgumentException("workflowVersionId 不能为空");
         }
-        WorkflowVersion v = workflowVersionRepository.findById(WorkflowVersionIdQuery.builder().orgId(orgId).id(workflowVersionId).build())
+        WorkflowVersion v = workflowVersionRepository.findById(WorkflowVersionIdQuery.builder().id(workflowVersionId).build())
                 .orElseThrow(() -> new NotFoundException("WorkflowVersion 不存在，id=" + workflowVersionId));
         if (!"DRAFT".equalsIgnoreCase(v.getState())) {
             throw new BusinessException("仅 DRAFT 版本可编辑图，state=" + v.getState());
@@ -278,8 +266,8 @@ public class WorkflowAppServiceImpl implements WorkflowAppService {
         v.setUpdatedAt(LocalDateTime.now());
         workflowVersionRepository.updateById(v);
 
-        workflowGraphRepository.replaceGraph(orgId, workflowVersionId, nodes, edges);
-        return workflowVersionRepository.findById(WorkflowVersionIdQuery.builder().orgId(orgId).id(workflowVersionId).build())
+        workflowGraphRepository.replaceGraph(workflowVersionId, nodes, edges);
+        return workflowVersionRepository.findById(WorkflowVersionIdQuery.builder().id(workflowVersionId).build())
                 .orElseThrow(() -> new NotFoundException("WorkflowVersion 不存在，id=" + workflowVersionId));
     }
 }

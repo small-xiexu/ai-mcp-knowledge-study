@@ -96,12 +96,6 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '工具审批', icon: 'Tickets', permission: 'tool:approve', group: 'agent', order: 30 }
       },
       {
-        path: 'tool-policies',
-        name: 'ToolPolicies',
-        component: () => import('@/views/agent-platform/tool-policy/index.vue'),
-        meta: { title: '工具策略', icon: 'Tools', permission: 'tool:read', group: 'agent', order: 40 }
-      },
-      {
         path: 'schedules',
         name: 'AgentSchedules',
         component: () => import('@/views/agent-platform/schedules/index.vue'),
@@ -124,12 +118,6 @@ const routes: RouteRecordRaw[] = [
         name: 'RagTasks',
         component: () => import('@/views/rag-task/index.vue'),
         meta: { title: '导入任务', icon: 'Clock', permission: 'agent:read', group: 'knowledge', order: 20 }
-      },
-      {
-        path: 'tasks',
-        name: 'Tasks',
-        component: () => import('@/views/task/index.vue'),
-        meta: { title: '策略配置', icon: 'List', permission: 'workflow:read', group: 'integration', order: 20 }
       },
       {
         path: 'advisors',
@@ -165,13 +153,13 @@ const routes: RouteRecordRaw[] = [
         path: 'users',
         name: 'Users',
         component: () => import('@/views/user/index.vue'),
-        meta: { title: '用户管理', icon: 'User', permission: 'user:read', group: 'org', order: 10 }
+        meta: { title: '用户管理', icon: 'User', permission: 'user:read', group: 'security', order: 10 }
       },
       {
         path: 'roles',
         name: 'Roles',
         component: () => import('@/views/role/index.vue'),
-        meta: { title: '角色管理', icon: 'Avatar', permission: 'role:read', group: 'org', order: 20 }
+        meta: { title: '角色管理', icon: 'Avatar', permission: 'role:read', group: 'security', order: 20 }
       },
       {
         path: 'credentials',
@@ -183,13 +171,13 @@ const routes: RouteRecordRaw[] = [
         path: 'audit-events',
         name: 'AuditEvents',
         component: () => import('@/views/audit-event/index.vue'),
-        meta: { title: '身份审计', icon: 'Tickets', permission: 'audit:read', group: 'org', order: 40 }
+        meta: { title: '身份审计', icon: 'Tickets', permission: 'audit:read', group: 'security', order: 40 }
       },
       {
         path: 'audit',
         name: 'Audit',
         component: () => import('@/views/audit/index.vue'),
-        meta: { title: '审计日志', icon: 'Document', permission: 'audit:read', group: 'org', order: 50 }
+        meta: { title: '审计日志', icon: 'Document', permission: 'audit:read', group: 'security', order: 50 }
       }
     ]
   },

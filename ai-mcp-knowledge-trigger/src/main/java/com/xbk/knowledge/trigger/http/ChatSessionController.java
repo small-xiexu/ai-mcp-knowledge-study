@@ -152,9 +152,6 @@ public class ChatSessionController {
                 .role(request.getRole())
                 .content(request.getContent())
                 .modelId(request.getModelId())
-                .promptTokens(request.getPromptTokens())
-                .completionTokens(request.getCompletionTokens())
-                .totalTokens(request.getTotalTokens())
                 .build();
         ChatMessage created = chatSessionAppService.appendMessage(message);
         return Result.success(toMessageResponse(created));
@@ -215,9 +212,6 @@ public class ChatSessionController {
         response.setRole(message.getRole());
         response.setContent(message.getContent());
         response.setModelId(message.getModelId());
-        response.setPromptTokens(message.getPromptTokens());
-        response.setCompletionTokens(message.getCompletionTokens());
-        response.setTotalTokens(message.getTotalTokens());
         response.setCreatedAt(message.getCreatedAt());
         return response;
     }

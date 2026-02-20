@@ -1,7 +1,7 @@
 package com.xbk.knowledge.application.service.app;
 
-import com.xbk.knowledge.domain.model.entity.SysPermission;
-import com.xbk.knowledge.domain.model.vo.identity.PermissionPageQuery;
+import com.xbk.knowledge.domain.identity.model.entity.SysPermission;
+import com.xbk.knowledge.domain.identity.model.valobj.PermissionPageQuery;
 import com.xbk.knowledge.types.common.PageResult;
 
 /**

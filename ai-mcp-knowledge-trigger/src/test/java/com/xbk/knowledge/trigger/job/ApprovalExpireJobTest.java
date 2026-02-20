@@ -1,11 +1,11 @@
 package com.xbk.knowledge.trigger.job;
 
 import com.xbk.knowledge.domain.model.entity.SysAuditEvent;
-import com.xbk.knowledge.domain.model.entity.approval.ApprovalRequest;
-import com.xbk.knowledge.domain.repository.agent.AgentRunContextRepository;
-import com.xbk.knowledge.domain.repository.agent.AgentRunRepository;
-import com.xbk.knowledge.domain.repository.approval.ApprovalRequestRepository;
-import com.xbk.knowledge.domain.repository.audit.SysAuditEventRepository;
+import com.xbk.knowledge.domain.approval.model.entity.ApprovalRequest;
+import com.xbk.knowledge.domain.agent.adapter.repository.AgentRunContextRepository;
+import com.xbk.knowledge.domain.agent.adapter.repository.AgentRunRepository;
+import com.xbk.knowledge.domain.approval.adapter.repository.ApprovalRequestRepository;
+import com.xbk.knowledge.domain.model.adapter.repository.audit.SysAuditEventRepository;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -22,14 +22,14 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 /**
- * 验证审批过期任务的审计写入不会触发 operator_org_id NOT NULL 约束风险。
+ * 验证审批过期任务的审计写入不会触发 operator_scope_id NOT NULL 约束风险。
  *
  * @author xiexu
  */
 public class ApprovalExpireJobTest {
 
     @Test
-    public void shouldWriteAuditWithNonNullOperatorOrgId() {
+    public void shouldWriteAuditWithNonNullOperatorScopeId() {
         ApprovalRequestRepository approvalRepo = Mockito.mock(ApprovalRequestRepository.class);
         AgentRunRepository runRepo = Mockito.mock(AgentRunRepository.class);
         AgentRunContextRepository ctxRepo = Mockito.mock(AgentRunContextRepository.class);
@@ -39,7 +39,7 @@ public class ApprovalExpireJobTest {
 
         ApprovalRequest req = ApprovalRequest.builder()
                 .id(3L)
-                .orgId(2L)
+                .scopeId(2L)
                 .runId("r1")
                 .toolKey("t1")
                 .status("PENDING")
@@ -55,8 +55,8 @@ public class ApprovalExpireJobTest {
         ArgumentCaptor<SysAuditEvent> captor = ArgumentCaptor.forClass(SysAuditEvent.class);
         Mockito.verify(auditRepo).insert(captor.capture());
         SysAuditEvent event = captor.getValue();
-        assertEquals(0L, event.getOperatorOrgId());
-        assertEquals(2L, event.getResourceOrgId());
+        assertEquals(0L, event.getOperatorScopeId());
+        assertEquals(2L, event.getResourceScopeId());
     }
 }
 

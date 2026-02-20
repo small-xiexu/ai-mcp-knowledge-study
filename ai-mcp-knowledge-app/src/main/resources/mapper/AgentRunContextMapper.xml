@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xbk.knowledge.infrastructure.mapper.agent.AgentRunContextMapper">
+<mapper namespace="com.xbk.knowledge.infrastructure.dao.IAgentRunContextDao">
 
-    <resultMap id="AgentRunContextMap" type="com.xbk.knowledge.domain.model.entity.agent.AgentRunContext">
+    <resultMap id="AgentRunContextMap" type="com.xbk.knowledge.infrastructure.dao.po.AgentRunContextPO">
         <id column="id" property="id"/>
         <result column="run_id" property="runId"/>
         <result column="status" property="status"/>
@@ -13,7 +13,7 @@
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
 
-    <insert id="upsert" parameterType="com.xbk.knowledge.domain.model.entity.agent.AgentRunContext"
+    <insert id="upsert" parameterType="com.xbk.knowledge.infrastructure.dao.po.AgentRunContextPO"
             useGeneratedKeys="true" keyProperty="id">
         insert into agent_run_context (
             run_id,

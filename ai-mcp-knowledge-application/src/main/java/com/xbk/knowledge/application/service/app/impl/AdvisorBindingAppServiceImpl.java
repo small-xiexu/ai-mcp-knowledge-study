@@ -2,12 +2,11 @@ package com.xbk.knowledge.application.service.app.impl;
 
 import com.xbk.knowledge.application.service.app.AdvisorBindingAppService;
 import com.xbk.knowledge.application.service.runtime.AdvisorRuntimeService;
-import com.xbk.knowledge.domain.model.entity.advisor.AdvisorBinding;
-import com.xbk.knowledge.domain.model.vo.advisor.AdvisorBindingQuery;
-import com.xbk.knowledge.domain.model.vo.advisor.AdvisorBindingView;
-import com.xbk.knowledge.domain.repository.advisor.AdvisorBindingRepository;
-import com.xbk.knowledge.domain.repository.advisor.AdvisorRepository;
-import com.xbk.knowledge.types.context.OrgContextHolder;
+import com.xbk.knowledge.domain.advisor.model.entity.AdvisorBinding;
+import com.xbk.knowledge.domain.advisor.model.valobj.AdvisorBindingQuery;
+import com.xbk.knowledge.domain.advisor.model.valobj.AdvisorBindingView;
+import com.xbk.knowledge.domain.advisor.adapter.repository.AdvisorBindingRepository;
+import com.xbk.knowledge.domain.advisor.adapter.repository.AdvisorRepository;
 import com.xbk.knowledge.types.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -42,11 +41,10 @@ public class AdvisorBindingAppServiceImpl implements AdvisorBindingAppService {
      */
     @Override
     public List<AdvisorBindingView> listBindings(AdvisorBindingQuery query) {
-        if (query == null || query.orgId() == null || !StringUtils.hasText(query.bindType()) || query.bindTargetId() == null) {
-            throw new IllegalArgumentException("orgId/bindType/bindTargetId 不能为空");
+        if (query == null || !StringUtils.hasText(query.bindType()) || query.bindTargetId() == null) {
+            throw new IllegalArgumentException("bindType/bindTargetId 不能为空");
         }
         AdvisorBindingQuery normalized = new AdvisorBindingQuery(
-                query.orgId(),
                 query.bindType().trim().toUpperCase(Locale.ROOT),
                 query.bindTargetId()
         );
@@ -56,25 +54,25 @@ public class AdvisorBindingAppServiceImpl implements AdvisorBindingAppService {
     /**
      * saveBindings。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      * @param bindType 参数
      * @param bindTargetId 参数
      * @param items 参数
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void saveBindings(Long orgId, String bindType, Long bindTargetId, List<AdvisorBindingSaveItem> items) {
-        if (orgId == null || !StringUtils.hasText(bindType) || bindTargetId == null) {
-            throw new IllegalArgumentException("orgId/bindType/bindTargetId 不能为空");
+    public void saveBindings(String bindType, Long bindTargetId, List<AdvisorBindingSaveItem> items) {
+        if (!StringUtils.hasText(bindType) || bindTargetId == null) {
+            throw new IllegalArgumentException("bindType/bindTargetId 不能为空");
         }
         String bt = bindType.trim().toUpperCase(Locale.ROOT);
         if (!("AGENT_VERSION".equals(bt) || "WORKFLOW_VERSION".equals(bt))) {
             throw new BusinessException("bindType 非法，仅支持 AGENT_VERSION/WORKFLOW_VERSION");
         }
 
-        AdvisorBindingQuery q = new AdvisorBindingQuery(orgId, bt, bindTargetId);
+        AdvisorBindingQuery q = new AdvisorBindingQuery(bt, bindTargetId);
         advisorBindingRepository.deleteByTarget(q);
-        advisorRuntimeService.evictBindingCache(orgId, bt, bindTargetId);
+        advisorRuntimeService.evictBindingCache(bt, bindTargetId);
 
         if (CollectionUtils.isEmpty(items)) {
             return;
@@ -99,12 +97,11 @@ public class AdvisorBindingAppServiceImpl implements AdvisorBindingAppService {
             if (!seen.add(advisorId)) {
                 continue;
             }
-            advisorRepository.findById(orgId, advisorId)
+            advisorRepository.findById(advisorId)
                     .orElseThrow(() -> new BusinessException("Advisor 不存在，advisorId=" + advisorId));
             Integer orderNo = it.getOrderNo() != null ? it.getOrderNo() : idx;
             boolean enabled = it.getEnabled() == null || it.getEnabled();
             AdvisorBinding binding = AdvisorBinding.builder()
-                    .orgId(orgId)
                     .bindType(bt)
                     .bindTargetId(bindTargetId)
                     .advisorId(advisorId)

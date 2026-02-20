@@ -1,0 +1,24 @@
+package com.xbk.knowledge.domain.agent.model.valobj;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+/**
+ * PromptTemplate 分页查询条件。
+ 
+  * @author xiexu
+  */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class PromptTemplatePageQuery {
+
+    private String keyword;
+
+    private String state;
+
+    private Integer offset;
+
+    private Integer pageSize;
+}

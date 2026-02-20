@@ -10,15 +10,14 @@ import com.xbk.knowledge.api.dto.common.IdRequest;
 import com.xbk.knowledge.application.service.app.AgentAppService;
 import com.xbk.knowledge.application.service.app.AgentVersionAppService;
 import com.xbk.knowledge.application.service.app.IdentityContextService;
-import com.xbk.knowledge.domain.model.entity.agent.Agent;
-import com.xbk.knowledge.domain.model.entity.agent.AgentVersion;
-import com.xbk.knowledge.domain.model.vo.agent.AgentCodeQuery;
-import com.xbk.knowledge.domain.model.vo.agent.AgentVersionIdQuery;
-import com.xbk.knowledge.domain.model.vo.agent.AgentVersionPageQuery;
+import com.xbk.knowledge.domain.agent.model.entity.Agent;
+import com.xbk.knowledge.domain.agent.model.entity.AgentVersion;
+import com.xbk.knowledge.domain.agent.model.valobj.AgentCodeQuery;
+import com.xbk.knowledge.domain.agent.model.valobj.AgentVersionIdQuery;
+import com.xbk.knowledge.domain.agent.model.valobj.AgentVersionPageQuery;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.common.PageResultConverter;
 import com.xbk.knowledge.types.common.Result;
-import com.xbk.knowledge.types.context.OrgContextHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -53,11 +52,8 @@ public class AgentVersionController {
     @PostMapping("/list")
     @SaCheckPermission("agent:read")
     public Result<PageResult<AgentVersionResponse>> list(@Valid @RequestBody AgentVersionQueryRequest request) {
-        Long orgId = currentOrgId();
-        Agent agent = agentAppService.queryByCode(new AgentCodeQuery(orgId, request.getAgentCode()));
-        AgentVersionPageQuery query = new AgentVersionPageQuery(
-                orgId,
-                agent.getId(),
+        Agent agent = agentAppService.queryByCode(new AgentCodeQuery(request.getAgentCode()));
+        AgentVersionPageQuery query = new AgentVersionPageQuery(agent.getId(),
                 request.getOffset(),
                 request.getPageSize()
         );
@@ -75,8 +71,7 @@ public class AgentVersionController {
     @PostMapping("/get")
     @SaCheckPermission("agent:read")
     public Result<AgentVersionResponse> get(@Valid @RequestBody IdRequest request) {
-        Long orgId = currentOrgId();
-        AgentVersion version = agentVersionAppService.queryById(new AgentVersionIdQuery(orgId, request.getId()));
+        AgentVersion version = agentVersionAppService.queryById(new AgentVersionIdQuery(request.getId()));
         return Result.success(toResponse(version));
     }
 
@@ -91,12 +86,10 @@ public class AgentVersionController {
     @PostMapping("/draft/save")
     @SaCheckPermission("agent:write")
     public Result<AgentVersionResponse> saveDraft(@Valid @RequestBody AgentVersionDraftRequest request) {
-        Long orgId = currentOrgId();
         Long userId = identityContextService.getCurrentUserId();
-        Agent agent = agentAppService.queryByCode(new AgentCodeQuery(orgId, request.getAgentCode()));
+        Agent agent = agentAppService.queryByCode(new AgentCodeQuery(request.getAgentCode()));
         AgentVersion draft = AgentVersion.builder()
                 .id(request.getId())
-                .orgId(orgId)
                 .agentId(agent.getId())
                 .versionNo(request.getVersionNo())
                 .state("DRAFT")
@@ -104,13 +97,9 @@ public class AgentVersionController {
                 .promptTemplateId(request.getPromptTemplateId())
                 .templateParamsJson(request.getTemplateParamsJson())
                 .workflowVersionId(request.getWorkflowVersionId())
-                .modelStrategyType(request.getModelStrategyType())
-                .taskTypeCode(request.getTaskTypeCode())
-                .fixedModelId(request.getFixedModelId())
                 .ragMode(request.getRagMode())
                 .defaultRagTagsJson(request.getDefaultRagTagsJson())
                 .allowedRagTagsJson(request.getAllowedRagTagsJson())
-                .toolPolicyMode("ALLOWLIST_ONLY")
                 .allowedToolKeysJson(request.getAllowedToolKeysJson())
                 .outputContractVersion(request.getOutputContractVersion())
                 .outputContractOptionsJson(request.getOutputContractOptionsJson())
@@ -139,9 +128,8 @@ public class AgentVersionController {
     @PostMapping("/publish")
     @SaCheckPermission("agent:publish")
     public Result<AgentVersionResponse> publish(@Valid @RequestBody AgentVersionPublishRequest request) {
-        Long orgId = currentOrgId();
         Long userId = identityContextService.getCurrentUserId();
-        AgentVersion published = agentVersionAppService.publish(orgId, request.getAgentCode(), request.getVersionId(), userId);
+        AgentVersion published = agentVersionAppService.publish(request.getAgentCode(), request.getVersionId(), userId);
         return Result.success("发布成功", toResponse(published));
     }
 
@@ -154,9 +142,8 @@ public class AgentVersionController {
     @PostMapping("/rollback")
     @SaCheckPermission("agent:publish")
     public Result<AgentVersionResponse> rollback(@Valid @RequestBody AgentVersionRollbackRequest request) {
-        Long orgId = currentOrgId();
         Long userId = identityContextService.getCurrentUserId();
-        AgentVersion target = agentVersionAppService.rollback(orgId, request.getAgentCode(), request.getTargetVersionId(), userId);
+        AgentVersion target = agentVersionAppService.rollback(request.getAgentCode(), request.getTargetVersionId(), userId);
         return Result.success("回滚成功", toResponse(target));
     }
 
@@ -170,7 +157,6 @@ public class AgentVersionController {
         Double temperature = v.getTemperature() == null ? null : v.getTemperature().doubleValue();
         return AgentVersionResponse.builder()
                 .id(v.getId())
-                .orgId(v.getOrgId())
                 .agentId(v.getAgentId())
                 .versionNo(v.getVersionNo())
                 .state(v.getState())
@@ -182,13 +168,9 @@ public class AgentVersionController {
                 .workflowVersionId(v.getWorkflowVersionId())
                 .outputContractVersion(v.getOutputContractVersion())
                 .outputContractOptionsJson(v.getOutputContractOptionsJson())
-                .modelStrategyType(v.getModelStrategyType())
-                .taskTypeCode(v.getTaskTypeCode())
-                .fixedModelId(v.getFixedModelId())
                 .ragMode(v.getRagMode())
                 .defaultRagTagsJson(v.getDefaultRagTagsJson())
                 .allowedRagTagsJson(v.getAllowedRagTagsJson())
-                .toolPolicyMode(v.getToolPolicyMode())
                 .allowedToolKeysJson(v.getAllowedToolKeysJson())
                 .timeoutMs(v.getTimeoutMs())
                 .maxTurns(v.getMaxTurns())
@@ -199,15 +181,4 @@ public class AgentVersionController {
                 .build();
     }
 
-    /**
-     * 获取当前请求的目标 orgId。
-     *
-     * 说明：未注入 OrgContext 时默认使用 ROOT org（1）。
-     *
-     * @return orgId
-     */
-    private Long currentOrgId() {
-        Long orgId = OrgContextHolder.currentOrgIdOrNull();
-        return orgId != null ? orgId : 1L;
-    }
 }

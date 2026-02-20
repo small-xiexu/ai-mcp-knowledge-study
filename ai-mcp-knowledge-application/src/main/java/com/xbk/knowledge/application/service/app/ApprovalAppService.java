@@ -1,6 +1,6 @@
 package com.xbk.knowledge.application.service.app;
 
-import com.xbk.knowledge.domain.model.entity.approval.ApprovalRequest;
+import com.xbk.knowledge.domain.approval.model.entity.ApprovalRequest;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.contract.PlatformContractV1;
 
@@ -15,12 +15,12 @@ import com.xbk.knowledge.types.contract.PlatformContractV1;
  */
 public interface ApprovalAppService {
 
-    PageResult<ApprovalRequest> list(Long orgId, String status, int offset, int pageSize);
+    PageResult<ApprovalRequest> list(String status, int offset, int pageSize);
 
-    ApprovalRequest get(Long orgId, Long id);
+    ApprovalRequest get(Long id);
 
-    PlatformContractV1 approve(Long orgId, Long id, String decisionComment);
+    PlatformContractV1 approve(Long id, String decisionComment);
 
-    ApprovalRequest reject(Long orgId, Long id, String decisionComment);
+    ApprovalRequest reject(Long id, String decisionComment);
 }
 

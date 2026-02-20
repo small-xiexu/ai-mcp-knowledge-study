@@ -38,12 +38,6 @@ export const getAvailableModels = () =>
   request.post<ModelInfo[]>('/ai/models')
 
 /**
- * 获取推荐模型
- */
-export const getRecommendedModel = (taskType?: string) =>
-  request.post<ModelInfo>('/ai/models/recommend', { taskType })
-
-/**
  * 创建会话
  */
 export const createChatSession = (data: ChatSessionCreateRequest) =>

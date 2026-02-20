@@ -1,8 +1,8 @@
 package com.xbk.knowledge.infrastructure.repository.model;
 
 import com.xbk.knowledge.domain.model.entity.ModelActivation;
-import com.xbk.knowledge.domain.repository.model.ModelActivationRepository;
-import com.xbk.knowledge.infrastructure.mapper.model.ModelActivationMapper;
+import com.xbk.knowledge.domain.model.adapter.repository.model.ModelActivationRepository;
+import com.xbk.knowledge.infrastructure.dao.IModelActivationDao;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class ModelActivationRepositoryImpl implements ModelActivationRepository {
 
-    private final ModelActivationMapper modelActivationMapper;
+    private final IModelActivationDao modelActivationMapper;
 
     /**
      * 查询当前激活配置

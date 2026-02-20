@@ -3,7 +3,7 @@
     <div class="page-header">
       <div>
         <h2 class="page-title">Advisor 管理</h2>
-        <p class="subtitle">可配置的 ChatClient Advisors（按组织隔离）</p>
+        <p class="subtitle">可配置的 ChatClient Advisors</p>
       </div>
       <div class="header-actions">
         <el-button class="gemini-btn-secondary" @click="fetchData">
@@ -254,4 +254,3 @@ const removeRow = async (row: Advisor) => {
 
 fetchData()
 </script>
-

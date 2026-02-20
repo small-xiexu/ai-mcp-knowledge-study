@@ -2,10 +2,10 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xbk.knowledge.infrastructure.mapper.audit.ConfigAuditMapper">
+<mapper namespace="com.xbk.knowledge.infrastructure.dao.IConfigAuditDao">
 
     <!-- 配置审计结果映射 -->
-    <resultMap id="ConfigAuditMap" type="com.xbk.knowledge.domain.model.entity.ConfigAudit">
+    <resultMap id="ConfigAuditMap" type="com.xbk.knowledge.infrastructure.dao.po.ConfigAuditPO">
         <id column="id" property="id"/>
         <result column="table_name" property="tableName"/>
         <result column="record_id" property="recordId"/>
@@ -17,7 +17,7 @@
     </resultMap>
 
     <!-- 写入配置审计记录 -->
-    <insert id="insertConfigAudit" parameterType="com.xbk.knowledge.domain.model.entity.ConfigAudit"
+    <insert id="insertConfigAudit" parameterType="com.xbk.knowledge.infrastructure.dao.po.ConfigAuditPO"
             useGeneratedKeys="true" keyProperty="id">
         insert into ai_config_audit (
             table_name,

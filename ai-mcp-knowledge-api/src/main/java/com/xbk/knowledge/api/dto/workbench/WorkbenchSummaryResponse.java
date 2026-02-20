@@ -20,8 +20,6 @@ import java.util.List;
 @AllArgsConstructor
 public class WorkbenchSummaryResponse {
 
-    private OrgInfo org;
-
     private ModelInfo model;
 
     private AgentInfo agent;
@@ -37,17 +35,6 @@ public class WorkbenchSummaryResponse {
     private TodoInfo todo;
 
     private List<GuideStep> guideSteps;
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class OrgInfo {
-        private Long currentOrgId;
-        private Long operatorOrgId;
-        private boolean superAdmin;
-        private boolean explicitTargetOrg;
-    }
 
     @Data
     @Builder
@@ -74,9 +61,8 @@ public class WorkbenchSummaryResponse {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class PromptInfo {
-        private Long globalPublished;
-        private Long orgDraft;
-        private Long orgPublished;
+        private Long draft;
+        private Long published;
     }
 
     @Data
@@ -84,8 +70,6 @@ public class WorkbenchSummaryResponse {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ToolInfo {
-        private Long toolPolicyTotal;
-        private Long toolPolicyEnabled;
         private Long approvalsPending;
     }
 
@@ -131,4 +115,3 @@ public class WorkbenchSummaryResponse {
         private boolean writeAction;
     }
 }
-

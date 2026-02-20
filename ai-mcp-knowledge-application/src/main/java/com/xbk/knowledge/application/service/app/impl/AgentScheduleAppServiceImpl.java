@@ -7,14 +7,13 @@ import com.xbk.knowledge.application.service.app.IdentityContextService;
 import com.xbk.knowledge.application.service.app.XxlJobAppService;
 import com.xbk.knowledge.application.support.xxl.XxlJobIdParser;
 import com.xbk.knowledge.domain.model.entity.XxlJobInfo;
-import com.xbk.knowledge.domain.model.entity.agent.Agent;
-import com.xbk.knowledge.domain.model.entity.agent.AgentSchedule;
-import com.xbk.knowledge.domain.model.vo.agent.AgentCodeQuery;
-import com.xbk.knowledge.domain.model.vo.agent.AgentScheduleIdQuery;
-import com.xbk.knowledge.domain.model.vo.agent.AgentSchedulePageQuery;
-import com.xbk.knowledge.domain.service.agent.IAgentScheduleService;
+import com.xbk.knowledge.domain.agent.model.entity.Agent;
+import com.xbk.knowledge.domain.agent.model.entity.AgentSchedule;
+import com.xbk.knowledge.domain.agent.model.valobj.AgentCodeQuery;
+import com.xbk.knowledge.domain.agent.model.valobj.AgentScheduleIdQuery;
+import com.xbk.knowledge.domain.agent.model.valobj.AgentSchedulePageQuery;
+import com.xbk.knowledge.domain.agent.service.IAgentScheduleService;
 import com.xbk.knowledge.types.common.PageResult;
-import com.xbk.knowledge.types.context.OrgContextHolder;
 import com.xbk.knowledge.types.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -78,15 +77,15 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public AgentSchedule create(AgentSchedule schedule, String agentCode) {
-        if (schedule == null || schedule.getOrgId() == null) {
-            throw new IllegalArgumentException("orgId 不能为空");
+        if (schedule == null) {
+            throw new IllegalArgumentException("schedule 不能为空");
         }
         if (!StringUtils.hasText(agentCode)) {
             throw new IllegalArgumentException("agentCode 不能为空");
         }
         Long userId = identityContextService.getCurrentUserId();
 
-        Agent agent = agentAppService.queryByCode(new AgentCodeQuery(schedule.getOrgId(), agentCode));
+        Agent agent = agentAppService.queryByCode(new AgentCodeQuery(agentCode));
         schedule.setAgentId(agent.getId());
         schedule.setCreatedBy(userId);
         schedule.setUpdatedBy(userId);
@@ -96,7 +95,7 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
         // 创建/更新 xxl-job
         Long jobId = ensureXxlJob(created, agentCode, true);
         if (jobId != null) {
-            created = agentScheduleService.bindXxlJobId(created.getOrgId(), created.getId(), jobId, userId);
+            created = agentScheduleService.bindXxlJobId(created.getId(), jobId, userId);
         }
         return created;
     }
@@ -111,15 +110,15 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public AgentSchedule update(AgentSchedule schedule, String agentCode) {
-        if (schedule == null || schedule.getOrgId() == null || schedule.getId() == null) {
-            throw new IllegalArgumentException("orgId/id 不能为空");
+        if (schedule == null || schedule.getId() == null) {
+            throw new IllegalArgumentException("id 不能为空");
         }
         if (!StringUtils.hasText(agentCode)) {
             throw new IllegalArgumentException("agentCode 不能为空");
         }
         Long userId = identityContextService.getCurrentUserId();
 
-        Agent agent = agentAppService.queryByCode(new AgentCodeQuery(schedule.getOrgId(), agentCode));
+        Agent agent = agentAppService.queryByCode(new AgentCodeQuery(agentCode));
         schedule.setAgentId(agent.getId());
         schedule.setUpdatedBy(userId);
 
@@ -127,7 +126,7 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
 
         Long jobId = ensureXxlJob(updated, agentCode, false);
         if (jobId != null) {
-            updated = agentScheduleService.bindXxlJobId(updated.getOrgId(), updated.getId(), jobId, userId);
+            updated = agentScheduleService.bindXxlJobId(updated.getId(), jobId, userId);
         }
         return updated;
     }
@@ -135,20 +134,20 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
     /**
      * enable。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      * @param id 参数
      * @return 返回结果
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public AgentSchedule enable(Long orgId, Long id) {
+    public AgentSchedule enable(Long id) {
         Long userId = identityContextService.getCurrentUserId();
-        AgentSchedule schedule = agentScheduleService.enable(orgId, id, userId);
+        AgentSchedule schedule = agentScheduleService.enable(id, userId);
         if (schedule.getXxlJobId() == null) {
             // 未绑定 job 时，启用视为创建 job 并启动
-            String agentCode = resolveAgentCode(orgId, schedule.getAgentId());
+            String agentCode = resolveAgentCode(schedule.getAgentId());
             Long jobId = ensureXxlJob(schedule, agentCode, true);
-            schedule = agentScheduleService.bindXxlJobId(orgId, id, jobId, userId);
+            schedule = agentScheduleService.bindXxlJobId(id, jobId, userId);
         } else {
             xxlJobAppService.startJob(schedule.getXxlJobId());
         }
@@ -158,15 +157,15 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
     /**
      * disable。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      * @param id 参数
      * @return 返回结果
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public AgentSchedule disable(Long orgId, Long id) {
+    public AgentSchedule disable(Long id) {
         Long userId = identityContextService.getCurrentUserId();
-        AgentSchedule schedule = agentScheduleService.disable(orgId, id, userId);
+        AgentSchedule schedule = agentScheduleService.disable(id, userId);
         if (schedule.getXxlJobId() != null) {
             xxlJobAppService.stopJob(schedule.getXxlJobId());
         }
@@ -176,13 +175,13 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
     /**
      * remove。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      * @param id 参数
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void remove(Long orgId, Long id) {
-        AgentSchedule existed = agentScheduleService.queryById(new AgentScheduleIdQuery(orgId, id));
+    public void remove(Long id) {
+        AgentSchedule existed = agentScheduleService.queryById(new AgentScheduleIdQuery(id));
         if (existed.getXxlJobId() != null) {
             try {
                 xxlJobAppService.removeJob(existed.getXxlJobId());
@@ -190,29 +189,28 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
                 log.warn("删除 xxl-job 失败（忽略并继续删除 schedule），jobId={}", existed.getXxlJobId(), e);
             }
         }
-        agentScheduleService.remove(orgId, id);
+        agentScheduleService.remove(id);
     }
 
-    private String resolveAgentCode(Long orgId, Long agentId) {
+    private String resolveAgentCode(Long agentId) {
         // 当前控制面只提供按 code 查；这里做最小兜底：不做反查，使用 agentId 作为标识在 jobDesc 中会降低可读性
         // 生产建议补 agentId->agentCode 查询接口或在 schedule 表冗余 agent_code
         return "agentId=" + agentId;
     }
 
     private Long ensureXxlJob(AgentSchedule schedule, String agentCode, boolean createIfMissing) {
-        if (schedule == null || schedule.getOrgId() == null || schedule.getId() == null) {
+        if (schedule == null || schedule.getId() == null) {
             return null;
         }
-        Long orgId = schedule.getOrgId();
         Long scheduleId = schedule.getId();
-        String executorParam = buildExecutorParam(orgId, scheduleId);
+        String executorParam = buildExecutorParam(scheduleId);
 
         if (schedule.getXxlJobId() == null) {
             if (!createIfMissing) {
                 // update 场景若缺 jobId，则创建
             }
             XxlJobInfo jobInfo = XxlJobInfo.builder()
-                    .jobDesc("AgentSchedule: " + agentCode + " (orgId=" + orgId + ", scheduleId=" + scheduleId + ")")
+                    .jobDesc("AgentSchedule: " + agentCode + " (scheduleId=" + scheduleId + ")")
                     .author("platform")
                     .scheduleType("CRON")
                     .scheduleConf(schedule.getCron())
@@ -242,7 +240,7 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
         // 已存在 job：更新 cron 与 param
         XxlJobInfo jobInfo = XxlJobInfo.builder()
                 .id(schedule.getXxlJobId())
-                .jobDesc("AgentSchedule: " + agentCode + " (orgId=" + orgId + ", scheduleId=" + scheduleId + ")")
+                .jobDesc("AgentSchedule: " + agentCode + " (scheduleId=" + scheduleId + ")")
                 .author("platform")
                 .scheduleType("CRON")
                 .scheduleConf(schedule.getCron())
@@ -263,14 +261,13 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
         return schedule.getXxlJobId();
     }
 
-    private String buildExecutorParam(Long orgId, Long scheduleId) {
+    private String buildExecutorParam(Long scheduleId) {
         try {
             return objectMapper.writeValueAsString(Map.of(
-                    "orgId", orgId,
                     "scheduleId", scheduleId
             ));
         } catch (Exception e) {
-            return "{\"orgId\":" + orgId + ",\"scheduleId\":" + scheduleId + "}";
+            return "{\"scheduleId\":" + scheduleId + "}";
         }
     }
 }

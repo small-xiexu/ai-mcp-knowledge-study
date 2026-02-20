@@ -3,7 +3,7 @@ package com.xbk.knowledge.application.support.rag;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xbk.knowledge.application.service.rag.RagVectorStoreService;
-import com.xbk.knowledge.domain.model.entity.agent.AgentVersion;
+import com.xbk.knowledge.domain.agent.model.entity.AgentVersion;
 import com.xbk.knowledge.types.contract.PlatformContractV1;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

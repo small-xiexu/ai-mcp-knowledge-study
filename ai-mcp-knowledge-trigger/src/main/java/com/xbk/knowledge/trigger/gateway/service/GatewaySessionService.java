@@ -1,11 +1,11 @@
 package com.xbk.knowledge.trigger.gateway.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.xbk.knowledge.domain.model.entity.gateway.McpGateway;
-import com.xbk.knowledge.domain.model.entity.gateway.McpGatewayAuth;
-import com.xbk.knowledge.domain.model.vo.gateway.GatewayIdQuery;
-import com.xbk.knowledge.domain.repository.gateway.McpGatewayAuthRepository;
-import com.xbk.knowledge.domain.repository.gateway.McpGatewayRepository;
+import com.xbk.knowledge.domain.gateway.model.entity.McpGateway;
+import com.xbk.knowledge.domain.gateway.model.entity.McpGatewayAuth;
+import com.xbk.knowledge.domain.gateway.model.valobj.GatewayIdQuery;
+import com.xbk.knowledge.domain.gateway.adapter.repository.McpGatewayAuthRepository;
+import com.xbk.knowledge.domain.gateway.adapter.repository.McpGatewayRepository;
 import com.xbk.knowledge.trigger.gateway.model.McpSchemaVO;
 import com.xbk.knowledge.trigger.gateway.model.SessionConfigVO;
 import com.xbk.knowledge.types.exception.BusinessException;

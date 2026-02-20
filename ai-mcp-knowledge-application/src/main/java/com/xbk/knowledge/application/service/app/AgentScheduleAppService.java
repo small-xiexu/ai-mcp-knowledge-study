@@ -1,8 +1,8 @@
 package com.xbk.knowledge.application.service.app;
 
-import com.xbk.knowledge.domain.model.entity.agent.AgentSchedule;
-import com.xbk.knowledge.domain.model.vo.agent.AgentScheduleIdQuery;
-import com.xbk.knowledge.domain.model.vo.agent.AgentSchedulePageQuery;
+import com.xbk.knowledge.domain.agent.model.entity.AgentSchedule;
+import com.xbk.knowledge.domain.agent.model.valobj.AgentScheduleIdQuery;
+import com.xbk.knowledge.domain.agent.model.valobj.AgentSchedulePageQuery;
 import com.xbk.knowledge.types.common.PageResult;
 
 /**
@@ -22,10 +22,10 @@ public interface AgentScheduleAppService {
 
     AgentSchedule update(AgentSchedule schedule, String agentCode);
 
-    AgentSchedule enable(Long orgId, Long id);
+    AgentSchedule enable(Long id);
 
-    AgentSchedule disable(Long orgId, Long id);
+    AgentSchedule disable(Long id);
 
-    void remove(Long orgId, Long id);
+    void remove(Long id);
 }
 

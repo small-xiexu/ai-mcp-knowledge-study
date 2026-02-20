@@ -2,7 +2,6 @@ package com.xbk.knowledge.application.provider;
 
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.types.enums.ModelType;
-import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 
 /**
@@ -13,15 +12,6 @@ import org.springframework.ai.chat.model.ChatModel;
  * @author xiexu
  */
 public interface ModelProvider {
-
-    /**
-     * 创建 ChatClient
-     *
-     * 为什么：统一客户端创建入口，隔离厂商实现
-     * 入参：模型配置
-     * 出参：ChatClient 实例
-     */
-    ChatClient createChatClient(ModelConfig config);
 
     /**
      * 创建 ChatModel（用于流式调用）

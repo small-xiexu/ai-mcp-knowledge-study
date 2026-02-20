@@ -38,9 +38,8 @@ public class RagTask {
     private Long id;
 
     /**
-     * 组织ID。
+     * scopeId。
      */
-    private Long orgId;
 
     /**
      * 任务ID（业务标识）

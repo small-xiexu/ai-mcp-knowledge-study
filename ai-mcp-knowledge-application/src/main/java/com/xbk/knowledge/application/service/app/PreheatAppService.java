@@ -11,8 +11,8 @@ import com.xbk.knowledge.application.model.preheat.PreheatResult;
   */
 public interface PreheatAppService {
 
-    PreheatResult preheatAgentVersion(Long orgId, Long agentVersionId, boolean refreshMcp);
+    PreheatResult preheatAgentVersion(Long agentVersionId, boolean refreshMcp);
 
-    PreheatResult preheatWorkflowVersion(Long orgId, Long workflowVersionId, boolean refreshMcp);
+    PreheatResult preheatWorkflowVersion(Long workflowVersionId, boolean refreshMcp);
 }
 

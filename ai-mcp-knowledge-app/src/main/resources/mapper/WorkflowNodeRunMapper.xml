@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xbk.knowledge.infrastructure.mapper.workflow.WorkflowNodeRunMapper">
+<mapper namespace="com.xbk.knowledge.infrastructure.dao.IWorkflowNodeRunDao">
 
-    <resultMap id="WorkflowNodeRunMap" type="com.xbk.knowledge.domain.model.entity.workflow.WorkflowNodeRun">
+    <resultMap id="WorkflowNodeRunMap" type="com.xbk.knowledge.infrastructure.dao.po.WorkflowNodeRunPO">
         <id column="id" property="id"/>
         <result column="run_id" property="runId"/>
         <result column="node_key" property="nodeKey"/>
@@ -13,9 +13,6 @@
         <result column="status" property="status"/>
         <result column="model_id_used" property="modelIdUsed"/>
         <result column="model_name_used" property="modelNameUsed"/>
-        <result column="prompt_tokens" property="promptTokens"/>
-        <result column="completion_tokens" property="completionTokens"/>
-        <result column="total_tokens" property="totalTokens"/>
         <result column="tool_call_count" property="toolCallCount"/>
         <result column="tool_denied_count" property="toolDeniedCount"/>
         <result column="input_digest" property="inputDigest"/>
@@ -27,25 +24,23 @@
         <result column="error_message" property="errorMessage"/>
         <result column="started_at" property="startedAt"/>
         <result column="ended_at" property="endedAt"/>
-        <result column="created_at" property="createdAt"/>
-        <result column="updated_at" property="updatedAt"/>
     </resultMap>
 
-    <insert id="insertNodeRun" parameterType="com.xbk.knowledge.domain.model.entity.workflow.WorkflowNodeRun"
+    <insert id="insertNodeRun" parameterType="com.xbk.knowledge.infrastructure.dao.po.WorkflowNodeRunPO"
             useGeneratedKeys="true" keyProperty="id">
         insert into workflow_node_run (
+            run_id, node_key, node_type, node_name,
             status,
             model_id_used, model_name_used,
-            prompt_tokens, completion_tokens, total_tokens,
             tool_call_count, tool_denied_count,
             input_digest, output_digest, output_text, output_truncated,
             approval_request_id,
             cost_ms, error_message,
             started_at, ended_at
         ) values (
+            #{runId}, #{nodeKey}, #{nodeType}, #{nodeName},
             #{status},
             #{modelIdUsed}, #{modelNameUsed},
-            #{promptTokens}, #{completionTokens}, #{totalTokens},
             #{toolCallCount}, #{toolDeniedCount},
             #{inputDigest}, #{outputDigest}, #{outputText}, #{outputTruncated},
             #{approvalRequestId},
@@ -54,14 +49,11 @@
         )
     </insert>
 
-    <update id="updateNodeRun" parameterType="com.xbk.knowledge.domain.model.entity.workflow.WorkflowNodeRun">
+    <update id="updateNodeRun" parameterType="com.xbk.knowledge.infrastructure.dao.po.WorkflowNodeRunPO">
         update workflow_node_run
         set status = #{status},
             model_id_used = #{modelIdUsed},
             model_name_used = #{modelNameUsed},
-            prompt_tokens = #{promptTokens},
-            completion_tokens = #{completionTokens},
-            total_tokens = #{totalTokens},
             tool_call_count = #{toolCallCount},
             tool_denied_count = #{toolDeniedCount},
             input_digest = #{inputDigest},
@@ -72,21 +64,19 @@
             cost_ms = #{costMs},
             error_message = #{errorMessage},
             started_at = #{startedAt},
-            ended_at = #{endedAt},
-            updated_at = now()
+            ended_at = #{endedAt}
         where id = #{id}
     </update>
 
     <select id="findByRunIdAndNodeKey" resultMap="WorkflowNodeRunMap">
         select
+            id, run_id, node_key, node_type, node_name, status,
             model_id_used, model_name_used,
-            prompt_tokens, completion_tokens, total_tokens,
             tool_call_count, tool_denied_count,
             input_digest, output_digest, output_text, output_truncated,
             approval_request_id,
             cost_ms, error_message,
-            started_at, ended_at,
-            created_at, updated_at
+            started_at, ended_at
         from workflow_node_run
         where 1 = 1
           and run_id = #{runId}
@@ -97,14 +87,13 @@
 
     <select id="listByRunId" resultMap="WorkflowNodeRunMap">
         select
+            id, run_id, node_key, node_type, node_name, status,
             model_id_used, model_name_used,
-            prompt_tokens, completion_tokens, total_tokens,
             tool_call_count, tool_denied_count,
             input_digest, output_digest, output_text, output_truncated,
             approval_request_id,
             cost_ms, error_message,
-            started_at, ended_at,
-            created_at, updated_at
+            started_at, ended_at
         from workflow_node_run
         where 1 = 1
           and run_id = #{runId}
@@ -113,8 +102,7 @@
 
     <update id="incrementToolCallCount">
         update workflow_node_run
-        set tool_call_count = tool_call_count + #{delta},
-            updated_at = now()
+        set tool_call_count = tool_call_count + #{delta}
         where 1 = 1
           and run_id = #{runId}
           and node_key = #{nodeKey}
@@ -122,8 +110,7 @@
 
     <update id="incrementToolDeniedCount">
         update workflow_node_run
-        set tool_denied_count = tool_denied_count + #{delta},
-            updated_at = now()
+        set tool_denied_count = tool_denied_count + #{delta}
         where 1 = 1
           and run_id = #{runId}
           and node_key = #{nodeKey}

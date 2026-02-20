@@ -1,7 +1,7 @@
 package com.xbk.knowledge.trigger.gateway.handler.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.xbk.knowledge.domain.service.gateway.GatewayToolService;
+import com.xbk.knowledge.domain.gateway.service.GatewayToolService;
 import com.xbk.knowledge.trigger.gateway.handler.IRequestHandler;
 import com.xbk.knowledge.trigger.gateway.model.McpSchemaVO;
 import lombok.RequiredArgsConstructor;
@@ -43,11 +43,11 @@ public class GatewayInitializeHandler implements IRequestHandler {
                 }
         );
 
-        GatewayToolService.GatewayCapability capability = gatewayToolService.initialize(gatewayId);
+        GatewayToolService.GatewayInfo gatewayInfo = gatewayToolService.initialize(gatewayId);
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("protocolVersion", initializeRequest == null || initializeRequest.getProtocolVersion() == null
-                ? capability.protocolVersion()
+                ? gatewayInfo.protocolVersion()
                 : initializeRequest.getProtocolVersion());
 
         Map<String, Object> caps = new HashMap<>();
@@ -59,10 +59,10 @@ public class GatewayInitializeHandler implements IRequestHandler {
         result.put("capabilities", caps);
 
         result.put("serverInfo", Map.of(
-                "name", capability.serverName(),
-                "version", capability.serverVersion()
+                "name", gatewayInfo.serverName(),
+                "version", gatewayInfo.serverVersion()
         ));
-        result.put("instructions", capability.instructions());
+        result.put("instructions", gatewayInfo.instructions());
 
         return new McpSchemaVO.JSONRPCResponse(McpSchemaVO.JSONRPC_VERSION, requestId, result, null);
     }

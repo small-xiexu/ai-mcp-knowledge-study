@@ -1,7 +1,7 @@
 package com.xbk.knowledge.application.service.app;
 
-import com.xbk.knowledge.domain.model.vo.advisor.AdvisorBindingQuery;
-import com.xbk.knowledge.domain.model.vo.advisor.AdvisorBindingView;
+import com.xbk.knowledge.domain.advisor.model.valobj.AdvisorBindingQuery;
+import com.xbk.knowledge.domain.advisor.model.valobj.AdvisorBindingView;
 
 import java.util.List;
 
@@ -14,7 +14,7 @@ public interface AdvisorBindingAppService {
 
     List<AdvisorBindingView> listBindings(AdvisorBindingQuery query);
 
-    void saveBindings(Long orgId, String bindType, Long bindTargetId, List<AdvisorBindingSaveItem> items);
+    void saveBindings(String bindType, Long bindTargetId, List<AdvisorBindingSaveItem> items);
 
     /**
      * 绑定保存条目（用于排序/启停）。

@@ -1,14 +1,14 @@
 package com.xbk.knowledge.application.service.app.impl;
 
 import com.xbk.knowledge.application.provider.ModelProviderFactory;
+import com.xbk.knowledge.application.service.armory.factory.DefaultAiClientArmoryStrategyFactory;
 import com.xbk.knowledge.application.service.app.ModelConfigAppService;
 import com.xbk.knowledge.domain.model.entity.ModelActivation;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
 import com.xbk.knowledge.domain.model.vo.common.IdQuery;
 import com.xbk.knowledge.domain.model.vo.model.ModelConfigPageQuery;
-import com.xbk.knowledge.domain.model.vo.task.TaskTypeQuery;
-import com.xbk.knowledge.domain.repository.model.ModelActivationRepository;
+import com.xbk.knowledge.domain.model.adapter.repository.model.ModelActivationRepository;
 import com.xbk.knowledge.domain.service.model.IModelConfigService;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.enums.ModelType;
@@ -32,6 +32,7 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
     private final IModelConfigService modelConfigService;
     private final ModelActivationRepository modelActivationRepository;
     private final ModelProviderFactory modelProviderFactory;
+    private final DefaultAiClientArmoryStrategyFactory armoryStrategyFactory;
 
     /**
      * 分页查询模型配置
@@ -67,7 +68,11 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ModelConfig createModelConfig(ModelConfig modelConfig) {
-        return modelConfigService.createModelConfig(modelConfig);
+        ModelConfig created = modelConfigService.createModelConfig(modelConfig);
+        if (created != null) {
+            armoryStrategyFactory.evictModel(created.getId());
+        }
+        return created;
     }
 
     /**
@@ -80,7 +85,11 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ModelConfig updateModelConfig(ModelConfig modelConfig) {
-        return modelConfigService.updateModelConfig(modelConfig);
+        ModelConfig updated = modelConfigService.updateModelConfig(modelConfig);
+        if (updated != null) {
+            armoryStrategyFactory.evictModel(updated.getId());
+        }
+        return updated;
     }
 
     /**
@@ -94,6 +103,9 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
     @Transactional(rollbackFor = Exception.class)
     public void deleteModelConfig(IdQuery query) {
         modelConfigService.deleteModelConfig(query);
+        if (query != null) {
+            armoryStrategyFactory.evictModel(query.getId());
+        }
     }
 
     /**
@@ -106,7 +118,11 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ModelConfig enableModel(IdQuery query) {
-        return modelConfigService.enableModel(query);
+        ModelConfig enabled = modelConfigService.enableModel(query);
+        if (enabled != null) {
+            armoryStrategyFactory.evictModel(enabled.getId());
+        }
+        return enabled;
     }
 
     /**
@@ -119,7 +135,11 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ModelConfig disableModel(IdQuery query) {
-        return modelConfigService.disableModel(query);
+        ModelConfig disabled = modelConfigService.disableModel(query);
+        if (disabled != null) {
+            armoryStrategyFactory.evictModel(disabled.getId());
+        }
+        return disabled;
     }
 
     /**
@@ -132,18 +152,6 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
     @Override
     public List<ModelConfig> queryEnabledModels(EnabledQuery query) {
         return modelConfigService.queryEnabledModels(query);
-    }
-
-    /**
-     * 获取推荐模型
-     *
-     * 为什么：按任务类型推荐模型，统一由应用层协调
-     * 入参：任务类型查询对象
-     * 出参：推荐模型
-     */
-    @Override
-    public ModelConfig getRecommendedModel(TaskTypeQuery query) {
-        return modelConfigService.getRecommendedModel(query);
     }
 
     /**

@@ -1,15 +1,15 @@
 package com.xbk.knowledge.infrastructure.audit;
 
-import com.xbk.knowledge.domain.model.entity.gateway.McpGateway;
-import com.xbk.knowledge.domain.model.entity.gateway.McpGatewayAuth;
-import com.xbk.knowledge.domain.model.entity.gateway.McpToolBinding;
-import com.xbk.knowledge.domain.model.entity.gateway.McpToolRegistry;
+import com.xbk.knowledge.domain.gateway.model.entity.McpGateway;
+import com.xbk.knowledge.domain.gateway.model.entity.McpGatewayAuth;
+import com.xbk.knowledge.domain.gateway.model.entity.McpToolBinding;
+import com.xbk.knowledge.domain.gateway.model.entity.McpToolRegistry;
 import com.xbk.knowledge.domain.model.vo.common.IdQuery;
-import com.xbk.knowledge.domain.model.vo.gateway.ToolBindingQuery;
-import com.xbk.knowledge.domain.repository.gateway.McpGatewayAuthRepository;
-import com.xbk.knowledge.domain.repository.gateway.McpGatewayRepository;
-import com.xbk.knowledge.domain.repository.gateway.McpToolBindingRepository;
-import com.xbk.knowledge.domain.repository.gateway.McpToolRegistryRepository;
+import com.xbk.knowledge.domain.gateway.model.valobj.ToolBindingQuery;
+import com.xbk.knowledge.domain.gateway.adapter.repository.McpGatewayAuthRepository;
+import com.xbk.knowledge.domain.gateway.adapter.repository.McpGatewayRepository;
+import com.xbk.knowledge.domain.gateway.adapter.repository.McpToolBindingRepository;
+import com.xbk.knowledge.domain.gateway.adapter.repository.McpToolRegistryRepository;
 import com.xbk.knowledge.types.common.Result;
 import com.xbk.knowledge.types.enums.ToolBindType;
 import lombok.RequiredArgsConstructor;

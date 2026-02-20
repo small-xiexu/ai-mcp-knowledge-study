@@ -2,8 +2,8 @@ package com.xbk.knowledge.infrastructure.repository.chat;
 
 import com.xbk.knowledge.domain.model.entity.ChatMessage;
 import com.xbk.knowledge.domain.model.vo.chat.ChatMessagePageQuery;
-import com.xbk.knowledge.domain.repository.chat.ChatMessageRepository;
-import com.xbk.knowledge.infrastructure.mapper.chat.ChatMessageMapper;
+import com.xbk.knowledge.domain.model.adapter.repository.chat.ChatMessageRepository;
+import com.xbk.knowledge.infrastructure.dao.IChatMessageDao;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -21,7 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ChatMessageRepositoryImpl implements ChatMessageRepository {
 
-    private final ChatMessageMapper chatMessageMapper;
+    private final IChatMessageDao chatMessageMapper;
 
     /**
      * 创建消息

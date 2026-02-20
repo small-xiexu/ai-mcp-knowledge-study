@@ -8,15 +8,14 @@ import com.xbk.knowledge.api.dto.agent.AgentScheduleUpdateRequest;
 import com.xbk.knowledge.api.dto.common.IdRequest;
 import com.xbk.knowledge.application.service.app.AgentScheduleAppService;
 import com.xbk.knowledge.application.service.app.AgentAppService;
-import com.xbk.knowledge.domain.model.entity.agent.Agent;
-import com.xbk.knowledge.domain.model.entity.agent.AgentSchedule;
-import com.xbk.knowledge.domain.model.vo.agent.AgentCodeQuery;
-import com.xbk.knowledge.domain.model.vo.agent.AgentScheduleIdQuery;
-import com.xbk.knowledge.domain.model.vo.agent.AgentSchedulePageQuery;
+import com.xbk.knowledge.domain.agent.model.entity.Agent;
+import com.xbk.knowledge.domain.agent.model.entity.AgentSchedule;
+import com.xbk.knowledge.domain.agent.model.valobj.AgentCodeQuery;
+import com.xbk.knowledge.domain.agent.model.valobj.AgentScheduleIdQuery;
+import com.xbk.knowledge.domain.agent.model.valobj.AgentSchedulePageQuery;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.common.PageResultConverter;
 import com.xbk.knowledge.types.common.Result;
-import com.xbk.knowledge.types.context.OrgContextHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -47,15 +46,12 @@ public class AgentScheduleController {
     @PostMapping("/list")
     @SaCheckPermission("agent:read")
     public Result<PageResult<AgentScheduleResponse>> list(@Valid @RequestBody AgentScheduleQueryRequest request) {
-        Long orgId = currentOrgId();
         Long agentId = null;
         if (StringUtils.hasText(request.getAgentCode())) {
-            Agent agent = agentAppService.queryByCode(new AgentCodeQuery(orgId, request.getAgentCode()));
+            Agent agent = agentAppService.queryByCode(new AgentCodeQuery(request.getAgentCode()));
             agentId = agent.getId();
         }
-        AgentSchedulePageQuery query = new AgentSchedulePageQuery(
-                orgId,
-                agentId,
+        AgentSchedulePageQuery query = new AgentSchedulePageQuery(agentId,
                 request.getEnabled(),
                 request.getOffset(),
                 request.getPageSize()
@@ -71,8 +67,7 @@ public class AgentScheduleController {
     @PostMapping("/get")
     @SaCheckPermission("agent:read")
     public Result<AgentScheduleResponse> get(@Valid @RequestBody IdRequest request) {
-        Long orgId = currentOrgId();
-        AgentSchedule schedule = agentScheduleAppService.queryById(new AgentScheduleIdQuery(orgId, request.getId()));
+        AgentSchedule schedule = agentScheduleAppService.queryById(new AgentScheduleIdQuery(request.getId()));
         return Result.success(toResponse(schedule));
     }
 
@@ -82,9 +77,7 @@ public class AgentScheduleController {
     @PostMapping("/create")
     @SaCheckPermission("agent:write")
     public Result<AgentScheduleResponse> create(@Valid @RequestBody AgentScheduleCreateRequest request) {
-        Long orgId = currentOrgId();
         AgentSchedule schedule = AgentSchedule.builder()
-                .orgId(orgId)
                 .cron(request.getCron())
                 .enabled(request.getEnabled())
                 .payloadTemplateJson(request.getPayloadTemplateJson())
@@ -99,10 +92,8 @@ public class AgentScheduleController {
     @PostMapping("/update")
     @SaCheckPermission("agent:write")
     public Result<AgentScheduleResponse> update(@Valid @RequestBody AgentScheduleUpdateRequest request) {
-        Long orgId = currentOrgId();
         AgentSchedule schedule = AgentSchedule.builder()
                 .id(request.getId())
-                .orgId(orgId)
                 .cron(request.getCron())
                 .payloadTemplateJson(request.getPayloadTemplateJson())
                 .build();
@@ -116,8 +107,7 @@ public class AgentScheduleController {
     @PostMapping("/enable")
     @SaCheckPermission("agent:write")
     public Result<AgentScheduleResponse> enable(@Valid @RequestBody IdRequest request) {
-        Long orgId = currentOrgId();
-        AgentSchedule schedule = agentScheduleAppService.enable(orgId, request.getId());
+        AgentSchedule schedule = agentScheduleAppService.enable(request.getId());
         return Result.success(toResponse(schedule));
     }
 
@@ -127,8 +117,7 @@ public class AgentScheduleController {
     @PostMapping("/disable")
     @SaCheckPermission("agent:write")
     public Result<AgentScheduleResponse> disable(@Valid @RequestBody IdRequest request) {
-        Long orgId = currentOrgId();
-        AgentSchedule schedule = agentScheduleAppService.disable(orgId, request.getId());
+        AgentSchedule schedule = agentScheduleAppService.disable(request.getId());
         return Result.success(toResponse(schedule));
     }
 
@@ -138,8 +127,7 @@ public class AgentScheduleController {
     @PostMapping("/remove")
     @SaCheckPermission("agent:write")
     public Result<Void> remove(@Valid @RequestBody IdRequest request) {
-        Long orgId = currentOrgId();
-        agentScheduleAppService.remove(orgId, request.getId());
+        agentScheduleAppService.remove(request.getId());
         return Result.success();
     }
 
@@ -149,7 +137,6 @@ public class AgentScheduleController {
         }
         return AgentScheduleResponse.builder()
                 .id(schedule.getId())
-                .orgId(schedule.getOrgId())
                 .agentId(schedule.getAgentId())
                 .agentCode(schedule.getAgentCode())
                 .cron(schedule.getCron())
@@ -161,9 +148,4 @@ public class AgentScheduleController {
                 .build();
     }
 
-    private Long currentOrgId() {
-        Long orgId = OrgContextHolder.currentOrgIdOrNull();
-        return orgId != null ? orgId : 1L;
-    }
 }
-

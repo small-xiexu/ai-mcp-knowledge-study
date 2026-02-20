@@ -1,8 +1,6 @@
 package com.xbk.knowledge.application.provider;
 
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.types.enums.ModelType;
-import org.springframework.ai.chat.client.ChatClient;
 
 /**
  * 模型提供者工厂接口
@@ -22,15 +20,6 @@ public interface ModelProviderFactory {
      * @throws IllegalArgumentException 如果模型类型不支持
      */
     ModelProvider getProvider(ModelType modelType);
-
-    /**
-     * 根据模型配置创建 ChatClient
-     *
-     * 为什么：统一创建入口，隔离厂商差异
-     * 入参：模型配置
-     * 出参：ChatClient 实例
-     */
-    ChatClient createChatClient(ModelConfig config);
 
     /**
      * 检查指定模型类型是否支持

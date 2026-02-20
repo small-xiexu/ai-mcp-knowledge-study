@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xbk.knowledge.infrastructure.mapper.workflow.WorkflowEdgeMapper">
+<mapper namespace="com.xbk.knowledge.infrastructure.dao.IWorkflowEdgeDao">
 
-    <resultMap id="WorkflowEdgeMap" type="com.xbk.knowledge.domain.model.entity.workflow.WorkflowEdge">
+    <resultMap id="WorkflowEdgeMap" type="com.xbk.knowledge.infrastructure.dao.po.WorkflowEdgePO">
         <id column="id" property="id"/>
         <result column="workflow_version_id" property="workflowVersionId"/>
         <result column="source_key" property="sourceKey"/>
@@ -15,7 +15,7 @@
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
 
-    <insert id="insertEdge" parameterType="com.xbk.knowledge.domain.model.entity.workflow.WorkflowEdge"
+    <insert id="insertEdge" parameterType="com.xbk.knowledge.infrastructure.dao.po.WorkflowEdgePO"
             useGeneratedKeys="true" keyProperty="id">
         insert into workflow_edge (
             created_at, updated_at

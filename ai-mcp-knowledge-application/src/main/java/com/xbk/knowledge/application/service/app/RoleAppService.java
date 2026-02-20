@@ -1,7 +1,7 @@
 package com.xbk.knowledge.application.service.app;
 
-import com.xbk.knowledge.domain.model.entity.SysRole;
-import com.xbk.knowledge.domain.model.vo.identity.RolePageQuery;
+import com.xbk.knowledge.domain.identity.model.entity.SysRole;
+import com.xbk.knowledge.domain.identity.model.valobj.RolePageQuery;
 import com.xbk.knowledge.types.common.PageResult;
 
 import java.util.List;

@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xbk.knowledge.infrastructure.mapper.agent.AgentMapper">
+<mapper namespace="com.xbk.knowledge.infrastructure.dao.IAgentDao">
 
-    <resultMap id="AgentMap" type="com.xbk.knowledge.domain.model.entity.agent.Agent">
+    <resultMap id="AgentMap" type="com.xbk.knowledge.infrastructure.dao.po.AgentPO">
         <id column="id" property="id"/>
         <result column="agent_code" property="agentCode"/>
         <result column="agent_name" property="agentName"/>
@@ -17,7 +17,7 @@
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
 
-    <insert id="insertAgent" parameterType="com.xbk.knowledge.domain.model.entity.agent.Agent" useGeneratedKeys="true"
+    <insert id="insertAgent" parameterType="com.xbk.knowledge.infrastructure.dao.po.AgentPO" useGeneratedKeys="true"
             keyProperty="id">
         insert into agent (
             agent_code,
@@ -42,7 +42,7 @@
         )
     </insert>
 
-    <update id="updateAgentByCode" parameterType="com.xbk.knowledge.domain.model.entity.agent.Agent">
+    <update id="updateAgentByCode" parameterType="com.xbk.knowledge.infrastructure.dao.po.AgentPO">
         update agent
         set agent_name = #{agentName},
             description = #{description},
@@ -114,7 +114,7 @@
         limit #{pageSize} offset #{offset}
     </select>
 
-    <select id="countPublishedByOrgId" resultType="long">
+    <select id="countPublished" resultType="long">
         select count(1)
         from agent
         where 1 = 1

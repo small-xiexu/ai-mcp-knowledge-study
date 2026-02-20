@@ -3,7 +3,7 @@ package com.xbk.knowledge.infrastructure.repository;
 import com.xbk.knowledge.domain.model.aggregate.audit.ConfigAuditAggregate;
 import com.xbk.knowledge.domain.model.entity.ConfigAudit;
 import com.xbk.knowledge.domain.model.vo.audit.AuditQuery;
-import com.xbk.knowledge.infrastructure.mapper.audit.ConfigAuditMapper;
+import com.xbk.knowledge.infrastructure.dao.IConfigAuditDao;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -22,7 +22,7 @@ public class ConfigAuditRepositoryImplTest {
      */
     @Test
     public void shouldSetCreatedAtOnSave() {
-        ConfigAuditMapper mapper = Mockito.mock(ConfigAuditMapper.class);
+        IConfigAuditDao mapper = Mockito.mock(IConfigAuditDao.class);
         ConfigAuditRepositoryImpl repository = new ConfigAuditRepositoryImpl(mapper);
 
         ConfigAudit audit = ConfigAudit.builder().tableName("t").build();
@@ -39,7 +39,7 @@ public class ConfigAuditRepositoryImplTest {
      */
     @Test
     public void shouldReturnEmptyWhenQueryNull() {
-        ConfigAuditMapper mapper = Mockito.mock(ConfigAuditMapper.class);
+        IConfigAuditDao mapper = Mockito.mock(IConfigAuditDao.class);
         ConfigAuditRepositoryImpl repository = new ConfigAuditRepositoryImpl(mapper);
 
         assertTrue(repository.findByConditions((AuditQuery) null).isEmpty());

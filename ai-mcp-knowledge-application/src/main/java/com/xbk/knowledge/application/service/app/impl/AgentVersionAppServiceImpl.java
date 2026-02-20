@@ -1,12 +1,11 @@
 package com.xbk.knowledge.application.service.app.impl;
 
 import com.xbk.knowledge.application.service.app.AgentVersionAppService;
-import com.xbk.knowledge.domain.model.entity.agent.AgentVersion;
-import com.xbk.knowledge.domain.model.vo.agent.AgentVersionIdQuery;
-import com.xbk.knowledge.domain.model.vo.agent.AgentVersionPageQuery;
-import com.xbk.knowledge.domain.service.agent.IAgentVersionService;
+import com.xbk.knowledge.domain.agent.model.entity.AgentVersion;
+import com.xbk.knowledge.domain.agent.model.valobj.AgentVersionIdQuery;
+import com.xbk.knowledge.domain.agent.model.valobj.AgentVersionPageQuery;
+import com.xbk.knowledge.domain.agent.service.IAgentVersionService;
 import com.xbk.knowledge.types.common.PageResult;
-import com.xbk.knowledge.types.context.OrgContextHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,7 +70,7 @@ public class AgentVersionAppServiceImpl implements AgentVersionAppService {
     /**
      * publish。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      * @param agentCode 参数
      * @param versionId 参数
      * @param operatorId 参数
@@ -79,14 +78,14 @@ public class AgentVersionAppServiceImpl implements AgentVersionAppService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public AgentVersion publish(Long orgId, String agentCode, Long versionId, Long operatorId) {
-        return agentVersionService.publish(orgId, agentCode, versionId, operatorId);
+    public AgentVersion publish(String agentCode, Long versionId, Long operatorId) {
+        return agentVersionService.publish(agentCode, versionId, operatorId);
     }
 
     /**
      * rollback。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      * @param agentCode 参数
      * @param targetVersionId 参数
      * @param operatorId 参数
@@ -94,8 +93,8 @@ public class AgentVersionAppServiceImpl implements AgentVersionAppService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public AgentVersion rollback(Long orgId, String agentCode, Long targetVersionId, Long operatorId) {
-        return agentVersionService.rollback(orgId, agentCode, targetVersionId, operatorId);
+    public AgentVersion rollback(String agentCode, Long targetVersionId, Long operatorId) {
+        return agentVersionService.rollback(agentCode, targetVersionId, operatorId);
     }
 }
 

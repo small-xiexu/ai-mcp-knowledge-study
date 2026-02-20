@@ -1,16 +1,14 @@
 package com.xbk.knowledge.infrastructure.repository.model;
 
 import com.xbk.knowledge.domain.model.aggregate.model.ModelConfigAggregate;
-import com.xbk.knowledge.domain.model.entity.ModelCapability;
+import com.xbk.knowledge.domain.model.adapter.repository.model.ModelConfigRepository;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.model.vo.common.EnabledIdsQuery;
 import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
 import com.xbk.knowledge.domain.model.vo.common.IdQuery;
 import com.xbk.knowledge.domain.model.vo.model.ModelConfigPageQuery;
 import com.xbk.knowledge.domain.model.vo.model.ModelNameQuery;
-import com.xbk.knowledge.domain.repository.model.ModelConfigRepository;
-import com.xbk.knowledge.infrastructure.mapper.model.ModelCapabilityMapper;
-import com.xbk.knowledge.infrastructure.mapper.model.ModelConfigMapper;
+import com.xbk.knowledge.infrastructure.dao.IModelConfigDao;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -24,30 +22,14 @@ import java.util.Optional;
  * 通过 Mapper 执行 XML SQL，隔离持久化细节
  *
  * 职责：仓储实现，用于落地数据访问
+ *
  * @author xiexu
  */
 @Repository
 @RequiredArgsConstructor
 public class ModelConfigRepositoryImpl implements ModelConfigRepository {
 
-    private final ModelConfigMapper modelConfigMapper;
-    private final ModelCapabilityMapper modelCapabilityMapper;
-
-    /**
-     * 按启用状态查询并按优先级排序
-     * 用于模型选择的高优先级过滤
-     *
-     * 为什么：用于模型选择时的优先级排序
-     * 入参：启用状态查询条件
-     * 出参：模型配置列表
-     */
-    @Override
-    public List<ModelConfig> findByEnabledOrderByPriorityDesc(EnabledQuery query) {
-        if (query == null) {
-            return Collections.emptyList();
-        }
-        return modelConfigMapper.findByEnabledOrderByPriorityDesc(query);
-    }
+    private final IModelConfigDao modelConfigMapper;
 
     /**
      * 按启用状态查询模型列表
@@ -96,21 +78,8 @@ public class ModelConfigRepositoryImpl implements ModelConfigRepository {
     }
 
     /**
-     * 查询启用模型并带能力配置
-     * 用于需要能力信息的模型选择场景
-     *
-     * 为什么：同时提供能力字段给上层
-     * 入参：无
-     * 出参：模型配置列表
-     */
-    @Override
-    public List<ModelConfig> findByEnabledTrueWithCapability() {
-        return modelConfigMapper.findEnabledTrueWithCapability();
-    }
-
-    /**
      * 按 ID 列表查询启用模型
-     * 用于任务类型的备用模型解析
+     * 用于指定模型集合的备用模型解析
      *
      * 为什么：按指定 ID 过滤可用模型
      * 入参：模型ID列表查询条件
@@ -118,20 +87,17 @@ public class ModelConfigRepositoryImpl implements ModelConfigRepository {
      */
     @Override
     public List<ModelConfig> findEnabledByIds(EnabledIdsQuery query) {
-        if (query == null || query
-                .getIds() == null || query
-                .getIds()
-                .isEmpty()) {
+        if (query == null || query.getIds() == null || query.getIds().isEmpty()) {
             return Collections.emptyList();
         }
         return modelConfigMapper.findEnabledByIds(query);
     }
 
     /**
-     * 根据 ID 查询模型配置（含能力）
+     * 根据 ID 查询模型配置
      * 用于详情展示与编辑加载
      *
-     * 为什么：单条配置需要携带能力字段
+     * 为什么：单条配置查询
      * 入参：ID 查询条件
      * 出参：模型配置
      */
@@ -140,24 +106,24 @@ public class ModelConfigRepositoryImpl implements ModelConfigRepository {
         if (query == null || query.getId() == null) {
             return Optional.empty();
         }
-        ModelConfig modelConfig = modelConfigMapper.findByIdWithCapability(query);
+        ModelConfig modelConfig = modelConfigMapper.findById(query);
         return Optional.ofNullable(modelConfig);
     }
 
     /**
-     * 分页查询模型配置（含能力）
+     * 分页查询模型配置
      * 用于配置管理分页展示
      *
-     * 为什么：分页展示需要能力信息
+     * 为什么：分页展示模型配置
      * 入参：分页查询条件
      * 出参：模型配置列表
      */
     @Override
-    public List<ModelConfig> findPageWithCapability(ModelConfigPageQuery query) {
+    public List<ModelConfig> findPage(ModelConfigPageQuery query) {
         if (query == null) {
             return Collections.emptyList();
         }
-        return modelConfigMapper.findPageWithCapability(query);
+        return modelConfigMapper.findPage(query);
     }
 
     /**
@@ -190,10 +156,10 @@ public class ModelConfigRepositoryImpl implements ModelConfigRepository {
     }
 
     /**
-     * 保存模型配置与能力配置
-     * 统一插入与更新逻辑，保证聚合一致性
+     * 保存模型配置
+     * 统一插入与更新逻辑
      *
-     * 为什么：统一处理模型与能力的落库一致性
+     * 为什么：统一处理模型配置落库逻辑
      * 入参：模型配置聚合
      * 出参：保存后的聚合
      */
@@ -203,10 +169,6 @@ public class ModelConfigRepositoryImpl implements ModelConfigRepository {
             return aggregate;
         }
         ModelConfig modelConfig = aggregate.getModelConfig();
-        ModelCapability aggregateCapability = aggregate.getModelCapability();
-        if (modelConfig.getCapability() == null && aggregateCapability != null) {
-            modelConfig.setCapability(aggregateCapability);
-        }
         LocalDateTime now = LocalDateTime.now();
         if (modelConfig.getId() == null) {
             if (modelConfig.getCreatedAt() == null) {
@@ -216,28 +178,21 @@ public class ModelConfigRepositoryImpl implements ModelConfigRepository {
                 modelConfig.setUpdatedAt(now);
             }
             modelConfigMapper.insertModelConfig(modelConfig);
-            persistCapability(modelConfig, now, true);
             aggregate.setModelConfig(modelConfig);
-            ModelCapability modelCapability = modelConfig.getCapability();
-            aggregate.setModelCapability(modelCapability);
             return aggregate;
         }
         if (modelConfig.getUpdatedAt() == null) {
             modelConfig.setUpdatedAt(now);
         }
         modelConfigMapper.updateModelConfig(modelConfig);
-        persistCapability(modelConfig, now, false);
         aggregate.setModelConfig(modelConfig);
-        ModelCapability modelCapability = modelConfig.getCapability();
-        aggregate.setModelCapability(modelCapability);
         return aggregate;
     }
 
     /**
      * 根据 ID 删除模型配置
-     * 同时清理能力配置，避免孤儿记录
      *
-     * 为什么：删除时清理能力配置避免孤儿数据
+     * 为什么：删除无效配置
      * 入参：ID 查询条件
      * 出参：无
      */
@@ -246,60 +201,6 @@ public class ModelConfigRepositoryImpl implements ModelConfigRepository {
         if (query == null || query.getId() == null) {
             return;
         }
-        Long id = query.getId();
-        modelCapabilityMapper.deleteByModelId(id);
         modelConfigMapper.deleteModelConfigById(query);
-    }
-
-    /**
-     * 持久化能力配置
-     * 根据是否仅插入决定新增或更新
-     *
-     * 为什么：保障能力配置与模型配置一致
-     * 入参：模型配置、当前时间、是否仅插入
-     * 出参：无
-     */
-    private void persistCapability(ModelConfig modelConfig, LocalDateTime now, boolean insertOnly) {
-        ModelCapability capability = modelConfig.getCapability();
-        if (capability == null) {
-            return;
-        }
-        if (capability.getModelId() == null) {
-            Long modelId = modelConfig.getId();
-            capability.setModelId(modelId);
-        }
-        if (insertOnly) {
-            fillCapabilityCreateTime(capability, now);
-            modelCapabilityMapper.insertModelCapability(capability);
-            return;
-        }
-        Long modelId = capability.getModelId();
-        ModelCapability existing = modelCapabilityMapper.findByModelId(modelId);
-        if (existing == null) {
-            fillCapabilityCreateTime(capability, now);
-            modelCapabilityMapper.insertModelCapability(capability);
-            return;
-        }
-        if (capability.getUpdatedAt() == null) {
-            capability.setUpdatedAt(now);
-        }
-        modelCapabilityMapper.updateModelCapability(capability);
-    }
-
-    /**
-     * 填充能力配置时间戳
-     * 统一创建与更新时间的写入口径
-     *
-     * 为什么：保证能力配置时间字段一致
-     * 入参：能力配置、当前时间
-     * 出参：无
-     */
-    private void fillCapabilityCreateTime(ModelCapability capability, LocalDateTime now) {
-        if (capability.getCreatedAt() == null) {
-            capability.setCreatedAt(now);
-        }
-        if (capability.getUpdatedAt() == null) {
-            capability.setUpdatedAt(now);
-        }
     }
 }

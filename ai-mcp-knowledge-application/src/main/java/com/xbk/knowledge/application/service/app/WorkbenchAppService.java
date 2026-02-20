@@ -12,11 +12,9 @@ import com.xbk.knowledge.application.model.workbench.WorkbenchSummary;
 public interface WorkbenchAppService {
 
     /**
-     * 获取当前 org 视角下的工作台汇总信息。
+     * 获取工作台汇总信息。
      *
-     * @param orgId 当前请求的目标 orgId（资源归属）
      * @return 工作台汇总
      */
-    WorkbenchSummary summary(Long orgId);
+    WorkbenchSummary summary();
 }
-

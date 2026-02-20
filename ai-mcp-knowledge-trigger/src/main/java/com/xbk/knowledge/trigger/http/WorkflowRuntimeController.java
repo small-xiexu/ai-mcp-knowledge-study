@@ -6,11 +6,10 @@ import com.xbk.knowledge.api.dto.workflow.WorkflowRunGetRequest;
 import com.xbk.knowledge.api.dto.workflow.WorkflowRunNodeListRequest;
 import com.xbk.knowledge.api.dto.workflow.WorkflowRunRequest;
 import com.xbk.knowledge.application.service.app.WorkflowRuntimeAppService;
-import com.xbk.knowledge.domain.model.entity.workflow.WorkflowNodeRun;
-import com.xbk.knowledge.domain.model.entity.workflow.WorkflowRun;
+import com.xbk.knowledge.domain.workflow.model.entity.WorkflowNodeRun;
+import com.xbk.knowledge.domain.workflow.model.entity.WorkflowRun;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.common.Result;
-import com.xbk.knowledge.types.context.OrgContextHolder;
 import com.xbk.knowledge.types.contract.PlatformContractV1;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -45,10 +44,7 @@ public class WorkflowRuntimeController {
     @SaCheckPermission("workflow:invoke")
     public Result<PlatformContractV1> run(@PathVariable("workflowCode") String workflowCode,
                                          @Valid @RequestBody WorkflowRunRequest request) {
-        Long orgId = currentOrgId();
-        PlatformContractV1 result = workflowRuntimeAppService.run(
-                orgId,
-                workflowCode,
+        PlatformContractV1 result = workflowRuntimeAppService.run(workflowCode,
                 request.getSessionId(),
                 request.getContent(),
                 request.getVariablesJson(),
@@ -66,10 +62,7 @@ public class WorkflowRuntimeController {
     @PostMapping("/runs/list")
     @SaCheckPermission("workflow:read")
     public Result<PageResult<WorkflowRun>> listRuns(@Valid @RequestBody WorkflowRunListRequest request) {
-        Long orgId = currentOrgId();
-        PageResult<WorkflowRun> page = workflowRuntimeAppService.listRuns(
-                orgId,
-                request.getStatus(),
+        PageResult<WorkflowRun> page = workflowRuntimeAppService.listRuns(request.getStatus(),
                 request.getOffset() == null ? 0 : request.getOffset(),
                 request.getPageSize() == null ? 20 : request.getPageSize()
         );
@@ -85,8 +78,7 @@ public class WorkflowRuntimeController {
     @PostMapping("/runs/get")
     @SaCheckPermission("workflow:read")
     public Result<WorkflowRun> getRun(@Valid @RequestBody WorkflowRunGetRequest request) {
-        Long orgId = currentOrgId();
-        WorkflowRun run = workflowRuntimeAppService.getRun(orgId, request.getRunId());
+        WorkflowRun run = workflowRuntimeAppService.getRun(request.getRunId());
         return Result.success(run);
     }
 
@@ -99,13 +91,8 @@ public class WorkflowRuntimeController {
     @PostMapping("/runs/nodes")
     @SaCheckPermission("workflow:read")
     public Result<List<WorkflowNodeRun>> listNodeRuns(@Valid @RequestBody WorkflowRunNodeListRequest request) {
-        Long orgId = currentOrgId();
-        List<WorkflowNodeRun> list = workflowRuntimeAppService.listNodeRuns(orgId, request.getRunId());
+        List<WorkflowNodeRun> list = workflowRuntimeAppService.listNodeRuns(request.getRunId());
         return Result.success(list);
     }
 
-    private Long currentOrgId() {
-        Long orgId = OrgContextHolder.currentOrgIdOrNull();
-        return orgId != null ? orgId : 1L;
-    }
 }

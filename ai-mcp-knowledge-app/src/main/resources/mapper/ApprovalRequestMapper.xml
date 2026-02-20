@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xbk.knowledge.infrastructure.mapper.approval.ApprovalRequestMapper">
+<mapper namespace="com.xbk.knowledge.infrastructure.dao.IApprovalRequestDao">
 
-    <resultMap id="ApprovalRequestMap" type="com.xbk.knowledge.domain.model.entity.approval.ApprovalRequest">
+    <resultMap id="ApprovalRequestMap" type="com.xbk.knowledge.infrastructure.dao.po.ApprovalRequestPO">
         <id column="id" property="id"/>
         <result column="approval_type" property="approvalType"/>
         <result column="status" property="status"/>
@@ -29,7 +29,7 @@
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
 
-    <insert id="insertRequest" parameterType="com.xbk.knowledge.domain.model.entity.approval.ApprovalRequest"
+    <insert id="insertRequest" parameterType="com.xbk.knowledge.infrastructure.dao.po.ApprovalRequestPO"
             useGeneratedKeys="true" keyProperty="id">
         insert into approval_request (
             approval_type,

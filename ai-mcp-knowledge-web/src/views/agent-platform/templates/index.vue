@@ -3,7 +3,7 @@
     <div class="page-header">
       <div>
         <h2 class="page-title">Prompt 模板</h2>
-        <p class="subtitle">支持 GLOBAL/ORG 作用域，GLOBAL 仅平台内置可编辑</p>
+        <p class="subtitle">统一模板资产管理（统一作用域）</p>
       </div>
       <div class="header-actions">
         <el-button class="gemini-btn-secondary" @click="fetchData">
@@ -20,10 +20,6 @@
       <div class="table-toolbar">
         <div class="toolbar-left">
           <el-input v-model="keyword" placeholder="搜索编码 / 名称" clearable style="width: 320px" @keyup.enter="fetchData" />
-          <el-select v-model="scope" placeholder="作用域" clearable style="width: 160px">
-            <el-option label="GLOBAL" value="GLOBAL" />
-            <el-option label="ORG" value="ORG" />
-          </el-select>
           <el-select v-model="state" placeholder="状态" clearable style="width: 160px">
             <el-option label="DRAFT" value="DRAFT" />
             <el-option label="PUBLISHED" value="PUBLISHED" />
@@ -44,13 +40,6 @@
 
       <el-table v-loading="loading" :data="tableData" class="gemini-table" style="width: 100%">
         <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="scope" label="作用域" width="110">
-          <template #default="{ row }">
-            <el-tag size="small" effect="dark" :type="row.scope === 'GLOBAL' ? 'info' : 'success'">
-              {{ row.scope }}
-            </el-tag>
-          </template>
-        </el-table-column>
         <el-table-column prop="templateCode" label="编码" min-width="180" />
         <el-table-column prop="templateName" label="名称" min-width="200" />
         <el-table-column prop="versionNo" label="版本" width="90" />
@@ -70,10 +59,10 @@
               <el-button link type="primary" class="action-btn" @click="openContent(row)">
                 <el-icon><Document /></el-icon>
               </el-button>
-              <el-button link type="primary" class="action-btn" :disabled="!canEdit(row)" @click="openEdit(row)">
+              <el-button link type="primary" class="action-btn" @click="openEdit(row)">
                 <el-icon><EditPen /></el-icon>
               </el-button>
-              <el-button link type="success" class="action-btn" :disabled="!canPublish(row)" @click="publish(row)">
+              <el-button link type="success" class="action-btn" :disabled="row.state !== 'DRAFT'" @click="publish(row)">
                 <el-icon><CircleCheckFilled /></el-icon>
               </el-button>
               <el-button link type="warning" class="action-btn" :disabled="row.state !== 'PUBLISHED'" @click="archive(row)">
@@ -108,12 +97,6 @@
 
     <el-dialog v-model="editVisible" :title="editTitle" width="920px" class="gemini-dialog">
       <el-form :model="form" label-width="120px" class="gemini-form">
-        <el-form-item label="Scope">
-          <el-select v-model="form.scope" :disabled="isEdit" style="width: 100%">
-            <el-option label="ORG" value="ORG" />
-            <el-option label="GLOBAL" value="GLOBAL" />
-          </el-select>
-        </el-form-item>
         <el-form-item label="templateCode">
           <el-input v-model="form.templateCode" :disabled="isEdit" placeholder="唯一编码" />
         </el-form-item>
@@ -145,7 +128,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { useAuthStore } from '@/store/auth'
 import {
   archiveTemplate,
   createTemplate,
@@ -156,8 +138,6 @@ import {
 } from '@/api/agent-platform'
 import { formatDateTime } from '@/utils/time'
 
-const authStore = useAuthStore()
-
 const loading = ref(false)
 const saving = ref(false)
 const tableData = ref<PromptTemplate[]>([])
@@ -165,7 +145,6 @@ const pageNum = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
 const keyword = ref('')
-const scope = ref<string | undefined>()
 const state = ref<string | undefined>()
 
 const editVisible = ref(false)
@@ -176,7 +155,6 @@ const currentContent = ref('')
 
 const form = reactive<any>({
   id: undefined,
-  scope: 'ORG',
   templateCode: '',
   templateName: '',
   content: '',
@@ -190,7 +168,6 @@ const fetchData = async () => {
       pageNum: pageNum.value,
       pageSize: pageSize.value,
       keyword: keyword.value || undefined,
-      scope: scope.value || undefined,
       state: state.value || undefined
     })
     tableData.value = res.data.records || []
@@ -200,22 +177,9 @@ const fetchData = async () => {
   }
 }
 
-const canEdit = (row: PromptTemplate) => {
-  if (row.scope === 'GLOBAL') {
-    return Boolean(authStore.profile?.superAdmin)
-  }
-  return true
-}
-
-const canPublish = (row: PromptTemplate) => {
-  if (!canEdit(row)) return false
-  return row.state === 'DRAFT'
-}
-
 const openCreate = () => {
   isEdit.value = false
   form.id = undefined
-  form.scope = 'ORG'
   form.templateCode = ''
   form.templateName = ''
   form.content = ''
@@ -226,7 +190,6 @@ const openCreate = () => {
 const openEdit = (row: PromptTemplate) => {
   isEdit.value = true
   form.id = row.id
-  form.scope = row.scope
   form.templateCode = row.templateCode
   form.templateName = row.templateName
   form.content = row.content || ''
@@ -248,7 +211,6 @@ const save = async () => {
   try {
     const payload = {
       id: form.id,
-      scope: form.scope,
       templateCode: form.templateCode,
       templateName: form.templateName,
       content: form.content,

@@ -135,7 +135,7 @@
               <el-option
                 v-for="t in templateOptions"
                 :key="t.id"
-                :label="`${t.templateName} (${t.scope}:${t.templateCode})`"
+                :label="`${t.templateName} (${t.templateCode})`"
                 :value="t.id"
               />
             </el-select>

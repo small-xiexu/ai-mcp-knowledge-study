@@ -1,6 +1,5 @@
 package com.xbk.knowledge.api.dto.ai;
 
-import com.xbk.knowledge.api.dto.model.ModelCapabilityDTO;
 import com.xbk.knowledge.types.enums.ModelType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -45,8 +44,4 @@ public class ModelInfo {
      */
     private Boolean enabled;
 
-    /**
-     * 模型能力
-     */
-    private ModelCapabilityDTO capability;
 }

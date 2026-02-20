@@ -12,7 +12,6 @@ import java.util.List;
 @Data
 public class PreheatResponse {
 
-    private Long orgId;
     private String targetType;
     private Long targetId;
     private Boolean mcpRefreshed;
@@ -21,4 +20,3 @@ public class PreheatResponse {
     private Boolean workflowValidated;
     private List<String> warnings;
 }
-

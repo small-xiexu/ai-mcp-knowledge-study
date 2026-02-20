@@ -108,7 +108,8 @@
             style="width: 100%"
             popper-class="gemini-select-dropdown"
           >
-            <el-option label="全局" value="GLOBAL" />
+            <el-option label="业务" value="BUSINESS" />
+            <el-option label="平台" value="PLATFORM" />
           </el-select>
         </el-form-item>
         <el-form-item label="状态">
@@ -219,7 +220,7 @@ const roleForm = reactive({
   id: undefined as number | undefined,
   roleCode: '',
   roleName: '',
-  roleScope: 'GLOBAL',
+  roleScope: 'BUSINESS',
   status: 1,
   remark: ''
 })
@@ -275,7 +276,7 @@ const resetRoleForm = () => {
   roleForm.id = undefined
   roleForm.roleCode = ''
   roleForm.roleName = ''
-  roleForm.roleScope = 'GLOBAL'
+  roleForm.roleScope = 'BUSINESS'
   roleForm.status = 1
   roleForm.remark = ''
   roleFormRef.value?.clearValidate()
@@ -302,7 +303,7 @@ const handleEdit = (row: IdentityRole) => {
   roleForm.id = row.id
   roleForm.roleCode = row.roleCode
   roleForm.roleName = row.roleName
-  roleForm.roleScope = row.roleScope || 'GLOBAL'
+  roleForm.roleScope = row.roleScope || 'BUSINESS'
   roleForm.status = row.status ?? 1
   roleForm.remark = row.remark || ''
   roleDialogVisible.value = true

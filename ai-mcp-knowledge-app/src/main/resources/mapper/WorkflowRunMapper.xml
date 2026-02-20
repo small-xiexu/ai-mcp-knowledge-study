@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xbk.knowledge.infrastructure.mapper.workflow.WorkflowRunMapper">
+<mapper namespace="com.xbk.knowledge.infrastructure.dao.IWorkflowRunDao">
 
-    <resultMap id="WorkflowRunMap" type="com.xbk.knowledge.domain.model.entity.workflow.WorkflowRun">
+    <resultMap id="WorkflowRunMap" type="com.xbk.knowledge.infrastructure.dao.po.WorkflowRunPO">
         <id column="run_id" property="runId"/>
         <result column="workflow_id" property="workflowId"/>
         <result column="workflow_code" property="workflowCode"/>
@@ -19,15 +19,15 @@
         <result column="error_message" property="errorMessage"/>
         <result column="started_at" property="startedAt"/>
         <result column="ended_at" property="endedAt"/>
-        <result column="created_at" property="createdAt"/>
-        <result column="updated_at" property="updatedAt"/>
     </resultMap>
 
-    <insert id="insertRun" parameterType="com.xbk.knowledge.domain.model.entity.workflow.WorkflowRun">
+    <insert id="insertRun" parameterType="com.xbk.knowledge.infrastructure.dao.po.WorkflowRunPO">
         insert into workflow_run (
+            run_id, workflow_id, workflow_code, workflow_version_id,
             trigger_source, operator_id, operator_type, session_id,
             status, current_node_key, cost_ms, error_message, started_at, ended_at
         ) values (
+            #{runId}, #{workflowId}, #{workflowCode}, #{workflowVersionId},
             #{triggerSource}, #{operatorId}, #{operatorType}, #{sessionId},
             #{status}, #{currentNodeKey}, #{costMs}, #{errorMessage}, #{startedAt}, #{endedAt}
         )
@@ -35,9 +35,9 @@
 
     <select id="findByRunId" resultMap="WorkflowRunMap">
         select
+            run_id, workflow_id, workflow_code, workflow_version_id,
             trigger_source, operator_id, operator_type, session_id,
-            status, current_node_key, cost_ms, error_message, started_at, ended_at,
-            created_at, updated_at
+            status, current_node_key, cost_ms, error_message, started_at, ended_at
         from workflow_run
         where 1 = 1
           and run_id = #{runId}
@@ -53,7 +53,7 @@
           and run_id = #{runId}
     </update>
 
-    <update id="updateStatusAndMetrics" parameterType="com.xbk.knowledge.domain.model.entity.workflow.WorkflowRun">
+    <update id="updateStatusAndMetrics" parameterType="com.xbk.knowledge.infrastructure.dao.po.WorkflowRunPO">
         update workflow_run
         set status = #{status},
             current_node_key = #{currentNodeKey},
@@ -66,9 +66,9 @@
 
     <select id="list" resultMap="WorkflowRunMap">
         select
+            run_id, workflow_id, workflow_code, workflow_version_id,
             trigger_source, operator_id, operator_type, session_id,
-            status, current_node_key, cost_ms, error_message, started_at, ended_at,
-            created_at, updated_at
+            status, current_node_key, cost_ms, error_message, started_at, ended_at
         from workflow_run
         where 1 = 1
         <if test="status != null and status != ''">

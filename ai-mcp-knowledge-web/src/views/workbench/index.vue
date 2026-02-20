@@ -29,10 +29,10 @@
             <div class="card-icon">
               <el-icon><Operation /></el-icon>
             </div>
-            <div class="card-title">Agent 管理</div>
+          <div class="card-title">Agent 管理</div>
           </div>
           <div class="card-desc">
-            当前组织共 {{ summary?.agent?.total ?? 0 }} 个 Agent，已发布 {{ summary?.agent?.published ?? 0 }} 个。
+            当前共 {{ summary?.agent?.total ?? 0 }} 个 Agent，已发布 {{ summary?.agent?.published ?? 0 }} 个。
           </div>
           <div class="card-cta">
             <el-button class="gemini-btn-secondary" @click.stop="go('/agents')">进入</el-button>
@@ -87,10 +87,6 @@
 
           <div class="governance-stats">
             <div class="stat">
-              <div class="stat-label">工具策略</div>
-              <div class="stat-value">{{ summary?.tool?.toolPolicyEnabled ?? 0 }} / {{ summary?.tool?.toolPolicyTotal ?? 0 }}</div>
-            </div>
-            <div class="stat">
               <div class="stat-label">待审批</div>
               <div class="stat-value" :class="{ danger: (summary?.tool?.approvalsPending ?? 0) > 0 }">
                 {{ summary?.tool?.approvalsPending ?? 0 }}
@@ -101,8 +97,8 @@
               <div class="stat-value">{{ summary?.schedule?.enabled ?? 0 }} / {{ summary?.schedule?.total ?? 0 }}</div>
             </div>
             <div class="stat">
-              <div class="stat-label">GLOBAL 模板</div>
-              <div class="stat-value">{{ summary?.prompt?.globalPublished ?? 0 }}</div>
+              <div class="stat-label">已发布模板</div>
+              <div class="stat-value">{{ summary?.prompt?.published ?? 0 }}</div>
             </div>
           </div>
 
@@ -144,7 +140,6 @@
           <div class="link-grid">
             <el-button class="gemini-btn-secondary" @click="go('/models')">LLM 配置</el-button>
             <el-button class="gemini-btn-secondary" @click="go('/templates')">Prompt 模板</el-button>
-            <el-button class="gemini-btn-secondary" @click="go('/tool-policies')">工具策略</el-button>
             <el-button class="gemini-btn-secondary" @click="go('/approvals')">工具审批</el-button>
             <el-button class="gemini-btn-secondary" @click="go('/schedules')">Agent 调度</el-button>
             <el-button class="gemini-btn-secondary" @click="go('/agent-playground')">Agent 调用</el-button>
@@ -196,13 +191,12 @@
         <el-collapse-item name="integration" title="配置与集成">
           <div class="link-grid">
             <el-button class="gemini-btn-secondary" @click="go('/models')">LLM 配置</el-button>
-            <el-button class="gemini-btn-secondary" @click="go('/tasks')">策略配置</el-button>
             <el-button class="gemini-btn-secondary" @click="go('/mcp-servers')">MCP 配置</el-button>
             <el-button class="gemini-btn-secondary" @click="go('/gateway-tools')">网关工具</el-button>
             <el-button class="gemini-btn-secondary" @click="go('/credentials')">凭证管理</el-button>
           </div>
         </el-collapse-item>
-        <el-collapse-item name="org" title="组织与审计">
+        <el-collapse-item name="security" title="用户与审计">
           <div class="link-grid">
             <el-button class="gemini-btn-secondary" @click="go('/users')">用户管理</el-button>
             <el-button class="gemini-btn-secondary" @click="go('/roles')">角色管理</el-button>

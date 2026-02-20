@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xbk.knowledge.infrastructure.mapper.gateway.McpGatewayAuthMapper">
+<mapper namespace="com.xbk.knowledge.infrastructure.dao.IMcpGatewayAuthDao">
 
-    <resultMap id="McpGatewayAuthMap" type="com.xbk.knowledge.domain.model.entity.gateway.McpGatewayAuth">
+    <resultMap id="McpGatewayAuthMap" type="com.xbk.knowledge.infrastructure.dao.po.McpGatewayAuthPO">
         <id column="id" property="id"/>
         <result column="gateway_id" property="gatewayId"/>
         <result column="api_key" property="apiKey"/>
@@ -15,7 +15,7 @@
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
 
-    <insert id="insertGatewayAuth" parameterType="com.xbk.knowledge.domain.model.entity.gateway.McpGatewayAuth" useGeneratedKeys="true" keyProperty="id">
+    <insert id="insertGatewayAuth" parameterType="com.xbk.knowledge.infrastructure.dao.po.McpGatewayAuthPO" useGeneratedKeys="true" keyProperty="id">
         insert into mcp_gateway_auth (
             gateway_id,
             api_key,
@@ -35,7 +35,7 @@
         )
     </insert>
 
-    <update id="updateGatewayAuth" parameterType="com.xbk.knowledge.domain.model.entity.gateway.McpGatewayAuth">
+    <update id="updateGatewayAuth" parameterType="com.xbk.knowledge.infrastructure.dao.po.McpGatewayAuthPO">
         update mcp_gateway_auth
         set gateway_id = #{gatewayId},
             api_key = #{apiKey},
@@ -50,7 +50,7 @@
         delete from mcp_gateway_auth where id = #{id}
     </delete>
 
-    <delete id="deleteGatewayAuthByIdAndOrgId">
+    <delete id="deleteGatewayAuthByIdAndScopeId">
         delete from mcp_gateway_auth
         where 1 = 1
           and id = #{id}
@@ -70,7 +70,7 @@
         where api_key = #{apiKey}
     </select>
 
-    <select id="findByApiKeyAndOrgId" resultMap="McpGatewayAuthMap">
+    <select id="findByApiKeyAndScopeId" resultMap="McpGatewayAuthMap">
         select
             id,
             gateway_id,
@@ -99,7 +99,7 @@
         where id = #{id}
     </select>
 
-    <select id="findByIdAndOrgId" resultMap="McpGatewayAuthMap">
+    <select id="findByIdAndScopeId" resultMap="McpGatewayAuthMap">
         select
             id,
             gateway_id,

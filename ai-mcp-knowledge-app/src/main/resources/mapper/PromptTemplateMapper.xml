@@ -2,11 +2,10 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xbk.knowledge.infrastructure.mapper.prompt.PromptTemplateMapper">
+<mapper namespace="com.xbk.knowledge.infrastructure.dao.IPromptTemplateDao">
 
-    <resultMap id="PromptTemplateMap" type="com.xbk.knowledge.domain.model.entity.agent.PromptTemplate">
+    <resultMap id="PromptTemplateMap" type="com.xbk.knowledge.infrastructure.dao.po.PromptTemplatePO">
         <id column="id" property="id"/>
-        <result column="scope" property="scope"/>
         <result column="template_code" property="templateCode"/>
         <result column="template_name" property="templateName"/>
         <result column="version_no" property="versionNo"/>
@@ -19,10 +18,9 @@
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
 
-    <insert id="insertTemplate" parameterType="com.xbk.knowledge.domain.model.entity.agent.PromptTemplate" useGeneratedKeys="true"
+    <insert id="insertTemplate" parameterType="com.xbk.knowledge.infrastructure.dao.po.PromptTemplatePO" useGeneratedKeys="true"
             keyProperty="id">
         insert into prompt_template (
-            scope,
             template_code,
             template_name,
             version_no,
@@ -34,7 +32,6 @@
             created_at,
             updated_at
         ) values (
-            #{scope},
             #{templateCode},
             #{templateName},
             #{versionNo},
@@ -48,7 +45,7 @@
         )
     </insert>
 
-    <update id="updateDraft" parameterType="com.xbk.knowledge.domain.model.entity.agent.PromptTemplate">
+    <update id="updateDraft" parameterType="com.xbk.knowledge.infrastructure.dao.po.PromptTemplatePO">
         update prompt_template
         set template_name = #{templateName},
             content = #{content},
@@ -62,7 +59,6 @@
     <select id="findById" resultMap="PromptTemplateMap">
         select
             id,
-            scope,
             template_code,
             template_name,
             version_no,
@@ -75,21 +71,13 @@
             updated_at
         from prompt_template
         where id = #{id}
-          and (
-              scope = 'GLOBAL'
-          )
         limit 1
     </select>
 
     <select id="count" resultType="long">
         select count(1)
         from prompt_template
-        where (
-            scope = 'GLOBAL'
-        )
-        <if test="scope != null and scope != ''">
-            and scope = #{scope}
-        </if>
+        where 1 = 1
         <if test="state != null and state != ''">
             and state = #{state}
         </if>
@@ -104,7 +92,6 @@
     <select id="findPage" resultMap="PromptTemplateMap">
         select
             id,
-            scope,
             template_code,
             template_name,
             version_no,
@@ -116,12 +103,7 @@
             created_at,
             updated_at
         from prompt_template
-        where (
-            scope = 'GLOBAL'
-        )
-        <if test="scope != null and scope != ''">
-            and scope = #{scope}
-        </if>
+        where 1 = 1
         <if test="state != null and state != ''">
             and state = #{state}
         </if>
@@ -131,15 +113,14 @@
                 or template_name like concat('%', #{keyword}, '%')
             )
         </if>
-        order by scope asc, updated_at desc, id desc
+        order by updated_at desc, id desc
         limit #{pageSize} offset #{offset}
     </select>
 
-    <select id="countByOrgIdAndCode" resultType="int">
+    <select id="countByCode" resultType="int">
         select count(1)
         from prompt_template
-        where 1 = 1
-          and template_code = #{templateCode}
+        where template_code = #{templateCode}
     </select>
 
     <update id="publish">
@@ -162,4 +143,3 @@
     </update>
 
 </mapper>
-

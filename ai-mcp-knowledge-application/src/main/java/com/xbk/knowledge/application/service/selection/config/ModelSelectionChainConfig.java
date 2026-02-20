@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Configuration;
 public class ModelSelectionChainConfig {
 
     /**
-     * 责任链装配顺序：显式策略 > 任务类型 > 默认兜底
+     * 责任链装配顺序：显式策略 > 默认兜底
      *
      * @param factory 责任链工厂
      * @return 模型选择责任链

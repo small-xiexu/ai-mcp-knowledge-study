@@ -2,7 +2,7 @@ package com.xbk.knowledge.application.support.rag;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xbk.knowledge.application.service.rag.RagVectorStoreService;
-import com.xbk.knowledge.domain.model.entity.agent.AgentVersion;
+import com.xbk.knowledge.domain.agent.model.entity.AgentVersion;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;

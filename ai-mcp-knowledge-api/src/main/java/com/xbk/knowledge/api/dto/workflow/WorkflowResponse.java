@@ -15,7 +15,6 @@ import java.time.LocalDateTime;
 public class WorkflowResponse {
 
     private Long id;
-    private Long orgId;
     private String workflowCode;
     private String workflowName;
     private String description;
@@ -24,4 +23,3 @@ public class WorkflowResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
-

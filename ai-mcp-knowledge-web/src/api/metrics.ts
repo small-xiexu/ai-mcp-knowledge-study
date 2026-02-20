@@ -8,7 +8,6 @@ import type {
 
 export interface MetricsQueryRequest {
   modelId?: number
-  taskType?: string
   startTime?: string
   endTime?: string
 }

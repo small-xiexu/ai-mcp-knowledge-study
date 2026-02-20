@@ -2,8 +2,8 @@ package com.xbk.knowledge.application.service.app.impl;
 
 import com.xbk.knowledge.application.service.app.AuditEventAppService;
 import com.xbk.knowledge.domain.model.entity.SysAuditEvent;
-import com.xbk.knowledge.domain.model.vo.identity.AuditEventPageQuery;
-import com.xbk.knowledge.domain.repository.audit.SysAuditEventRepository;
+import com.xbk.knowledge.domain.identity.model.valobj.AuditEventPageQuery;
+import com.xbk.knowledge.domain.model.adapter.repository.audit.SysAuditEventRepository;
 import com.xbk.knowledge.types.common.PageResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

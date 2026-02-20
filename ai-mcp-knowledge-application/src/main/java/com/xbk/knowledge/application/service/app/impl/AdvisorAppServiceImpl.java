@@ -2,11 +2,10 @@ package com.xbk.knowledge.application.service.app.impl;
 
 import com.xbk.knowledge.application.service.app.AdvisorAppService;
 import com.xbk.knowledge.application.service.runtime.AdvisorRuntimeService;
-import com.xbk.knowledge.domain.model.entity.advisor.Advisor;
-import com.xbk.knowledge.domain.model.vo.advisor.AdvisorPageQuery;
-import com.xbk.knowledge.domain.repository.advisor.AdvisorRepository;
+import com.xbk.knowledge.domain.advisor.model.entity.Advisor;
+import com.xbk.knowledge.domain.advisor.model.valobj.AdvisorPageQuery;
+import com.xbk.knowledge.domain.advisor.adapter.repository.AdvisorRepository;
 import com.xbk.knowledge.types.common.PageResult;
-import com.xbk.knowledge.types.context.OrgContextHolder;
 import com.xbk.knowledge.types.exception.BusinessException;
 import com.xbk.knowledge.types.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -37,13 +36,12 @@ public class AdvisorAppServiceImpl implements AdvisorAppService {
      */
     @Override
     public PageResult<Advisor> queryPage(AdvisorPageQuery query) {
-        if (query == null || query.orgId() == null) {
-            throw new IllegalArgumentException("orgId 不能为空");
+        if (query == null) {
+            throw new IllegalArgumentException("query 不能为空");
         }
         int offset = query.offset() == null ? 0 : Math.max(query.offset(), 0);
         int pageSize = query.pageSize() == null ? 20 : Math.min(Math.max(query.pageSize(), 1), 200);
         AdvisorPageQuery normalized = new AdvisorPageQuery(
-                query.orgId(),
                 StringUtils.hasText(query.keyword()) ? query.keyword().trim() : null,
                 query.enabled(),
                 StringUtils.hasText(query.advisorType()) ? query.advisorType().trim().toUpperCase(Locale.ROOT) : null,
@@ -59,16 +57,16 @@ public class AdvisorAppServiceImpl implements AdvisorAppService {
     /**
      * get。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      * @param id 参数
      * @return 返回结果
      */
     @Override
-    public Advisor get(Long orgId, Long id) {
-        if (orgId == null || id == null) {
-            throw new IllegalArgumentException("orgId/id 不能为空");
+    public Advisor get(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("id 不能为空");
         }
-        return advisorRepository.findById(orgId, id)
+        return advisorRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Advisor 不存在，id=" + id));
     }
 
@@ -81,8 +79,8 @@ public class AdvisorAppServiceImpl implements AdvisorAppService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Advisor save(Advisor advisor) {
-        if (advisor == null || advisor.getOrgId() == null) {
-            throw new IllegalArgumentException("orgId 不能为空");
+        if (advisor == null) {
+            throw new IllegalArgumentException("advisor 不能为空");
         }
         if (!StringUtils.hasText(advisor.getAdvisorCode())) {
             throw new BusinessException("advisorCode 不能为空");
@@ -96,7 +94,7 @@ public class AdvisorAppServiceImpl implements AdvisorAppService {
         normalize(advisor);
 
         if (advisor.getId() != null) {
-            Advisor existed = get(advisor.getOrgId(), advisor.getId());
+            Advisor existed = get(advisor.getId());
             existed.setAdvisorCode(advisor.getAdvisorCode());
             existed.setAdvisorName(advisor.getAdvisorName());
             existed.setAdvisorType(advisor.getAdvisorType());
@@ -106,15 +104,15 @@ public class AdvisorAppServiceImpl implements AdvisorAppService {
             if (affected <= 0) {
                 throw new BusinessException("更新失败，id=" + advisor.getId());
             }
-            advisorRuntimeService.evictAll(advisor.getOrgId());
-            return get(advisor.getOrgId(), existed.getId());
+            advisorRuntimeService.evictAll();
+            return get(existed.getId());
         }
 
-        Advisor existed = advisorRepository.findByCode(advisor.getOrgId(), advisor.getAdvisorCode()).orElse(null);
+        Advisor existed = advisorRepository.findByCode(advisor.getAdvisorCode()).orElse(null);
         if (existed == null || existed.getId() == null) {
             advisorRepository.insert(advisor);
-            advisorRuntimeService.evictAll(advisor.getOrgId());
-            return get(advisor.getOrgId(), advisor.getId());
+            advisorRuntimeService.evictAll();
+            return get(advisor.getId());
         }
         existed.setAdvisorName(advisor.getAdvisorName());
         existed.setAdvisorType(advisor.getAdvisorType());
@@ -124,63 +122,63 @@ public class AdvisorAppServiceImpl implements AdvisorAppService {
         if (affected <= 0) {
             throw new BusinessException("保存失败，advisorCode=" + advisor.getAdvisorCode());
         }
-        advisorRuntimeService.evictAll(advisor.getOrgId());
-        return get(advisor.getOrgId(), existed.getId());
+        advisorRuntimeService.evictAll();
+        return get(existed.getId());
     }
 
     /**
      * enable。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      * @param id 参数
      * @return 返回结果
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Advisor enable(Long orgId, Long id) {
-        Advisor existed = get(orgId, id);
-        int affected = advisorRepository.updateEnabled(orgId, id, 1);
+    public Advisor enable(Long id) {
+        Advisor existed = get(id);
+        int affected = advisorRepository.updateEnabled(id, 1);
         if (affected <= 0) {
             throw new BusinessException("启用失败，id=" + id);
         }
-        advisorRuntimeService.evictAll(orgId);
-        return get(orgId, existed.getId());
+        advisorRuntimeService.evictAll();
+        return get(existed.getId());
     }
 
     /**
      * disable。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      * @param id 参数
      * @return 返回结果
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Advisor disable(Long orgId, Long id) {
-        Advisor existed = get(orgId, id);
-        int affected = advisorRepository.updateEnabled(orgId, id, 0);
+    public Advisor disable(Long id) {
+        Advisor existed = get(id);
+        int affected = advisorRepository.updateEnabled(id, 0);
         if (affected <= 0) {
             throw new BusinessException("禁用失败，id=" + id);
         }
-        advisorRuntimeService.evictAll(orgId);
-        return get(orgId, existed.getId());
+        advisorRuntimeService.evictAll();
+        return get(existed.getId());
     }
 
     /**
      * remove。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      * @param id 参数
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void remove(Long orgId, Long id) {
-        get(orgId, id);
-        int affected = advisorRepository.deleteById(orgId, id);
+    public void remove(Long id) {
+        get(id);
+        int affected = advisorRepository.deleteById(id);
         if (affected <= 0) {
             throw new BusinessException("删除失败，id=" + id);
         }
-        advisorRuntimeService.evictAll(orgId);
+        advisorRuntimeService.evictAll();
     }
 
     private void normalize(Advisor advisor) {

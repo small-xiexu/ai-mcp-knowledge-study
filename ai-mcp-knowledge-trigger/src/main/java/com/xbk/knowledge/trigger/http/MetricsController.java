@@ -60,12 +60,10 @@ public class MetricsController implements IMetricsService {
         public Result<CallMetricsDTO> getCallMetrics(@RequestBody MetricsQueryRequest request) {
                 // 调用应用服务收集指标
                 Long modelId = request.getModelId();
-                String taskType = request.getTaskType();
                 LocalDateTime startTime = request.getStartTime();
                 LocalDateTime endTime = request.getEndTime();
                 MetricsQuery query = new MetricsQuery(
                                 modelId,
-                                taskType,
                                 startTime,
                                 endTime);
                 CallMetrics metrics = metricsAppService.collectCallMetrics(query);
@@ -95,12 +93,10 @@ public class MetricsController implements IMetricsService {
         public Result<SuccessRateDTO> getSuccessRate(@RequestBody MetricsQueryRequest request) {
                 // 调用应用服务收集指标
                 Long modelId = request.getModelId();
-                String taskType = request.getTaskType();
                 LocalDateTime startTime = request.getStartTime();
                 LocalDateTime endTime = request.getEndTime();
                 MetricsQuery query = new MetricsQuery(
                                 modelId,
-                                taskType,
                                 startTime,
                                 endTime);
                 SuccessRate successRate = metricsAppService.collectSuccessRate(query);
@@ -128,12 +124,10 @@ public class MetricsController implements IMetricsService {
         public Result<ResponseTimeDTO> getResponseTime(@RequestBody MetricsQueryRequest request) {
                 // 调用应用服务收集指标
                 Long modelId = request.getModelId();
-                String taskType = request.getTaskType();
                 LocalDateTime startTime = request.getStartTime();
                 LocalDateTime endTime = request.getEndTime();
                 MetricsQuery query = new MetricsQuery(
                                 modelId,
-                                taskType,
                                 startTime,
                                 endTime);
                 ResponseTime responseTime = metricsAppService.collectResponseTime(query);

@@ -2,8 +2,8 @@ package com.xbk.knowledge.application.service.app.impl;
 
 import com.xbk.knowledge.application.model.dto.AICallCommand;
 import com.xbk.knowledge.application.model.dto.AICallResult;
-import com.xbk.knowledge.application.provider.ModelProviderFactory;
 import com.xbk.knowledge.application.service.app.AiChatAppService;
+import com.xbk.knowledge.application.service.app.ChatClientAssemblyService;
 import com.xbk.knowledge.application.service.app.ModelConfigAppService;
 import com.xbk.knowledge.application.context.GatewayToolBindingContextHolder;
 import com.xbk.knowledge.application.service.mcp.McpToolCatalogService;
@@ -12,8 +12,8 @@ import com.xbk.knowledge.domain.model.aggregate.call.CallLogAggregate;
 import com.xbk.knowledge.domain.model.entity.CallLog;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.model.entity.ChatSession;
-import com.xbk.knowledge.domain.repository.metrics.CallLogRepository;
-import com.xbk.knowledge.domain.repository.chat.ChatSessionRepository;
+import com.xbk.knowledge.domain.model.adapter.repository.metrics.CallLogRepository;
+import com.xbk.knowledge.domain.model.adapter.repository.chat.ChatSessionRepository;
 import com.xbk.knowledge.domain.model.vo.common.IdQuery;
 import com.xbk.knowledge.types.enums.CallStatus;
 import com.xbk.knowledge.types.exception.BusinessException;
@@ -31,7 +31,6 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.ai.document.Document;
 import org.springframework.stereotype.Service;
-import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
@@ -61,13 +60,12 @@ public class AiChatAppServiceImpl implements AiChatAppService {
             + "{documents}";
 
     private final ModelConfigAppService modelConfigAppService;
-    private final ModelProviderFactory modelProviderFactory;
+    private final ChatClientAssemblyService chatClientAssemblyService;
     private final RagVectorStoreService ragVectorStoreService;
     private final CallLogRepository callLogRepository;
     private final ChatSessionRepository chatSessionRepository;
     private final ChatMemory chatMemory;
     private final McpToolCatalogService mcpToolCatalogService;
-    private final ToolCallbackProvider toolCallbackProvider;
 
     /**
      * 同步对话
@@ -247,18 +245,12 @@ public class AiChatAppServiceImpl implements AiChatAppService {
     /**
      * 解析 ChatClient
      *
-     * 为什么：统一工具回调注入，避免业务侧重复装配
+     * 为什么：统一走装配服务，避免业务侧重复拼装模型和工具
      * 入参：模型配置、工具开关
      * 出参：ChatClient 实例
      */
     private ChatClient resolveChatClient(ModelConfig modelConfig, boolean toolEnabled) {
-        ChatClient chatClient = modelProviderFactory.createChatClient(modelConfig);
-        if (toolEnabled && toolCallbackProvider != null) {
-            chatClient = chatClient.mutate()
-                    .defaultToolCallbacks(toolCallbackProvider)
-                    .build();
-        }
-        return chatClient;
+        return chatClientAssemblyService.buildChatClient(modelConfig, toolEnabled);
     }
 
     /**
@@ -373,11 +365,9 @@ public class AiChatAppServiceImpl implements AiChatAppService {
      */
     private CallLog buildCallLog(ModelConfig modelConfig, AICallCommand command) {
         Long modelId = modelConfig.getId();
-        String taskType = command.getTaskType();
         String requestContent = truncateContent(command.getContent(), 5000);
         return CallLog.builder()
                 .modelId(modelId)
-                .taskType(taskType)
                 .requestContent(requestContent)
                 .build();
     }

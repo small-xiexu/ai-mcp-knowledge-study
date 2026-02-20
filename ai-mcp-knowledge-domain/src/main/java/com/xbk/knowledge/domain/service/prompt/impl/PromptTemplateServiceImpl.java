@@ -1,9 +1,9 @@
 package com.xbk.knowledge.domain.service.prompt.impl;
 
-import com.xbk.knowledge.domain.model.entity.agent.PromptTemplate;
-import com.xbk.knowledge.domain.model.vo.agent.PromptTemplateIdQuery;
-import com.xbk.knowledge.domain.model.vo.agent.PromptTemplatePageQuery;
-import com.xbk.knowledge.domain.repository.prompt.PromptTemplateRepository;
+import com.xbk.knowledge.domain.agent.model.entity.PromptTemplate;
+import com.xbk.knowledge.domain.agent.model.valobj.PromptTemplateIdQuery;
+import com.xbk.knowledge.domain.agent.model.valobj.PromptTemplatePageQuery;
+import com.xbk.knowledge.domain.agent.adapter.repository.PromptTemplateRepository;
 import com.xbk.knowledge.domain.service.prompt.IPromptTemplateService;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.exception.BusinessException;
@@ -23,8 +23,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PromptTemplateServiceImpl implements IPromptTemplateService {
 
-    private static final long GLOBAL_ORG_ID = 0L;
-
     private final PromptTemplateRepository promptTemplateRepository;
 
     /**
@@ -35,15 +33,13 @@ public class PromptTemplateServiceImpl implements IPromptTemplateService {
      */
     @Override
     public PageResult<PromptTemplate> queryPage(PromptTemplatePageQuery query) {
-        if (query == null || query.getOrgId() == null) {
-            throw new IllegalArgumentException("orgId 不能为空");
+        if (query == null) {
+            throw new IllegalArgumentException("query 不能为空");
         }
         int offset = query.getOffset() == null ? 0 : query.getOffset();
         int pageSize = query.getPageSize() == null ? 20 : query.getPageSize();
         PromptTemplatePageQuery normalized = new PromptTemplatePageQuery(
-                query.getOrgId(),
                 query.getKeyword(),
-                query.getScope(),
                 query.getState(),
                 offset,
                 pageSize
@@ -62,8 +58,8 @@ public class PromptTemplateServiceImpl implements IPromptTemplateService {
      */
     @Override
     public PromptTemplate queryById(PromptTemplateIdQuery query) {
-        if (query == null || query.getOrgId() == null || query.getId() == null) {
-            throw new IllegalArgumentException("orgId/id 不能为空");
+        if (query == null || query.getId() == null) {
+            throw new IllegalArgumentException("id 不能为空");
         }
         return promptTemplateRepository
                 .findById(query)
@@ -81,9 +77,6 @@ public class PromptTemplateServiceImpl implements IPromptTemplateService {
         if (template == null) {
             throw new IllegalArgumentException("template 不能为空");
         }
-        if (template.getScope() == null || template.getScope().isBlank()) {
-            template.setScope("ORG");
-        }
         if (template.getTemplateCode() == null || template.getTemplateCode().isBlank()) {
             throw new IllegalArgumentException("templateCode 不能为空");
         }
@@ -94,17 +87,7 @@ public class PromptTemplateServiceImpl implements IPromptTemplateService {
             throw new IllegalArgumentException("content 不能为空");
         }
 
-        if ("GLOBAL".equalsIgnoreCase(template.getScope())) {
-            template.setScope("GLOBAL");
-            template.setOrgId(GLOBAL_ORG_ID);
-        } else {
-            template.setScope("ORG");
-            if (template.getOrgId() == null) {
-                throw new IllegalArgumentException("orgId 不能为空");
-            }
-        }
-
-        if (promptTemplateRepository.existsByOrgIdAndCode(template.getOrgId(), template.getTemplateCode())) {
+        if (promptTemplateRepository.existsByCode(template.getTemplateCode())) {
             throw new BusinessException("templateCode 已存在：" + template.getTemplateCode());
         }
 
@@ -125,16 +108,12 @@ public class PromptTemplateServiceImpl implements IPromptTemplateService {
      */
     @Override
     public PromptTemplate updateDraft(PromptTemplate template) {
-        if (template == null || template.getId() == null || template.getOrgId() == null) {
-            throw new IllegalArgumentException("id/orgId 不能为空");
+        if (template == null || template.getId() == null) {
+            throw new IllegalArgumentException("id 不能为空");
         }
-        PromptTemplate existed = queryById(new PromptTemplateIdQuery(template.getOrgId(), template.getId()));
+        PromptTemplate existed = queryById(new PromptTemplateIdQuery(template.getId()));
         if (!"DRAFT".equalsIgnoreCase(existed.getState())) {
             throw new BusinessException("仅 DRAFT 模板允许编辑");
-        }
-        if ("GLOBAL".equalsIgnoreCase(existed.getScope())) {
-            // orgId 必须是 0（由数据层约束），此处只保证语义清晰
-            existed.setOrgId(GLOBAL_ORG_ID);
         }
         if (template.getTemplateName() != null) {
             existed.setTemplateName(template.getTemplateName());
@@ -151,7 +130,7 @@ public class PromptTemplateServiceImpl implements IPromptTemplateService {
         if (affected <= 0) {
             throw new BusinessException("模板更新失败，id: " + template.getId());
         }
-        return queryById(new PromptTemplateIdQuery(template.getOrgId(), template.getId()));
+        return queryById(new PromptTemplateIdQuery(template.getId()));
     }
 
     /**
@@ -167,11 +146,11 @@ public class PromptTemplateServiceImpl implements IPromptTemplateService {
         if (!"DRAFT".equalsIgnoreCase(existed.getState())) {
             throw new BusinessException("仅 DRAFT 模板允许发布");
         }
-        int affected = promptTemplateRepository.publish(existed.getOrgId(), existed.getId(), updatedBy);
+        int affected = promptTemplateRepository.publish(existed.getId(), updatedBy);
         if (affected <= 0) {
             throw new BusinessException("模板发布失败，id: " + existed.getId());
         }
-        return queryById(new PromptTemplateIdQuery(query.getOrgId(), query.getId()));
+        return queryById(new PromptTemplateIdQuery(query.getId()));
     }
 
     /**
@@ -184,11 +163,10 @@ public class PromptTemplateServiceImpl implements IPromptTemplateService {
     @Override
     public PromptTemplate archive(PromptTemplateIdQuery query, Long updatedBy) {
         PromptTemplate existed = queryById(query);
-        int affected = promptTemplateRepository.archive(existed.getOrgId(), existed.getId(), updatedBy);
+        int affected = promptTemplateRepository.archive(existed.getId(), updatedBy);
         if (affected <= 0) {
             throw new BusinessException("模板归档失败，id: " + existed.getId());
         }
-        return queryById(new PromptTemplateIdQuery(query.getOrgId(), query.getId()));
+        return queryById(new PromptTemplateIdQuery(query.getId()));
     }
 }
-

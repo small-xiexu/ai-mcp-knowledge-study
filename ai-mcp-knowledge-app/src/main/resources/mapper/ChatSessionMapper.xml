@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xbk.knowledge.infrastructure.mapper.chat.ChatSessionMapper">
+<mapper namespace="com.xbk.knowledge.infrastructure.dao.IChatSessionDao">
 
-    <resultMap id="ChatSessionMap" type="com.xbk.knowledge.domain.model.entity.ChatSession">
+    <resultMap id="ChatSessionMap" type="com.xbk.knowledge.infrastructure.dao.po.ChatSessionPO">
         <id column="id" property="id"/>
         <result column="owner_user_id" property="ownerUserId"/>
         <result column="title" property="title"/>
@@ -16,7 +16,7 @@
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
 
-    <insert id="insertSession" parameterType="com.xbk.knowledge.domain.model.entity.ChatSession" useGeneratedKeys="true" keyProperty="id">
+    <insert id="insertSession" parameterType="com.xbk.knowledge.infrastructure.dao.po.ChatSessionPO" useGeneratedKeys="true" keyProperty="id">
         insert into ai_chat_session (
             owner_user_id,
             title,
@@ -38,7 +38,7 @@
         )
     </insert>
 
-    <update id="updateSession" parameterType="com.xbk.knowledge.domain.model.entity.ChatSession">
+    <update id="updateSession" parameterType="com.xbk.knowledge.infrastructure.dao.po.ChatSessionPO">
         update ai_chat_session
         set title = #{title},
             model_id = #{modelId},

@@ -1,7 +1,7 @@
 package com.xbk.knowledge.application.service.app;
 
-import com.xbk.knowledge.domain.model.entity.SysUser;
-import com.xbk.knowledge.domain.model.vo.identity.UserPageQuery;
+import com.xbk.knowledge.domain.identity.model.entity.SysUser;
+import com.xbk.knowledge.domain.identity.model.valobj.UserPageQuery;
 import com.xbk.knowledge.types.common.PageResult;
 
 import java.util.List;

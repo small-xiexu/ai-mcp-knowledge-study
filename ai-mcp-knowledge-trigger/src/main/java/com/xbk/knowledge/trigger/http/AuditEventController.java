@@ -5,7 +5,7 @@ import com.xbk.knowledge.api.dto.audit.AuditEventQueryRequest;
 import com.xbk.knowledge.api.dto.audit.AuditEventResponse;
 import com.xbk.knowledge.application.service.app.AuditEventAppService;
 import com.xbk.knowledge.domain.model.entity.SysAuditEvent;
-import com.xbk.knowledge.domain.model.vo.identity.AuditEventPageQuery;
+import com.xbk.knowledge.domain.identity.model.valobj.AuditEventPageQuery;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.common.PageResultConverter;
 import com.xbk.knowledge.types.common.Result;

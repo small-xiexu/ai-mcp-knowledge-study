@@ -4,7 +4,7 @@ import com.xbk.knowledge.Application;
 import com.xbk.knowledge.application.service.app.ChatClientAssemblyService;
 import com.xbk.knowledge.application.service.app.ModelConfigAppService;
 import com.xbk.knowledge.application.service.runtime.McpServerRuntimeService;
-import com.xbk.knowledge.domain.model.entity.McpServerConfig;
+import com.xbk.knowledge.domain.mcp.model.entity.McpServerConfig;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
 import com.xbk.knowledge.domain.model.vo.common.IdQuery;

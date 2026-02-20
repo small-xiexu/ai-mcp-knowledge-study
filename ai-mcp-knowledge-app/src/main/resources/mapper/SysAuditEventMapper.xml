@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xbk.knowledge.infrastructure.mapper.audit.SysAuditEventMapper">
+<mapper namespace="com.xbk.knowledge.infrastructure.dao.ISysAuditEventDao">
 
-    <resultMap id="SysAuditEventMap" type="com.xbk.knowledge.domain.model.entity.SysAuditEvent">
+    <resultMap id="SysAuditEventMap" type="com.xbk.knowledge.infrastructure.dao.po.SysAuditEventPO">
         <id column="id" property="id"/>
         <result column="operator_id" property="operatorId"/>
         <result column="operator_name" property="operatorName"/>
@@ -44,7 +44,7 @@
         a.occurred_at
     </sql>
 
-    <insert id="insertEvent" parameterType="com.xbk.knowledge.domain.model.entity.SysAuditEvent"
+    <insert id="insertEvent" parameterType="com.xbk.knowledge.infrastructure.dao.po.SysAuditEventPO"
             useGeneratedKeys="true" keyProperty="id">
         insert into sys_audit_event (
             operator_id,

@@ -31,7 +31,6 @@ src/
 └── views/                # 页面视图
     ├── dashboard/        # 仪表盘
     ├── model/            # 模型管理
-    ├── task/             # 任务策略配置
     ├── audit/            # 审计日志
     └── playground/       # AI 调试演练场
 ```
@@ -90,20 +89,14 @@ npm run format
 - 启用/禁用模型
 - 模型能力配置
 
-### 3. 任务策略
-- 任务类型定义
-- 模型选择策略
-- 优先级配置
-
-### 4. 审计日志
+### 3. 审计日志
 - 调用日志查询
 - TraceID 搜索
 - JSON 详情查看
 
-### 5. 调试演练
+### 4. 调试演练
 - AI 对话测试
 - 模型选择
-- 任务类型选择
 
 ## API 接口
 
@@ -120,9 +113,7 @@ npm run format
 
 ### AI 调用
 - `POST /ai/chat` - 通用 AI 调用
-- `POST /ai/chat/by-task/{taskType}` - 按任务类型调用
 - `GET /ai/models/available` - 获取可用模型列表
-- `GET /ai/models/recommended` - 获取推荐模型
 
 ### 监控统计
 - `GET /metrics/calls` - 调用次数统计

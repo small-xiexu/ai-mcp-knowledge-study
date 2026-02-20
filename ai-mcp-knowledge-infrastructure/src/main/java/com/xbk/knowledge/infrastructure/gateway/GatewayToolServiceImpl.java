@@ -4,18 +4,18 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xbk.knowledge.application.service.app.GatewayObservabilityAppService;
-import com.xbk.knowledge.domain.model.entity.gateway.McpGateway;
-import com.xbk.knowledge.domain.model.entity.gateway.McpToolMapping;
-import com.xbk.knowledge.domain.model.entity.gateway.McpToolRegistry;
-import com.xbk.knowledge.domain.model.entity.gateway.McpToolSchema;
-import com.xbk.knowledge.domain.model.vo.gateway.GatewayIdQuery;
-import com.xbk.knowledge.domain.model.vo.gateway.ToolMappingQuery;
-import com.xbk.knowledge.domain.model.vo.gateway.ToolNameQuery;
-import com.xbk.knowledge.domain.repository.gateway.McpGatewayRepository;
-import com.xbk.knowledge.domain.repository.gateway.McpToolMappingRepository;
-import com.xbk.knowledge.domain.repository.gateway.McpToolRegistryRepository;
-import com.xbk.knowledge.domain.repository.gateway.McpToolSchemaRepository;
-import com.xbk.knowledge.domain.service.gateway.GatewayToolService;
+import com.xbk.knowledge.domain.gateway.model.entity.McpGateway;
+import com.xbk.knowledge.domain.gateway.model.entity.McpToolMapping;
+import com.xbk.knowledge.domain.gateway.model.entity.McpToolRegistry;
+import com.xbk.knowledge.domain.gateway.model.entity.McpToolSchema;
+import com.xbk.knowledge.domain.gateway.model.valobj.GatewayIdQuery;
+import com.xbk.knowledge.domain.gateway.model.valobj.ToolMappingQuery;
+import com.xbk.knowledge.domain.gateway.model.valobj.ToolNameQuery;
+import com.xbk.knowledge.domain.gateway.adapter.repository.McpGatewayRepository;
+import com.xbk.knowledge.domain.gateway.adapter.repository.McpToolMappingRepository;
+import com.xbk.knowledge.domain.gateway.adapter.repository.McpToolRegistryRepository;
+import com.xbk.knowledge.domain.gateway.adapter.repository.McpToolSchemaRepository;
+import com.xbk.knowledge.domain.gateway.service.GatewayToolService;
 import com.xbk.knowledge.types.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -161,12 +161,12 @@ public class GatewayToolServiceImpl implements GatewayToolService {
 
     /** 处理 MCP initialize 握手，返回网关能力声明 */
     @Override
-    public GatewayCapability initialize(String gatewayId) {
+    public GatewayInfo initialize(String gatewayId) {
         McpGateway gateway = requireEnabledGateway(gatewayId);
         String serverName = StringUtils.hasText(gateway.getGatewayName()) ? gateway.getGatewayName() : gateway.getGatewayId();
         String serverVersion = StringUtils.hasText(gateway.getGatewayVersion()) ? gateway.getGatewayVersion() : "1.0.0";
         String instructions = StringUtils.hasText(gateway.getGatewayInstructions()) ? gateway.getGatewayInstructions() : "";
-        return new GatewayCapability(PROTOCOL_VERSION, serverName, serverVersion, instructions);
+        return new GatewayInfo(PROTOCOL_VERSION, serverName, serverVersion, instructions);
     }
 
     /** 校验网关存在且已启用，否则抛出 BusinessException */

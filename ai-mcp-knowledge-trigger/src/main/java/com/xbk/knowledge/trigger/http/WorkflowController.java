@@ -4,14 +4,13 @@ import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.xbk.knowledge.api.dto.common.IdRequest;
 import com.xbk.knowledge.api.dto.workflow.*;
 import com.xbk.knowledge.application.service.app.WorkflowAppService;
-import com.xbk.knowledge.domain.model.entity.workflow.Workflow;
-import com.xbk.knowledge.domain.model.entity.workflow.WorkflowEdge;
-import com.xbk.knowledge.domain.model.entity.workflow.WorkflowNode;
-import com.xbk.knowledge.domain.model.entity.workflow.WorkflowVersion;
+import com.xbk.knowledge.domain.workflow.model.entity.Workflow;
+import com.xbk.knowledge.domain.workflow.model.entity.WorkflowEdge;
+import com.xbk.knowledge.domain.workflow.model.entity.WorkflowNode;
+import com.xbk.knowledge.domain.workflow.model.entity.WorkflowVersion;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.common.PageResultConverter;
 import com.xbk.knowledge.types.common.Result;
-import com.xbk.knowledge.types.context.OrgContextHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -43,10 +42,7 @@ public class WorkflowController {
     @PostMapping("/list")
     @SaCheckPermission("workflow:read")
     public Result<PageResult<WorkflowResponse>> list(@Valid @RequestBody WorkflowListRequest request) {
-        Long orgId = currentOrgId();
-        PageResult<Workflow> page = workflowAppService.list(
-                orgId,
-                request.getKeyword(),
+        PageResult<Workflow> page = workflowAppService.list(request.getKeyword(),
                 request.getOffset() == null ? 0 : request.getOffset(),
                 request.getPageSize() == null ? 20 : request.getPageSize()
         );
@@ -63,8 +59,7 @@ public class WorkflowController {
     @PostMapping("/get")
     @SaCheckPermission("workflow:read")
     public Result<WorkflowResponse> get(@Valid @RequestBody IdRequest request) {
-        Long orgId = currentOrgId();
-        Workflow wf = workflowAppService.get(orgId, request.getId());
+        Workflow wf = workflowAppService.get(request.getId());
         return Result.success(toResponse(wf));
     }
 
@@ -77,14 +72,13 @@ public class WorkflowController {
     @PostMapping("/create")
     @SaCheckPermission("workflow:write")
     public Result<WorkflowResponse> create(@Valid @RequestBody WorkflowCreateRequest request) {
-        Long orgId = currentOrgId();
         Workflow wf = Workflow.builder()
                 .workflowCode(request.getWorkflowCode())
                 .workflowName(request.getWorkflowName())
                 .description(request.getDescription())
                 .status("ENABLED")
                 .build();
-        Workflow created = workflowAppService.create(orgId, wf);
+        Workflow created = workflowAppService.create(wf);
         return Result.success(toResponse(created));
     }
 
@@ -97,14 +91,13 @@ public class WorkflowController {
     @PostMapping("/update")
     @SaCheckPermission("workflow:write")
     public Result<WorkflowResponse> update(@Valid @RequestBody WorkflowUpdateRequest request) {
-        Long orgId = currentOrgId();
         Workflow wf = Workflow.builder()
                 .id(request.getId())
                 .workflowName(request.getWorkflowName())
                 .description(request.getDescription())
                 .status(request.getStatus())
                 .build();
-        Workflow updated = workflowAppService.update(orgId, wf);
+        Workflow updated = workflowAppService.update(wf);
         return Result.success(toResponse(updated));
     }
 
@@ -117,8 +110,7 @@ public class WorkflowController {
     @PostMapping("/versions/create")
     @SaCheckPermission("workflow:write")
     public Result<WorkflowVersionResponse> createVersion(@Valid @RequestBody WorkflowVersionCreateRequest request) {
-        Long orgId = currentOrgId();
-        WorkflowVersion v = workflowAppService.createVersion(orgId, request.getWorkflowId(), request.getChangeSummary());
+        WorkflowVersion v = workflowAppService.createVersion(request.getWorkflowId(), request.getChangeSummary());
         return Result.success(toVersionResponse(v));
     }
 
@@ -131,8 +123,7 @@ public class WorkflowController {
     @PostMapping("/versions/list")
     @SaCheckPermission("workflow:read")
     public Result<List<WorkflowVersionResponse>> listVersions(@Valid @RequestBody WorkflowVersionListRequest request) {
-        Long orgId = currentOrgId();
-        List<WorkflowVersion> list = workflowAppService.listVersions(orgId, request.getWorkflowId());
+        List<WorkflowVersion> list = workflowAppService.listVersions(request.getWorkflowId());
         List<WorkflowVersionResponse> resp = new ArrayList<>();
         if (list != null) {
             for (WorkflowVersion v : list) {
@@ -151,8 +142,7 @@ public class WorkflowController {
     @PostMapping("/versions/get")
     @SaCheckPermission("workflow:read")
     public Result<WorkflowVersionResponse> getVersion(@Valid @RequestBody IdRequest request) {
-        Long orgId = currentOrgId();
-        WorkflowVersion v = workflowAppService.getVersion(orgId, request.getId());
+        WorkflowVersion v = workflowAppService.getVersion(request.getId());
         return Result.success(toVersionResponse(v));
     }
 
@@ -165,8 +155,7 @@ public class WorkflowController {
     @PostMapping("/versions/publish")
     @SaCheckPermission("workflow:publish")
     public Result<WorkflowVersionResponse> publish(@Valid @RequestBody WorkflowVersionPublishRequest request) {
-        Long orgId = currentOrgId();
-        WorkflowVersion v = workflowAppService.publishVersion(orgId, request.getWorkflowVersionId());
+        WorkflowVersion v = workflowAppService.publishVersion(request.getWorkflowVersionId());
         return Result.success("发布成功", toVersionResponse(v));
     }
 
@@ -179,7 +168,6 @@ public class WorkflowController {
     @PostMapping("/versions/save-graph")
     @SaCheckPermission("workflow:write")
     public Result<WorkflowVersionResponse> saveGraph(@Valid @RequestBody WorkflowGraphSaveRequest request) {
-        Long orgId = currentOrgId();
 
         List<WorkflowNode> nodes = new ArrayList<>();
         if (request.getNodes() != null) {
@@ -206,9 +194,7 @@ public class WorkflowController {
             }
         }
 
-        WorkflowVersion v = workflowAppService.saveGraph(
-                orgId,
-                request.getWorkflowVersionId(),
+        WorkflowVersion v = workflowAppService.saveGraph(request.getWorkflowVersionId(),
                 request.getGraphJson(),
                 request.getDefaultConfigJson(),
                 nodes,
@@ -223,7 +209,6 @@ public class WorkflowController {
         }
         return WorkflowResponse.builder()
                 .id(wf.getId())
-                .orgId(wf.getOrgId())
                 .workflowCode(wf.getWorkflowCode())
                 .workflowName(wf.getWorkflowName())
                 .description(wf.getDescription())
@@ -240,7 +225,6 @@ public class WorkflowController {
         }
         return WorkflowVersionResponse.builder()
                 .id(v.getId())
-                .orgId(v.getOrgId())
                 .workflowId(v.getWorkflowId())
                 .versionNo(v.getVersionNo())
                 .state(v.getState())
@@ -252,8 +236,4 @@ public class WorkflowController {
                 .build();
     }
 
-    private Long currentOrgId() {
-        Long orgId = OrgContextHolder.currentOrgIdOrNull();
-        return orgId != null ? orgId : 1L;
-    }
 }

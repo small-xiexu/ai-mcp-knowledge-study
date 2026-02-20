@@ -1,7 +1,7 @@
 package com.xbk.knowledge.application.service.app;
 
 import com.xbk.knowledge.domain.model.entity.SysAuditEvent;
-import com.xbk.knowledge.domain.model.vo.identity.AuditEventPageQuery;
+import com.xbk.knowledge.domain.identity.model.valobj.AuditEventPageQuery;
 import com.xbk.knowledge.types.common.PageResult;
 
 /**

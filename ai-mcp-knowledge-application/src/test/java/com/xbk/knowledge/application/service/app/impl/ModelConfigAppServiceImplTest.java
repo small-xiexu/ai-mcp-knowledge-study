@@ -2,9 +2,10 @@ package com.xbk.knowledge.application.service.app.impl;
 
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.model.vo.common.IdQuery;
-import com.xbk.knowledge.domain.repository.model.ModelActivationRepository;
+import com.xbk.knowledge.domain.model.adapter.repository.model.ModelActivationRepository;
 import com.xbk.knowledge.domain.service.model.IModelConfigService;
 import com.xbk.knowledge.application.provider.ModelProviderFactory;
+import com.xbk.knowledge.application.service.armory.factory.DefaultAiClientArmoryStrategyFactory;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -25,7 +26,9 @@ public class ModelConfigAppServiceImplTest {
         IModelConfigService domainService = Mockito.mock(IModelConfigService.class);
         ModelActivationRepository activationRepository = Mockito.mock(ModelActivationRepository.class);
         ModelProviderFactory providerFactory = Mockito.mock(ModelProviderFactory.class);
-        ModelConfigAppServiceImpl appService = new ModelConfigAppServiceImpl(domainService, activationRepository, providerFactory);
+        DefaultAiClientArmoryStrategyFactory armoryStrategyFactory = Mockito.mock(DefaultAiClientArmoryStrategyFactory.class);
+        ModelConfigAppServiceImpl appService =
+                new ModelConfigAppServiceImpl(domainService, activationRepository, providerFactory, armoryStrategyFactory);
 
         ModelConfig modelConfig = ModelConfig.builder().modelName("m1").build();
         appService.createModelConfig(modelConfig);

@@ -1,16 +1,8 @@
 -- =====================================================
--- 全量初始化脚本（业务表 + 用户权限体系 + 组织隔离 + 多 Agent 平台治理）
--- 适用：MySQL 8.0+
--- 字符集：utf8mb4
+-- AI 模型编排平台 - 数据库初始化脚本
+-- MySQL 8.0+ | utf8mb4
 -- 作者：xiexu
--- 更新：2026-02-15
---
--- 说明：
--- 1) 本脚本用于“从零初始化”或“作为备份参考”。
---    注意：会 DROP 现有表（清空数据）。请勿在生产库执行。
--- 2) 已内置 Advisor 相关结构/权限/初始化数据（原 migrate-20260215-advisor-preheat.sql 已合并）。
--- 3) 若需在旧库上升级，请优先使用迁移脚本：
---    sql/migrate-20260214-org-and-multi-agent-platform.sql
+-- 更新：2026-02-20
 -- =====================================================
 
 -- 创建数据库
@@ -23,8 +15,6 @@ USE ai_model_orchestration;
 -- =====================================================
 -- 0) 清理旧表（确保可重复执行，得到一致结构）
 -- =====================================================
-SET FOREIGN_KEY_CHECKS = 0;
-
 DROP TABLE IF EXISTS agent_run_context;
 DROP TABLE IF EXISTS approval_request;
 DROP TABLE IF EXISTS workflow_node_run;
@@ -39,7 +29,8 @@ DROP TABLE IF EXISTS agent_schedule;
 DROP TABLE IF EXISTS prompt_template;
 DROP TABLE IF EXISTS agent_version;
 DROP TABLE IF EXISTS agent;
-DROP TABLE IF EXISTS tool_policy;
+DROP TABLE IF EXISTS advisor_binding;
+DROP TABLE IF EXISTS advisor;
 DROP TABLE IF EXISTS mcp_tool_binding;
 DROP TABLE IF EXISTS mcp_tool_schema;
 DROP TABLE IF EXISTS mcp_tool_mapping;
@@ -53,8 +44,6 @@ DROP TABLE IF EXISTS ai_model_activation;
 DROP TABLE IF EXISTS ai_mcp_server_config;
 DROP TABLE IF EXISTS ai_config_audit;
 DROP TABLE IF EXISTS ai_call_log;
-DROP TABLE IF EXISTS ai_task_type;
-DROP TABLE IF EXISTS ai_model_capability;
 DROP TABLE IF EXISTS ai_model_config;
 DROP TABLE IF EXISTS sys_audit_event;
 DROP TABLE IF EXISTS sys_user_role;
@@ -63,10 +52,8 @@ DROP TABLE IF EXISTS sys_user;
 DROP TABLE IF EXISTS sys_role;
 DROP TABLE IF EXISTS sys_permission;
 
-SET FOREIGN_KEY_CHECKS = 1;
-
 -- =====================================================
--- A. 用户/权限/组织（治理底座）
+-- A. 用户/权限（治理底座）
 -- =====================================================
 
 -- 1) 用户表
@@ -93,7 +80,7 @@ CREATE TABLE sys_role (
     id               BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     role_code        VARCHAR(64)  NOT NULL COMMENT '角色编码（唯一）',
     role_name        VARCHAR(100) NOT NULL COMMENT '角色名称',
-    role_scope       VARCHAR(20)  NOT NULL COMMENT '角色范围：PLATFORM/TENANT/GLOBAL',
+    role_scope       VARCHAR(20)  NOT NULL COMMENT '角色范围：PLATFORM/BUSINESS',
     status           TINYINT NOT NULL DEFAULT 1 COMMENT '状态：1启用 0禁用',
     remark           VARCHAR(500) DEFAULT NULL COMMENT '备注',
     created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -125,9 +112,7 @@ CREATE TABLE sys_user_role (
     granted_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '授权时间',
     UNIQUE KEY uk_sys_user_role (user_id, role_id),
     KEY idx_sys_user_role_user (user_id),
-    KEY idx_sys_user_role_role (role_id),
-    CONSTRAINT fk_sys_user_role_user FOREIGN KEY (user_id) REFERENCES sys_user (id),
-    CONSTRAINT fk_sys_user_role_role FOREIGN KEY (role_id) REFERENCES sys_role (id)
+    KEY idx_sys_user_role_role (role_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户角色关系表';
 
 -- 5) 角色-权限关系
@@ -139,9 +124,7 @@ CREATE TABLE sys_role_permission (
     granted_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '授权时间',
     UNIQUE KEY uk_sys_role_permission (role_id, permission_id),
     KEY idx_sys_role_permission_role (role_id),
-    KEY idx_sys_role_permission_permission (permission_id),
-    CONSTRAINT fk_sys_role_permission_role FOREIGN KEY (role_id) REFERENCES sys_role (id),
-    CONSTRAINT fk_sys_role_permission_permission FOREIGN KEY (permission_id) REFERENCES sys_permission (id)
+    KEY idx_sys_role_permission_permission (permission_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色权限关系表';
 
 -- 6) 统一审计事件表
@@ -167,7 +150,7 @@ CREATE TABLE sys_audit_event (
     KEY idx_sys_audit_request_id (request_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='统一审计事件表';
 
--- 初始化权限/角色/组织/用户
+-- 初始化权限/角色/用户
 SET @now = NOW();
 
 INSERT INTO sys_permission (permission_code, permission_name, resource_type, action, status, created_at, updated_at)
@@ -202,10 +185,10 @@ updated_at = VALUES(updated_at);
 INSERT INTO sys_role (role_code, role_name, role_scope, status, remark, created_at, updated_at)
 VALUES
 ('PLATFORM_ADMIN', '平台管理员', 'PLATFORM', 1, '平台级全权限', @now, @now),
-('BUSINESS_ADMIN', '业务管理员', 'GLOBAL', 1, '业务管理权限', @now, @now),
-('AGENT_OWNER', 'Agent负责人', 'GLOBAL', 1, 'Agent 配置与发布权限', @now, @now),
-('AUDITOR', '审计员', 'TENANT', 1, '审计只读', @now, @now),
-('VIEWER', '观察者', 'TENANT', 1, '平台只读访问', @now, @now)
+('BUSINESS_ADMIN', '业务管理员', 'BUSINESS', 1, '业务管理权限', @now, @now),
+('AGENT_OWNER', 'Agent负责人', 'BUSINESS', 1, 'Agent 配置与发布权限', @now, @now),
+('AUDITOR', '审计员', 'BUSINESS', 1, '审计只读', @now, @now),
+('VIEWER', '观察者', 'BUSINESS', 1, '平台只读访问', @now, @now)
 ON DUPLICATE KEY UPDATE
 role_name = VALUES(role_name),
 role_scope = VALUES(role_scope),
@@ -227,7 +210,6 @@ VALUES (
 ON DUPLICATE KEY UPDATE
 display_name = VALUES(display_name),
 email = VALUES(email),
-password_hash = VALUES(password_hash),
 status = VALUES(status),
 is_super_admin = VALUES(is_super_admin),
 updated_at = VALUES(updated_at);
@@ -235,7 +217,7 @@ updated_at = VALUES(updated_at);
 -- 取关键 ID
 SELECT id INTO @admin_user_id FROM sys_user WHERE username = 'admin' LIMIT 1;
 SELECT id INTO @platform_admin_role_id FROM sys_role WHERE role_code = 'PLATFORM_ADMIN' LIMIT 1;
-SELECT id INTO @tenant_admin_role_id FROM sys_role WHERE role_code = 'BUSINESS_ADMIN' LIMIT 1;
+SELECT id INTO @business_admin_role_id FROM sys_role WHERE role_code = 'BUSINESS_ADMIN' LIMIT 1;
 SELECT id INTO @agent_owner_role_id FROM sys_role WHERE role_code = 'AGENT_OWNER' LIMIT 1;
 SELECT id INTO @auditor_role_id FROM sys_role WHERE role_code = 'AUDITOR' LIMIT 1;
 SELECT id INTO @viewer_role_id FROM sys_role WHERE role_code = 'VIEWER' LIMIT 1;
@@ -244,7 +226,7 @@ SELECT id INTO @viewer_role_id FROM sys_role WHERE role_code = 'VIEWER' LIMIT 1;
 INSERT INTO sys_user_role (user_id, role_id, granted_by, granted_at)
 VALUES
 (@admin_user_id, @platform_admin_role_id, @admin_user_id, @now),
-(@admin_user_id, @tenant_admin_role_id, @admin_user_id, @now)
+(@admin_user_id, @business_admin_role_id, @admin_user_id, @now)
 ON DUPLICATE KEY UPDATE
 granted_by = VALUES(granted_by),
 granted_at = VALUES(granted_at);
@@ -259,7 +241,7 @@ granted_at = VALUES(granted_at);
 
 -- 业务管理员：核心管理权限（含工具审批）
 INSERT INTO sys_role_permission (role_id, permission_id, granted_by, granted_at)
-SELECT @tenant_admin_role_id, p.id, @admin_user_id, @now
+SELECT @business_admin_role_id, p.id, @admin_user_id, @now
 FROM sys_permission p
 WHERE p.permission_code IN (
     'user:read', 'user:write', 'role:read', 'role:write', 'audit:read',
@@ -309,10 +291,10 @@ granted_at = VALUES(granted_at);
 SELECT 'Phase 1 用户体系初始化完成' AS message, NOW() AS executed_at;
 
 -- =====================================================
--- B. 业务表（单组织模式）
+-- B. 业务表
 -- =====================================================
 
--- 1) 模型配置表（各部门自有）
+-- 1) 模型配置表
 CREATE TABLE ai_model_config (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     model_name VARCHAR(100) NOT NULL COMMENT '模型名称',
@@ -321,66 +303,29 @@ CREATE TABLE ai_model_config (
     base_url VARCHAR(500) NOT NULL COMMENT 'API地址',
     enabled TINYINT(1) DEFAULT 1 COMMENT '是否启用(0:禁用 1:启用)',
     tool_enabled TINYINT(1) DEFAULT 1 COMMENT '是否启用工具调用(0:禁用 1:启用)',
-    priority INT DEFAULT 0 COMMENT '优先级(数值越大越优先；用于默认/扩展策略排序，是否生效取决于策略实现)',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    UNIQUE KEY uk_org_model_name (model_name),
-    INDEX idx_org_type (model_type),
-    INDEX idx_org_enabled (enabled),
-    INDEX idx_org_priority (priority)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI模型配置表（按 org 隔离）';
+    UNIQUE KEY uk_model_name (model_name),
+    INDEX idx_type (model_type),
+    INDEX idx_enabled (enabled)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI模型配置表';
 
--- 2) 模型能力表
-CREATE TABLE ai_model_capability (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
-    model_id BIGINT NOT NULL COMMENT '模型ID',
-    max_input_tokens INT DEFAULT 0 COMMENT '最大输入token',
-    max_output_tokens INT DEFAULT 0 COMMENT '最大输出token',
-    support_function_calling TINYINT(1) DEFAULT 0 COMMENT '支持函数调用',
-    support_vision TINYINT(1) DEFAULT 0 COMMENT '支持视觉',
-    support_streaming TINYINT(1) DEFAULT 1 COMMENT '支持流式输出',
-    quality_score INT DEFAULT 50 COMMENT '质量评分(1-100)',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    FOREIGN KEY (model_id) REFERENCES ai_model_config(id) ON DELETE CASCADE,
-    UNIQUE KEY uk_org_model_id (model_id),
-    INDEX idx_org_quality (quality_score)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI模型能力表（按 org 隔离）';
-
--- 3) 任务类型表（各部门自有）
-CREATE TABLE ai_task_type (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
-    task_name VARCHAR(100) NOT NULL COMMENT '任务名称',
-    task_code VARCHAR(50) NOT NULL COMMENT '任务编码',
-    description TEXT COMMENT '任务描述',
-    preferred_model_id BIGINT COMMENT '首选模型ID',
-    fallback_model_ids VARCHAR(500) COMMENT '备用模型ID列表(逗号分隔)',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    UNIQUE KEY uk_org_task_code (task_code),
-    INDEX idx_org_task_name (task_name),
-    FOREIGN KEY (preferred_model_id) REFERENCES ai_model_config(id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI任务类型表（按 org 隔离）';
-
--- 4) 调用日志表（按 org 隔离，用于成本核算/指标聚合）
+-- 2) 调用日志表（用于成本核算/指标聚合）
 CREATE TABLE ai_call_log (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     model_id BIGINT NOT NULL COMMENT '模型ID',
-    task_type VARCHAR(50) COMMENT '任务类型',
     request_content TEXT COMMENT '请求内容',
     response_content TEXT COMMENT '响应内容',
-    tokens_used INT DEFAULT 0 COMMENT '使用token数',
     response_time BIGINT DEFAULT 0 COMMENT '响应时间(ms)',
     status VARCHAR(20) NOT NULL COMMENT '状态(SUCCESS/FAILED/FALLBACK)',
     error_message TEXT COMMENT '错误信息',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    INDEX idx_org_created_at (created_at),
-    INDEX idx_org_model (model_id),
-    INDEX idx_org_status (status),
-    FOREIGN KEY (model_id) REFERENCES ai_model_config(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI调用日志表（按 org 隔离）';
+    INDEX idx_created_at (created_at),
+    INDEX idx_model (model_id),
+    INDEX idx_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI调用日志表';
 
--- 5) 配置审计表（按 org 隔离）
+-- 3) 配置审计表
 CREATE TABLE ai_config_audit (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     table_name VARCHAR(100) NOT NULL COMMENT '表名',
@@ -390,12 +335,12 @@ CREATE TABLE ai_config_audit (
     new_value TEXT COMMENT '新值(JSON)',
     operator VARCHAR(100) COMMENT '操作人',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    INDEX idx_org_table (table_name),
-    INDEX idx_org_record (record_id),
+    INDEX idx_table (table_name),
+    INDEX idx_record (record_id),
     INDEX idx_created_at (created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='配置审计日志表（按 org 隔离）';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='配置审计日志表';
 
--- 6) MCP Server 配置表（按 org 隔离）
+-- 4) MCP Server 配置表
 CREATE TABLE ai_mcp_server_config (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     server_name VARCHAR(100) NOT NULL COMMENT 'MCP Server 名称',
@@ -413,22 +358,22 @@ CREATE TABLE ai_mcp_server_config (
     init_timeout_ms INT DEFAULT 60000 COMMENT '初始化超时(毫秒)',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    UNIQUE KEY uk_org_mcp_server_name (server_name),
-    INDEX idx_org_mcp_enabled (enabled)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='MCP Server 配置表（按 org 隔离）';
+    UNIQUE KEY uk_mcp_server_name (server_name),
+    INDEX idx_mcp_enabled (enabled)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='MCP Server 配置表';
 
--- 7) 模型激活配置表（每 org 一条）
+-- 7) 模型激活配置表
 CREATE TABLE ai_model_activation (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     chat_model_id BIGINT COMMENT '当前激活的对话模型ID',
     embedding_model_id BIGINT COMMENT '当前激活的向量模型ID',
+    singleton_key TINYINT NOT NULL DEFAULT 1 COMMENT '单例约束键（固定为1）',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    FOREIGN KEY (chat_model_id) REFERENCES ai_model_config(id) ON DELETE SET NULL,
-    FOREIGN KEY (embedding_model_id) REFERENCES ai_model_config(id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='模型激活配置表（按 org 隔离）';
+    UNIQUE KEY uk_model_activation_singleton (singleton_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='模型激活配置表';
 
--- 8) 聊天会话表（按 org 隔离，预留 agent 绑定）
+-- 8) 聊天会话表（预留 agent 绑定）
 CREATE TABLE ai_chat_session (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     owner_user_id BIGINT DEFAULT NULL COMMENT '会话归属用户ID',
@@ -439,29 +384,26 @@ CREATE TABLE ai_chat_session (
     agent_version_id BIGINT DEFAULT NULL COMMENT 'AgentVersion ID（多 Agent 平台）',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    INDEX idx_org_updated_at (updated_at),
-    INDEX idx_org_agent (agent_id),
-    FOREIGN KEY (model_id) REFERENCES ai_model_config(id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='聊天会话表（按 org 隔离）';
+    INDEX idx_updated_at (updated_at),
+    INDEX idx_updated_at_id (updated_at, id),
+    INDEX idx_agent (agent_id),
+    INDEX idx_agent_version (agent_version_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='聊天会话表';
 
--- 9) 聊天消息表（按 org 隔离）
+-- 9) 聊天消息表
 CREATE TABLE ai_chat_message (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     session_id BIGINT NOT NULL COMMENT '会话ID',
     role VARCHAR(20) NOT NULL COMMENT '角色(user/assistant)',
     content TEXT COMMENT '消息内容',
     model_id BIGINT COMMENT '实际使用的模型ID',
-    prompt_tokens INT DEFAULT 0 COMMENT '提示词token数',
-    completion_tokens INT DEFAULT 0 COMMENT '输出token数',
-    total_tokens INT DEFAULT 0 COMMENT '总token数',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    INDEX idx_org_session_id (session_id),
-    INDEX idx_created_at (created_at),
-    FOREIGN KEY (session_id) REFERENCES ai_chat_session(id) ON DELETE CASCADE,
-    FOREIGN KEY (model_id) REFERENCES ai_model_config(id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='聊天消息表（按 org 隔离）';
+    INDEX idx_session_id (session_id),
+    INDEX idx_session_id_id (session_id, id),
+    INDEX idx_created_at (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='聊天消息表';
 
--- 10) RAG 任务表（按 org 隔离）
+-- 10) RAG 任务表
 CREATE TABLE ai_rag_task (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     task_id VARCHAR(64) NOT NULL COMMENT '任务ID',
@@ -475,12 +417,14 @@ CREATE TABLE ai_rag_task (
     parent_task_id VARCHAR(64) COMMENT '父任务ID（重试任务）',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    UNIQUE KEY uk_org_task_id (task_id),
-    INDEX idx_org_status_retry (status, retry_count),
-    INDEX idx_created_at (created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='RAG 任务表（按 org 隔离）';
+    UNIQUE KEY uk_task_id (task_id),
+    INDEX idx_status_retry (status, retry_count),
+    INDEX idx_created_at (created_at),
+    INDEX idx_status_updated_at (status, updated_at),
+    INDEX idx_status_created_retry (status, created_at, retry_count)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='RAG 任务表';
 
--- 11) MCP 网关实例表（按 org 隔离）
+-- 11) MCP 网关实例表
 CREATE TABLE mcp_gateway (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     gateway_id      VARCHAR(64)  NOT NULL COMMENT '网关唯一标识（业务ID）',
@@ -491,11 +435,11 @@ CREATE TABLE mcp_gateway (
     status          TINYINT(1) DEFAULT 1  COMMENT '状态：1-启用 0-禁用',
     created_at      DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    UNIQUE KEY uk_org_gateway_id (gateway_id),
-    INDEX idx_org_status (status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='MCP 网关实例表（按 org 隔离）';
+    UNIQUE KEY uk_gateway_id (gateway_id),
+    INDEX idx_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='MCP 网关实例表';
 
--- 12) MCP 网关认证表（按 org 隔离）
+-- 12) MCP 网关认证表
 CREATE TABLE mcp_gateway_auth (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     gateway_id      VARCHAR(64)  NOT NULL COMMENT '网关唯一标识',
@@ -505,11 +449,11 @@ CREATE TABLE mcp_gateway_auth (
     status          TINYINT(1) DEFAULT 1  COMMENT '状态：1-启用 0-禁用',
     created_at      DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    UNIQUE KEY uk_org_gateway_api_key (gateway_id, api_key),
-    INDEX idx_org_api_key (api_key)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='MCP 网关认证表（按 org 隔离）';
+    UNIQUE KEY uk_gateway_api_key (gateway_id, api_key),
+    INDEX idx_api_key (api_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='MCP 网关认证表';
 
--- 13) MCP 工具注册表（按 org 隔离，补充 tool_key/risk_level）
+-- 13) MCP 工具注册表（补充 tool_key/risk_level）
 CREATE TABLE mcp_tool_registry (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     gateway_id      VARCHAR(64)  NOT NULL COMMENT '所属网关ID',
@@ -525,19 +469,20 @@ CREATE TABLE mcp_tool_registry (
     status          TINYINT(1) DEFAULT 1  COMMENT '状态：1-启用 0-禁用',
     created_at      DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    UNIQUE KEY uk_org_gateway_tool (gateway_id, tool_name),
-    UNIQUE KEY uk_org_tool_key (tool_key),
-    INDEX idx_org_gateway_id (gateway_id),
-    INDEX idx_org_status (status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='MCP 工具注册表（按 org 隔离）';
+    UNIQUE KEY uk_gateway_tool (gateway_id, tool_name),
+    UNIQUE KEY uk_tool_key (tool_key),
+    INDEX idx_gateway_id (gateway_id),
+    INDEX idx_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='MCP 工具注册表';
 
--- 14) MCP 工具参数映射表（按 org 隔离）
+-- 14) MCP 工具参数映射表
 CREATE TABLE mcp_tool_mapping (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     gateway_id      VARCHAR(64)  NOT NULL COMMENT '所属网关ID',
     tool_id         BIGINT       NOT NULL COMMENT '所属工具ID',
     mapping_type    VARCHAR(10)  NOT NULL COMMENT '映射类型：request/response',
     parent_id       BIGINT                COMMENT '父节点ID，NULL 表示根节点',
+    parent_id_norm  BIGINT GENERATED ALWAYS AS (IFNULL(parent_id, 0)) STORED COMMENT '父节点归一化ID（根节点=0，用于唯一约束）',
     field_name      VARCHAR(100) NOT NULL COMMENT '字段名称',
     mcp_type        VARCHAR(20)  NOT NULL COMMENT 'MCP 类型：string/number/boolean/object/array',
     mcp_desc        VARCHAR(500)          COMMENT '字段描述（供模型理解）',
@@ -549,12 +494,12 @@ CREATE TABLE mcp_tool_mapping (
     sort_order      INT DEFAULT 0         COMMENT '排序序号',
     created_at      DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    UNIQUE KEY uk_org_mapping_node (tool_id, mapping_type, parent_id, field_name),
-    INDEX idx_org_tool_id (tool_id),
-    INDEX idx_org_parent_id (parent_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='MCP 工具参数映射表（按 org 隔离）';
+    UNIQUE KEY uk_mapping_node (tool_id, mapping_type, parent_id_norm, field_name),
+    INDEX idx_tool_id (tool_id),
+    INDEX idx_parent_id (parent_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='MCP 工具参数映射表';
 
--- 15) MCP 工具 Schema 缓存表（按 org 隔离）
+-- 15) MCP 工具 Schema 缓存表
 CREATE TABLE mcp_tool_schema (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     gateway_id      VARCHAR(64)  NOT NULL COMMENT '所属网关ID',
@@ -566,11 +511,11 @@ CREATE TABLE mcp_tool_schema (
     is_active       TINYINT(1) DEFAULT 1  COMMENT '是否为当前活跃版本',
     created_at      DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    UNIQUE KEY uk_org_tool_schema_version (gateway_id, tool_id, schema_version),
-    INDEX idx_org_tool_active (tool_id, is_active)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='MCP 工具 Schema 缓存表（按 org 隔离）';
+    UNIQUE KEY uk_tool_schema_version (gateway_id, tool_id, schema_version),
+    INDEX idx_tool_active (tool_id, is_active)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='MCP 工具 Schema 缓存表';
 
--- 16) MCP 工具绑定关系表（按 org 隔离）
+-- 16) MCP 工具绑定关系表
 CREATE TABLE mcp_tool_binding (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     gateway_id      VARCHAR(64)  NOT NULL COMMENT '所属网关ID',
@@ -580,41 +525,27 @@ CREATE TABLE mcp_tool_binding (
     enabled         TINYINT(1) DEFAULT 1  COMMENT '是否启用',
     created_at      DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    UNIQUE KEY uk_org_binding (tool_id, bind_type, bind_target_id),
-    INDEX idx_org_bind_target (bind_type, bind_target_id),
-    INDEX idx_org_gateway_id (gateway_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='MCP 工具绑定关系表（按 org 隔离）';
+    UNIQUE KEY uk_binding (tool_id, bind_type, bind_target_id),
+    INDEX idx_bind_target (bind_type, bind_target_id),
+    INDEX idx_gateway_id (gateway_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='MCP 工具绑定关系表';
 
--- 17) 工具风险策略（按 org + toolKey）
-CREATE TABLE tool_policy (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
-    tool_key VARCHAR(200) NOT NULL COMMENT '工具key',
-    risk_level VARCHAR(10) NOT NULL DEFAULT 'MEDIUM' COMMENT '风险等级：LOW/MEDIUM/HIGH',
-    approval_required TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否需要审批（1是0否）',
-    enabled TINYINT(1) NOT NULL DEFAULT 1 COMMENT '是否启用',
-    remark VARCHAR(500) DEFAULT NULL COMMENT '备注',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    UNIQUE KEY uk_org_tool (tool_key),
-    INDEX idx_org_enabled (enabled)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='工具风险策略（按 org + toolKey）';
-
--- 18) Advisor 资产表（按 org 隔离）
+-- 17) Advisor 资产表
 CREATE TABLE advisor (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
-    advisor_code VARCHAR(64) NOT NULL COMMENT 'Advisor 唯一编码（同 org 内唯一）',
+    advisor_code VARCHAR(64) NOT NULL COMMENT 'Advisor 唯一编码（单组织内唯一）',
     advisor_name VARCHAR(100) NOT NULL COMMENT 'Advisor 名称',
     advisor_type VARCHAR(30) NOT NULL COMMENT 'Advisor 类型（CHAT_MEMORY/REQUEST_RESPONSE_LOG/TOOL_CALL_LOG）',
     enabled TINYINT(1) NOT NULL DEFAULT 1 COMMENT '是否启用(0:禁用 1:启用)',
     config_json JSON DEFAULT NULL COMMENT '类型配置（JSON）',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    UNIQUE KEY uk_org_advisor_code (advisor_code),
-    INDEX idx_org_advisor_type (advisor_type),
-    INDEX idx_org_advisor_enabled (enabled)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Advisor 资产表（按 org 隔离）';
+    UNIQUE KEY uk_advisor_code (advisor_code),
+    INDEX idx_advisor_type (advisor_type),
+    INDEX idx_advisor_enabled (enabled)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Advisor 资产表';
 
--- 19) Advisor 绑定关系表（按 org 隔离）
+-- 18) Advisor 绑定关系表
 CREATE TABLE advisor_binding (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     bind_type VARCHAR(20) NOT NULL COMMENT '绑定类型：AGENT_VERSION/WORKFLOW_VERSION',
@@ -624,11 +555,10 @@ CREATE TABLE advisor_binding (
     enabled TINYINT(1) NOT NULL DEFAULT 1 COMMENT '是否启用(0:禁用 1:启用)',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    UNIQUE KEY uk_org_bind (bind_type, bind_target_id, advisor_id),
-    INDEX idx_org_bind_target (bind_type, bind_target_id),
-    INDEX idx_org_advisor (advisor_id),
-    FOREIGN KEY (advisor_id) REFERENCES advisor(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Advisor 绑定关系表（按 org 隔离）';
+    UNIQUE KEY uk_bind (bind_type, bind_target_id, advisor_id),
+    INDEX idx_bind_target (bind_type, bind_target_id),
+    INDEX idx_advisor (advisor_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Advisor 绑定关系表';
 
 -- =====================================================
 -- C. 多 Agent 平台（控制面 + 运行面 + 审批）
@@ -646,9 +576,10 @@ CREATE TABLE agent (
     updated_by BIGINT DEFAULT NULL COMMENT '更新人用户ID',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    UNIQUE KEY uk_org_agent_code (agent_code),
-    INDEX idx_org_status (status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Agent 表（按 org 隔离）';
+    UNIQUE KEY uk_agent_code (agent_code),
+    INDEX idx_status (status),
+    INDEX idx_current_published_version (current_published_version_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Agent 表';
 
 -- 2) AgentVersion
 CREATE TABLE agent_version (
@@ -664,15 +595,10 @@ CREATE TABLE agent_version (
     workflow_version_id BIGINT DEFAULT NULL COMMENT '绑定 WorkflowVersion ID（可选；非空时 Agent 调用转 Workflow 执行）',
     output_contract_version VARCHAR(20) NOT NULL DEFAULT 'v1' COMMENT '输出契约版本',
     output_contract_options_json JSON DEFAULT NULL COMMENT '输出契约选项（JSON）',
-    model_strategy_type VARCHAR(30) NOT NULL DEFAULT 'TASK_TYPE_POLICY' COMMENT '模型策略：TASK_TYPE_POLICY/FIXED_MODEL',
-    task_type_code VARCHAR(50) DEFAULT NULL COMMENT '任务类型编码（策略为 TASK_TYPE_POLICY 时）',
-    fixed_model_id BIGINT DEFAULT NULL COMMENT '固定模型ID（策略为 FIXED_MODEL 时）',
     rag_mode VARCHAR(20) NOT NULL DEFAULT 'OPTIONAL' COMMENT 'RAG模式：DISABLED/OPTIONAL/REQUIRED',
     default_rag_tags_json JSON DEFAULT NULL COMMENT '默认RAG标签（JSON数组）',
     allowed_rag_tags_json JSON DEFAULT NULL COMMENT '允许覆盖RAG标签（JSON数组）',
-    tool_policy_mode VARCHAR(30) NOT NULL DEFAULT 'ALLOWLIST_ONLY' COMMENT '工具策略：ALLOWLIST_ONLY',
     allowed_tool_keys_json JSON DEFAULT NULL COMMENT '允许工具集合（toolKey JSON数组）',
-    tool_risk_policy_json JSON DEFAULT NULL COMMENT '工具风险策略（JSON）',
     timeout_ms INT DEFAULT 60000 COMMENT '超时毫秒',
     max_turns INT DEFAULT 20 COMMENT '最大轮次',
     temperature DECIMAL(4,2) DEFAULT 0.70 COMMENT '温度',
@@ -682,14 +608,14 @@ CREATE TABLE agent_version (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     UNIQUE KEY uk_agent_version_no (agent_id, version_no),
-    INDEX idx_org_agent_state (agent_id, state),
-    INDEX idx_org_workflow_version (workflow_version_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Agent 版本表（按 org 隔离）';
+    INDEX idx_agent_state (agent_id, state),
+    INDEX idx_workflow_version (workflow_version_id),
+    INDEX idx_prompt_template (prompt_template_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Agent 版本表';
 
--- 3) PromptTemplate（GLOBAL/ORG）
+-- 3) PromptTemplate（统一模板资产）
 CREATE TABLE prompt_template (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
-    scope VARCHAR(10) NOT NULL DEFAULT 'ORG' COMMENT '作用域：GLOBAL/ORG',
     template_code VARCHAR(64) NOT NULL COMMENT '模板编码',
     template_name VARCHAR(100) NOT NULL COMMENT '模板名称',
     version_no INT NOT NULL DEFAULT 1 COMMENT '版本号',
@@ -700,8 +626,9 @@ CREATE TABLE prompt_template (
     updated_by BIGINT DEFAULT NULL COMMENT '更新人用户ID',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    UNIQUE KEY uk_org_template_code (template_code),
-    INDEX idx_scope_state (scope, state)
+    UNIQUE KEY uk_template_code_version (template_code, version_no),
+    INDEX idx_state (state),
+    INDEX idx_template_code_state (template_code, state)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统提示词模板资产';
 
 -- 4) AgentSchedule（XXL）
@@ -716,9 +643,9 @@ CREATE TABLE agent_schedule (
     updated_by BIGINT DEFAULT NULL COMMENT '更新人用户ID',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    UNIQUE KEY uk_org_agent_schedule (agent_id),
-    INDEX idx_org_enabled (enabled)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Agent 调度配置（按 org 隔离）';
+    UNIQUE KEY uk_agent_schedule (agent_id),
+    INDEX idx_enabled (enabled)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Agent 调度配置';
 
 -- 5) AgentRun（runId=traceId）
 CREATE TABLE agent_run (
@@ -734,9 +661,6 @@ CREATE TABLE agent_run (
     status VARCHAR(30) NOT NULL COMMENT '状态：RUNNING/SUCCESS/FAILED/PENDING_APPROVAL/CANCELLED',
     model_id_used BIGINT DEFAULT NULL COMMENT '实际使用模型ID',
     model_name_used VARCHAR(100) DEFAULT NULL COMMENT '实际使用模型名称',
-    prompt_tokens INT DEFAULT 0 COMMENT 'prompt tokens',
-    completion_tokens INT DEFAULT 0 COMMENT 'completion tokens',
-    total_tokens INT DEFAULT 0 COMMENT 'total tokens',
     tool_call_count INT DEFAULT 0 COMMENT '工具调用次数',
     tool_denied_count INT DEFAULT 0 COMMENT '工具拒绝次数',
     repair_attempts INT DEFAULT 0 COMMENT '结构化修复次数',
@@ -744,10 +668,13 @@ CREATE TABLE agent_run (
     error_message VARCHAR(1000) DEFAULT NULL COMMENT '错误信息',
     started_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '开始时间',
     ended_at DATETIME DEFAULT NULL COMMENT '结束时间',
-    INDEX idx_org_time (started_at),
+    INDEX idx_time (started_at),
     INDEX idx_agent_version (agent_id, agent_version_id),
-    INDEX idx_status (status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Agent 运行记录（按 org 隔离）';
+    INDEX idx_agent_version_id (agent_version_id),
+    INDEX idx_status (status),
+    INDEX idx_status_started_at (status, started_at),
+    INDEX idx_operator_started_at (operator_id, started_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Agent 运行记录';
 
 -- 6) Workflow（独立资产：支持拖拽画布 + DAG 编排 + 多模型混用）
 CREATE TABLE workflow (
@@ -761,9 +688,10 @@ CREATE TABLE workflow (
     updated_by BIGINT DEFAULT NULL COMMENT '更新人用户ID',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    UNIQUE KEY uk_org_workflow_code (workflow_code),
-    INDEX idx_org_status (status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Workflow 资产表（按 org 隔离）';
+    UNIQUE KEY uk_workflow_code (workflow_code),
+    INDEX idx_status (status),
+    INDEX idx_current_published_version (current_published_version_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Workflow 资产表';
 
 CREATE TABLE workflow_version (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
@@ -778,8 +706,8 @@ CREATE TABLE workflow_version (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     UNIQUE KEY uk_workflow_version_no (workflow_id, version_no),
-    INDEX idx_org_workflow_state (workflow_id, state)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Workflow 版本表（按 org 隔离）';
+    INDEX idx_workflow_state (workflow_id, state)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Workflow 版本表';
 
 CREATE TABLE workflow_node (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
@@ -794,7 +722,7 @@ CREATE TABLE workflow_node (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     UNIQUE KEY uk_version_node_key (workflow_version_id, node_key),
     INDEX idx_version_type (workflow_version_id, node_type)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Workflow 节点表（按 org 隔离）';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Workflow 节点表';
 
 CREATE TABLE workflow_edge (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
@@ -807,7 +735,7 @@ CREATE TABLE workflow_edge (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     INDEX idx_version_source (workflow_version_id, source_key),
     INDEX idx_version_target (workflow_version_id, target_key)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Workflow 边表（按 org 隔离）';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Workflow 边表';
 
 CREATE TABLE workflow_run (
     run_id VARCHAR(64) PRIMARY KEY COMMENT '运行ID（建议=traceId）',
@@ -824,10 +752,13 @@ CREATE TABLE workflow_run (
     error_message VARCHAR(1000) DEFAULT NULL COMMENT '错误信息',
     started_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '开始时间',
     ended_at DATETIME DEFAULT NULL COMMENT '结束时间',
-    INDEX idx_org_time (started_at),
+    INDEX idx_time (started_at),
     INDEX idx_workflow_version (workflow_id, workflow_version_id),
-    INDEX idx_status (status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Workflow 运行记录（按 org 隔离）';
+    INDEX idx_workflow_version_id (workflow_version_id),
+    INDEX idx_status (status),
+    INDEX idx_status_started_at (status, started_at),
+    INDEX idx_operator_started_at (operator_id, started_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Workflow 运行记录';
 
 CREATE TABLE workflow_run_context (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
@@ -836,9 +767,9 @@ CREATE TABLE workflow_run_context (
     snapshot_json JSON NOT NULL COMMENT '可恢复上下文快照（JSON）',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    UNIQUE KEY uk_org_run (run_id),
+    UNIQUE KEY uk_run (run_id),
     INDEX idx_status (status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Workflow 运行上下文快照（按 org 隔离）';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Workflow 运行上下文快照';
 
 CREATE TABLE workflow_node_run (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
@@ -849,9 +780,6 @@ CREATE TABLE workflow_node_run (
     status VARCHAR(30) NOT NULL COMMENT '状态：RUNNING/SUCCESS/FAILED/PENDING_APPROVAL/SKIPPED',
     model_id_used BIGINT DEFAULT NULL COMMENT '实际使用模型ID（LLM）',
     model_name_used VARCHAR(100) DEFAULT NULL COMMENT '实际使用模型名称（LLM）',
-    prompt_tokens INT DEFAULT 0 COMMENT 'prompt tokens',
-    completion_tokens INT DEFAULT 0 COMMENT 'completion tokens',
-    total_tokens INT DEFAULT 0 COMMENT 'total tokens',
     tool_call_count INT DEFAULT 0 COMMENT '工具调用次数',
     tool_denied_count INT DEFAULT 0 COMMENT '工具拒绝次数',
     input_digest VARCHAR(500) DEFAULT NULL COMMENT '输入摘要（脱敏/截断）',
@@ -863,10 +791,11 @@ CREATE TABLE workflow_node_run (
     error_message VARCHAR(1000) DEFAULT NULL COMMENT '错误信息',
     started_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '开始时间',
     ended_at DATETIME DEFAULT NULL COMMENT '结束时间',
-    INDEX idx_org_run (run_id),
+    INDEX idx_run (run_id),
     INDEX idx_run_node (run_id, node_key),
-    INDEX idx_org_time (started_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Workflow 节点运行明细（按 org 隔离）';
+    INDEX idx_time (started_at),
+    INDEX idx_run_status (run_id, status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Workflow 节点运行明细';
 
 -- 7) 审批单（高风险工具默认生成审批单）
 CREATE TABLE approval_request (
@@ -892,13 +821,21 @@ CREATE TABLE approval_request (
     expire_at DATETIME DEFAULT NULL COMMENT '过期时间',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    INDEX idx_org_status (status),
+    INDEX idx_status (status),
     INDEX idx_run (run_id),
     INDEX idx_tool (tool_key),
-    INDEX idx_workflow (workflow_id, workflow_version_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='统一审批单（按 org 隔离）';
+    INDEX idx_agent_id (agent_id),
+    INDEX idx_agent_version_id (agent_version_id),
+    INDEX idx_workflow_version_id (workflow_version_id),
+    INDEX idx_workflow (workflow_id, workflow_version_id),
+    INDEX idx_approver_status (approver_id, status),
+    INDEX idx_status_expire (status, expire_at),
+    INDEX idx_run_tool_status_expire_id (run_id, tool_key, status, expire_at, id),
+    INDEX idx_status_expire_id (status, expire_at, id),
+    INDEX idx_created_at (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='统一审批单';
 
--- 8) 运行上下文快照（用于审批通过后自动续跑）
+-- 8) Agent 运行上下文快照（用于审批通过后自动续跑）
 CREATE TABLE agent_run_context (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     run_id VARCHAR(64) NOT NULL COMMENT '运行ID',
@@ -906,66 +843,33 @@ CREATE TABLE agent_run_context (
     snapshot_json JSON NOT NULL COMMENT '可恢复上下文快照（JSON）',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    UNIQUE KEY uk_org_run (run_id),
+    UNIQUE KEY uk_run (run_id),
     INDEX idx_status (status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='运行上下文快照（按 org 隔离）';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Agent 运行上下文快照';
 
 -- =====================================================
--- D. 初始化数据（默认组织 ROOT）
+-- D. 初始化数据
 -- =====================================================
 
 -- 初始化数据：模型配置（示例）
-INSERT INTO ai_model_config (model_name, model_type, api_key, base_url, enabled, tool_enabled, priority)
+INSERT INTO ai_model_config (model_name, model_type, api_key, base_url, enabled, tool_enabled)
 VALUES
-('GPT-4', 'OPENAI', 'sk-placeholder', 'http://127.0.0.1:8045', 1, 1, 90),
-('Claude-3.5-Sonnet', 'ANTHROPIC', 'sk-ant-placeholder', 'https://api.anthropic.com', 1, 1, 95),
-('Gemini-3-Flash', 'GEMINI', 'sk-placeholder', 'http://127.0.0.1:8045', 1, 1, 85)
+('GPT-4', 'OPENAI', 'sk-placeholder', 'http://127.0.0.1:8045', 1, 1),
+('Claude-3.5-Sonnet', 'ANTHROPIC', 'sk-ant-placeholder', 'https://api.anthropic.com', 1, 1),
+('Gemini-3-Flash', 'GEMINI', 'sk-placeholder', 'http://127.0.0.1:8045', 1, 1)
 ON DUPLICATE KEY UPDATE
 model_type = VALUES(model_type),
 api_key = VALUES(api_key),
 base_url = VALUES(base_url),
 enabled = VALUES(enabled),
 tool_enabled = VALUES(tool_enabled),
-priority = VALUES(priority),
 updated_at = VALUES(updated_at);
 
 SELECT id INTO @gpt4_id FROM ai_model_config WHERE model_name = 'GPT-4' LIMIT 1;
 SELECT id INTO @claude_id FROM ai_model_config WHERE model_name = 'Claude-3.5-Sonnet' LIMIT 1;
 SELECT id INTO @gemini_id FROM ai_model_config WHERE model_name = 'Gemini-3-Flash' LIMIT 1;
 
--- 初始化数据：模型能力
-INSERT INTO ai_model_capability (model_id, max_input_tokens, max_output_tokens, support_function_calling, support_vision, support_streaming, quality_score)
-VALUES
-(@gpt4_id, 128000, 4096, 1, 1, 1, 90),
-(@claude_id, 200000, 4096, 1, 1, 1, 95),
-(@gemini_id, 1000000, 8192, 1, 1, 1, 85)
-ON DUPLICATE KEY UPDATE
-max_input_tokens = VALUES(max_input_tokens),
-max_output_tokens = VALUES(max_output_tokens),
-support_function_calling = VALUES(support_function_calling),
-support_vision = VALUES(support_vision),
-support_streaming = VALUES(support_streaming),
-quality_score = VALUES(quality_score),
-updated_at = VALUES(updated_at);
-
--- 初始化数据：任务类型
-INSERT INTO ai_task_type (task_name, task_code, description, preferred_model_id, fallback_model_ids)
-VALUES
-('分析', 'ANALYSIS', '数据分析、逻辑推理等任务', @gemini_id, CONCAT(@claude_id, ',', @gpt4_id)),
-('写作', 'WRITING', '文章创作、内容生成等任务', @claude_id, CONCAT(@gpt4_id, ',', @gemini_id)),
-('翻译', 'TRANSLATION', '多语言翻译任务', @gpt4_id, CONCAT(@gemini_id, ',', @claude_id)),
-('代码生成', 'CODE_GENERATION', '代码编写、调试等任务', @claude_id, CONCAT(@gpt4_id, ',', @gemini_id)),
-('对话', 'CONVERSATION', '日常对话、问答等任务', @gpt4_id, CONCAT(@gemini_id, ',', @claude_id)),
-('总结', 'SUMMARIZATION', '文本摘要、总结等任务', @gemini_id, CONCAT(@claude_id, ',', @gpt4_id)),
-('对接MCP', 'MCP_INTEGRATION', 'MCP协议对接任务', @claude_id, CONCAT(@gpt4_id, ',', @gemini_id))
-ON DUPLICATE KEY UPDATE
-task_name = VALUES(task_name),
-description = VALUES(description),
-preferred_model_id = VALUES(preferred_model_id),
-fallback_model_ids = VALUES(fallback_model_ids),
-updated_at = VALUES(updated_at);
-
--- 初始化数据：模型激活配置（ROOT org）
+-- 初始化数据：模型激活配置
 INSERT INTO ai_model_activation (chat_model_id, embedding_model_id)
 VALUES
 (@gpt4_id, @gpt4_id)
@@ -974,7 +878,7 @@ chat_model_id = VALUES(chat_model_id),
 embedding_model_id = VALUES(embedding_model_id),
 updated_at = VALUES(updated_at);
 
--- 初始化数据：Advisor 资产（ROOT org）
+-- 初始化数据：Advisor 资产
 INSERT INTO advisor (advisor_code, advisor_name, advisor_type, enabled, config_json)
 VALUES
 ('chat_memory', '对话记忆', 'CHAT_MEMORY', 1, JSON_OBJECT('maxMessages', 20, 'conversationIdFrom', 'SESSION_ID')),
@@ -987,4 +891,4 @@ enabled = VALUES(enabled),
 config_json = VALUES(config_json),
 updated_at = VALUES(updated_at);
 
-SELECT '数据库初始化完成（单组织版 + 多Agent平台核心表）' AS message, NOW() AS executed_at;
+SELECT '数据库初始化完成' AS message, NOW() AS executed_at;

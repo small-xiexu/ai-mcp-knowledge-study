@@ -1,31 +1,76 @@
 <template>
-  <div class="rag-task-page">
-    <el-card>
+  <div class="gemini-container rag-task-page">
+    <div class="page-header">
+      <div>
+        <h2 class="page-title">导入任务</h2>
+        <p class="subtitle">查看知识库异步导入任务进度，失败任务可直接重试。</p>
+      </div>
+      <div class="header-actions">
+        <el-button class="gemini-btn-secondary" @click="fetchData">
+          <el-icon><Refresh /></el-icon>
+          刷新
+        </el-button>
+        <el-button class="gemini-btn-primary" @click="goKnowledge">
+          <el-icon><Files /></el-icon>
+          去知识库管理
+        </el-button>
+      </div>
+    </div>
+
+    <el-card class="gemini-card" shadow="never">
       <el-table
         v-loading="loading"
         :data="tableData"
-        border
+        class="gemini-table"
         style="width: 100%"
       >
         <el-table-column
           prop="taskId"
           label="任务ID"
-          min-width="220"
-        />
+          min-width="240"
+        >
+          <template #default="{ row }">
+            <span class="task-id">{{ row.taskId }}</span>
+          </template>
+        </el-table-column>
         <el-table-column
           prop="type"
           label="类型"
-          width="100"
-        />
+          width="120"
+        >
+          <template #default="{ row }">
+            <el-tag size="small" effect="dark">{{ row.type || '-' }}</el-tag>
+          </template>
+        </el-table-column>
         <el-table-column
           prop="ragTag"
           label="知识库标签"
           min-width="160"
-        />
-        <el-table-column
-          label="进度"
-          width="200"
         >
+          <template #default="{ row }">
+            {{ row.ragTag || '-' }}
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="status"
+          label="状态"
+          width="130"
+        >
+          <template #default="{ row }">
+            <el-tag size="small" effect="dark" :type="statusTagType(row.status)">
+              {{ formatStatus(row.status) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column
+          label="更新时间"
+          width="180"
+        >
+          <template #default="{ row }">
+            {{ formatDateTime(row.updatedAt) }}
+          </template>
+        </el-table-column>
+        <el-table-column label="进度" width="220">
           <template #default="{ row }">
             <el-progress
               :percentage="row.progress || 0"
@@ -34,13 +79,8 @@
           </template>
         </el-table-column>
         <el-table-column
-          prop="status"
-          label="状态"
-          width="120"
-        />
-        <el-table-column
           label="重试次数"
-          width="100"
+          width="120"
         >
           <template #default="{ row }">
             {{ row.retryCount || 0 }}
@@ -54,20 +94,20 @@
             <el-popover
               v-if="row.errorDetails"
               placement="left"
-              width="500"
+              width="460"
               trigger="hover"
             >
               <template #reference>
                 <el-tag
                   type="danger"
                   size="small"
-                  style="cursor: pointer"
+                  class="error-tag"
                 >
                   查看错误
                 </el-tag>
               </template>
-              <div style="max-height: 400px; overflow-y: auto">
-                <pre style="white-space: pre-wrap; word-wrap: break-word; font-size: 12px">{{ formatErrorDetails(row.errorDetails) }}</pre>
+              <div class="error-pre-wrapper">
+                <pre class="error-pre">{{ formatErrorDetails(row.errorDetails) }}</pre>
               </div>
             </el-popover>
             <span v-else>-</span>
@@ -79,16 +119,9 @@
           min-width="200"
         />
         <el-table-column
-          label="更新时间"
-          width="180"
-        >
-          <template #default="{ row }">
-            {{ formatDateTime(row.updatedAt) }}
-          </template>
-        </el-table-column>
-        <el-table-column
           label="操作"
           width="180"
+          fixed="right"
         >
           <template #default="{ row }">
             <el-button
@@ -109,28 +142,43 @@
             </el-button>
           </template>
         </el-table-column>
+
+        <template #empty>
+          <div class="table-empty">
+            <el-empty description="暂无导入任务">
+              <el-button type="primary" class="gemini-btn-primary" @click="goKnowledge">
+                去导入文档
+              </el-button>
+            </el-empty>
+          </div>
+        </template>
       </el-table>
 
-      <el-pagination
-        v-model:current-page="pagination.pageNum"
-        v-model:page-size="pagination.pageSize"
-        :total="pagination.total"
-        :page-sizes="[10, 20, 50, 100]"
-        layout="total, sizes, prev, pager, next, jumper"
-        style="margin-top: 20px; justify-content: flex-end"
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-      />
+      <div class="pager">
+        <el-pagination
+          v-model:current-page="pagination.pageNum"
+          v-model:page-size="pagination.pageSize"
+          background
+          :total="pagination.total"
+          :page-sizes="[10, 20, 50, 100]"
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
+      </div>
     </el-card>
   </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { Files, Refresh } from '@element-plus/icons-vue'
 import { cancelRagTask, listRagTasks, retryTask } from '@/api/rag'
 import type { RagTask } from '@/types/entity'
 
+const router = useRouter()
 const loading = ref(false)
 const tableData = ref<RagTask[]>([])
 
@@ -143,6 +191,31 @@ const pagination = reactive({
 const formatDateTime = (value?: string) => {
   if (!value) return '-'
   return value.replace('T', ' ')
+}
+
+const goKnowledge = () => {
+  router.push('/knowledge')
+}
+
+const formatStatus = (status?: string) => {
+  if (!status) return '-'
+  const map: Record<string, string> = {
+    PENDING: '排队中',
+    PROCESSING: '处理中',
+    COMPLETED: '已完成',
+    FAILED: '失败',
+    PARTIAL_SUCCESS: '部分成功',
+    CANCELLED: '已取消'
+  }
+  return map[status] || status
+}
+
+const statusTagType = (status?: string) => {
+  if (status === 'COMPLETED') return 'success'
+  if (status === 'FAILED') return 'danger'
+  if (status === 'PARTIAL_SUCCESS') return 'warning'
+  if (status === 'CANCELLED') return 'info'
+  return ''
 }
 
 const progressStatus = (status: string) => {
@@ -223,5 +296,36 @@ onMounted(() => {
 <style scoped>
 .rag-task-page {
   width: 100%;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.task-id {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+}
+
+.error-tag {
+  cursor: pointer;
+}
+
+.error-pre-wrapper {
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.error-pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 12px;
+  margin: 0;
+}
+
+.table-empty {
+  padding: 18px 0;
 }
 </style>

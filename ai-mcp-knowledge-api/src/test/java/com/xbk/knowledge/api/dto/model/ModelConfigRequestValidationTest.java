@@ -48,6 +48,6 @@ public class ModelConfigRequestValidationTest {
                 .build();
 
         assertEquals(Boolean.TRUE, request.getEnabled());
-        assertEquals(Integer.valueOf(0), request.getPriority());
+        assertEquals(Boolean.TRUE, request.getToolEnabled());
     }
 }

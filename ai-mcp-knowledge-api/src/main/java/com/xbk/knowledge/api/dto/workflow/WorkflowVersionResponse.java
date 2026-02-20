@@ -15,7 +15,6 @@ import java.time.LocalDateTime;
 public class WorkflowVersionResponse {
 
     private Long id;
-    private Long orgId;
     private Long workflowId;
     private Integer versionNo;
     private String state;
@@ -25,4 +24,3 @@ public class WorkflowVersionResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
-

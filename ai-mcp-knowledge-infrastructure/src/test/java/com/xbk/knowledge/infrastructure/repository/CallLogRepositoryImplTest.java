@@ -3,7 +3,7 @@ package com.xbk.knowledge.infrastructure.repository;
 import com.xbk.knowledge.domain.model.aggregate.call.CallLogAggregate;
 import com.xbk.knowledge.domain.model.entity.CallLog;
 import com.xbk.knowledge.domain.model.vo.model.ModelIdQuery;
-import com.xbk.knowledge.infrastructure.mapper.metrics.CallLogMapper;
+import com.xbk.knowledge.infrastructure.dao.ICallLogDao;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -23,7 +23,7 @@ public class CallLogRepositoryImplTest {
      */
     @Test
     public void shouldSetCreatedAtOnSave() {
-        CallLogMapper mapper = Mockito.mock(CallLogMapper.class);
+        ICallLogDao mapper = Mockito.mock(ICallLogDao.class);
         CallLogRepositoryImpl repository = new CallLogRepositoryImpl(mapper);
 
         CallLog callLog = CallLog.builder().modelId(1L).build();
@@ -40,7 +40,7 @@ public class CallLogRepositoryImplTest {
      */
     @Test
     public void shouldReturnEmptyWhenModelIdMissing() {
-        CallLogMapper mapper = Mockito.mock(CallLogMapper.class);
+        ICallLogDao mapper = Mockito.mock(ICallLogDao.class);
         CallLogRepositoryImpl repository = new CallLogRepositoryImpl(mapper);
 
         assertTrue(repository.findByModelId(new ModelIdQuery(null)).isEmpty());

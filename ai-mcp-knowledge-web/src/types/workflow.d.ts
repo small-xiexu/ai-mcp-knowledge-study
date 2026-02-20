@@ -4,9 +4,6 @@ export interface PlatformContractV1StepTrace {
   nodeName?: string
   status?: string
   costMs?: number
-  promptTokens?: number
-  completionTokens?: number
-  totalTokens?: number
   toolCallCount?: number
   toolDeniedCount?: number
   inputDigest?: string
@@ -23,7 +20,6 @@ export interface PlatformContractV1 {
     agentCode?: string
     agentVersionId?: number
     agentVersionNo?: number
-    orgId?: number
     modelUsed?: string
     costMs?: number
     repairAttempts?: number
@@ -44,4 +40,3 @@ export interface PlatformContractV1 {
   steps?: PlatformContractV1StepTrace[]
   error?: { code?: string; message?: string; detail?: string }
 }
-

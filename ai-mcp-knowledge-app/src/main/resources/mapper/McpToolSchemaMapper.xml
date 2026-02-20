@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xbk.knowledge.infrastructure.mapper.gateway.McpToolSchemaMapper">
+<mapper namespace="com.xbk.knowledge.infrastructure.dao.IMcpToolSchemaDao">
 
-    <resultMap id="McpToolSchemaMap" type="com.xbk.knowledge.domain.model.entity.gateway.McpToolSchema">
+    <resultMap id="McpToolSchemaMap" type="com.xbk.knowledge.infrastructure.dao.po.McpToolSchemaPO">
         <id column="id" property="id"/>
         <result column="gateway_id" property="gatewayId"/>
         <result column="tool_id" property="toolId"/>
@@ -17,7 +17,7 @@
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
 
-    <insert id="insertToolSchema" parameterType="com.xbk.knowledge.domain.model.entity.gateway.McpToolSchema" useGeneratedKeys="true" keyProperty="id">
+    <insert id="insertToolSchema" parameterType="com.xbk.knowledge.infrastructure.dao.po.McpToolSchemaPO" useGeneratedKeys="true" keyProperty="id">
         insert into mcp_tool_schema (
             gateway_id,
             tool_id,
@@ -41,7 +41,7 @@
         )
     </insert>
 
-    <update id="updateToolSchema" parameterType="com.xbk.knowledge.domain.model.entity.gateway.McpToolSchema">
+    <update id="updateToolSchema" parameterType="com.xbk.knowledge.infrastructure.dao.po.McpToolSchemaPO">
         update mcp_tool_schema
         set gateway_id = #{gatewayId},
             tool_id = #{toolId},

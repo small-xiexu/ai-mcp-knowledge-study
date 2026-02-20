@@ -12,8 +12,8 @@ import com.xbk.knowledge.domain.model.vo.metrics.ModelUsageQuery;
 import com.xbk.knowledge.domain.model.vo.metrics.ResponseTime;
 import com.xbk.knowledge.domain.model.vo.metrics.SuccessRate;
 import com.xbk.knowledge.domain.model.vo.metrics.TimeRangeQuery;
-import com.xbk.knowledge.domain.repository.metrics.CallLogRepository;
-import com.xbk.knowledge.infrastructure.mapper.metrics.CallLogMapper;
+import com.xbk.knowledge.domain.model.adapter.repository.metrics.CallLogRepository;
+import com.xbk.knowledge.infrastructure.dao.ICallLogDao;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -32,7 +32,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CallLogRepositoryImpl implements CallLogRepository {
 
-    private final CallLogMapper callLogMapper;
+    private final ICallLogDao callLogMapper;
 
     /**
      * 保存调用日志

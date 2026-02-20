@@ -491,11 +491,6 @@ const handleSend = async () => {
     let buffer = ''
     let currentEvent = 'message'
     let eventDataBuffer: string[] = [] // 缓冲当前事件的多行数据
-    const usageInfo = {
-      promptTokens: null as number | null,
-      completionTokens: null as number | null,
-      totalTokens: null as number | null
-    }
 
     while (true) {
       const { value, done } = await reader.read()
@@ -515,19 +510,7 @@ const handleSend = async () => {
             const fullData = eventDataBuffer.join('\n')
             eventDataBuffer = [] // 清空缓冲
 
-            if (currentEvent === 'usage') {
-              try {
-                const usage = JSON.parse(fullData)
-                usageInfo.promptTokens = usage.promptTokens ?? usageInfo.promptTokens
-                usageInfo.completionTokens = usage.completionTokens ?? usageInfo.completionTokens
-                usageInfo.totalTokens = usage.totalTokens ?? usageInfo.totalTokens
-                assistantMessage.promptTokens = usageInfo.promptTokens || undefined
-                assistantMessage.completionTokens = usageInfo.completionTokens || undefined
-                assistantMessage.totalTokens = usageInfo.totalTokens || undefined
-              } catch {
-                // ignore invalid usage payload
-              }
-            } else {
+            if (currentEvent === 'message') {
               // 默认 message 事件，追加内容
               assistantMessage.content += fullData
             }
@@ -561,10 +544,7 @@ const handleSend = async () => {
         const saved = await appendChatMessage(currentChat.id, {
           role: 'assistant',
           content: assistantMessage.content,
-          modelId: selectedModelId.value,
-          promptTokens: assistantMessage.promptTokens,
-          completionTokens: assistantMessage.completionTokens,
-          totalTokens: assistantMessage.totalTokens
+          modelId: selectedModelId.value
         })
         const index = messages.value.findIndex(item => item.id === assistantMessage.id)
         if (index >= 0) {

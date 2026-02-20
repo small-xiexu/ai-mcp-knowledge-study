@@ -20,8 +20,6 @@ public class AgentVersionResponse {
 
     private Long id;
 
-    private Long orgId;
-
     private Long agentId;
 
     private Integer versionNo;
@@ -44,19 +42,11 @@ public class AgentVersionResponse {
 
     private String outputContractOptionsJson;
 
-    private String modelStrategyType;
-
-    private String taskTypeCode;
-
-    private Long fixedModelId;
-
     private String ragMode;
 
     private String defaultRagTagsJson;
 
     private String allowedRagTagsJson;
-
-    private String toolPolicyMode;
 
     private String allowedToolKeysJson;
 

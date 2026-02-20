@@ -69,7 +69,6 @@ public class PlatformContractV1 implements Serializable {
         private String agentCode;
         private Long agentVersionId;
         private Integer agentVersionNo;
-        private Long orgId;
 
         private String modelUsed;
         private Long costMs;
@@ -136,10 +135,6 @@ public class PlatformContractV1 implements Serializable {
         private String status;
 
         private Long costMs;
-
-        private Integer promptTokens;
-        private Integer completionTokens;
-        private Integer totalTokens;
 
         private Integer toolCallCount;
         private Integer toolDeniedCount;

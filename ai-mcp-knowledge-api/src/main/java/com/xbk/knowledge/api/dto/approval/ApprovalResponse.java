@@ -19,7 +19,6 @@ import java.time.LocalDateTime;
 public class ApprovalResponse {
 
     private Long id;
-    private Long orgId;
     private String approvalType;
     private String status;
     private String runId;

@@ -1,9 +1,9 @@
 package com.xbk.knowledge.application.service.app.impl;
 
 import com.xbk.knowledge.application.service.app.RoleAppService;
-import com.xbk.knowledge.domain.model.entity.SysRole;
-import com.xbk.knowledge.domain.model.vo.identity.RolePageQuery;
-import com.xbk.knowledge.domain.repository.identity.IdentityRepository;
+import com.xbk.knowledge.domain.identity.model.entity.SysRole;
+import com.xbk.knowledge.domain.identity.model.valobj.RolePageQuery;
+import com.xbk.knowledge.domain.identity.adapter.repository.IdentityRepository;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.exception.BusinessException;
 import com.xbk.knowledge.types.exception.NotFoundException;
@@ -14,6 +14,7 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * 角色管理应用服务实现。
@@ -65,9 +66,7 @@ public class RoleAppServiceImpl implements RoleAppService {
         if (identityRepository.existsRoleCode(role.getRoleCode(), null)) {
             throw new BusinessException("角色编码已存在：" + role.getRoleCode());
         }
-        if (!StringUtils.hasText(role.getRoleScope())) {
-            role.setRoleScope("GLOBAL");
-        }
+        role.setRoleScope(normalizeRoleScope(role.getRoleScope()));
         if (role.getStatus() == null) {
             role.setStatus(1);
         }
@@ -94,7 +93,7 @@ public class RoleAppServiceImpl implements RoleAppService {
             throw new BusinessException("角色编码已存在：" + existing.getRoleCode());
         }
         existing.setRoleName(role.getRoleName());
-        existing.setRoleScope(role.getRoleScope());
+        existing.setRoleScope(normalizeRoleScope(role.getRoleScope()));
         existing.setStatus(role.getStatus());
         existing.setRemark(role.getRemark());
         existing.setUpdatedAt(LocalDateTime.now());
@@ -136,5 +135,16 @@ public class RoleAppServiceImpl implements RoleAppService {
             }
         }
         identityRepository.replaceRolePermissions(roleId, permissionIds, operatorId);
+    }
+
+    private String normalizeRoleScope(String roleScope) {
+        if (!StringUtils.hasText(roleScope)) {
+            return "BUSINESS";
+        }
+        String normalized = roleScope.trim().toUpperCase(Locale.ROOT);
+        if ("BUSINESS".equals(normalized) || "PLATFORM".equals(normalized)) {
+            return normalized;
+        }
+        throw new BusinessException("角色范围仅支持 PLATFORM/BUSINESS");
     }
 }

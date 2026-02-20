@@ -7,7 +7,6 @@ import com.xbk.knowledge.application.service.app.AgentRuntimeAppService;
 import com.xbk.knowledge.types.common.Result;
 import com.xbk.knowledge.types.contract.PlatformContractV1;
 import com.xbk.knowledge.types.contract.PlatformStreamEvent;
-import com.xbk.knowledge.types.context.OrgContextHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,7 +22,7 @@ import jakarta.validation.Valid;
 /**
  * Agent 运行入口 Controller（按 agentCode 路由）。
  *
- * 职责：对外提供按 agentCode 调用的运行入口（同步/流式），并统一注入 org 上下文。
+ * 职责：对外提供按 agentCode 调用的运行入口（同步/流式）。
  *
  * @author xiexu
  */
@@ -45,10 +44,7 @@ public class AgentRuntimeController {
     @SaCheckPermission("agent:invoke")
     public Result<PlatformContractV1> chat(@PathVariable("agentCode") String agentCode,
                                           @Valid @RequestBody AgentRuntimeChatRequest request) {
-        Long orgId = currentOrgId();
-        PlatformContractV1 result = agentRuntimeAppService.chat(
-                orgId,
-                agentCode,
+        PlatformContractV1 result = agentRuntimeAppService.chat(agentCode,
                 request.getSessionId(),
                 request.getContent(),
                 request.getRagTagsJson()
@@ -73,13 +69,9 @@ public class AgentRuntimeController {
         httpResponse.setHeader("Cache-Control", "no-cache");
         httpResponse.setHeader("Connection", "keep-alive");
         httpResponse.setHeader("X-Accel-Buffering", "no");
-
-        Long orgId = currentOrgId();
         SseEmitter emitter = new SseEmitter(0L);
 
-        agentRuntimeAppService.stream(
-                orgId,
-                agentCode,
+        agentRuntimeAppService.stream(agentCode,
                 request.getSessionId(),
                 request.getContent(),
                 request.getRagTagsJson()
@@ -111,10 +103,6 @@ public class AgentRuntimeController {
     /**
      * 通用 invoke（内部触发或外部调用统一入口）。
      *
-     * 说明：为保证组织归属一致，HTTP 入口的 orgId 一律以当前 OrgContext 为准。
-     *
-     * 注意：request.orgId 字段仅用于“无 OrgContext 的内部调用场景”的 DTO 复用（本入口会忽略该字段）。
-     *
      * @param agentCode Agent 对外编码
      * @param request   调用请求
      * @return 平台标准结构化结果
@@ -123,10 +111,7 @@ public class AgentRuntimeController {
     @SaCheckPermission("agent:invoke")
     public Result<PlatformContractV1> invoke(@PathVariable("agentCode") String agentCode,
                                             @Valid @RequestBody AgentRuntimeInvokeRequest request) {
-        Long orgId = currentOrgId();
-        PlatformContractV1 result = agentRuntimeAppService.invoke(
-                orgId,
-                agentCode,
+        PlatformContractV1 result = agentRuntimeAppService.invoke(agentCode,
                 request.getSessionId(),
                 request.getContent(),
                 request.getRagTagsJson()
@@ -134,15 +119,4 @@ public class AgentRuntimeController {
         return Result.success(result);
     }
 
-    /**
-     * 获取当前请求的目标 orgId。
-     *
-     * 说明：未注入 OrgContext 时默认使用 ROOT org（1）。
-     *
-     * @return orgId
-     */
-    private Long currentOrgId() {
-        Long orgId = OrgContextHolder.currentOrgIdOrNull();
-        return orgId != null ? orgId : 1L;
-    }
 }

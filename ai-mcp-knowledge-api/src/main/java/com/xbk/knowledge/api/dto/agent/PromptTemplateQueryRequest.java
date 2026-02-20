@@ -21,11 +21,6 @@ public class PromptTemplateQueryRequest extends PageRequest {
     private String keyword;
 
     /**
-     * scope：GLOBAL/ORG（可选）。
-     */
-    private String scope;
-
-    /**
      * state：DRAFT/PUBLISHED/ARCHIVED（可选）。
      */
     private String state;

@@ -4,7 +4,6 @@ import type { PlatformContractV1 } from '@/types/workflow'
 
 export interface Agent {
   id: number
-  orgId: number
   agentCode: string
   agentName: string
   description?: string
@@ -16,7 +15,6 @@ export interface Agent {
 
 export interface AgentVersion {
   id: number
-  orgId: number
   agentId: number
   versionNo: number
   state: string
@@ -28,13 +26,9 @@ export interface AgentVersion {
   workflowVersionId?: number
   outputContractVersion?: string
   outputContractOptionsJson?: string
-  modelStrategyType?: string
-  taskTypeCode?: string
-  fixedModelId?: number
   ragMode?: string
   defaultRagTagsJson?: string
   allowedRagTagsJson?: string
-  toolPolicyMode?: string
   allowedToolKeysJson?: string
   timeoutMs?: number
   maxTurns?: number
@@ -46,8 +40,6 @@ export interface AgentVersion {
 
 export interface PromptTemplate {
   id: number
-  scope: string
-  orgId: number
   templateCode: string
   templateName: string
   versionNo: number
@@ -60,7 +52,6 @@ export interface PromptTemplate {
 
 export interface ApprovalRequest {
   id: number
-  orgId: number
   runId: string
   agentCode: string
   agentVersionId: number
@@ -74,25 +65,12 @@ export interface ApprovalRequest {
 
 export interface AgentSchedule {
   id: number
-  orgId: number
   agentId: number
   agentCode?: string
   cron: string
   enabled: boolean
   xxlJobId?: number
   payloadTemplateJson?: string
-  createdAt?: string
-  updatedAt?: string
-}
-
-export interface ToolPolicy {
-  id: number
-  orgId: number
-  toolKey: string
-  riskLevel: string
-  approvalRequired: number
-  enabled: number
-  remark?: string
   createdAt?: string
   updatedAt?: string
 }
@@ -127,7 +105,7 @@ export const publishAgentVersion = (data: { agentCode: string; versionId: number
 export const rollbackAgentVersion = (data: { agentCode: string; targetVersionId: number }) =>
   request.post<AgentVersion>('/agent-versions/rollback', data)
 
-export const listTemplates = (data: PageRequest & { keyword?: string; scope?: string; state?: string }) =>
+export const listTemplates = (data: PageRequest & { keyword?: string; state?: string }) =>
   request.post<PageResult<PromptTemplate>>('/templates/list', data)
 
 export const getTemplate = (id: number) =>
@@ -181,29 +159,6 @@ export const disableSchedule = (id: number) =>
 
 export const removeSchedule = (id: number) =>
   request.post<void>('/schedules/remove', { id })
-
-export const listToolPolicies = (data: { keyword?: string; enabled?: boolean; pageNum: number; pageSize: number }) =>
-  request.post<PageResult<ToolPolicy>>('/tool-policies/list', {
-    keyword: data.keyword,
-    enabled: data.enabled,
-    pageNum: data.pageNum,
-    pageSize: data.pageSize
-  })
-
-export const getToolPolicy = (id: number) =>
-  request.post<ToolPolicy>('/tool-policies/get', { id })
-
-export const saveToolPolicy = (data: { id?: number; toolKey: string; riskLevel?: string; approvalRequired?: boolean; enabled?: boolean; remark?: string }) =>
-  request.post<ToolPolicy>('/tool-policies/save', data)
-
-export const enableToolPolicy = (id: number) =>
-  request.post<ToolPolicy>('/tool-policies/enable', { id })
-
-export const disableToolPolicy = (id: number) =>
-  request.post<ToolPolicy>('/tool-policies/disable', { id })
-
-export const removeToolPolicy = (id: number) =>
-  request.post<void>('/tool-policies/remove', { id })
 
 export const agentChat = (agentCode: string, data: { sessionId?: number; content: string; ragTagsJson?: string }) =>
   request.post<PlatformContractV1>(`/agents/${agentCode}/chat`, data)

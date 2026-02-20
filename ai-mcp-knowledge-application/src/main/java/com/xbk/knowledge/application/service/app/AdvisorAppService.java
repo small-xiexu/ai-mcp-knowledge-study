@@ -1,7 +1,7 @@
 package com.xbk.knowledge.application.service.app;
 
-import com.xbk.knowledge.domain.model.entity.advisor.Advisor;
-import com.xbk.knowledge.domain.model.vo.advisor.AdvisorPageQuery;
+import com.xbk.knowledge.domain.advisor.model.entity.Advisor;
+import com.xbk.knowledge.domain.advisor.model.valobj.AdvisorPageQuery;
 import com.xbk.knowledge.types.common.PageResult;
 
 /**
@@ -15,14 +15,14 @@ public interface AdvisorAppService {
 
     PageResult<Advisor> queryPage(AdvisorPageQuery query);
 
-    Advisor get(Long orgId, Long id);
+    Advisor get(Long id);
 
     Advisor save(Advisor advisor);
 
-    Advisor enable(Long orgId, Long id);
+    Advisor enable(Long id);
 
-    Advisor disable(Long orgId, Long id);
+    Advisor disable(Long id);
 
-    void remove(Long orgId, Long id);
+    void remove(Long id);
 }
 

@@ -7,7 +7,7 @@ import com.xbk.knowledge.api.dto.auth.AuthProfileResponse;
 import com.xbk.knowledge.application.model.identity.AuthProfile;
 import com.xbk.knowledge.application.service.app.AuthAppService;
 import com.xbk.knowledge.application.service.app.IdentityContextService;
-import com.xbk.knowledge.domain.model.entity.SysUser;
+import com.xbk.knowledge.domain.identity.model.entity.SysUser;
 import com.xbk.knowledge.types.common.Result;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;

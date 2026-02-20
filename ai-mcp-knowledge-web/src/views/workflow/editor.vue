@@ -119,9 +119,6 @@
                   <el-form-item label="userTemplate">
                     <el-input v-model="wizard.form.userTemplate" type="textarea" :rows="3" placeholder="默认 {{input}}" />
                   </el-form-item>
-                  <el-form-item label="fixedModelId">
-                    <el-input v-model="wizard.form.fixedModelId" placeholder="可选（数字）" />
-                  </el-form-item>
                   <el-form-item label="toolEnabled">
                     <el-switch v-model="wizard.form.toolEnabled" />
                   </el-form-item>
@@ -430,7 +427,6 @@ const wizard = reactive({
   form: {
     systemPrompt: '',
     userTemplate: '{{input}}',
-    fixedModelId: '',
     toolEnabled: true,
     allowedToolKeysJson: '',
     ragFromNodeKey: '',
@@ -458,7 +454,6 @@ const detectWizardKind = (nodeType?: string) => {
 const wizardReset = () => {
   wizard.form.systemPrompt = ''
   wizard.form.userTemplate = '{{input}}'
-  wizard.form.fixedModelId = ''
   wizard.form.toolEnabled = true
   wizard.form.allowedToolKeysJson = ''
   wizard.form.ragFromNodeKey = ''
@@ -485,7 +480,6 @@ const wizardLoadFromJson = () => {
   if (wizard.kind === 'LLM' || wizard.kind === 'OUTPUT') {
     wizard.form.systemPrompt = cfg.systemPrompt == null ? '' : String(cfg.systemPrompt)
     wizard.form.userTemplate = cfg.userTemplate == null ? '{{input}}' : String(cfg.userTemplate)
-    wizard.form.fixedModelId = cfg.fixedModelId == null ? '' : String(cfg.fixedModelId)
     wizard.form.toolEnabled = cfg.toolEnabled == null ? true : Boolean(cfg.toolEnabled)
     wizard.form.allowedToolKeysJson = cfg.allowedToolKeysJson == null ? '' : String(cfg.allowedToolKeysJson)
     wizard.form.ragFromNodeKey = cfg.ragFromNodeKey == null ? '' : String(cfg.ragFromNodeKey)
@@ -525,12 +519,6 @@ const wizardApplyToJson = () => {
   if (wizard.kind === 'LLM' || wizard.kind === 'OUTPUT') {
     cfg.systemPrompt = wizard.form.systemPrompt || ''
     cfg.userTemplate = wizard.form.userTemplate || '{{input}}'
-    if (wizard.form.fixedModelId && String(wizard.form.fixedModelId).trim()) {
-      const n = Number(wizard.form.fixedModelId)
-      if (!Number.isNaN(n)) cfg.fixedModelId = n
-    } else {
-      delete cfg.fixedModelId
-    }
     cfg.toolEnabled = Boolean(wizard.form.toolEnabled)
     if (wizard.form.allowedToolKeysJson && String(wizard.form.allowedToolKeysJson).trim()) {
       cfg.allowedToolKeysJson = String(wizard.form.allowedToolKeysJson).trim()

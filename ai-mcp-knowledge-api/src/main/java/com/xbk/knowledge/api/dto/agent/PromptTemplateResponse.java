@@ -20,10 +20,6 @@ public class PromptTemplateResponse {
 
     private Long id;
 
-    private String scope;
-
-    private Long orgId;
-
     private String templateCode;
 
     private String templateName;
@@ -40,4 +36,3 @@ public class PromptTemplateResponse {
 
     private LocalDateTime updatedAt;
 }
-

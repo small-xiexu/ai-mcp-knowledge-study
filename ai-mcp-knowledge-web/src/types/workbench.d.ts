@@ -9,12 +9,6 @@ export interface WorkbenchGuideStep {
 }
 
 export interface WorkbenchSummary {
-  org?: {
-    currentOrgId?: number
-    operatorOrgId?: number
-    superAdmin?: boolean
-    explicitTargetOrg?: boolean
-  }
   model?: {
     total?: number
     enabled?: number
@@ -26,13 +20,10 @@ export interface WorkbenchSummary {
     published?: number
   }
   prompt?: {
-    globalPublished?: number
-    orgDraft?: number
-    orgPublished?: number
+    draft?: number
+    published?: number
   }
   tool?: {
-    toolPolicyTotal?: number
-    toolPolicyEnabled?: number
     approvalsPending?: number
   }
   schedule?: {
@@ -50,4 +41,3 @@ export interface WorkbenchSummary {
   }
   guideSteps?: WorkbenchGuideStep[]
 }
-

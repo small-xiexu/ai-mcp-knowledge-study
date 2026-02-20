@@ -5,7 +5,7 @@ import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.types.enums.ModelType;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.model.ChatModel;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -14,7 +14,6 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 /**
@@ -53,19 +52,20 @@ public class ModelProviderFactoryImplTest {
     }
 
     /**
-     * 对外暴露 shouldDelegateCreateChatClient 作为调用入口，便于上层复用。
+     * 对外暴露 shouldDelegateCreateChatModel 作为调用入口，便于上层复用。
      */
     @Test
-    public void shouldDelegateCreateChatClient() {
+    public void shouldDelegateCreateChatModel() {
         ModelProvider openai = Mockito.mock(ModelProvider.class);
         when(openai.getModelType()).thenReturn(ModelType.OPENAI);
-        ChatClient client = Mockito.mock(ChatClient.class);
-        when(openai.createChatClient(any(ModelConfig.class))).thenReturn(client);
+        ChatModel chatModel = Mockito.mock(ChatModel.class);
+        when(openai.createChatModel(Mockito.any(ModelConfig.class))).thenReturn(chatModel);
 
         ModelProviderFactoryImpl factory = new ModelProviderFactoryImpl(Collections.<ModelProvider>singletonList(openai));
 
-        ChatClient created = factory.createChatClient(ModelConfig.builder().modelType(ModelType.OPENAI).build());
+        ChatModel created = factory.getProvider(ModelType.OPENAI)
+                .createChatModel(ModelConfig.builder().modelType(ModelType.OPENAI).build());
 
-        assertEquals(client, created);
+        assertEquals(chatModel, created);
     }
 }

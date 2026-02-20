@@ -1,6 +1,6 @@
 package com.xbk.knowledge.application.service.runtime;
 
-import com.xbk.knowledge.domain.model.entity.McpServerConfig;
+import com.xbk.knowledge.domain.mcp.model.entity.McpServerConfig;
 
 import java.util.List;
 

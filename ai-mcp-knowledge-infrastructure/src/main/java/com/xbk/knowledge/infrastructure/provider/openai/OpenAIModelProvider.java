@@ -4,7 +4,6 @@ import com.xbk.knowledge.application.provider.ModelProvider;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.types.enums.ModelType;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.stereotype.Component;
 
@@ -35,21 +34,6 @@ public class OpenAIModelProvider extends AbstractOpenAiProtocolAdapter implement
             log.error("创建 OpenAI 模型失败: {}", errorMessage, e);
             throw new RuntimeException("创建 OpenAI 模型失败", e);
         }
-    }
-
-    /**
-     * 对外暴露 createChatClient 作为调用入口，便于上层复用。
-     *
-     * 为什么：统一创建 ChatClient，避免上层重复构建
-     * 入参：模型配置
-     * 出参：ChatClient
-     */
-    @Override
-    public ChatClient createChatClient(ModelConfig config) {
-        ChatModel chatModel = createChatModel(config);
-        return ChatClient
-                .builder(chatModel)
-                .build();
     }
 
     /**

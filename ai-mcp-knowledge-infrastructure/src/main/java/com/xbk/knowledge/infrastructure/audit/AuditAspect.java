@@ -2,18 +2,14 @@ package com.xbk.knowledge.infrastructure.audit;
 
 import com.xbk.knowledge.types.common.Result;
 import com.xbk.knowledge.api.dto.model.ModelConfigResponse;
-import com.xbk.knowledge.api.dto.task.TaskTypeResponse;
 import com.xbk.knowledge.api.dto.mcp.McpServerConfigResponse;
 import com.xbk.knowledge.api.dto.mcp.McpServerConfigRequest;
 import com.xbk.knowledge.api.dto.common.IdRequest;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
-import com.xbk.knowledge.domain.model.entity.TaskType;
-import com.xbk.knowledge.domain.model.entity.McpServerConfig;
-import com.xbk.knowledge.domain.repository.mcp.McpServerConfigRepository;
+import com.xbk.knowledge.domain.mcp.model.entity.McpServerConfig;
+import com.xbk.knowledge.domain.mcp.adapter.repository.McpServerConfigRepository;
 import com.xbk.knowledge.domain.model.vo.common.IdQuery;
-import com.xbk.knowledge.domain.repository.model.ModelConfigRepository;
-import com.xbk.knowledge.domain.repository.task.TaskTypeRepository;
-import com.xbk.knowledge.infrastructure.audit.AuditService;
+import com.xbk.knowledge.domain.model.adapter.repository.model.ModelConfigRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -37,7 +33,6 @@ import java.util.Objects;
 public class AuditAspect {
 
     private static final String MODEL_CONFIG_TABLE = "ai_model_config";
-    private static final String TASK_TYPE_TABLE = "ai_task_type";
     private static final String MCP_SERVER_CONFIG_TABLE = "ai_mcp_server_config";
     private static final String OPERATION_INSERT = "INSERT";
     private static final String OPERATION_UPDATE = "UPDATE";
@@ -45,7 +40,6 @@ public class AuditAspect {
 
     private final AuditService auditService;
     private final ModelConfigRepository modelConfigRepository;
-    private final TaskTypeRepository taskTypeRepository;
     private final McpServerConfigRepository mcpServerConfigRepository;
 
     /**
@@ -154,36 +148,6 @@ public class AuditAspect {
     }
 
     /**
-     * 对外暴露 aroundCreateTaskType 作为调用入口，便于上层复用。
-     *
-     * 为什么：创建后记录审计，避免遗漏
-     * 入参：切点
-     * 出参：原方法返回值
-     */
-    @Around("execution(* com.xbk.knowledge.trigger.http.TaskTypeController.createTaskType(..))")
-    public Object aroundCreateTaskType(ProceedingJoinPoint joinPoint) throws Throwable {
-        Object result = joinPoint.proceed();
-        try {
-            Long recordId = extractRecordId(result);
-            if (recordId != null) {
-                IdQuery idQuery = new IdQuery(recordId);
-                TaskType newValue = taskTypeRepository
-                        .findById(idQuery)
-                        .orElse(null);
-                /*
-                 * 目的：记录新增前后差异，新增时旧值为空
-                 */
-                auditService.recordAudit(TASK_TYPE_TABLE, recordId, OPERATION_INSERT, null, newValue);
-            } else {
-                log.warn("创建任务类型审计未记录，未解析到记录ID");
-            }
-        } catch (Exception ex) {
-            log.error("记录任务类型创建审计失败", ex);
-        }
-        return result;
-    }
-
-    /**
      * 对外暴露 aroundCreateMcpServerConfig 作为调用入口，便于上层复用。
      *
      * 为什么：创建后记录审计，避免遗漏
@@ -289,81 +253,6 @@ public class AuditAspect {
     }
 
     /**
-     * 对外暴露 aroundUpdateTaskType 作为调用入口，便于上层复用。
-     *
-     * 为什么：更新前后需要对比，记录变更内容
-     * 入参：切点
-     * 出参：原方法返回值
-     */
-    @Around("execution(* com.xbk.knowledge.trigger.http.TaskTypeController.updateTaskType(..))")
-    public Object aroundUpdateTaskType(ProceedingJoinPoint joinPoint) throws Throwable {
-        Object[] args = joinPoint.getArgs();
-        Long recordId = extractRecordId(args);
-        IdQuery idQuery = recordId == null ? null : new IdQuery(recordId);
-        TaskType oldValue = idQuery == null ? null : taskTypeRepository
-                .findById(idQuery)
-                .orElse(null);
-        try {
-            Object result = joinPoint.proceed();
-            try {
-                if (recordId != null) {
-                    TaskType newValue = taskTypeRepository
-                            .findById(idQuery)
-                            .orElse(null);
-                    /*
-                     * 目的：记录更新前后差异
-                     */
-                    auditService.recordAudit(TASK_TYPE_TABLE, recordId, OPERATION_UPDATE, oldValue, newValue);
-                } else {
-                    log.warn("更新任务类型审计未记录，未解析到记录ID");
-                }
-            } catch (Exception ex) {
-                log.error("记录任务类型更新审计失败，id: {}", recordId, ex);
-            }
-            return result;
-        } catch (Throwable ex) {
-            log.error("任务类型更新执行异常，审计未记录，id: {}", recordId, ex);
-            throw ex;
-        }
-    }
-
-    /**
-     * 对外暴露 aroundDeleteTaskType 作为调用入口，便于上层复用。
-     *
-     * 为什么：删除前记录旧值，便于审计回溯
-     * 入参：切点
-     * 出参：原方法返回值
-     */
-    @Around("execution(* com.xbk.knowledge.trigger.http.TaskTypeController.deleteTaskType(..))")
-    public Object aroundDeleteTaskType(ProceedingJoinPoint joinPoint) throws Throwable {
-        Object[] args = joinPoint.getArgs();
-        Long recordId = extractRecordId(args);
-        IdQuery idQuery = recordId == null ? null : new IdQuery(recordId);
-        TaskType oldValue = idQuery == null ? null : taskTypeRepository
-                .findById(idQuery)
-                .orElse(null);
-        try {
-            Object result = joinPoint.proceed();
-            try {
-                if (recordId != null) {
-                    /*
-                     * 目的：删除时只记录旧值
-                     */
-                    auditService.recordAudit(TASK_TYPE_TABLE, recordId, OPERATION_DELETE, oldValue, null);
-                } else {
-                    log.warn("删除任务类型审计未记录，未解析到记录ID");
-                }
-            } catch (Exception ex) {
-                log.error("记录任务类型删除审计失败，id: {}", recordId, ex);
-            }
-            return result;
-        } catch (Throwable ex) {
-            log.error("任务类型删除执行异常，审计未记录，id: {}", recordId, ex);
-            throw ex;
-        }
-    }
-
-    /**
      * 从返回结果解析记录 ID
      *
      * 为什么：审计需要记录ID用于定位实体
@@ -378,9 +267,6 @@ public class AuditAspect {
         }
         Object data = resultWrapper.getData();
         if (data instanceof ModelConfigResponse response) {
-            return response.getId();
-        }
-        if (data instanceof TaskTypeResponse response) {
             return response.getId();
         }
         if (data instanceof McpServerConfigResponse response) {

@@ -11,27 +11,25 @@ import com.xbk.knowledge.application.support.contract.PlatformContractV1OutputSu
 import com.xbk.knowledge.application.support.rag.AgentRagGovernanceSupport;
 import com.xbk.knowledge.application.support.rag.AgentRagGovernanceSupport.ResolvedRag;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
-import com.xbk.knowledge.domain.model.entity.agent.Agent;
-import com.xbk.knowledge.domain.model.entity.agent.AgentRun;
-import com.xbk.knowledge.domain.model.entity.agent.AgentRunContext;
-import com.xbk.knowledge.domain.model.entity.agent.AgentVersion;
-import com.xbk.knowledge.domain.model.entity.workflow.Workflow;
-import com.xbk.knowledge.domain.model.entity.workflow.WorkflowVersion;
-import com.xbk.knowledge.domain.model.vo.agent.AgentCodeQuery;
-import com.xbk.knowledge.domain.model.vo.agent.AgentVersionIdQuery;
+import com.xbk.knowledge.domain.agent.model.entity.Agent;
+import com.xbk.knowledge.domain.agent.model.entity.AgentRun;
+import com.xbk.knowledge.domain.agent.model.entity.AgentRunContext;
+import com.xbk.knowledge.domain.agent.model.entity.AgentVersion;
+import com.xbk.knowledge.domain.workflow.model.entity.Workflow;
+import com.xbk.knowledge.domain.workflow.model.entity.WorkflowVersion;
+import com.xbk.knowledge.domain.agent.model.valobj.AgentCodeQuery;
+import com.xbk.knowledge.domain.agent.model.valobj.AgentVersionIdQuery;
 import com.xbk.knowledge.domain.model.vo.common.IdQuery;
-import com.xbk.knowledge.domain.model.vo.workflow.WorkflowVersionIdQuery;
-import com.xbk.knowledge.domain.repository.agent.AgentRepository;
-import com.xbk.knowledge.domain.repository.agent.AgentRunRepository;
-import com.xbk.knowledge.domain.repository.agent.AgentRunContextRepository;
-import com.xbk.knowledge.domain.repository.agent.AgentVersionRepository;
-import com.xbk.knowledge.domain.repository.workflow.WorkflowRepository;
-import com.xbk.knowledge.domain.repository.workflow.WorkflowVersionRepository;
+import com.xbk.knowledge.domain.workflow.model.valobj.WorkflowVersionIdQuery;
+import com.xbk.knowledge.domain.agent.adapter.repository.AgentRepository;
+import com.xbk.knowledge.domain.agent.adapter.repository.AgentRunRepository;
+import com.xbk.knowledge.domain.agent.adapter.repository.AgentRunContextRepository;
+import com.xbk.knowledge.domain.agent.adapter.repository.AgentVersionRepository;
+import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowRepository;
+import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowVersionRepository;
 import com.xbk.knowledge.domain.service.model.IModelConfigService;
 import com.xbk.knowledge.types.contract.PlatformContractV1;
 import com.xbk.knowledge.types.contract.PlatformStreamEvent;
-import com.xbk.knowledge.types.context.OrgContext;
-import com.xbk.knowledge.types.context.OrgContextHolder;
 import com.xbk.knowledge.types.exception.ApprovalRequiredException;
 import com.xbk.knowledge.types.exception.BusinessException;
 import com.xbk.knowledge.types.exception.NotFoundException;
@@ -62,7 +60,7 @@ import org.slf4j.MDC;
  * Agent 运行入口应用服务实现。
  *
  * P0 策略：
- * - 必须按 org+agentCode 找到 Agent
+ * - 必须按 scope+agentCode 找到 Agent
  * - 必须使用当前发布版本（Agent.current_published_version_id）
  * - 输出 Platform Contract v1（先不做结构化解析修复；P1 再加）
  * - 工具调用暂不启用（先保证主链路稳定；Iteration 3 再做 allowlist + toolKey）
@@ -91,7 +89,7 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
     /**
      * chat。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      * @param agentCode 参数
      * @param sessionId 参数
      * @param content 参数
@@ -99,27 +97,25 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
      * @return 返回结果
      */
     @Override
-    public PlatformContractV1 chat(Long orgId, String agentCode, Long sessionId, String content, String ragTagsJson) {
+    public PlatformContractV1 chat(String agentCode, Long sessionId, String content, String ragTagsJson) {
         long start = System.currentTimeMillis();
         String runId = TraceIdUtils.getOrCreateTraceId();
 
-        Agent agent = loadAgent(orgId, agentCode);
-        AgentVersion version = loadPublishedVersion(orgId, agent);
+        Agent agent = loadAgent(agentCode);
+        AgentVersion version = loadPublishedVersion(agent);
 
         // Agent 绑定 Workflow：直接走 WorkflowRuntime（并返回 steps 明细）
         if (version != null && version.getWorkflowVersionId() != null) {
-            return chatByWorkflow(orgId, agentCode, agent, version, sessionId, content, start, runId);
+            return chatByWorkflow(agentCode, agent, version, sessionId, content, start, runId);
         }
 
-        ModelConfig model = resolveModelForVersion(orgId, version);
+        ModelConfig model = resolveModelForVersion(version);
 
-        OrgContext ctx = OrgContextHolder.get();
-        Long operatorId = ctx == null ? null : ctx.operatorUserId();
+        Long operatorId = null;
         String operatorType = operatorId == null ? "system" : "user";
 
         AgentRun run = AgentRun.builder()
                 .runId(runId)
-                .orgId(orgId)
                 .agentId(agent.getId())
                 .agentCode(agentCode)
                 .agentVersionId(version.getId())
@@ -140,7 +136,7 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                 .startedAt(LocalDateTime.now())
                 .build();
         agentRunRepository.insert(run);
-        saveRunContextSnapshot(orgId, runId, agentCode, agent.getId(), version, model, sessionId, content, ragTagsJson);
+        saveRunContextSnapshot(runId, agentCode, agent.getId(), version, model, sessionId, content, ragTagsJson);
 
         try {
             ResolvedRag rag = ragGovernanceSupport.resolve(version, ragTagsJson, content);
@@ -148,7 +144,6 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                 long costMs = System.currentTimeMillis() - start;
                 AgentRun toUpdate = AgentRun.builder()
                         .runId(runId)
-                        .orgId(orgId)
                         .status("SUCCESS")
                         .modelIdUsed(null)
                         .modelNameUsed(null)
@@ -160,15 +155,14 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                         .endedAt(LocalDateTime.now())
                         .build();
                 agentRunRepository.updateStatusAndMetrics(toUpdate);
-                return buildRagRequiredNoHitContract(runId, orgId, agentCode, version, costMs, rag);
+                return buildRagRequiredNoHitContract(runId,  agentCode, version, costMs, rag);
             }
 
-            ParsedOutput parsed = callOnce(orgId, runId, model, version, sessionId, content, rag);
+            ParsedOutput parsed = callOnce(runId, model, version, sessionId, content, rag);
             long costMs = System.currentTimeMillis() - start;
 
             AgentRun toUpdate = AgentRun.builder()
                     .runId(runId)
-                    .orgId(orgId)
                     .status("SUCCESS")
                     .modelIdUsed(model == null ? null : model.getId())
                     .modelNameUsed(model == null ? null : model.getModelName())
@@ -181,17 +175,16 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                     .build();
             agentRunRepository.updateStatusAndMetrics(toUpdate);
 
-            return buildSuccessContract(runId, orgId, agentCode, version, model, parsed, costMs);
+            return buildSuccessContract(runId,  agentCode, version, model, parsed, costMs);
         } catch (ApprovalRequiredException e) {
             // 高风险工具触发审批：run 进入待审批态，不结束 run（endedAt 置空）
-            agentRunRepository.updateStatus(orgId, runId, "PENDING_APPROVAL", null, null);
+            agentRunRepository.updateStatus(runId, "PENDING_APPROVAL", null, null);
             long costMs = System.currentTimeMillis() - start;
-            return buildPendingApprovalContract(runId, orgId, agentCode, version, model, costMs, e);
+            return buildPendingApprovalContract(runId,  agentCode, version, model, costMs, e);
         } catch (OutputParseFailedException e) {
             long costMs = System.currentTimeMillis() - start;
             AgentRun toUpdate = AgentRun.builder()
                     .runId(runId)
-                    .orgId(orgId)
                     .status("FAILED")
                     .errorMessage(truncate(e.getMessage(), 1000))
                     .repairAttempts(e.repairAttempts)
@@ -199,25 +192,23 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                     .endedAt(LocalDateTime.now())
                     .build();
             agentRunRepository.updateStatusAndMetrics(toUpdate);
-            return buildFailedContract(runId, orgId, agentCode, version, model, costMs, e.getMessage(), e.repairAttempts);
+            return buildFailedContract(runId,  agentCode, version, model, costMs, e.getMessage(), e.repairAttempts);
         } catch (Exception e) {
             long costMs = System.currentTimeMillis() - start;
             String msg = e.getMessage();
             AgentRun toUpdate = AgentRun.builder()
                     .runId(runId)
-                    .orgId(orgId)
                     .status("FAILED")
                     .errorMessage(truncate(msg, 1000))
                     .costMs(costMs)
                     .endedAt(LocalDateTime.now())
                     .build();
             agentRunRepository.updateStatusAndMetrics(toUpdate);
-            return buildFailedContract(runId, orgId, agentCode, version, model, costMs, msg, 0);
+            return buildFailedContract(runId,  agentCode, version, model, costMs, msg, 0);
         }
     }
 
-    private PlatformContractV1 chatByWorkflow(Long orgId,
-                                              String agentCode,
+    private PlatformContractV1 chatByWorkflow(String agentCode,
                                               Agent agent,
                                               AgentVersion version,
                                               Long sessionId,
@@ -229,19 +220,17 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         }
         Long wfVersionId = version.getWorkflowVersionId();
         WorkflowVersion wfVersion = workflowVersionRepository.findById(
-                        WorkflowVersionIdQuery.builder().orgId(orgId).id(wfVersionId).build())
+                        WorkflowVersionIdQuery.builder().id(wfVersionId).build())
                 .orElseThrow(() -> new NotFoundException("绑定的 WorkflowVersion 不存在，id=" + wfVersionId));
-        Workflow wf = workflowRepository.findById(new IdQuery(orgId, wfVersion.getWorkflowId()))
+        Workflow wf = workflowRepository.findById(new IdQuery(wfVersion.getWorkflowId()))
                 .orElseThrow(() -> new NotFoundException("绑定的 Workflow 不存在，id=" + wfVersion.getWorkflowId()));
 
-        OrgContext ctx = OrgContextHolder.get();
-        Long operatorId = ctx == null ? null : ctx.operatorUserId();
+        Long operatorId = null;
         String operatorType = operatorId == null ? "system" : "user";
 
         // 仍写入 agent_run，便于审计；工具审批会优先按 workflow 归属生成审批单（见 ToolCallbackProvider 的逻辑修正）
         AgentRun run = AgentRun.builder()
                 .runId(runId)
-                .orgId(orgId)
                 .agentId(agent == null ? null : agent.getId())
                 .agentCode(agentCode)
                 .agentVersionId(version.getId())
@@ -266,9 +255,7 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         String prev = MDC.get(TraceIdUtils.TRACE_ID_KEY);
         MDC.put(TraceIdUtils.TRACE_ID_KEY, runId);
         try {
-            PlatformContractV1 contract = workflowRuntimeAppService.run(
-                    orgId,
-                    wf.getWorkflowCode(),
+            PlatformContractV1 contract = workflowRuntimeAppService.run(wf.getWorkflowCode(),
                     sessionId,
                     content,
                     null,
@@ -280,7 +267,6 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
             try {
                 agentRunRepository.updateStatusAndMetrics(AgentRun.builder()
                         .runId(runId)
-                        .orgId(orgId)
                         .status(contract == null ? "FAILED" : contract.getStatus())
                         .costMs(costMs)
                         .endedAt(LocalDateTime.now())
@@ -296,7 +282,6 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                     contract.setMeta(meta);
                 }
                 meta.setRunId(runId);
-                meta.setOrgId(orgId);
                 meta.setAgentCode(agentCode);
                 meta.setAgentVersionId(version.getId());
                 meta.setAgentVersionNo(version.getVersionNo());
@@ -314,7 +299,7 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
     /**
      * stream。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      * @param agentCode 参数
      * @param sessionId 参数
      * @param content 参数
@@ -322,21 +307,19 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
      * @return 返回结果
      */
     @Override
-    public Flux<PlatformStreamEvent> stream(Long orgId, String agentCode, Long sessionId, String content, String ragTagsJson) {
+    public Flux<PlatformStreamEvent> stream(String agentCode, Long sessionId, String content, String ragTagsJson) {
         long start = System.currentTimeMillis();
         String runId = TraceIdUtils.getOrCreateTraceId();
 
-        Agent agent = loadAgent(orgId, agentCode);
-        AgentVersion version = loadPublishedVersion(orgId, agent);
-        ModelConfig model = resolveModelForVersion(orgId, version);
+        Agent agent = loadAgent(agentCode);
+        AgentVersion version = loadPublishedVersion(agent);
+        ModelConfig model = resolveModelForVersion(version);
 
-        OrgContext ctx = OrgContextHolder.get();
-        Long operatorId = ctx == null ? null : ctx.operatorUserId();
+        Long operatorId = null;
         String operatorType = operatorId == null ? "system" : "user";
 
         AgentRun run = AgentRun.builder()
                 .runId(runId)
-                .orgId(orgId)
                 .agentId(agent.getId())
                 .agentCode(agentCode)
                 .agentVersionId(version.getId())
@@ -357,7 +340,7 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                 .startedAt(LocalDateTime.now())
                 .build();
         agentRunRepository.insert(run);
-        saveRunContextSnapshot(orgId, runId, agentCode, agent.getId(), version, model, sessionId, content, ragTagsJson);
+        saveRunContextSnapshot(runId, agentCode, agent.getId(), version, model, sessionId, content, ragTagsJson);
 
         AtomicInteger totalTokens = new AtomicInteger(0);
 
@@ -366,7 +349,6 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
             long costMs = System.currentTimeMillis() - start;
             AgentRun toUpdate = AgentRun.builder()
                     .runId(runId)
-                    .orgId(orgId)
                     .status("SUCCESS")
                     .modelIdUsed(null)
                     .modelNameUsed(null)
@@ -378,7 +360,7 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                     .endedAt(LocalDateTime.now())
                     .build();
             agentRunRepository.updateStatusAndMetrics(toUpdate);
-            PlatformContractV1 finalContract = buildRagRequiredNoHitContract(runId, orgId, agentCode, version, costMs, rag);
+            PlatformContractV1 finalContract = buildRagRequiredNoHitContract(runId,  agentCode, version, costMs, rag);
             return Flux.just(PlatformStreamEvent.builder().name("final").data(finalContract).build());
         }
 
@@ -386,7 +368,7 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         StringBuilder answerBuffer = new StringBuilder();
         Set<String> allowedToolKeys = parseAllowedToolKeys(version == null ? null : version.getAllowedToolKeysJson());
 
-        ChatClient chatClient = buildChatClient(orgId, runId, model, version, sessionId);
+        ChatClient chatClient = buildChatClient(runId, model, version, sessionId);
         Long modelId = model == null ? null : model.getId();
         Long agentVersionId = version == null ? null : version.getId();
 
@@ -419,13 +401,12 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                 })
                 .doOnError(e -> {
                     if (e instanceof ApprovalRequiredException) {
-                        agentRunRepository.updateStatus(orgId, runId, "PENDING_APPROVAL", null, null);
+                        agentRunRepository.updateStatus(runId, "PENDING_APPROVAL", null, null);
                         return;
                     }
                     long costMs = System.currentTimeMillis() - start;
                     AgentRun toUpdate = AgentRun.builder()
                             .runId(runId)
-                            .orgId(orgId)
                             .status("FAILED")
                             .errorMessage(truncate(e.getMessage(), 1000))
                             .costMs(costMs)
@@ -440,7 +421,6 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                         applyRagOverrides(parsed, rag);
                         AgentRun toUpdate = AgentRun.builder()
                                 .runId(runId)
-                                .orgId(orgId)
                                 .status("SUCCESS")
                                 .modelIdUsed(model == null ? null : model.getId())
                                 .modelNameUsed(model == null ? null : model.getModelName())
@@ -452,12 +432,11 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                                 .endedAt(LocalDateTime.now())
                                 .build();
                         agentRunRepository.updateStatusAndMetrics(toUpdate);
-                        PlatformContractV1 finalContract = buildSuccessContract(runId, orgId, agentCode, version, model, parsed, costMs);
+                        PlatformContractV1 finalContract = buildSuccessContract(runId,  agentCode, version, model, parsed, costMs);
                         return Flux.just(PlatformStreamEvent.builder().name("final").data(finalContract).build());
                     } catch (OutputParseFailedException e) {
                         AgentRun toUpdate = AgentRun.builder()
                                 .runId(runId)
-                                .orgId(orgId)
                                 .status("FAILED")
                                 .errorMessage(truncate(e.getMessage(), 1000))
                                 .repairAttempts(e.repairAttempts)
@@ -465,7 +444,7 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                                 .endedAt(LocalDateTime.now())
                                 .build();
                         agentRunRepository.updateStatusAndMetrics(toUpdate);
-                        PlatformContractV1 failed = buildFailedContract(runId, orgId, agentCode, version, model, costMs, e.getMessage(), e.repairAttempts);
+                        PlatformContractV1 failed = buildFailedContract(runId,  agentCode, version, model, costMs, e.getMessage(), e.repairAttempts);
                         return Flux.just(PlatformStreamEvent.builder().name("final").data(failed).build());
                     }
                 }))
@@ -473,8 +452,7 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                     long costMs = System.currentTimeMillis() - start;
                     if (e instanceof ApprovalRequiredException approval) {
                         PlatformContractV1 pending = buildPendingApprovalContract(
-                                runId,
-                                orgId,
+                                runId, 
                                 agentCode,
                                 version,
                                 model,
@@ -487,8 +465,7 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                                 .build());
                     }
                     PlatformContractV1 failed = buildFailedContract(
-                            runId,
-                            orgId,
+                            runId, 
                             agentCode,
                             version,
                             model,
@@ -506,7 +483,7 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
     /**
      * invoke。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      * @param agentCode 参数
      * @param sessionId 参数
      * @param content 参数
@@ -514,33 +491,32 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
      * @return 返回结果
      */
     @Override
-    public PlatformContractV1 invoke(Long orgId, String agentCode, Long sessionId, String content, String ragTagsJson) {
+    public PlatformContractV1 invoke(String agentCode, Long sessionId, String content, String ragTagsJson) {
         // 内部触发同样走 current published version
-        return chat(orgId, agentCode, sessionId, content, ragTagsJson);
+        return chat(agentCode, sessionId, content, ragTagsJson);
     }
 
     /**
      * runJob。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      * @param agentCode 参数
      * @param content 参数
      * @param ragTagsJson 参数
      * @return 返回结果
      */
     @Override
-    public PlatformContractV1 runJob(Long orgId, String agentCode, String content, String ragTagsJson) {
+    public PlatformContractV1 runJob(String agentCode, String content, String ragTagsJson) {
         // XXL 调度触发：与 chat 的核心逻辑一致，但 runType/triggerSource 固定，并且操作者为 system
         long start = System.currentTimeMillis();
         String runId = TraceIdUtils.getOrCreateTraceId();
 
-        Agent agent = loadAgent(orgId, agentCode);
-        AgentVersion version = loadPublishedVersion(orgId, agent);
-        ModelConfig model = resolveModelForVersion(orgId, version);
+        Agent agent = loadAgent(agentCode);
+        AgentVersion version = loadPublishedVersion(agent);
+        ModelConfig model = resolveModelForVersion(version);
 
         AgentRun run = AgentRun.builder()
                 .runId(runId)
-                .orgId(orgId)
                 .agentId(agent.getId())
                 .agentCode(agentCode)
                 .agentVersionId(version.getId())
@@ -561,7 +537,7 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                 .startedAt(LocalDateTime.now())
                 .build();
         agentRunRepository.insert(run);
-        saveRunContextSnapshot(orgId, runId, agentCode, agent.getId(), version, model, null, content, ragTagsJson);
+        saveRunContextSnapshot(runId, agentCode, agent.getId(), version, model, null, content, ragTagsJson);
 
         try {
             ResolvedRag rag = ragGovernanceSupport.resolve(version, ragTagsJson, content);
@@ -569,7 +545,6 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                 long costMs = System.currentTimeMillis() - start;
                 AgentRun toUpdate = AgentRun.builder()
                         .runId(runId)
-                        .orgId(orgId)
                         .status("SUCCESS")
                         .modelIdUsed(null)
                         .modelNameUsed(null)
@@ -581,14 +556,13 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                         .endedAt(LocalDateTime.now())
                         .build();
                 agentRunRepository.updateStatusAndMetrics(toUpdate);
-                return buildRagRequiredNoHitContract(runId, orgId, agentCode, version, costMs, rag);
+                return buildRagRequiredNoHitContract(runId,  agentCode, version, costMs, rag);
             }
 
-            ParsedOutput parsed = callOnce(orgId, runId, model, version, null, content, rag);
+            ParsedOutput parsed = callOnce(runId, model, version, null, content, rag);
             long costMs = System.currentTimeMillis() - start;
             agentRunRepository.updateStatusAndMetrics(AgentRun.builder()
                     .runId(runId)
-                    .orgId(orgId)
                     .status("SUCCESS")
                     .modelIdUsed(model == null ? null : model.getId())
                     .modelNameUsed(model == null ? null : model.getModelName())
@@ -599,48 +573,43 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                     .costMs(costMs)
                     .endedAt(LocalDateTime.now())
                     .build());
-            return buildSuccessContract(runId, orgId, agentCode, version, model, parsed, costMs);
+            return buildSuccessContract(runId,  agentCode, version, model, parsed, costMs);
         } catch (ApprovalRequiredException e) {
             // XXL 模式按约定：Job 不失败；run 进入待审批态
-            agentRunRepository.updateStatus(orgId, runId, "PENDING_APPROVAL", null, null);
+            agentRunRepository.updateStatus(runId, "PENDING_APPROVAL", null, null);
             long costMs = System.currentTimeMillis() - start;
-            return buildPendingApprovalContract(runId, orgId, agentCode, version, model, costMs, e);
+            return buildPendingApprovalContract(runId,  agentCode, version, model, costMs, e);
         } catch (OutputParseFailedException e) {
             long costMs = System.currentTimeMillis() - start;
             agentRunRepository.updateStatusAndMetrics(AgentRun.builder()
                     .runId(runId)
-                    .orgId(orgId)
                     .status("FAILED")
                     .errorMessage(truncate(e.getMessage(), 1000))
                     .repairAttempts(e.repairAttempts)
                     .costMs(costMs)
                     .endedAt(LocalDateTime.now())
                     .build());
-            return buildFailedContract(runId, orgId, agentCode, version, model, costMs, e.getMessage(), e.repairAttempts);
+            return buildFailedContract(runId,  agentCode, version, model, costMs, e.getMessage(), e.repairAttempts);
         } catch (Exception e) {
             long costMs = System.currentTimeMillis() - start;
             String msg = e.getMessage();
             agentRunRepository.updateStatusAndMetrics(AgentRun.builder()
                     .runId(runId)
-                    .orgId(orgId)
                     .status("FAILED")
                     .errorMessage(truncate(msg, 1000))
                     .costMs(costMs)
                     .endedAt(LocalDateTime.now())
                     .build());
-            return buildFailedContract(runId, orgId, agentCode, version, model, costMs, msg, 0);
+            return buildFailedContract(runId,  agentCode, version, model, costMs, msg, 0);
         }
     }
 
-    private Agent loadAgent(Long orgId, String agentCode) {
-        if (orgId == null) {
-            throw new IllegalArgumentException("orgId 不能为空");
-        }
+    private Agent loadAgent(String agentCode) {
         if (!StringUtils.hasText(agentCode)) {
             throw new IllegalArgumentException("agentCode 不能为空");
         }
         Agent agent = agentRepository
-                .findByCode(new AgentCodeQuery(orgId, agentCode))
+                .findByCode(new AgentCodeQuery(agentCode))
                 .orElseThrow(() -> new NotFoundException("Agent 不存在，agentCode: " + agentCode));
         if (!"ENABLED".equalsIgnoreCase(agent.getStatus())) {
             throw new BusinessException("Agent 已禁用，不可调用，agentCode: " + agentCode);
@@ -651,9 +620,9 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         return agent;
     }
 
-    private AgentVersion loadPublishedVersion(Long orgId, Agent agent) {
+    private AgentVersion loadPublishedVersion(Agent agent) {
         AgentVersion version = agentVersionRepository
-                .findById(new AgentVersionIdQuery(orgId, agent.getCurrentPublishedVersionId()))
+                .findById(new AgentVersionIdQuery(agent.getCurrentPublishedVersionId()))
                 .orElseThrow(() -> new NotFoundException("发布版本不存在，id: " + agent.getCurrentPublishedVersionId()));
         if (!"PUBLISHED".equalsIgnoreCase(version.getState())) {
             throw new BusinessException("当前版本非 PUBLISHED，不可调用");
@@ -661,39 +630,29 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         return version;
     }
 
-    private ModelConfig resolveModelForVersion(Long orgId, AgentVersion version) {
+    private ModelConfig resolveModelForVersion(AgentVersion version) {
         if (version == null) {
             return null;
         }
-        // P0：优先 FIXED_MODEL，其次兜底第一个启用模型（后续按任务类型策略扩展）
-        if ("FIXED_MODEL".equalsIgnoreCase(version.getModelStrategyType())) {
-            if (version.getFixedModelId() == null) {
-                throw new BusinessException("FIXED_MODEL 策略下 fixedModelId 不能为空");
-            }
-            ModelConfig model = modelConfigService.queryModelConfigById(new com.xbk.knowledge.domain.model.vo.common.IdQuery(version.getFixedModelId()));
-            if (model != null && model.getOrgId() != null && orgId != null && !orgId.equals(model.getOrgId())) {
-                throw new BusinessException("模型不属于当前组织，modelId: " + model.getId());
-            }
-            return model;
-        }
-        // 临时兜底：从启用模型中选 priority 最大的（限定 org）
+        // 单组织简化：从启用模型中选第一个（按 id 升序）
         List<ModelConfig> enabled = modelConfigService.queryEnabledModels(new com.xbk.knowledge.domain.model.vo.common.EnabledQuery(true));
         if (enabled == null || enabled.isEmpty()) {
             throw new BusinessException("未配置可用模型");
         }
         return enabled.stream()
-                .filter(m -> m != null && m.getOrgId() != null && orgId != null && orgId.equals(m.getOrgId()))
-                .max(Comparator.comparingInt(m -> m.getPriority() == null ? 0 : m.getPriority()))
-                .orElseThrow(() -> new BusinessException("当前组织未配置可用模型"));
+                .filter(m -> m != null && m.getId() != null)
+                .sorted(Comparator.comparingLong(m -> m.getId() == null ? Long.MAX_VALUE : m.getId()))
+                .findFirst()
+                .orElseThrow(() -> new BusinessException("未配置可用模型"));
     }
 
-    private ParsedOutput callOnce(Long orgId, String runId, ModelConfig model, AgentVersion version, Long sessionId, String userContent) {
-        return callOnce(orgId, runId, model, version, sessionId, userContent, null);
+    private ParsedOutput callOnce(String runId, ModelConfig model, AgentVersion version, Long sessionId, String userContent) {
+        return callOnce(runId, model, version, sessionId, userContent, null);
     }
 
-    private ParsedOutput callOnce(Long orgId, String runId, ModelConfig model, AgentVersion version, Long sessionId, String userContent, ResolvedRag rag) {
+    private ParsedOutput callOnce(String runId, ModelConfig model, AgentVersion version, Long sessionId, String userContent, ResolvedRag rag) {
         Set<String> allowedToolKeys = parseAllowedToolKeys(version == null ? null : version.getAllowedToolKeysJson());
-        ChatClient chatClient = buildChatClient(orgId, runId, model, version, sessionId);
+        ChatClient chatClient = buildChatClient(runId, model, version, sessionId);
         Prompt prompt = buildPromptWithContract(version, userContent, rag);
         Long modelId = model == null ? null : model.getId();
         Long agentVersionId = version == null ? null : version.getId();
@@ -711,7 +670,7 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         }
     }
 
-    private ChatClient buildChatClient(Long orgId, String runId, ModelConfig modelConfig, AgentVersion version, Long sessionId) {
+    private ChatClient buildChatClient(String runId, ModelConfig modelConfig, AgentVersion version, Long sessionId) {
         if (modelConfig == null) {
             throw new BusinessException("未找到可用模型");
         }
@@ -719,7 +678,7 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         Long agentVersionId = version == null ? null : version.getId();
         org.springframework.ai.chat.client.advisor.api.CallAdvisor[] extra = agentVersionId == null
                 ? new org.springframework.ai.chat.client.advisor.api.CallAdvisor[0]
-                : advisorRuntimeService.resolveForAgentVersion(orgId, agentVersionId, runId, sessionId);
+                : advisorRuntimeService.resolveForAgentVersion(agentVersionId, runId, sessionId);
         return chatClientAssemblyService.buildChatClient(modelConfig, modelToolEnabled, extra);
     }
 
@@ -807,8 +766,7 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         }
     }
 
-    private PlatformContractV1 buildRagRequiredNoHitContract(String runId,
-                                                             Long orgId,
+    private PlatformContractV1 buildRagRequiredNoHitContract(String runId, 
                                                              String agentCode,
                                                              AgentVersion version,
                                                              long costMs,
@@ -829,7 +787,6 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                         .agentCode(agentCode)
                         .agentVersionId(version == null ? null : version.getId())
                         .agentVersionNo(version == null ? null : version.getVersionNo())
-                        .orgId(orgId)
                         .modelUsed(null)
                         .costMs(costMs)
                         .repairAttempts(0)
@@ -855,8 +812,7 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         return extractText(response);
     }
 
-    private PlatformContractV1 buildSuccessContract(String runId,
-                                                    Long orgId,
+    private PlatformContractV1 buildSuccessContract(String runId, 
                                                     String agentCode,
                                                     AgentVersion version,
                                                     ModelConfig model,
@@ -868,7 +824,6 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                         .agentCode(agentCode)
                         .agentVersionId(version.getId())
                         .agentVersionNo(version.getVersionNo())
-                        .orgId(orgId)
                         .modelUsed(model == null ? null : model.getModelName())
                         .costMs(costMs)
                         .repairAttempts(parsed == null ? 0 : parsed.repairAttempts)
@@ -884,8 +839,7 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                 .build();
     }
 
-    private PlatformContractV1 buildFailedContract(String runId,
-                                                   Long orgId,
+    private PlatformContractV1 buildFailedContract(String runId, 
                                                    String agentCode,
                                                    AgentVersion version,
                                                    ModelConfig model,
@@ -898,7 +852,6 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                         .agentCode(agentCode)
                         .agentVersionId(version == null ? null : version.getId())
                         .agentVersionNo(version == null ? null : version.getVersionNo())
-                        .orgId(orgId)
                         .modelUsed(model == null ? null : model.getModelName())
                         .costMs(costMs)
                         .repairAttempts(repairAttempts)
@@ -922,8 +875,7 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                 .build();
     }
 
-    private PlatformContractV1 buildPendingApprovalContract(String runId,
-                                                            Long orgId,
+    private PlatformContractV1 buildPendingApprovalContract(String runId, 
                                                             String agentCode,
                                                             AgentVersion version,
                                                             ModelConfig model,
@@ -935,7 +887,6 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                         .agentCode(agentCode)
                         .agentVersionId(version == null ? null : version.getId())
                         .agentVersionNo(version == null ? null : version.getVersionNo())
-                        .orgId(orgId)
                         .modelUsed(model == null ? null : model.getModelName())
                         .costMs(costMs)
                         .repairAttempts(0)
@@ -975,8 +926,7 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                 .build();
     }
 
-    private void saveRunContextSnapshot(Long orgId,
-                                       String runId,
+    private void saveRunContextSnapshot(String runId,
                                        String agentCode,
                                        Long agentId,
                                        AgentVersion version,
@@ -984,12 +934,11 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                                        Long sessionId,
                                        String content,
                                        String ragTagsJson) {
-        if (agentRunContextRepository == null || orgId == null || runId == null) {
+        if (agentRunContextRepository == null || runId == null) {
             return;
         }
         try {
             Map<String, Object> snapshot = new HashMap<>();
-            snapshot.put("orgId", orgId);
             snapshot.put("runId", runId);
             snapshot.put("agentCode", agentCode);
             snapshot.put("agentId", agentId);
@@ -1003,7 +952,6 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
 
             String json = objectMapper.writeValueAsString(snapshot);
             AgentRunContext ctx = AgentRunContext.builder()
-                    .orgId(orgId)
                     .runId(runId)
                     .status("SAVED")
                     .snapshotJson(json)

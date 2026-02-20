@@ -1,8 +1,8 @@
 package com.xbk.knowledge.application.service.app;
 
-import com.xbk.knowledge.domain.model.entity.agent.Agent;
-import com.xbk.knowledge.domain.model.vo.agent.AgentCodeQuery;
-import com.xbk.knowledge.domain.model.vo.agent.AgentPageQuery;
+import com.xbk.knowledge.domain.agent.model.entity.Agent;
+import com.xbk.knowledge.domain.agent.model.valobj.AgentCodeQuery;
+import com.xbk.knowledge.domain.agent.model.valobj.AgentPageQuery;
 import com.xbk.knowledge.types.common.PageResult;
 
 /**

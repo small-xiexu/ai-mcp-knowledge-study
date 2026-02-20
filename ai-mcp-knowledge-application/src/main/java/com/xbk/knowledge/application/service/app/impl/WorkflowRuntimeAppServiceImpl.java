@@ -10,31 +10,29 @@ import com.xbk.knowledge.application.service.runtime.AdvisorRuntimeService;
 import com.xbk.knowledge.application.support.contract.PlatformContractV1OutputSupport;
 import com.xbk.knowledge.application.service.rag.RagVectorStoreService;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
-import com.xbk.knowledge.domain.model.entity.approval.ApprovalRequest;
-import com.xbk.knowledge.domain.model.entity.workflow.Workflow;
-import com.xbk.knowledge.domain.model.entity.workflow.WorkflowEdge;
-import com.xbk.knowledge.domain.model.entity.workflow.WorkflowNode;
-import com.xbk.knowledge.domain.model.entity.workflow.WorkflowNodeRun;
-import com.xbk.knowledge.domain.model.entity.workflow.WorkflowRun;
-import com.xbk.knowledge.domain.model.entity.workflow.WorkflowRunContext;
-import com.xbk.knowledge.domain.model.entity.workflow.WorkflowVersion;
+import com.xbk.knowledge.domain.approval.model.entity.ApprovalRequest;
+import com.xbk.knowledge.domain.workflow.model.entity.Workflow;
+import com.xbk.knowledge.domain.workflow.model.entity.WorkflowEdge;
+import com.xbk.knowledge.domain.workflow.model.entity.WorkflowNode;
+import com.xbk.knowledge.domain.workflow.model.entity.WorkflowNodeRun;
+import com.xbk.knowledge.domain.workflow.model.entity.WorkflowRun;
+import com.xbk.knowledge.domain.workflow.model.entity.WorkflowRunContext;
+import com.xbk.knowledge.domain.workflow.model.entity.WorkflowVersion;
 import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
 import com.xbk.knowledge.domain.model.vo.common.IdQuery;
-import com.xbk.knowledge.domain.model.vo.workflow.WorkflowCodeQuery;
-import com.xbk.knowledge.domain.model.vo.workflow.WorkflowGraphQuery;
-import com.xbk.knowledge.domain.model.vo.workflow.WorkflowVersionIdQuery;
-import com.xbk.knowledge.domain.repository.approval.ApprovalRequestRepository;
-import com.xbk.knowledge.domain.repository.workflow.WorkflowGraphRepository;
-import com.xbk.knowledge.domain.repository.workflow.WorkflowNodeRunRepository;
-import com.xbk.knowledge.domain.repository.workflow.WorkflowRepository;
-import com.xbk.knowledge.domain.repository.workflow.WorkflowRunContextRepository;
-import com.xbk.knowledge.domain.repository.workflow.WorkflowRunRepository;
-import com.xbk.knowledge.domain.repository.workflow.WorkflowVersionRepository;
+import com.xbk.knowledge.domain.workflow.model.valobj.WorkflowCodeQuery;
+import com.xbk.knowledge.domain.workflow.model.valobj.WorkflowGraphQuery;
+import com.xbk.knowledge.domain.workflow.model.valobj.WorkflowVersionIdQuery;
+import com.xbk.knowledge.domain.approval.adapter.repository.ApprovalRequestRepository;
+import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowGraphRepository;
+import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowNodeRunRepository;
+import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowRepository;
+import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowRunContextRepository;
+import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowRunRepository;
+import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowVersionRepository;
 import com.xbk.knowledge.domain.service.model.IModelConfigService;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.contract.PlatformContractV1;
-import com.xbk.knowledge.types.context.OrgContext;
-import com.xbk.knowledge.types.context.OrgContextHolder;
 import com.xbk.knowledge.types.exception.ApprovalRequiredException;
 import com.xbk.knowledge.types.exception.BusinessException;
 import com.xbk.knowledge.types.exception.NotFoundException;
@@ -99,8 +97,7 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
     private final RagVectorStoreService ragVectorStoreService;
 
     @Override
-    public PlatformContractV1 run(Long orgId,
-                                  String workflowCode,
+    public PlatformContractV1 run(String workflowCode,
                                   Long sessionId,
                                   String content,
                                   String variablesJson,
@@ -115,23 +112,21 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
         long start = System.currentTimeMillis();
         String runId = TraceIdUtils.getOrCreateTraceId();
 
-        Workflow wf = workflowRepository.findByCode(WorkflowCodeQuery.builder().orgId(orgId).workflowCode(workflowCode).build())
+        Workflow wf = workflowRepository.findByCode(WorkflowCodeQuery.builder().workflowCode(workflowCode).build())
                 .orElseThrow(() -> new NotFoundException("Workflow 不存在，code=" + workflowCode));
         if (!"ENABLED".equalsIgnoreCase(wf.getStatus())) {
             throw new BusinessException("Workflow 未启用，code=" + workflowCode);
         }
 
-        WorkflowVersion version = resolveVersion(orgId, wf, workflowVersionId);
-        Graph graph = loadGraph(orgId, version.getId());
+        WorkflowVersion version = resolveVersion(wf, workflowVersionId);
+        Graph graph = loadGraph(version.getId());
         validateGraph(graph);
 
-        OrgContext ctx = OrgContextHolder.get();
-        Long operatorId = ctx == null ? null : ctx.operatorUserId();
+        Long operatorId = null;
         String operatorType = operatorId == null ? "system" : "user";
 
         WorkflowRun run = WorkflowRun.builder()
                 .runId(runId)
-                .orgId(orgId)
                 .workflowId(wf.getId())
                 .workflowCode(wf.getWorkflowCode())
                 .workflowVersionId(version.getId())
@@ -153,13 +148,12 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
         List<WorkflowNodeRun> nodeRuns = new ArrayList<>();
 
         try {
-            ExecutionResult exec = executeGraph(orgId, runId, wf, version, graph, sessionId, content, variables, stepOutputs, nodeRuns);
+            ExecutionResult exec = executeGraph(runId, wf, version, graph, sessionId, content, variables, stepOutputs, nodeRuns);
             long costMs = System.currentTimeMillis() - start;
 
             if (exec.status.equals("PENDING_APPROVAL")) {
                 workflowRunRepository.updateStatusAndMetrics(WorkflowRun.builder()
                         .runId(runId)
-                        .orgId(orgId)
                         .status("PENDING_APPROVAL")
                         .currentNodeKey(exec.pendingNodeKey)
                         .costMs(costMs)
@@ -167,14 +161,13 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
                         .endedAt(LocalDateTime.now())
                         .build());
 
-                saveRunContextSnapshot(orgId, runId, wf, version, sessionId, content, variables, stepOutputs, exec.pendingNodeKey, exec.approvalRequestId, exec.pendingToolKey, exec.pendingRiskLevel);
+                saveRunContextSnapshot(runId, wf, version, sessionId, content, variables, stepOutputs, exec.pendingNodeKey, exec.approvalRequestId, exec.pendingToolKey, exec.pendingRiskLevel);
 
-                return buildContractWithSteps(orgId, wf, version, runId, costMs, "PENDING_APPROVAL", exec.contract, nodeRuns, exec.approvalRequestId, exec.pendingToolKey, exec.pendingRiskLevel);
+                return buildContractWithSteps(wf, version, runId, costMs, "PENDING_APPROVAL", exec.contract, nodeRuns, exec.approvalRequestId, exec.pendingToolKey, exec.pendingRiskLevel);
             }
 
             workflowRunRepository.updateStatusAndMetrics(WorkflowRun.builder()
                     .runId(runId)
-                    .orgId(orgId)
                     .status(exec.status)
                     .currentNodeKey(null)
                     .costMs(costMs)
@@ -182,12 +175,11 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
                     .endedAt(LocalDateTime.now())
                     .build());
 
-            return buildContractWithSteps(orgId, wf, version, runId, costMs, exec.status, exec.contract, nodeRuns, null, null, null);
+            return buildContractWithSteps(wf, version, runId, costMs, exec.status, exec.contract, nodeRuns, null, null, null);
         } catch (Exception e) {
             long costMs = System.currentTimeMillis() - start;
             workflowRunRepository.updateStatusAndMetrics(WorkflowRun.builder()
                     .runId(runId)
-                    .orgId(orgId)
                     .status("FAILED")
                     .currentNodeKey(null)
                     .costMs(costMs)
@@ -201,23 +193,23 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
                     .toolCalls(List.of())
                     .actionsNext(List.of())
                     .build();
-            return buildContractWithSteps(orgId, wf, version, runId, costMs, "FAILED", contract, nodeRuns, null, null, null);
+            return buildContractWithSteps(wf, version, runId, costMs, "FAILED", contract, nodeRuns, null, null, null);
         }
     }
 
     /**
      * resumeFromApproval。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      * @param approvalRequestId 参数
      * @return 返回结果
      */
     @Override
-    public PlatformContractV1 resumeFromApproval(Long orgId, Long approvalRequestId) {
-        if (orgId == null || approvalRequestId == null) {
-            throw new IllegalArgumentException("orgId/approvalRequestId 不能为空");
+    public PlatformContractV1 resumeFromApproval(Long approvalRequestId) {
+        if (approvalRequestId == null) {
+            throw new IllegalArgumentException("approvalRequestId 不能为空");
         }
-        ApprovalRequest req = approvalRequestRepository.findById(orgId, approvalRequestId)
+        ApprovalRequest req = approvalRequestRepository.findById(approvalRequestId)
                 .orElseThrow(() -> new NotFoundException("审批单不存在，id=" + approvalRequestId));
         if (!"APPROVED".equalsIgnoreCase(req.getStatus())) {
             throw new BusinessException("审批单非已通过状态，不可续跑，status=" + req.getStatus());
@@ -229,13 +221,13 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
             throw new BusinessException("审批单缺少 workflowVersionId/workflowId/nodeKey，无法续跑");
         }
 
-        Workflow wf = workflowRepository.findById(new IdQuery(orgId, req.getWorkflowId()))
+        Workflow wf = workflowRepository.findById(new IdQuery(req.getWorkflowId()))
                 .orElseThrow(() -> new NotFoundException("Workflow 不存在，id=" + req.getWorkflowId()));
-        WorkflowVersion version = workflowVersionRepository.findById(WorkflowVersionIdQuery.builder().orgId(orgId).id(req.getWorkflowVersionId()).build())
+        WorkflowVersion version = workflowVersionRepository.findById(WorkflowVersionIdQuery.builder().id(req.getWorkflowVersionId()).build())
                 .orElseThrow(() -> new NotFoundException("WorkflowVersion 不存在，id=" + req.getWorkflowVersionId()));
 
         // 读取上下文快照
-        WorkflowSnapshot snap = loadSnapshot(orgId, req.getRunId());
+        WorkflowSnapshot snap = loadSnapshot(req.getRunId());
         if (snap == null || snap.sessionId == null || !StringUtils.hasText(snap.content)) {
             // 快照缺失不阻断：用空输入兜底
             snap = snap == null ? new WorkflowSnapshot(null, "", new LinkedHashMap<>(), new LinkedHashMap<>(), req.getNodeKey()) : snap;
@@ -249,35 +241,33 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
         snap.stepOutputs.put(req.getNodeKey() + ".approvedToolResult", toolResult);
 
         // 从 pending 节点重新执行（禁用工具），并继续后续图
-        Graph graph = loadGraph(orgId, version.getId());
+        Graph graph = loadGraph(version.getId());
         validateGraph(graph);
 
-        List<WorkflowNodeRun> nodeRuns = workflowNodeRunRepository.listByRunId(orgId, req.getRunId());
+        List<WorkflowNodeRun> nodeRuns = workflowNodeRunRepository.listByRunId(req.getRunId());
         if (nodeRuns == null) {
             nodeRuns = new ArrayList<>();
         }
 
         long start = System.currentTimeMillis();
-        workflowRunRepository.updateStatus(orgId, req.getRunId(), "RUNNING", null, null);
+        workflowRunRepository.updateStatus(req.getRunId(), "RUNNING", null, null);
         try {
-            ExecutionResult exec = executeGraphFromNode(orgId, req.getRunId(), wf, version, graph, snap.sessionId, snap.content, snap.variables, snap.stepOutputs, nodeRuns, req.getNodeKey(), toolResult);
+            ExecutionResult exec = executeGraphFromNode(req.getRunId(), wf, version, graph, snap.sessionId, snap.content, snap.variables, snap.stepOutputs, nodeRuns, req.getNodeKey(), toolResult);
             long costMs = System.currentTimeMillis() - start;
             workflowRunRepository.updateStatusAndMetrics(WorkflowRun.builder()
                     .runId(req.getRunId())
-                    .orgId(orgId)
                     .status(exec.status)
                     .currentNodeKey(null)
                     .costMs(costMs)
                     .errorMessage(exec.status.equals("FAILED") ? exec.errorMessage : null)
                     .endedAt(LocalDateTime.now())
                     .build());
-            workflowRunContextRepository.updateStatus(orgId, req.getRunId(), "RESUMED");
-            return buildContractWithSteps(orgId, wf, version, req.getRunId(), costMs, exec.status, exec.contract, nodeRuns, null, null, null);
+            workflowRunContextRepository.updateStatus(req.getRunId(), "RESUMED");
+            return buildContractWithSteps(wf, version, req.getRunId(), costMs, exec.status, exec.contract, nodeRuns, null, null, null);
         } catch (Exception e) {
             long costMs = System.currentTimeMillis() - start;
             workflowRunRepository.updateStatusAndMetrics(WorkflowRun.builder()
                     .runId(req.getRunId())
-                    .orgId(orgId)
                     .status("FAILED")
                     .currentNodeKey(null)
                     .costMs(costMs)
@@ -285,29 +275,29 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
                     .endedAt(LocalDateTime.now())
                     .build());
             try {
-                workflowRunContextRepository.updateStatus(orgId, req.getRunId(), "EXPIRED");
+                workflowRunContextRepository.updateStatus(req.getRunId(), "EXPIRED");
             } catch (Exception ignore) {
             }
             PlatformContractV1 contract = PlatformContractV1.builder().answer("").uncertainty("").build();
-            return buildContractWithSteps(orgId, wf, version, req.getRunId(), costMs, "FAILED", contract, nodeRuns, null, null, null);
+            return buildContractWithSteps(wf, version, req.getRunId(), costMs, "FAILED", contract, nodeRuns, null, null, null);
         }
     }
 
     /**
      * listRuns。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      * @param status 参数
      * @param offset 参数
      * @param pageSize 参数
      * @return 返回结果
      */
     @Override
-    public PageResult<WorkflowRun> listRuns(Long orgId, String status, int offset, int pageSize) {
+    public PageResult<WorkflowRun> listRuns(String status, int offset, int pageSize) {
         int safeOffset = Math.max(offset, 0);
         int safeSize = pageSize <= 0 ? 20 : Math.min(pageSize, 200);
-        List<WorkflowRun> list = workflowRunRepository.list(orgId, status, safeOffset, safeSize);
-        long total = workflowRunRepository.count(orgId, status);
+        List<WorkflowRun> list = workflowRunRepository.list(status, safeOffset, safeSize);
+        long total = workflowRunRepository.count(status);
         int pageNum = safeSize == 0 ? 1 : (safeOffset / safeSize) + 1;
         return PageResult.of(list, total, pageNum, safeSize);
     }
@@ -315,54 +305,52 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
     /**
      * getRun。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      * @param runId 参数
      * @return 返回结果
      */
     @Override
-    public WorkflowRun getRun(Long orgId, String runId) {
-        if (orgId == null || !StringUtils.hasText(runId)) {
-            throw new IllegalArgumentException("orgId/runId 不能为空");
+    public WorkflowRun getRun(String runId) {
+        if (!StringUtils.hasText(runId)) {
+            throw new IllegalArgumentException("runId 不能为空");
         }
-        return workflowRunRepository.findByRunId(orgId, runId)
+        return workflowRunRepository.findByRunId(runId)
                 .orElseThrow(() -> new NotFoundException("WorkflowRun 不存在，runId=" + runId));
     }
 
     /**
      * listNodeRuns。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      * @param runId 参数
      * @return 返回结果
      */
     @Override
-    public List<WorkflowNodeRun> listNodeRuns(Long orgId, String runId) {
+    public List<WorkflowNodeRun> listNodeRuns(String runId) {
         if (!StringUtils.hasText(runId)) {
             return Collections.emptyList();
         }
-        return workflowNodeRunRepository.listByRunId(orgId, runId);
+        return workflowNodeRunRepository.listByRunId(runId);
     }
 
-    private WorkflowVersion resolveVersion(Long orgId, Workflow wf, Long workflowVersionId) {
+    private WorkflowVersion resolveVersion(Workflow wf, Long workflowVersionId) {
         if (workflowVersionId != null) {
-            WorkflowVersion v = workflowVersionRepository.findById(WorkflowVersionIdQuery.builder().orgId(orgId).id(workflowVersionId).build())
+            WorkflowVersion v = workflowVersionRepository.findById(WorkflowVersionIdQuery.builder().id(workflowVersionId).build())
                     .orElseThrow(() -> new NotFoundException("WorkflowVersion 不存在，id=" + workflowVersionId));
             if (v.getWorkflowId() == null || !v.getWorkflowId().equals(wf.getId())) {
                 throw new BusinessException("WorkflowVersion 不属于当前 Workflow，workflowVersionId=" + workflowVersionId);
             }
             return v;
         }
-        return workflowVersionRepository.findPublishedVersion(orgId, wf.getId())
+        return workflowVersionRepository.findPublishedVersion(wf.getId())
                 .orElseThrow(() -> new BusinessException("Workflow 未发布任何版本，code=" + wf.getWorkflowCode()));
     }
 
-    private Graph loadGraph(Long orgId, Long workflowVersionId) {
+    private Graph loadGraph(Long workflowVersionId) {
         List<WorkflowNode> nodes = workflowGraphRepository.listNodes(WorkflowGraphQuery.builder()
-                .orgId(orgId)
                 .workflowVersionId(workflowVersionId)
                 .build());
         List<WorkflowEdge> edges = workflowGraphRepository.listEdges(WorkflowGraphQuery.builder()
-                .orgId(orgId)
                 .workflowVersionId(workflowVersionId)
                 .build());
         return new Graph(nodes, edges);
@@ -387,8 +375,7 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
         }
     }
 
-    private ExecutionResult executeGraph(Long orgId,
-                                        String runId,
+    private ExecutionResult executeGraph(String runId,
                                         Workflow wf,
                                         WorkflowVersion version,
                                         Graph graph,
@@ -397,11 +384,10 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
                                         Map<String, Object> variables,
                                         Map<String, Object> stepOutputs,
                                         List<WorkflowNodeRun> nodeRuns) {
-        return executeGraphInternal(orgId, runId, wf, version, graph, sessionId, content, variables, stepOutputs, nodeRuns, null, null);
+        return executeGraphInternal(runId, wf, version, graph, sessionId, content, variables, stepOutputs, nodeRuns, null, null);
     }
 
-    private ExecutionResult executeGraphFromNode(Long orgId,
-                                                String runId,
+    private ExecutionResult executeGraphFromNode(String runId,
                                                 Workflow wf,
                                                 WorkflowVersion version,
                                                 Graph graph,
@@ -412,11 +398,10 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
                                                 List<WorkflowNodeRun> nodeRuns,
                                                 String startFromNodeKey,
                                                 String approvedToolResult) {
-        return executeGraphInternal(orgId, runId, wf, version, graph, sessionId, content, variables, stepOutputs, nodeRuns, startFromNodeKey, approvedToolResult);
+        return executeGraphInternal(runId, wf, version, graph, sessionId, content, variables, stepOutputs, nodeRuns, startFromNodeKey, approvedToolResult);
     }
 
-    private ExecutionResult executeGraphInternal(Long orgId,
-                                                String runId,
+    private ExecutionResult executeGraphInternal(String runId,
                                                 Workflow wf,
                                                 WorkflowVersion version,
                                                 Graph graph,
@@ -429,7 +414,7 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
                                                 String approvedToolResult) {
         org.springframework.ai.chat.client.advisor.api.CallAdvisor[] workflowAdvisors = version == null || version.getId() == null
                 ? new org.springframework.ai.chat.client.advisor.api.CallAdvisor[0]
-                : advisorRuntimeService.resolveForWorkflowVersion(orgId, version.getId(), runId, sessionId);
+                : advisorRuntimeService.resolveForWorkflowVersion(version.getId(), runId, sessionId);
 
         Map<String, WorkflowNode> nodeMap = new HashMap<>();
         Map<String, List<WorkflowEdge>> out = new HashMap<>();
@@ -486,7 +471,6 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
 
             workflowRunRepository.updateStatusAndMetrics(WorkflowRun.builder()
                     .runId(runId)
-                    .orgId(orgId)
                     .status("RUNNING")
                     .currentNodeKey(nodeKey)
                     .costMs(null)
@@ -495,7 +479,6 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
                     .build());
 
             WorkflowNodeRun nodeRun = WorkflowNodeRun.builder()
-                    .orgId(orgId)
                     .runId(runId)
                     .nodeKey(nodeKey)
                     .nodeType(node.getNodeType())
@@ -520,7 +503,7 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
                     .build();
 
             // 若为续跑，从同一 runId 继续：避免重复插入（可多次执行），优先更新
-            WorkflowNodeRun existed = workflowNodeRunRepository.findByRunIdAndNodeKey(orgId, runId, nodeKey).orElse(null);
+            WorkflowNodeRun existed = workflowNodeRunRepository.findByRunIdAndNodeKey(runId, nodeKey).orElse(null);
             if (existed != null && existed.getId() != null && StringUtils.hasText(startFromNodeKey)) {
                 nodeRun.setId(existed.getId());
                 nodeRun.setStatus("RUNNING");
@@ -532,7 +515,7 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
             }
 
             try {
-                NodeResult result = executeNode(orgId, runId, wf, version, node, sessionId, content, variables, stepOutputs, workflowAdvisors,
+                NodeResult result = executeNode(runId, wf, version, node, sessionId, content, variables, stepOutputs, workflowAdvisors,
                         StringUtils.hasText(startFromNodeKey) && nodeKey.equals(startFromNodeKey) ? approvedToolResult : null);
 
                 completed.add(nodeKey);
@@ -597,8 +580,7 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
         return ExecutionResult.success(finalContract);
     }
 
-    private NodeResult executeNode(Long orgId,
-                                  String runId,
+    private NodeResult executeNode(String runId,
                                   Workflow wf,
                                   WorkflowVersion version,
                                   WorkflowNode node,
@@ -677,7 +659,7 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
         }
 
         if ("LLM".equals(type) || "OUTPUT".equals(type)) {
-            ModelConfig model = resolveModel(orgId, cfg);
+            ModelConfig model = resolveModel(cfg);
             ChatClient chatClient = buildChatClient(model, cfg, workflowAdvisors);
             String system = cfg.get("systemPrompt") == null ? "" : String.valueOf(cfg.get("systemPrompt"));
             String userTemplate = cfg.get("userTemplate") == null ? "{{input}}" : String.valueOf(cfg.get("userTemplate"));
@@ -870,27 +852,16 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
         return chatClientAssemblyService.buildChatClient(model, enableTools, workflowAdvisors == null ? new org.springframework.ai.chat.client.advisor.api.CallAdvisor[0] : workflowAdvisors);
     }
 
-    private ModelConfig resolveModel(Long orgId, Map<String, Object> cfg) {
-        Object fixed = cfg.get("fixedModelId");
-        if (fixed != null) {
-            try {
-                Long modelId = Long.valueOf(String.valueOf(fixed));
-                ModelConfig model = modelConfigService.queryModelConfigById(new IdQuery(orgId, modelId));
-                if (model != null && model.getOrgId() != null && !model.getOrgId().equals(orgId)) {
-                    throw new BusinessException("模型不属于当前组织，modelId=" + modelId);
-                }
-                return model;
-            } catch (NumberFormatException ignore) {
-            }
-        }
-        List<ModelConfig> enabled = modelConfigService.queryEnabledModels(new EnabledQuery(orgId, true));
+    private ModelConfig resolveModel(Map<String, Object> cfg) {
+        List<ModelConfig> enabled = modelConfigService.queryEnabledModels(new EnabledQuery(true));
         if (enabled == null || enabled.isEmpty()) {
-            throw new BusinessException("当前组织未配置可用模型");
+            throw new BusinessException("未配置可用模型");
         }
         return enabled.stream()
-                .filter(m -> m != null && m.getOrgId() != null && m.getOrgId().equals(orgId))
-                .max((a, b) -> Integer.compare(a.getPriority() == null ? 0 : a.getPriority(), b.getPriority() == null ? 0 : b.getPriority()))
-                .orElseThrow(() -> new BusinessException("当前组织未配置可用模型"));
+                .filter(m -> m != null && m.getId() != null)
+                .sorted(java.util.Comparator.comparingLong(m -> m.getId() == null ? Long.MAX_VALUE : m.getId()))
+                .findFirst()
+                .orElseThrow(() -> new BusinessException("未配置可用模型"));
     }
 
     private Optional<ToolCallback> findToolByKey(String toolKey) {
@@ -1134,8 +1105,7 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
         return s.substring(0, max);
     }
 
-    private void saveRunContextSnapshot(Long orgId,
-                                        String runId,
+    private void saveRunContextSnapshot(String runId,
                                         Workflow wf,
                                         WorkflowVersion version,
                                         Long sessionId,
@@ -1166,7 +1136,6 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
             String json = objectMapper.writeValueAsString(map);
 
             workflowRunContextRepository.upsert(WorkflowRunContext.builder()
-                    .orgId(orgId)
                     .runId(runId)
                     .status("SAVED")
                     .snapshotJson(json)
@@ -1176,11 +1145,11 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
         }
     }
 
-    private WorkflowSnapshot loadSnapshot(Long orgId, String runId) {
-        if (workflowRunContextRepository == null || orgId == null || !StringUtils.hasText(runId)) {
+    private WorkflowSnapshot loadSnapshot(String runId) {
+        if (workflowRunContextRepository == null || !StringUtils.hasText(runId)) {
             return null;
         }
-        return workflowRunContextRepository.findByRunId(orgId, runId)
+        return workflowRunContextRepository.findByRunId(runId)
                 .map(ctx -> {
                     if (ctx == null || !StringUtils.hasText(ctx.getSnapshotJson())) {
                         return null;
@@ -1200,8 +1169,7 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
                 .orElse(null);
     }
 
-    private PlatformContractV1 buildContractWithSteps(Long orgId,
-                                                      Workflow wf,
+    private PlatformContractV1 buildContractWithSteps(Workflow wf,
                                                       WorkflowVersion version,
                                                       String runId,
                                                       long costMs,
@@ -1224,9 +1192,6 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
                         .nodeName(nr.getNodeName())
                         .status(nr.getStatus())
                         .costMs(nr.getCostMs())
-                        .promptTokens(nr.getPromptTokens())
-                        .completionTokens(nr.getCompletionTokens())
-                        .totalTokens(nr.getTotalTokens())
                         .toolCallCount(nr.getToolCallCount())
                         .toolDeniedCount(nr.getToolDeniedCount())
                         .inputDigest(nr.getInputDigest())
@@ -1244,7 +1209,6 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
                 .agentCode(null)
                 .agentVersionId(null)
                 .agentVersionNo(null)
-                .orgId(orgId)
                 .modelUsed(null)
                 .costMs(costMs)
                 .repairAttempts(0)

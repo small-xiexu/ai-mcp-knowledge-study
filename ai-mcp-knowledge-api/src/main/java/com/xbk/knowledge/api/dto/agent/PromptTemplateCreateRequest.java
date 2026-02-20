@@ -22,12 +22,6 @@ public class PromptTemplateCreateRequest extends BaseRequest {
 
     private static final long serialVersionUID = 1L;
 
-    /**
-     * GLOBAL/ORG，默认 ORG。
-     */
-    @Builder.Default
-    private String scope = "ORG";
-
     @NotBlank(message = "templateCode 不能为空")
     private String templateCode;
 
@@ -42,4 +36,3 @@ public class PromptTemplateCreateRequest extends BaseRequest {
      */
     private String variableSpecJson;
 }
-

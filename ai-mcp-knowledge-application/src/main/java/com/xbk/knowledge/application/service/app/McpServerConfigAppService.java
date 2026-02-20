@@ -1,9 +1,9 @@
 package com.xbk.knowledge.application.service.app;
 
-import com.xbk.knowledge.domain.model.entity.McpServerConfig;
+import com.xbk.knowledge.domain.mcp.model.entity.McpServerConfig;
 import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
 import com.xbk.knowledge.domain.model.vo.common.IdQuery;
-import com.xbk.knowledge.domain.model.vo.mcp.McpServerConfigPageQuery;
+import com.xbk.knowledge.domain.mcp.model.valobj.McpServerConfigPageQuery;
 import com.xbk.knowledge.types.common.PageResult;
 
 import java.util.List;

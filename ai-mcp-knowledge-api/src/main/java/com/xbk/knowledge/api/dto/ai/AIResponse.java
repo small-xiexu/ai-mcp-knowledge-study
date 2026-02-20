@@ -29,11 +29,6 @@ public class AIResponse {
     private String modelUsed;
 
     /**
-     * 使用的 token 数量
-     */
-    private Integer tokensUsed;
-
-    /**
      * 响应时间（毫秒）
      */
     private Long responseTime;

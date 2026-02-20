@@ -14,7 +14,6 @@ import java.util.List;
 @Builder
 public class PreheatResult {
 
-    private final Long orgId;
     private final String targetType;
     private final Long targetId;
     private final boolean mcpRefreshed;
@@ -23,4 +22,3 @@ public class PreheatResult {
     private final boolean workflowValidated;
     private final List<String> warnings;
 }
-

@@ -8,7 +8,6 @@ import com.xbk.knowledge.api.dto.preheat.PreheatWorkflowVersionRequest;
 import com.xbk.knowledge.application.model.preheat.PreheatResult;
 import com.xbk.knowledge.application.service.app.PreheatAppService;
 import com.xbk.knowledge.types.common.Result;
-import com.xbk.knowledge.types.context.OrgContextHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -40,12 +39,11 @@ public class PreheatController {
     @PostMapping("/agent-version")
     @SaCheckPermission("agent:write")
     public Result<PreheatResponse> preheatAgentVersion(@Valid @RequestBody PreheatAgentVersionRequest request) {
-        Long orgId = currentOrgId();
         boolean refreshMcp = request.getRefreshMcp() != null && request.getRefreshMcp();
         if (refreshMcp) {
             StpUtil.checkPermission("tool:write");
         }
-        PreheatResult result = preheatAppService.preheatAgentVersion(orgId, request.getAgentVersionId(), refreshMcp);
+        PreheatResult result = preheatAppService.preheatAgentVersion(request.getAgentVersionId(), refreshMcp);
         return Result.success(toResponse(result));
     }
 
@@ -58,12 +56,11 @@ public class PreheatController {
     @PostMapping("/workflow-version")
     @SaCheckPermission("workflow:write")
     public Result<PreheatResponse> preheatWorkflowVersion(@Valid @RequestBody PreheatWorkflowVersionRequest request) {
-        Long orgId = currentOrgId();
         boolean refreshMcp = request.getRefreshMcp() != null && request.getRefreshMcp();
         if (refreshMcp) {
             StpUtil.checkPermission("tool:write");
         }
-        PreheatResult result = preheatAppService.preheatWorkflowVersion(orgId, request.getWorkflowVersionId(), refreshMcp);
+        PreheatResult result = preheatAppService.preheatWorkflowVersion(request.getWorkflowVersionId(), refreshMcp);
         return Result.success(toResponse(result));
     }
 
@@ -72,7 +69,6 @@ public class PreheatController {
             return null;
         }
         PreheatResponse resp = new PreheatResponse();
-        resp.setOrgId(r.getOrgId());
         resp.setTargetType(r.getTargetType());
         resp.setTargetId(r.getTargetId());
         resp.setMcpRefreshed(r.isMcpRefreshed());
@@ -83,9 +79,4 @@ public class PreheatController {
         return resp;
     }
 
-    private Long currentOrgId() {
-        Long orgId = OrgContextHolder.currentOrgIdOrNull();
-        return orgId != null ? orgId : 1L;
-    }
 }
-

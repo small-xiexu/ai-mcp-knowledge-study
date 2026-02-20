@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xbk.knowledge.infrastructure.mapper.workflow.WorkflowMapper">
+<mapper namespace="com.xbk.knowledge.infrastructure.dao.IWorkflowDao">
 
-    <resultMap id="WorkflowMap" type="com.xbk.knowledge.domain.model.entity.workflow.Workflow">
+    <resultMap id="WorkflowMap" type="com.xbk.knowledge.infrastructure.dao.po.WorkflowPO">
         <id column="id" property="id"/>
         <result column="workflow_code" property="workflowCode"/>
         <result column="workflow_name" property="workflowName"/>
@@ -17,7 +17,7 @@
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
 
-    <insert id="insertWorkflow" parameterType="com.xbk.knowledge.domain.model.entity.workflow.Workflow"
+    <insert id="insertWorkflow" parameterType="com.xbk.knowledge.infrastructure.dao.po.WorkflowPO"
             useGeneratedKeys="true" keyProperty="id">
         insert into workflow (
             created_by, updated_by, created_at, updated_at
@@ -26,7 +26,7 @@
         )
     </insert>
 
-    <update id="updateWorkflow" parameterType="com.xbk.knowledge.domain.model.entity.workflow.Workflow">
+    <update id="updateWorkflow" parameterType="com.xbk.knowledge.infrastructure.dao.po.WorkflowPO">
         update workflow
         set workflow_name = #{workflowName},
             description = #{description},

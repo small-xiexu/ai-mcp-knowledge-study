@@ -8,13 +8,12 @@ import com.xbk.knowledge.api.dto.agent.AgentResponse;
 import com.xbk.knowledge.api.dto.agent.AgentUpdateRequest;
 import com.xbk.knowledge.application.service.app.AgentAppService;
 import com.xbk.knowledge.application.service.app.IdentityContextService;
-import com.xbk.knowledge.domain.model.entity.agent.Agent;
-import com.xbk.knowledge.domain.model.vo.agent.AgentCodeQuery;
-import com.xbk.knowledge.domain.model.vo.agent.AgentPageQuery;
+import com.xbk.knowledge.domain.agent.model.entity.Agent;
+import com.xbk.knowledge.domain.agent.model.valobj.AgentCodeQuery;
+import com.xbk.knowledge.domain.agent.model.valobj.AgentPageQuery;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.common.PageResultConverter;
 import com.xbk.knowledge.types.common.Result;
-import com.xbk.knowledge.types.context.OrgContextHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -47,10 +46,7 @@ public class AgentController {
     @PostMapping("/list")
     @SaCheckPermission("agent:read")
     public Result<PageResult<AgentResponse>> list(@Valid @RequestBody AgentQueryRequest request) {
-        Long orgId = currentOrgId();
-        AgentPageQuery query = new AgentPageQuery(
-                orgId,
-                request.getKeyword(),
+        AgentPageQuery query = new AgentPageQuery(request.getKeyword(),
                 request.getStatus(),
                 request.getOffset(),
                 request.getPageSize()
@@ -69,8 +65,7 @@ public class AgentController {
     @PostMapping("/get")
     @SaCheckPermission("agent:read")
     public Result<AgentResponse> get(@Valid @RequestBody AgentCodeRequest request) {
-        Long orgId = currentOrgId();
-        Agent agent = agentAppService.queryByCode(new AgentCodeQuery(orgId, request.getAgentCode()));
+        Agent agent = agentAppService.queryByCode(new AgentCodeQuery(request.getAgentCode()));
         return Result.success(toResponse(agent));
     }
 
@@ -83,10 +78,8 @@ public class AgentController {
     @PostMapping("/create")
     @SaCheckPermission("agent:write")
     public Result<AgentResponse> create(@Valid @RequestBody AgentCreateRequest request) {
-        Long orgId = currentOrgId();
         Long userId = identityContextService.getCurrentUserId();
         Agent agent = Agent.builder()
-                .orgId(orgId)
                 .agentCode(request.getAgentCode())
                 .agentName(request.getAgentName())
                 .description(request.getDescription())
@@ -107,10 +100,8 @@ public class AgentController {
     @PostMapping("/update")
     @SaCheckPermission("agent:write")
     public Result<AgentResponse> update(@Valid @RequestBody AgentUpdateRequest request) {
-        Long orgId = currentOrgId();
         Long userId = identityContextService.getCurrentUserId();
         Agent agent = Agent.builder()
-                .orgId(orgId)
                 .agentCode(request.getAgentCode())
                 .agentName(request.getAgentName())
                 .description(request.getDescription())
@@ -130,7 +121,6 @@ public class AgentController {
     private AgentResponse toResponse(Agent agent) {
         return AgentResponse.builder()
                 .id(agent.getId())
-                .orgId(agent.getOrgId())
                 .agentCode(agent.getAgentCode())
                 .agentName(agent.getAgentName())
                 .description(agent.getDescription())
@@ -141,15 +131,4 @@ public class AgentController {
                 .build();
     }
 
-    /**
-     * 获取当前请求的目标 orgId。
-     *
-     * 说明：未注入 OrgContext 时默认使用 ROOT org（1）。
-     *
-     * @return orgId
-     */
-    private Long currentOrgId() {
-        Long orgId = OrgContextHolder.currentOrgIdOrNull();
-        return orgId != null ? orgId : 1L;
-    }
 }

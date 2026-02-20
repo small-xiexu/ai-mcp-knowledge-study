@@ -7,7 +7,7 @@ import com.xbk.knowledge.application.service.rag.RagTaskProcessor;
 import com.xbk.knowledge.application.service.rag.RagVectorStoreService;
 import com.xbk.knowledge.domain.model.entity.RagTask;
 import com.xbk.knowledge.domain.model.vo.rag.FileProcessError;
-import com.xbk.knowledge.domain.repository.rag.RagTaskRepository;
+import com.xbk.knowledge.domain.model.adapter.repository.rag.RagTaskRepository;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.enums.RagTaskStatus;
 import lombok.RequiredArgsConstructor;

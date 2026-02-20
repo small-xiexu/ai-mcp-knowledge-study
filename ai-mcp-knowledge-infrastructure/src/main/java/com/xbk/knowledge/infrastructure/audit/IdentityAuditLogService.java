@@ -1,7 +1,7 @@
 package com.xbk.knowledge.infrastructure.audit;
 
 import com.xbk.knowledge.domain.model.entity.SysAuditEvent;
-import com.xbk.knowledge.infrastructure.mapper.audit.SysAuditEventMapper;
+import com.xbk.knowledge.infrastructure.dao.ISysAuditEventDao;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class IdentityAuditLogService {
 
-    private final SysAuditEventMapper sysAuditEventMapper;
+    private final ISysAuditEventDao sysAuditEventMapper;
 
     /**
      * 写入审计日志。

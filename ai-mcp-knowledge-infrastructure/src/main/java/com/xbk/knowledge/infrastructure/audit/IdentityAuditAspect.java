@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xbk.knowledge.domain.model.entity.SysAuditEvent;
 import com.xbk.knowledge.types.common.Result;
-import com.xbk.knowledge.types.context.OrgContextHolder;
 import com.xbk.knowledge.types.trace.TraceIdUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -110,16 +109,16 @@ public class IdentityAuditAspect {
             try {
                 long costMs = System.currentTimeMillis() - start;
                 String newValue = toJsonSafe(buildNewValue(extractResultData(result), eventType, executeResult));
-                Long operatorOrgId = safeOrgId(OrgContextHolder.operatorOrgIdOrNull());
-                Long resourceOrgId = safeOrgId(OrgContextHolder.currentOrgIdOrNull());
+                Long operatorScopeId = safeScopeId(1L);
+                Long resourceScopeId = safeScopeId(1L);
                 SysAuditEvent event = SysAuditEvent.builder()
                         .operatorId(operatorId)
-                        .operatorOrgId(operatorOrgId)
+                        .operatorScopeId(operatorScopeId)
                         .operatorType(operatorId == null ? "system" : "user")
                         .eventType(eventType)
                         .resourceType(resourceType)
                         .resourceId(resourceId)
-                        .resourceOrgId(resourceOrgId)
+                        .resourceScopeId(resourceScopeId)
                         .action(action)
                         .requestId(requestId)
                         .sourceIp(sourceIp)
@@ -138,7 +137,7 @@ public class IdentityAuditAspect {
         }
     }
 
-    private Long safeOrgId(Long candidate) {
+    private Long safeScopeId(Long candidate) {
         return candidate != null ? candidate : 1L;
     }
 

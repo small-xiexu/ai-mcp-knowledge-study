@@ -126,14 +126,14 @@ const { hasPermission } = usePermission()
 const route = useRoute()
 const router = useRouter()
 
-type MenuGroupKey = 'common' | 'agent' | 'knowledge' | 'integration' | 'org'
+type MenuGroupKey = 'common' | 'agent' | 'knowledge' | 'integration' | 'security'
 
 const groupDefs: Array<{ key: MenuGroupKey; title: string; defaultOpen: boolean; order: number }> = [
   { key: 'common', title: '常用', defaultOpen: true, order: 1 },
   { key: 'agent', title: 'Agent 平台', defaultOpen: true, order: 2 },
   { key: 'knowledge', title: '知识库', defaultOpen: false, order: 3 },
   { key: 'integration', title: '配置与集成', defaultOpen: false, order: 4 },
-  { key: 'org', title: '组织与审计', defaultOpen: false, order: 5 }
+  { key: 'security', title: '用户与审计', defaultOpen: false, order: 5 }
 ]
 
 const buildGroupOpen = (): Record<MenuGroupKey, boolean> => {
@@ -166,7 +166,7 @@ const isGroupOpen = (key: MenuGroupKey) => {
 }
 
 const normalizeGroupKey = (raw: unknown): MenuGroupKey => {
-  if (raw === 'integration' || raw === 'org' || raw === 'knowledge' || raw === 'agent' || raw === 'common') {
+  if (raw === 'integration' || raw === 'security' || raw === 'knowledge' || raw === 'agent' || raw === 'common') {
     return raw
   }
   return 'common'
@@ -192,7 +192,7 @@ const menuGroups = computed(() => {
     agent: [],
     knowledge: [],
     integration: [],
-    org: []
+    security: []
   }
 
   for (const r of allMenuRoutes.value) {

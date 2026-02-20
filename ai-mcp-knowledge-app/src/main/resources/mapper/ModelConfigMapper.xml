@@ -2,10 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xbk.knowledge.infrastructure.mapper.model.ModelConfigMapper">
+<mapper namespace="com.xbk.knowledge.infrastructure.dao.IModelConfigDao">
 
-    <!-- 模型配置基础字段映射 -->
-    <resultMap id="ModelConfigMap" type="com.xbk.knowledge.domain.model.entity.ModelConfig">
+    <resultMap id="ModelConfigMap" type="com.xbk.knowledge.infrastructure.dao.po.ModelConfigPO">
         <id column="id" property="id"/>
         <result column="model_name" property="modelName"/>
         <result column="model_type" property="modelType"/>
@@ -13,32 +12,11 @@
         <result column="base_url" property="baseUrl"/>
         <result column="enabled" property="enabled"/>
         <result column="tool_enabled" property="toolEnabled"/>
-        <result column="priority" property="priority"/>
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
 
-    <!-- 模型能力字段映射，供 capability 关联使用 -->
-    <resultMap id="ModelCapabilityMap" type="com.xbk.knowledge.domain.model.entity.ModelCapability">
-        <id column="cap_id" property="id"/>
-        <result column="cap_model_id" property="modelId"/>
-        <result column="cap_max_input_tokens" property="maxInputTokens"/>
-        <result column="cap_max_output_tokens" property="maxOutputTokens"/>
-        <result column="cap_support_function_calling" property="supportFunctionCalling"/>
-        <result column="cap_support_vision" property="supportVision"/>
-        <result column="cap_support_streaming" property="supportStreaming"/>
-        <result column="cap_quality_score" property="qualityScore"/>
-        <result column="cap_created_at" property="createdAt"/>
-        <result column="cap_updated_at" property="updatedAt"/>
-    </resultMap>
-
-    <!-- 联表映射：ModelConfig + ModelCapability，cap_* 字段映射到 capability -->
-    <resultMap id="ModelConfigWithCapabilityMap" type="com.xbk.knowledge.domain.model.entity.ModelConfig" extends="ModelConfigMap">
-        <association property="capability" javaType="com.xbk.knowledge.domain.model.entity.ModelCapability"
-                     resultMap="ModelCapabilityMap"/>
-    </resultMap>
-
-    <insert id="insertModelConfig" parameterType="com.xbk.knowledge.domain.model.entity.ModelConfig" useGeneratedKeys="true"
+    <insert id="insertModelConfig" parameterType="com.xbk.knowledge.infrastructure.dao.po.ModelConfigPO" useGeneratedKeys="true"
             keyProperty="id">
         insert into ai_model_config (
             model_name,
@@ -47,7 +25,6 @@
             base_url,
             enabled,
             tool_enabled,
-            priority,
             created_at,
             updated_at
         ) values (
@@ -57,13 +34,12 @@
             #{baseUrl},
             #{enabled},
             #{toolEnabled},
-            #{priority},
             #{createdAt},
             #{updatedAt}
         )
     </insert>
 
-    <update id="updateModelConfig" parameterType="com.xbk.knowledge.domain.model.entity.ModelConfig">
+    <update id="updateModelConfig" parameterType="com.xbk.knowledge.infrastructure.dao.po.ModelConfigPO">
         update ai_model_config
         set model_name = #{modelName},
             model_type = #{modelType},
@@ -71,7 +47,6 @@
             base_url = #{baseUrl},
             enabled = #{enabled},
             tool_enabled = #{toolEnabled},
-            priority = #{priority},
             updated_at = #{updatedAt}
         where id = #{id}
     </update>
@@ -90,38 +65,10 @@
             base_url,
             enabled,
             tool_enabled,
-            priority,
             created_at,
             updated_at
         from ai_model_config
         where id = #{id}
-    </select>
-
-    <select id="findByIdWithCapability" resultMap="ModelConfigWithCapabilityMap">
-        select
-            mc.id,
-            mc.model_name,
-            mc.model_type,
-            mc.api_key,
-            mc.base_url,
-            mc.enabled,
-            mc.tool_enabled,
-            mc.priority,
-            mc.created_at,
-            mc.updated_at,
-            cap.id as cap_id,
-            cap.model_id as cap_model_id,
-            cap.max_input_tokens as cap_max_input_tokens,
-            cap.max_output_tokens as cap_max_output_tokens,
-            cap.support_function_calling as cap_support_function_calling,
-            cap.support_vision as cap_support_vision,
-            cap.support_streaming as cap_support_streaming,
-            cap.quality_score as cap_quality_score,
-            cap.created_at as cap_created_at,
-            cap.updated_at as cap_updated_at
-        from ai_model_config mc
-        left join ai_model_capability cap on cap.model_id = mc.id
-        where mc.id = #{id}
     </select>
 
     <select id="findByModelName" resultMap="ModelConfigMap">
@@ -133,7 +80,6 @@
             base_url,
             enabled,
             tool_enabled,
-            priority,
             created_at,
             updated_at
         from ai_model_config
@@ -149,7 +95,6 @@
             base_url,
             enabled,
             tool_enabled,
-            priority,
             created_at,
             updated_at
         from ai_model_config
@@ -165,54 +110,10 @@
             base_url,
             enabled,
             tool_enabled,
-            priority,
             created_at,
             updated_at
         from ai_model_config
         where enabled = true
-    </select>
-
-    <select id="findByEnabledOrderByPriorityDesc" resultMap="ModelConfigMap">
-        select
-            id,
-            model_name,
-            model_type,
-            api_key,
-            base_url,
-            enabled,
-            priority,
-            created_at,
-            updated_at
-        from ai_model_config
-        where enabled = #{enabled}
-        order by priority desc
-    </select>
-
-    <select id="findEnabledTrueWithCapability" resultMap="ModelConfigWithCapabilityMap">
-        select
-            mc.id,
-            mc.model_name,
-            mc.model_type,
-            mc.api_key,
-            mc.base_url,
-            mc.enabled,
-            mc.tool_enabled,
-            mc.priority,
-            mc.created_at,
-            mc.updated_at,
-            cap.id as cap_id,
-            cap.model_id as cap_model_id,
-            cap.max_input_tokens as cap_max_input_tokens,
-            cap.max_output_tokens as cap_max_output_tokens,
-            cap.support_function_calling as cap_support_function_calling,
-            cap.support_vision as cap_support_vision,
-            cap.support_streaming as cap_support_streaming,
-            cap.quality_score as cap_quality_score,
-            cap.created_at as cap_created_at,
-            cap.updated_at as cap_updated_at
-        from ai_model_config mc
-        left join ai_model_capability cap on cap.model_id = mc.id
-        where mc.enabled = true
     </select>
 
     <select id="findEnabledByIds" resultMap="ModelConfigMap">
@@ -224,7 +125,6 @@
             base_url,
             enabled,
             tool_enabled,
-            priority,
             created_at,
             updated_at
         from ai_model_config
@@ -244,32 +144,19 @@
         </where>
     </select>
 
-    <!-- 分页查询模型配置并携带能力配置，字段较多用于完整装配 capability -->
-    <select id="findPageWithCapability" resultMap="ModelConfigWithCapabilityMap">
+    <select id="findPage" resultMap="ModelConfigMap">
         select
-            mc.id,
-            mc.model_name,
-            mc.model_type,
-            mc.api_key,
-            mc.base_url,
-            mc.enabled,
-            mc.tool_enabled,
-            mc.priority,
-            mc.created_at,
-            mc.updated_at,
-            cap.id as cap_id,
-            cap.model_id as cap_model_id,
-            cap.max_input_tokens as cap_max_input_tokens,
-            cap.max_output_tokens as cap_max_output_tokens,
-            cap.support_function_calling as cap_support_function_calling,
-            cap.support_vision as cap_support_vision,
-            cap.support_streaming as cap_support_streaming,
-            cap.quality_score as cap_quality_score,
-            cap.created_at as cap_created_at,
-            cap.updated_at as cap_updated_at
-        from ai_model_config mc
-        left join ai_model_capability cap on cap.model_id = mc.id
-        order by mc.updated_at desc, mc.id asc
+            id,
+            model_name,
+            model_type,
+            api_key,
+            base_url,
+            enabled,
+            tool_enabled,
+            created_at,
+            updated_at
+        from ai_model_config
+        order by updated_at desc, id asc
         limit #{pageSize} offset #{offset}
     </select>
 

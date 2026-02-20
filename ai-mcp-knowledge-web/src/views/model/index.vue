@@ -116,38 +116,6 @@
         </el-table-column>
 
         <el-table-column
-          prop="priority"
-          label="优先级"
-          width="80"
-          align="center"
-        />
-
-        <el-table-column
-          label="能力指标"
-          min-width="160"
-        >
-          <template #default="{ row }">
-            <div v-if="row.capability" class="capability-info">
-              <div class="cap-item">
-                <span class="label">Tokens</span>
-                <span class="val">{{ row.capability.maxInputTokens }}</span>
-              </div>
-              <div class="cap-item">
-                <span class="label">Quality</span>
-                <el-progress 
-                  :percentage="row.capability.qualityScore || 0" 
-                  :show-text="false" 
-                  :stroke-width="4"
-                  color="#8ab4f8"
-                  class="quality-progress"
-                />
-              </div>
-            </div>
-            <span v-else class="text-secondary">-</span>
-          </template>
-        </el-table-column>
-
-        <el-table-column
           label="操作"
           width="120"
           fixed="right"
@@ -518,32 +486,6 @@ onMounted(() => {
     .dot {
       background-color: #81c995;
       box-shadow: 0 0 8px rgba(129, 201, 149, 0.4);
-    }
-  }
-}
-
-/* 能力指标 */
-.capability-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 12px;
-  
-  .cap-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: #9aa0a6;
-    
-    .val {
-      color: #e8eaed;
-    }
-  }
-  
-  .quality-progress {
-    width: 60px;
-    :deep(.el-progress-bar__outer) {
-      background-color: #3c4043 !important;
     }
   }
 }

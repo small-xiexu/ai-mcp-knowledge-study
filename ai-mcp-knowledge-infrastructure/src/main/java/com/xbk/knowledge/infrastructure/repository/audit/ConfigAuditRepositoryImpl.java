@@ -3,8 +3,8 @@ package com.xbk.knowledge.infrastructure.repository.audit;
 import com.xbk.knowledge.domain.model.aggregate.audit.ConfigAuditAggregate;
 import com.xbk.knowledge.domain.model.entity.ConfigAudit;
 import com.xbk.knowledge.domain.model.vo.audit.AuditQuery;
-import com.xbk.knowledge.domain.repository.audit.ConfigAuditRepository;
-import com.xbk.knowledge.infrastructure.mapper.audit.ConfigAuditMapper;
+import com.xbk.knowledge.domain.model.adapter.repository.audit.ConfigAuditRepository;
+import com.xbk.knowledge.infrastructure.dao.IConfigAuditDao;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -23,7 +23,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ConfigAuditRepositoryImpl implements ConfigAuditRepository {
 
-    private final ConfigAuditMapper configAuditMapper;
+    private final IConfigAuditDao configAuditMapper;
 
     /**
      * 保存配置审计

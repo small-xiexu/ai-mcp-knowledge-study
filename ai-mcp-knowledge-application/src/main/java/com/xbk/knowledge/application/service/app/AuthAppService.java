@@ -1,7 +1,7 @@
 package com.xbk.knowledge.application.service.app;
 
 import com.xbk.knowledge.application.model.identity.AuthProfile;
-import com.xbk.knowledge.domain.model.entity.SysUser;
+import com.xbk.knowledge.domain.identity.model.entity.SysUser;
 
 import java.util.List;
 

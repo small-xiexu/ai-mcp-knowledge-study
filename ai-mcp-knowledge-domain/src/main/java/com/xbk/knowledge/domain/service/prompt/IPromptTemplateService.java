@@ -1,8 +1,8 @@
 package com.xbk.knowledge.domain.service.prompt;
 
-import com.xbk.knowledge.domain.model.entity.agent.PromptTemplate;
-import com.xbk.knowledge.domain.model.vo.agent.PromptTemplateIdQuery;
-import com.xbk.knowledge.domain.model.vo.agent.PromptTemplatePageQuery;
+import com.xbk.knowledge.domain.agent.model.entity.PromptTemplate;
+import com.xbk.knowledge.domain.agent.model.valobj.PromptTemplateIdQuery;
+import com.xbk.knowledge.domain.agent.model.valobj.PromptTemplatePageQuery;
 import com.xbk.knowledge.types.common.PageResult;
 
 /**

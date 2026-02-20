@@ -4,7 +4,6 @@ import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
 import com.xbk.knowledge.domain.model.vo.common.IdQuery;
 import com.xbk.knowledge.domain.model.vo.model.ModelConfigPageQuery;
-import com.xbk.knowledge.domain.model.vo.task.TaskTypeQuery;
 import com.xbk.knowledge.types.common.PageResult;
 
 import java.util.List;
@@ -90,12 +89,4 @@ public interface IModelConfigService {
      */
     List<ModelConfig> queryEnabledModels(EnabledQuery query);
 
-    /**
-     * 根据任务类型获取推荐模型
-     *
-     * 为什么：为任务分配合适模型
-     * 入参：任务类型查询条件
-     * 出参：推荐的模型配置
-     */
-    ModelConfig getRecommendedModel(TaskTypeQuery query);
 }

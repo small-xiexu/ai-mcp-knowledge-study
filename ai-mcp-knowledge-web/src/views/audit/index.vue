@@ -210,7 +210,6 @@ const pagination = reactive({
 
 const tableNameLabelMap: Record<string, string> = {
   ai_model_config: '模型配置（ai_model_config）',
-  ai_task_type: '任务类型（ai_task_type）',
   ai_mcp_server_config: 'MCP 服务配置（ai_mcp_server_config）',
   mcp_gateway: 'Gateway 实例（mcp_gateway）',
   mcp_tool_registry: 'Gateway 工具（mcp_tool_registry）',

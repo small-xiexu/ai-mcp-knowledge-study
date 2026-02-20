@@ -22,11 +22,6 @@ public class AgentRuntimeInvokeRequest extends BaseRequest {
 
     private static final long serialVersionUID = 1L;
 
-    /**
-     * 目标 org（未登录场景必填；登录场景可不填，默认当前 org）。
-     */
-    private Long orgId;
-
     @NotBlank(message = "content 不能为空")
     private String content;
 
@@ -34,4 +29,3 @@ public class AgentRuntimeInvokeRequest extends BaseRequest {
 
     private String ragTagsJson;
 }
-

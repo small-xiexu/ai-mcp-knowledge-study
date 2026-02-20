@@ -2,8 +2,8 @@ package com.xbk.knowledge.infrastructure.repository.chat;
 
 import com.xbk.knowledge.domain.model.entity.ChatSession;
 import com.xbk.knowledge.domain.model.vo.chat.ChatSessionPageQuery;
-import com.xbk.knowledge.domain.repository.chat.ChatSessionRepository;
-import com.xbk.knowledge.infrastructure.mapper.chat.ChatSessionMapper;
+import com.xbk.knowledge.domain.model.adapter.repository.chat.ChatSessionRepository;
+import com.xbk.knowledge.infrastructure.dao.IChatSessionDao;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -21,7 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ChatSessionRepositoryImpl implements ChatSessionRepository {
 
-    private final ChatSessionMapper chatSessionMapper;
+    private final IChatSessionDao chatSessionMapper;
 
     /**
      * 创建会话

@@ -4,7 +4,6 @@ import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
 import com.xbk.knowledge.domain.model.vo.common.IdQuery;
 import com.xbk.knowledge.domain.model.vo.model.ModelConfigPageQuery;
-import com.xbk.knowledge.domain.model.vo.task.TaskTypeQuery;
 import com.xbk.knowledge.types.common.PageResult;
 
 import java.util.List;
@@ -80,14 +79,6 @@ public interface ModelConfigAppService {
      * @return 启用的模型列表
      */
     List<ModelConfig> queryEnabledModels(EnabledQuery query);
-
-    /**
-     * 根据任务类型获取推荐模型
-     *
-     * @param query 任务类型查询条件
-     * @return 推荐的模型配置
-     */
-    ModelConfig getRecommendedModel(TaskTypeQuery query);
 
     /**
      * 获取当前激活的对话模型

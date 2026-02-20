@@ -37,9 +37,8 @@ public class ModelActivation {
     private Long id;
 
     /**
-     * 组织ID。
+     * scopeId。
      */
-    private Long orgId;
 
     /**
      * 当前激活的对话模型ID

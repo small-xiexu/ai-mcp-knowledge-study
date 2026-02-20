@@ -1,7 +1,7 @@
 package com.xbk.knowledge.trigger.job;
 
 import com.xbk.knowledge.domain.model.entity.RagTask;
-import com.xbk.knowledge.domain.repository.rag.RagTaskRepository;
+import com.xbk.knowledge.domain.model.adapter.repository.rag.RagTaskRepository;
 import com.xbk.knowledge.types.enums.RagTaskStatus;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.RequiredArgsConstructor;

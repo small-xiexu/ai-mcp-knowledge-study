@@ -1,10 +1,10 @@
 package com.xbk.knowledge.infrastructure.repository.prompt;
 
-import com.xbk.knowledge.domain.model.entity.agent.PromptTemplate;
-import com.xbk.knowledge.domain.model.vo.agent.PromptTemplateIdQuery;
-import com.xbk.knowledge.domain.model.vo.agent.PromptTemplatePageQuery;
-import com.xbk.knowledge.domain.repository.prompt.PromptTemplateRepository;
-import com.xbk.knowledge.infrastructure.mapper.prompt.PromptTemplateMapper;
+import com.xbk.knowledge.domain.agent.model.entity.PromptTemplate;
+import com.xbk.knowledge.domain.agent.model.valobj.PromptTemplateIdQuery;
+import com.xbk.knowledge.domain.agent.model.valobj.PromptTemplatePageQuery;
+import com.xbk.knowledge.domain.agent.adapter.repository.PromptTemplateRepository;
+import com.xbk.knowledge.infrastructure.dao.IPromptTemplateDao;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -22,7 +22,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class PromptTemplateRepositoryImpl implements PromptTemplateRepository {
 
-    private final PromptTemplateMapper promptTemplateMapper;
+    private final IPromptTemplateDao promptTemplateMapper;
 
     /**
      * findById。
@@ -32,25 +32,24 @@ public class PromptTemplateRepositoryImpl implements PromptTemplateRepository {
      */
     @Override
     public Optional<PromptTemplate> findById(PromptTemplateIdQuery query) {
-        if (query == null || query.getOrgId() == null || query.getId() == null) {
+        if (query == null || query.getId() == null) {
             return Optional.empty();
         }
         return Optional.ofNullable(promptTemplateMapper.findById(query));
     }
 
     /**
-     * existsByOrgIdAndCode。
+     * existsByCode。
      *
-     * @param orgId 参数
      * @param templateCode 参数
      * @return 返回结果
      */
     @Override
-    public boolean existsByOrgIdAndCode(Long orgId, String templateCode) {
-        if (orgId == null || templateCode == null) {
+    public boolean existsByCode(String templateCode) {
+        if (templateCode == null) {
             return false;
         }
-        return promptTemplateMapper.countByOrgIdAndCode(orgId, templateCode) > 0;
+        return promptTemplateMapper.countByCode(templateCode) > 0;
     }
 
     /**
@@ -83,7 +82,7 @@ public class PromptTemplateRepositoryImpl implements PromptTemplateRepository {
      */
     @Override
     public int updateDraft(PromptTemplate template) {
-        if (template == null || template.getId() == null || template.getOrgId() == null) {
+        if (template == null || template.getId() == null) {
             return 0;
         }
         if (template.getUpdatedAt() == null) {
@@ -95,33 +94,31 @@ public class PromptTemplateRepositoryImpl implements PromptTemplateRepository {
     /**
      * publish。
      *
-     * @param orgId 参数
      * @param id 参数
      * @param updatedBy 参数
      * @return 返回结果
      */
     @Override
-    public int publish(Long orgId, Long id, Long updatedBy) {
-        if (orgId == null || id == null) {
+    public int publish(Long id, Long updatedBy) {
+        if (id == null) {
             return 0;
         }
-        return promptTemplateMapper.publish(orgId, id, updatedBy);
+        return promptTemplateMapper.publish(id, updatedBy);
     }
 
     /**
      * archive。
      *
-     * @param orgId 参数
      * @param id 参数
      * @param updatedBy 参数
      * @return 返回结果
      */
     @Override
-    public int archive(Long orgId, Long id, Long updatedBy) {
-        if (orgId == null || id == null) {
+    public int archive(Long id, Long updatedBy) {
+        if (id == null) {
             return 0;
         }
-        return promptTemplateMapper.archive(orgId, id, updatedBy);
+        return promptTemplateMapper.archive(id, updatedBy);
     }
 
     /**
@@ -152,4 +149,3 @@ public class PromptTemplateRepositoryImpl implements PromptTemplateRepository {
         return promptTemplateMapper.count(query);
     }
 }
-

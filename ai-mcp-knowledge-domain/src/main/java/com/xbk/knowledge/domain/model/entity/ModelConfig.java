@@ -38,11 +38,10 @@ public class ModelConfig {
     private Long id;
 
     /**
-     * 组织ID。
+     * scopeId。
      *
      * 为什么：用于模型配置的组织归属标识；单组织模式下默认归属为 1。
      */
-    private Long orgId;
 
     /**
      * 模型名称
@@ -87,13 +86,6 @@ public class ModelConfig {
     private Boolean toolEnabled;
 
     /**
-     * 优先级（数字越大优先级越高）
-     *
-     * 为什么：用于路由与推荐排序
-     */
-    private Integer priority;
-
-    /**
      * 创建时间
      *
      * 为什么：用于审计与排序
@@ -109,11 +101,4 @@ public class ModelConfig {
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedAt;
 
-    /**
-     * 模型能力（一对一关系）
-     *
-     * 为什么：承载模型能力详情
-     */
-    @TableField(exist = false)
-    private ModelCapability capability;
 }

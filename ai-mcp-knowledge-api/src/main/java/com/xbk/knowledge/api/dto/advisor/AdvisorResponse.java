@@ -13,7 +13,6 @@ import java.time.LocalDateTime;
 public class AdvisorResponse {
 
     private Long id;
-    private Long orgId;
     private String advisorCode;
     private String advisorName;
     private String advisorType;
@@ -22,4 +21,3 @@ public class AdvisorResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
-

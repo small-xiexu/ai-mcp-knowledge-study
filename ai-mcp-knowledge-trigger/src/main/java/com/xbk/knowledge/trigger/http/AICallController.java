@@ -7,13 +7,11 @@ import com.xbk.knowledge.api.IAICallService;
 import com.xbk.knowledge.api.dto.ai.AIRequest;
 import com.xbk.knowledge.api.dto.ai.AIResponse;
 import com.xbk.knowledge.api.dto.ai.ModelInfo;
-import com.xbk.knowledge.api.dto.ai.ModelRecommendRequest;
 import com.xbk.knowledge.application.model.dto.AICallCommand;
 import com.xbk.knowledge.application.model.dto.AICallResult;
 import com.xbk.knowledge.application.service.app.AiChatAppService;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
-import com.xbk.knowledge.domain.model.vo.task.TaskTypeQuery;
 import com.xbk.knowledge.application.service.app.ModelConfigAppService;
 import com.xbk.knowledge.trigger.converter.DTOConverter;
 import com.xbk.knowledge.types.exception.BusinessException;
@@ -158,40 +156,6 @@ public class AICallController implements IAICallService {
                 .collect(toListCollector);
 
         return Result.success(modelInfos);
-    }
-
-    /**
-     * 获取推荐模型
-     * 根据任务类型推荐最合适的模型
-     *
-     * 为什么：推荐逻辑集中在应用层，保持策略可控。
-     *
-     * @param request 推荐模型查询请求
-     * @return 推荐的模型信息
-     */
-    @Override
-    @PostMapping("/models/recommend")
-    @SaCheckPermission("agent:read")
-    public Result<ModelInfo> getRecommendedModel(@Valid @RequestBody ModelRecommendRequest request) {
-        // 调用应用服务获取推荐模型
-        String taskType = request.getTaskType();
-        TaskTypeQuery taskTypeQuery = new TaskTypeQuery(taskType);
-        ModelConfig model = modelConfigAppService.getRecommendedModel(taskTypeQuery);
-
-        if (model == null) {
-            return Result.error(ResultCode.NOT_FOUND, "未找到推荐模型");
-        }
-
-        // 转换为 API DTO
-        ModelInfo modelInfo = new ModelInfo();
-        Long modelId = model.getId();
-        String modelName = model.getModelName();
-        ModelType modelType = model.getModelType();
-        modelInfo.setModelId(modelId);
-        modelInfo.setModelName(modelName);
-        modelInfo.setModelType(modelType);
-
-        return Result.success(modelInfo);
     }
 
     private void sendChunk(SseEmitter emitter, ChatResponse response) {

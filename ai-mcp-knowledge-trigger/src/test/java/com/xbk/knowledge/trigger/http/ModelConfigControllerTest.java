@@ -1,11 +1,9 @@
 package com.xbk.knowledge.trigger.http;
 
-import com.xbk.knowledge.api.dto.model.ModelCapabilityRequest;
 import com.xbk.knowledge.api.dto.model.ModelConfigQueryRequest;
 import com.xbk.knowledge.api.dto.model.ModelConfigRequest;
 import com.xbk.knowledge.api.dto.model.ModelConfigResponse;
 import com.xbk.knowledge.application.service.app.ModelConfigAppService;
-import com.xbk.knowledge.domain.model.entity.ModelCapability;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.model.vo.model.ModelConfigPageQuery;
 import com.xbk.knowledge.types.common.PageResult;
@@ -24,46 +22,37 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * 验证模型配置 Controller 的请求转换与返回装配，避免能力字段遗漏。
+ * 验证模型配置 Controller 的请求转换与返回装配。
  *
  * @author xiexu
  */
 public class ModelConfigControllerTest {
 
     /**
-     * 对外暴露 shouldCreateModelWithCapability 作为调用入口，便于上层复用。
+     * 对外暴露 shouldCreateModel 作为调用入口，便于上层复用。
      */
     @Test
-    public void shouldCreateModelWithCapability() {
+    public void shouldCreateModel() {
         ModelConfigAppService appService = Mockito.mock(ModelConfigAppService.class);
         ModelConfigController controller = new ModelConfigController(appService);
 
-        ModelCapability capability = ModelCapability.builder().maxInputTokens(10).qualityScore(80).build();
         ModelConfig saved = ModelConfig.builder()
                 .id(1L)
                 .modelName("m1")
                 .modelType(ModelType.OPENAI)
-                .capability(capability)
                 .build();
         when(appService.createModelConfig(any(ModelConfig.class))).thenReturn(saved);
 
-        ModelCapabilityRequest capabilityRequest = ModelCapabilityRequest.builder()
-                .maxTokens(10)
-                .qualityScore(80)
-                .build();
         ModelConfigRequest request = ModelConfigRequest.builder()
                 .modelName("m1")
                 .modelType(ModelType.OPENAI)
                 .apiKey("k")
                 .baseUrl("url")
-                .capability(capabilityRequest)
                 .build();
 
         Result<ModelConfigResponse> result = controller.createModel(request);
 
         assertEquals("m1", result.getData().getModelName());
-        assertEquals(Integer.valueOf(10), result.getData().getCapability().getMaxInputTokens());
-        assertEquals(Integer.valueOf(80), result.getData().getCapability().getQualityScore());
     }
 
     /**

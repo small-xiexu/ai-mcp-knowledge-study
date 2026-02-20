@@ -1,14 +1,12 @@
 package com.xbk.knowledge.domain.service.impl;
 
 import com.xbk.knowledge.domain.model.aggregate.model.ModelConfigAggregate;
-import com.xbk.knowledge.domain.model.entity.ModelCapability;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
 import com.xbk.knowledge.domain.model.vo.common.IdQuery;
 import com.xbk.knowledge.domain.model.vo.model.ModelConfigPageQuery;
 import com.xbk.knowledge.domain.model.vo.model.ModelNameQuery;
-import com.xbk.knowledge.domain.model.vo.task.TaskTypeQuery;
-import com.xbk.knowledge.domain.repository.model.ModelConfigRepository;
+import com.xbk.knowledge.domain.model.adapter.repository.model.ModelConfigRepository;
 import com.xbk.knowledge.types.exception.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,8 +18,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -62,13 +58,13 @@ public class ModelConfigServiceImplTest {
     public void shouldDefaultPageQueryWhenValuesMissing() {
         ModelConfigPageQuery query = new ModelConfigPageQuery(null, null);
         List<ModelConfig> models = Collections.emptyList();
-        when(modelConfigRepository.findPageWithCapability(any(ModelConfigPageQuery.class))).thenReturn(models);
+        when(modelConfigRepository.findPage(any(ModelConfigPageQuery.class))).thenReturn(models);
         when(modelConfigRepository.countAll()).thenReturn(0L);
 
         service.queryModelConfigPage(query);
 
         ArgumentCaptor<ModelConfigPageQuery> captor = ArgumentCaptor.forClass(ModelConfigPageQuery.class);
-        verify(modelConfigRepository).findPageWithCapability(captor.capture());
+        verify(modelConfigRepository).findPage(captor.capture());
         assertEquals(0, captor.getValue().getOffset());
         assertEquals(10, captor.getValue().getPageSize());
     }
@@ -90,10 +86,8 @@ public class ModelConfigServiceImplTest {
      */
     @Test
     public void shouldSetTimestampsOnCreate() {
-        ModelCapability capability = ModelCapability.builder().qualityScore(80).build();
         ModelConfig modelConfig = ModelConfig.builder()
                 .modelName("gpt")
-                .capability(capability)
                 .build();
         when(modelConfigRepository.findByModelName(any(ModelNameQuery.class)))
                 .thenReturn(Optional.empty());
@@ -101,10 +95,8 @@ public class ModelConfigServiceImplTest {
 
         ModelConfig saved = service.createModelConfig(modelConfig);
 
-        assertNotNull(saved.getCreatedAt());
-        assertNotNull(saved.getUpdatedAt());
-        assertNotNull(saved.getCapability().getCreatedAt());
-        assertNotNull(saved.getCapability().getUpdatedAt());
+        assertTrue(saved.getCreatedAt() != null);
+        assertTrue(saved.getUpdatedAt() != null);
     }
 
     /**
@@ -117,10 +109,10 @@ public class ModelConfigServiceImplTest {
     }
 
     /**
-     * 对外暴露 shouldUpdateFieldsAndCapability 作为调用入口，便于上层复用。
+     * 对外暴露 shouldUpdateFields 作为调用入口，便于上层复用。
      */
     @Test
-    public void shouldUpdateFieldsAndCapability() {
+    public void shouldUpdateFields() {
         ModelConfig existing = ModelConfig.builder()
                 .id(1L)
                 .modelName("old")
@@ -129,19 +121,13 @@ public class ModelConfigServiceImplTest {
         when(modelConfigRepository.findByModelName(any(ModelNameQuery.class))).thenReturn(Optional.of(existing));
         when(modelConfigRepository.save(any(ModelConfigAggregate.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        ModelCapability capability = ModelCapability.builder()
-                .maxInputTokens(10)
-                .maxOutputTokens(20)
-                .qualityScore(90)
-                .build();
         ModelConfig request = ModelConfig.builder()
                 .id(1L)
                 .modelName("new")
                 .apiKey("k")
                 .baseUrl("url")
                 .enabled(true)
-                .priority(2)
-                .capability(capability)
+                .toolEnabled(true)
                 .build();
 
         ModelConfig updated = service.updateModelConfig(request);
@@ -150,9 +136,7 @@ public class ModelConfigServiceImplTest {
         assertEquals("k", updated.getApiKey());
         assertEquals("url", updated.getBaseUrl());
         assertTrue(updated.getEnabled());
-        assertEquals(Integer.valueOf(2), updated.getPriority());
-        assertNotNull(updated.getCapability());
-        assertEquals(Integer.valueOf(10), updated.getCapability().getMaxInputTokens());
+        assertTrue(updated.getToolEnabled());
     }
 
     /**
@@ -165,28 +149,4 @@ public class ModelConfigServiceImplTest {
         assertThrows(NotFoundException.class, () -> service.deleteModelConfig(new IdQuery(1L)));
     }
 
-    /**
-     * 对外暴露 shouldReturnFirstEnabledModelAsRecommendation 作为调用入口，便于上层复用。
-     */
-    @Test
-    public void shouldReturnFirstEnabledModelAsRecommendation() {
-        ModelConfig first = ModelConfig.builder().modelName("first").build();
-        when(modelConfigRepository.findByEnabled(any(EnabledQuery.class))).thenReturn(Collections.<ModelConfig>singletonList(first));
-
-        ModelConfig result = service.getRecommendedModel(new TaskTypeQuery("task"));
-
-        assertEquals("first", result.getModelName());
-    }
-
-    /**
-     * 对外暴露 shouldReturnNullWhenNoEnabledModel 作为调用入口，便于上层复用。
-     */
-    @Test
-    public void shouldReturnNullWhenNoEnabledModel() {
-        when(modelConfigRepository.findByEnabled(any(EnabledQuery.class))).thenReturn(Collections.<ModelConfig>emptyList());
-
-        ModelConfig result = service.getRecommendedModel(new TaskTypeQuery("task"));
-
-        assertNull(result);
-    }
 }

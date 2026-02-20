@@ -3,7 +3,7 @@ package com.xbk.knowledge.infrastructure.mcp;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xbk.knowledge.application.service.runtime.McpServerRuntimeService;
-import com.xbk.knowledge.domain.model.entity.McpServerConfig;
+import com.xbk.knowledge.domain.mcp.model.entity.McpServerConfig;
 import com.xbk.knowledge.types.enums.McpServerType;
 import io.modelcontextprotocol.client.McpClient;
 import io.modelcontextprotocol.client.McpSyncClient;
@@ -89,7 +89,7 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
         McpSyncClient client = buildClient(config);
         client.initialize();
         clientRegistry.put(configId, client);
-        metaRegistry.put(configId, new McpServerMeta(config.getOrgId(), config.getServerName()));
+        metaRegistry.put(configId, new McpServerMeta(config.getServerName()));
         refreshToolCallbacks();
         log.info("MCP Server 已注册，id: {}, name: {}", configId, config.getServerName());
     }
@@ -408,20 +408,18 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
             Long configId = entry.getKey();
             McpSyncClient client = entry.getValue();
             McpServerMeta meta = metaRegistry.get(configId);
-            if (meta == null || meta.orgId == null || client == null) {
+            if (meta == null || client == null) {
                 continue;
             }
-            descriptors.add(new DynamicMcpToolCallbackProvider.McpClientDescriptor(meta.orgId, meta.serverName, client));
+            descriptors.add(new DynamicMcpToolCallbackProvider.McpClientDescriptor(meta.serverName, client));
         }
         toolCallbackProvider.updateClients(descriptors);
     }
 
     private static final class McpServerMeta {
-        private final Long orgId;
         private final String serverName;
 
-        private McpServerMeta(Long orgId, String serverName) {
-            this.orgId = orgId;
+        private McpServerMeta(String serverName) {
             this.serverName = serverName;
         }
     }

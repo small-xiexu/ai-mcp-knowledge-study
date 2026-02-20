@@ -3,7 +3,7 @@ package com.xbk.knowledge.application.fallback.executor;
 import com.xbk.knowledge.application.model.dto.AICallCommand;
 import com.xbk.knowledge.application.model.dto.AICallResult;
 import com.xbk.knowledge.application.fallback.core.ModelCallContext;
-import com.xbk.knowledge.application.provider.ModelProviderFactory;
+import com.xbk.knowledge.application.service.app.ChatClientAssemblyService;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.types.exception.ExceptionMessageUtils;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class DefaultModelCallExecutor implements ModelCallExecutor {
 
-    private final ModelProviderFactory providerFactory;
+    private final ChatClientAssemblyService chatClientAssemblyService;
 
     /**
      * 对外暴露 execute 作为调用入口，便于上层复用。
@@ -38,7 +38,8 @@ public class DefaultModelCallExecutor implements ModelCallExecutor {
 
         try {
             
-            ChatClient chatClient = providerFactory.createChatClient(model);
+            boolean enableTools = model.getToolEnabled() == null || Boolean.TRUE.equals(model.getToolEnabled());
+            ChatClient chatClient = chatClientAssemblyService.buildChatClient(model, enableTools);
 
             
             String promptText = request.getSystemPrompt() != null

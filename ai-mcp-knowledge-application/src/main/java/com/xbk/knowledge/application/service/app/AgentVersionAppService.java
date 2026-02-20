@@ -1,8 +1,8 @@
 package com.xbk.knowledge.application.service.app;
 
-import com.xbk.knowledge.domain.model.entity.agent.AgentVersion;
-import com.xbk.knowledge.domain.model.vo.agent.AgentVersionIdQuery;
-import com.xbk.knowledge.domain.model.vo.agent.AgentVersionPageQuery;
+import com.xbk.knowledge.domain.agent.model.entity.AgentVersion;
+import com.xbk.knowledge.domain.agent.model.valobj.AgentVersionIdQuery;
+import com.xbk.knowledge.domain.agent.model.valobj.AgentVersionPageQuery;
 import com.xbk.knowledge.types.common.PageResult;
 
 /**
@@ -20,8 +20,8 @@ public interface AgentVersionAppService {
 
     AgentVersion updateDraft(AgentVersion draft);
 
-    AgentVersion publish(Long orgId, String agentCode, Long versionId, Long operatorId);
+    AgentVersion publish(String agentCode, Long versionId, Long operatorId);
 
-    AgentVersion rollback(Long orgId, String agentCode, Long targetVersionId, Long operatorId);
+    AgentVersion rollback(String agentCode, Long targetVersionId, Long operatorId);
 }
 

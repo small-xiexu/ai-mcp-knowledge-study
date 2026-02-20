@@ -13,7 +13,6 @@ import java.time.LocalDateTime;
 public class AdvisorBindingViewResponse {
 
     private Long bindingId;
-    private Long orgId;
     private String bindType;
     private Long bindTargetId;
     private Long advisorId;
@@ -30,4 +29,3 @@ public class AdvisorBindingViewResponse {
     private LocalDateTime advisorCreatedAt;
     private LocalDateTime advisorUpdatedAt;
 }
-

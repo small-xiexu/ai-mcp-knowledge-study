@@ -1,13 +1,11 @@
 package com.xbk.knowledge.api.dto.ai;
 
 import com.xbk.knowledge.types.enums.ModelSelectionStrategy;
-import com.xbk.knowledge.types.enums.TaskTypeEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import jakarta.validation.constraints.Pattern;
 import java.util.List;
 import java.util.Map;
 
@@ -30,16 +28,6 @@ public class AIRequest {
     private String content;
 
     /**
-     * 任务类型编码（可选）
-     * 取值来自任务类型配置表 ai_task_type.task_code，可通过 /api/task-types/list 查询
-     * 如果指定，将根据任务类型自动选择模型
-     *
-     * @see com.xbk.knowledge.types.enums.TaskTypeEnum
-     */
-    @Pattern(regexp = TaskTypeEnum.TASK_TYPE_REGEX, message = "任务类型编码不合法")
-    private String taskType;
-
-    /**
      * 系统提示词（可选）
      */
     private String systemPrompt;
@@ -52,7 +40,7 @@ public class AIRequest {
 
     /**
      * 模型选择策略（可选）
-     * 如果不指定，将使用默认策略或根据任务类型选择
+     * 如果不指定，将使用默认策略
      */
     private ModelSelectionStrategy strategy;
 

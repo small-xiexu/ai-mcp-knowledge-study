@@ -1,8 +1,8 @@
 package com.xbk.knowledge.infrastructure.repository.rag;
 
 import com.xbk.knowledge.domain.model.entity.RagTask;
-import com.xbk.knowledge.domain.repository.rag.RagTaskRepository;
-import com.xbk.knowledge.infrastructure.mapper.rag.RagTaskMapper;
+import com.xbk.knowledge.domain.model.adapter.repository.rag.RagTaskRepository;
+import com.xbk.knowledge.infrastructure.dao.IRagTaskDao;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -19,7 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RagTaskRepositoryImpl implements RagTaskRepository {
 
-    private final RagTaskMapper ragTaskMapper;
+    private final IRagTaskDao ragTaskMapper;
 
     /**
      * 新建任务
@@ -91,61 +91,41 @@ public class RagTaskRepositoryImpl implements RagTaskRepository {
     }
 
     /**
-     * countByOrgId。
+     * countByStatus。
      *
-     * @param orgId 参数
-     * @return 返回结果
-     */
-    @Override
-    public long countByOrgId(Long orgId) {
-        if (orgId == null) {
-            return 0;
-        }
-        return ragTaskMapper.countByOrgId(orgId);
-    }
-
-    /**
-     * countByOrgIdAndStatus。
-     *
-     * @param orgId 参数
      * @param status 参数
      * @return 返回结果
      */
     @Override
-    public long countByOrgIdAndStatus(Long orgId, String status) {
-        if (orgId == null || status == null) {
+    public long countByStatus(String status) {
+        if (status == null) {
             return 0;
         }
-        return ragTaskMapper.countByOrgIdAndStatus(orgId, status);
+        return ragTaskMapper.countByStatus(status);
     }
 
     /**
-     * countDistinctRagTagByOrgId。
+     * countDistinctRagTag。
      *
-     * @param orgId 参数
      * @return 返回结果
      */
     @Override
-    public long countDistinctRagTagByOrgId(Long orgId) {
-        if (orgId == null) {
-            return 0;
-        }
-        return ragTaskMapper.countDistinctRagTagByOrgId(orgId);
+    public long countDistinctRagTag() {
+        return ragTaskMapper.countDistinctRagTag();
     }
 
     /**
      * countFailedTasksSince。
      *
-     * @param orgId 参数
      * @param since 参数
      * @return 返回结果
      */
     @Override
-    public long countFailedTasksSince(Long orgId, LocalDateTime since) {
-        if (orgId == null || since == null) {
+    public long countFailedTasksSince(LocalDateTime since) {
+        if (since == null) {
             return 0;
         }
-        return ragTaskMapper.countFailedTasksSinceByOrgId(orgId, since);
+        return ragTaskMapper.countFailedTasksSince(since);
     }
 
     /**

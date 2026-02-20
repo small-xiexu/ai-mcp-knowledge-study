@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xbk.knowledge.infrastructure.mapper.agent.AgentVersionMapper">
+<mapper namespace="com.xbk.knowledge.infrastructure.dao.IAgentVersionDao">
 
-    <resultMap id="AgentVersionMap" type="com.xbk.knowledge.domain.model.entity.agent.AgentVersion">
+    <resultMap id="AgentVersionMap" type="com.xbk.knowledge.infrastructure.dao.po.AgentVersionPO">
         <id column="id" property="id"/>
         <result column="agent_id" property="agentId"/>
         <result column="version_no" property="versionNo"/>
@@ -17,15 +17,10 @@
         <result column="workflow_version_id" property="workflowVersionId"/>
         <result column="output_contract_version" property="outputContractVersion"/>
         <result column="output_contract_options_json" property="outputContractOptionsJson"/>
-        <result column="model_strategy_type" property="modelStrategyType"/>
-        <result column="task_type_code" property="taskTypeCode"/>
-        <result column="fixed_model_id" property="fixedModelId"/>
         <result column="rag_mode" property="ragMode"/>
         <result column="default_rag_tags_json" property="defaultRagTagsJson"/>
         <result column="allowed_rag_tags_json" property="allowedRagTagsJson"/>
-        <result column="tool_policy_mode" property="toolPolicyMode"/>
         <result column="allowed_tool_keys_json" property="allowedToolKeysJson"/>
-        <result column="tool_risk_policy_json" property="toolRiskPolicyJson"/>
         <result column="timeout_ms" property="timeoutMs"/>
         <result column="max_turns" property="maxTurns"/>
         <result column="temperature" property="temperature"/>
@@ -36,7 +31,7 @@
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
 
-    <insert id="insertAgentVersion" parameterType="com.xbk.knowledge.domain.model.entity.agent.AgentVersion" useGeneratedKeys="true"
+    <insert id="insertAgentVersion" parameterType="com.xbk.knowledge.infrastructure.dao.po.AgentVersionPO" useGeneratedKeys="true"
             keyProperty="id">
         insert into agent_version (
             agent_id,
@@ -50,15 +45,10 @@
             workflow_version_id,
             output_contract_version,
             output_contract_options_json,
-            model_strategy_type,
-            task_type_code,
-            fixed_model_id,
             rag_mode,
             default_rag_tags_json,
             allowed_rag_tags_json,
-            tool_policy_mode,
             allowed_tool_keys_json,
-            tool_risk_policy_json,
             timeout_ms,
             max_turns,
             temperature,
@@ -79,15 +69,10 @@
             #{workflowVersionId},
             #{outputContractVersion},
             #{outputContractOptionsJson},
-            #{modelStrategyType},
-            #{taskTypeCode},
-            #{fixedModelId},
             #{ragMode},
             #{defaultRagTagsJson},
             #{allowedRagTagsJson},
-            #{toolPolicyMode},
             #{allowedToolKeysJson},
-            #{toolRiskPolicyJson},
             #{timeoutMs},
             #{maxTurns},
             #{temperature},
@@ -99,7 +84,7 @@
         )
     </insert>
 
-    <update id="updateDraft" parameterType="com.xbk.knowledge.domain.model.entity.agent.AgentVersion">
+    <update id="updateDraft" parameterType="com.xbk.knowledge.infrastructure.dao.po.AgentVersionPO">
         update agent_version
         set change_summary = #{changeSummary},
             prompt_template_id = #{promptTemplateId},
@@ -107,15 +92,10 @@
             workflow_version_id = #{workflowVersionId},
             output_contract_version = #{outputContractVersion},
             output_contract_options_json = #{outputContractOptionsJson},
-            model_strategy_type = #{modelStrategyType},
-            task_type_code = #{taskTypeCode},
-            fixed_model_id = #{fixedModelId},
             rag_mode = #{ragMode},
             default_rag_tags_json = #{defaultRagTagsJson},
             allowed_rag_tags_json = #{allowedRagTagsJson},
-            tool_policy_mode = #{toolPolicyMode},
             allowed_tool_keys_json = #{allowedToolKeysJson},
-            tool_risk_policy_json = #{toolRiskPolicyJson},
             timeout_ms = #{timeoutMs},
             max_turns = #{maxTurns},
             temperature = #{temperature},
@@ -141,15 +121,10 @@
             workflow_version_id,
             output_contract_version,
             output_contract_options_json,
-            model_strategy_type,
-            task_type_code,
-            fixed_model_id,
             rag_mode,
             default_rag_tags_json,
             allowed_rag_tags_json,
-            tool_policy_mode,
             allowed_tool_keys_json,
-            tool_risk_policy_json,
             timeout_ms,
             max_turns,
             temperature,
@@ -178,15 +153,10 @@
             workflow_version_id,
             output_contract_version,
             output_contract_options_json,
-            model_strategy_type,
-            task_type_code,
-            fixed_model_id,
             rag_mode,
             default_rag_tags_json,
             allowed_rag_tags_json,
-            tool_policy_mode,
             allowed_tool_keys_json,
-            tool_risk_policy_json,
             timeout_ms,
             max_turns,
             temperature,

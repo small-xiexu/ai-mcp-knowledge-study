@@ -20,8 +20,6 @@ public class AgentResponse {
 
     private Long id;
 
-    private Long orgId;
-
     private String agentCode;
 
     private String agentName;
@@ -36,4 +34,3 @@ public class AgentResponse {
 
     private LocalDateTime updatedAt;
 }
-

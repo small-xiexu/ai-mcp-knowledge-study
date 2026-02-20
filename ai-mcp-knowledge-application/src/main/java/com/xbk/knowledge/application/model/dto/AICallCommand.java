@@ -30,14 +30,6 @@ public class AICallCommand {
     private String content;
 
     /**
-     * 任务类型（可选）
-     * 如果指定，将根据任务类型自动选择模型
-     *
-     * 为什么：用于按业务语义选择模型
-     */
-    private String taskType;
-
-    /**
      * 系统提示词（可选）
      *
      * 为什么：用于约束模型输出风格
@@ -54,7 +46,7 @@ public class AICallCommand {
 
     /**
      * 模型选择策略（可选）
-     * 如果不指定，将使用默认策略或根据任务类型选择
+     * 如果不指定，将使用默认策略
      *
      * 为什么：支持显式指定选择策略
      */

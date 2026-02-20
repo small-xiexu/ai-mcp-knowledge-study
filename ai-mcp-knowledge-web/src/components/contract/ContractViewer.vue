@@ -57,7 +57,6 @@
               <span class="step-type">{{ s.nodeType || '-' }}</span>
               <el-tag size="small" :type="tagType(s.status)">{{ s.status || '-' }}</el-tag>
               <span v-if="s.costMs != null" class="step-metric">{{ s.costMs }}ms</span>
-              <span v-if="s.totalTokens != null" class="step-metric">{{ s.totalTokens }} tok</span>
               <span v-if="s.toolCallCount != null && s.toolCallCount > 0" class="step-metric">tool={{ s.toolCallCount }}</span>
               <span v-if="s.toolDeniedCount != null && s.toolDeniedCount > 0" class="step-metric">deny={{ s.toolDeniedCount }}</span>
               <span v-if="s.outputTruncated" class="step-metric warn">truncated</span>
@@ -217,4 +216,3 @@ const tagType = (status?: string) => {
   font-size: 12px;
 }
 </style>
-

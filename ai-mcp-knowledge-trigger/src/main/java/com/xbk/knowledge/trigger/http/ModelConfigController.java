@@ -9,9 +9,6 @@ import com.xbk.knowledge.types.common.Result;
 import com.xbk.knowledge.types.common.ResultCode;
 import com.xbk.knowledge.api.dto.model.ModelConfigRequest;
 import com.xbk.knowledge.api.dto.model.ModelConfigResponse;
-import com.xbk.knowledge.api.dto.model.ModelCapabilityRequest;
-import com.xbk.knowledge.api.dto.model.ModelCapabilityDTO;
-import com.xbk.knowledge.domain.model.entity.ModelCapability;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.model.vo.common.IdQuery;
 import com.xbk.knowledge.types.enums.ModelType;
@@ -347,9 +344,6 @@ public class ModelConfigController {
         String apiKey = modelConfig.getApiKey();
         Boolean enabled = modelConfig.getEnabled();
         Boolean toolEnabled = modelConfig.getToolEnabled();
-        Integer priority = modelConfig.getPriority();
-        ModelCapability modelCapability = modelConfig.getCapability();
-        ModelCapabilityDTO capability = DTOConverter.toApiModelCapability(modelCapability);
         LocalDateTime createdAt = modelConfig.getCreatedAt();
         LocalDateTime updatedAt = modelConfig.getUpdatedAt();
         Boolean activeChat = activeChatId != null && activeChatId.equals(modelId);
@@ -362,8 +356,6 @@ public class ModelConfigController {
                 .apiKey(apiKey)
                 .enabled(enabled)
                 .toolEnabled(toolEnabled)
-                .priority(priority)
-                .capability(capability)
                 .createdAt(createdAt)
                 .updatedAt(updatedAt)
                 .activeChat(activeChat)
@@ -388,7 +380,6 @@ public class ModelConfigController {
         if (toolEnabled == null) {
             toolEnabled = true;
         }
-        Integer priority = request.getPriority();
         ModelConfig modelConfig = ModelConfig.builder()
                 .modelName(modelName)
                 .modelType(modelType)
@@ -396,27 +387,7 @@ public class ModelConfigController {
                 .baseUrl(baseUrl)
                 .enabled(enabled)
                 .toolEnabled(toolEnabled)
-                .priority(priority)
                 .build();
-
-        /*
-         * 目的：能力配置与模型配置保持一致性，避免孤立能力记录
-         */
-        if (request.getCapability() != null) {
-            ModelCapabilityRequest capabilityRequest = request.getCapability();
-            Integer maxTokens = capabilityRequest.getMaxTokens();
-            Integer qualityScore = capabilityRequest.getQualityScore();
-            ModelCapability capability = ModelCapability.builder()
-                    .modelConfig(modelConfig)
-                    .maxInputTokens(maxTokens)
-                    .maxOutputTokens(maxTokens)
-                    .supportFunctionCalling(false)
-                    .supportVision(false)
-                    .supportStreaming(false)
-                    .qualityScore(qualityScore)
-                    .build();
-            modelConfig.setCapability(capability);
-        }
 
         return modelConfig;
     }

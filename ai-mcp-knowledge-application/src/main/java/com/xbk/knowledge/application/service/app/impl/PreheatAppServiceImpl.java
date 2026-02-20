@@ -2,18 +2,22 @@ package com.xbk.knowledge.application.service.app.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xbk.knowledge.application.model.preheat.PreheatResult;
+import com.xbk.knowledge.application.service.app.ModelConfigAppService;
 import com.xbk.knowledge.application.service.app.McpServerConfigAppService;
 import com.xbk.knowledge.application.service.app.PreheatAppService;
+import com.xbk.knowledge.application.service.armory.factory.DefaultAiClientArmoryStrategyFactory;
 import com.xbk.knowledge.application.service.runtime.AdvisorRuntimeService;
-import com.xbk.knowledge.domain.model.entity.agent.AgentVersion;
-import com.xbk.knowledge.domain.model.entity.workflow.WorkflowNode;
-import com.xbk.knowledge.domain.model.entity.workflow.WorkflowVersion;
-import com.xbk.knowledge.domain.model.vo.agent.AgentVersionIdQuery;
-import com.xbk.knowledge.domain.model.vo.workflow.WorkflowGraphQuery;
-import com.xbk.knowledge.domain.model.vo.workflow.WorkflowVersionIdQuery;
-import com.xbk.knowledge.domain.repository.agent.AgentVersionRepository;
-import com.xbk.knowledge.domain.repository.workflow.WorkflowGraphRepository;
-import com.xbk.knowledge.domain.repository.workflow.WorkflowVersionRepository;
+import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.agent.model.entity.AgentVersion;
+import com.xbk.knowledge.domain.workflow.model.entity.WorkflowNode;
+import com.xbk.knowledge.domain.workflow.model.entity.WorkflowVersion;
+import com.xbk.knowledge.domain.agent.model.valobj.AgentVersionIdQuery;
+import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
+import com.xbk.knowledge.domain.workflow.model.valobj.WorkflowGraphQuery;
+import com.xbk.knowledge.domain.workflow.model.valobj.WorkflowVersionIdQuery;
+import com.xbk.knowledge.domain.agent.adapter.repository.AgentVersionRepository;
+import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowGraphRepository;
+import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowVersionRepository;
 import com.xbk.knowledge.types.exception.BusinessException;
 import com.xbk.knowledge.types.exception.NotFoundException;
 import com.xbk.knowledge.types.tool.ToolKeyAware;
@@ -29,6 +33,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.Comparator;
 
 /**
  * 预热应用服务实现。
@@ -44,6 +49,8 @@ public class PreheatAppServiceImpl implements PreheatAppService {
     private final ToolCallbackProvider toolCallbackProvider;
     private final AdvisorRuntimeService advisorRuntimeService;
     private final ObjectMapper objectMapper;
+    private final ModelConfigAppService modelConfigAppService;
+    private final DefaultAiClientArmoryStrategyFactory armoryStrategyFactory;
 
     private final AgentVersionRepository agentVersionRepository;
     private final WorkflowVersionRepository workflowVersionRepository;
@@ -52,19 +59,19 @@ public class PreheatAppServiceImpl implements PreheatAppService {
     /**
      * preheatAgentVersion。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      * @param agentVersionId 参数
      * @param refreshMcp 参数
      * @return 返回结果
      */
     @Override
-    public PreheatResult preheatAgentVersion(Long orgId, Long agentVersionId, boolean refreshMcp) {
-        if (orgId == null || agentVersionId == null) {
-            throw new IllegalArgumentException("orgId/agentVersionId 不能为空");
+    public PreheatResult preheatAgentVersion(Long agentVersionId, boolean refreshMcp) {
+        if (agentVersionId == null) {
+            throw new IllegalArgumentException("agentVersionId 不能为空");
         }
         List<String> warnings = new ArrayList<>();
 
-        AgentVersion v = agentVersionRepository.findById(new AgentVersionIdQuery(orgId, agentVersionId))
+        AgentVersion v = agentVersionRepository.findById(new AgentVersionIdQuery(agentVersionId))
                 .orElseThrow(() -> new NotFoundException("AgentVersion 不存在，id=" + agentVersionId));
 
         boolean mcpRefreshed = false;
@@ -74,10 +81,11 @@ public class PreheatAppServiceImpl implements PreheatAppService {
         }
 
         boolean toolsWarmed = warmToolCallbacks(warnings);
+        warmChatClient(warnings);
 
         boolean advisorsWarmed;
         try {
-            advisorRuntimeService.resolveForAgentVersion(orgId, v.getId(), "preheat-agent-" + System.nanoTime(), null);
+            advisorRuntimeService.resolveForAgentVersion(v.getId(), "preheat-agent-" + System.nanoTime(), null);
             advisorsWarmed = true;
         } catch (Exception e) {
             advisorsWarmed = false;
@@ -89,7 +97,6 @@ public class PreheatAppServiceImpl implements PreheatAppService {
         }
 
         return PreheatResult.builder()
-                .orgId(orgId)
                 .targetType("AGENT_VERSION")
                 .targetId(agentVersionId)
                 .mcpRefreshed(mcpRefreshed)
@@ -103,19 +110,19 @@ public class PreheatAppServiceImpl implements PreheatAppService {
     /**
      * preheatWorkflowVersion。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      * @param workflowVersionId 参数
      * @param refreshMcp 参数
      * @return 返回结果
      */
     @Override
-    public PreheatResult preheatWorkflowVersion(Long orgId, Long workflowVersionId, boolean refreshMcp) {
-        if (orgId == null || workflowVersionId == null) {
-            throw new IllegalArgumentException("orgId/workflowVersionId 不能为空");
+    public PreheatResult preheatWorkflowVersion(Long workflowVersionId, boolean refreshMcp) {
+        if (workflowVersionId == null) {
+            throw new IllegalArgumentException("workflowVersionId 不能为空");
         }
         List<String> warnings = new ArrayList<>();
 
-        WorkflowVersion v = workflowVersionRepository.findById(WorkflowVersionIdQuery.builder().orgId(orgId).id(workflowVersionId).build())
+        WorkflowVersion v = workflowVersionRepository.findById(WorkflowVersionIdQuery.builder().id(workflowVersionId).build())
                 .orElseThrow(() -> new NotFoundException("WorkflowVersion 不存在，id=" + workflowVersionId));
 
         boolean mcpRefreshed = false;
@@ -125,20 +132,20 @@ public class PreheatAppServiceImpl implements PreheatAppService {
         }
 
         boolean toolsWarmed = warmToolCallbacks(warnings);
+        warmChatClient(warnings);
 
         boolean advisorsWarmed;
         try {
-            advisorRuntimeService.resolveForWorkflowVersion(orgId, v.getId(), "preheat-wf-" + System.nanoTime(), null);
+            advisorRuntimeService.resolveForWorkflowVersion(v.getId(), "preheat-wf-" + System.nanoTime(), null);
             advisorsWarmed = true;
         } catch (Exception e) {
             advisorsWarmed = false;
             warnings.add("Advisor 装配失败: " + safeMsg(e));
         }
 
-        boolean validated = validateWorkflow(orgId, workflowVersionId, toolsWarmed, warnings);
+        boolean validated = validateWorkflow(workflowVersionId, toolsWarmed, warnings);
 
         return PreheatResult.builder()
-                .orgId(orgId)
                 .targetType("WORKFLOW_VERSION")
                 .targetId(workflowVersionId)
                 .mcpRefreshed(mcpRefreshed)
@@ -154,7 +161,7 @@ public class PreheatAppServiceImpl implements PreheatAppService {
             ToolCallback[] callbacks = toolCallbackProvider == null ? null : toolCallbackProvider.getToolCallbacks();
             int count = callbacks == null ? 0 : callbacks.length;
             if (count == 0) {
-                warnings.add("未发现可用工具回调（可能尚未 refresh MCP 或当前 org 无启用 server）");
+                warnings.add("未发现可用工具回调（可能尚未 refresh MCP 或当前 scope 无启用 server）");
             }
             return true;
         } catch (Exception e) {
@@ -163,10 +170,34 @@ public class PreheatAppServiceImpl implements PreheatAppService {
         }
     }
 
-    private boolean validateWorkflow(Long orgId, Long workflowVersionId, boolean toolsReady, List<String> warnings) {
+    private boolean warmChatClient(List<String> warnings) {
+        try {
+            List<ModelConfig> models = modelConfigAppService.queryEnabledModels(new EnabledQuery(true));
+            if (models == null || models.isEmpty()) {
+                warnings.add("未发现可用模型，跳过 ChatClient 预热");
+                return false;
+            }
+            ModelConfig selected = models.stream()
+                    .filter(m -> m != null && m.getId() != null)
+                    .sorted(Comparator.comparingLong(ModelConfig::getId))
+                    .findFirst()
+                    .orElse(null);
+            if (selected == null) {
+                warnings.add("可用模型列表为空，跳过 ChatClient 预热");
+                return false;
+            }
+            boolean enableTools = selected.getToolEnabled() == null || Boolean.TRUE.equals(selected.getToolEnabled());
+            armoryStrategyFactory.preheat(selected, enableTools);
+            return true;
+        } catch (Exception e) {
+            warnings.add("ChatClient 预热失败: " + safeMsg(e));
+            return false;
+        }
+    }
+
+    private boolean validateWorkflow(Long workflowVersionId, boolean toolsReady, List<String> warnings) {
         try {
             List<WorkflowNode> nodes = workflowGraphRepository.listNodes(WorkflowGraphQuery.builder()
-                    .orgId(orgId)
                     .workflowVersionId(workflowVersionId)
                     .build());
             if (nodes == null || nodes.isEmpty()) {
@@ -254,4 +285,3 @@ public class PreheatAppServiceImpl implements PreheatAppService {
         return e == null ? "" : (e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage());
     }
 }
-

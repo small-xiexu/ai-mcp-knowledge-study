@@ -1,7 +1,6 @@
 import request from '@/utils/request'
 
 export interface PreheatResponse {
-  orgId: number
   targetType: string
   targetId: number
   mcpRefreshed: boolean
@@ -16,4 +15,3 @@ export const preheatAgentVersion = (data: { agentVersionId: number; refreshMcp?:
 
 export const preheatWorkflowVersion = (data: { workflowVersionId: number; refreshMcp?: boolean }) =>
   request.post<PreheatResponse>('/preheat/workflow-version', data)
-

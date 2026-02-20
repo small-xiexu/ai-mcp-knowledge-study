@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xbk.knowledge.infrastructure.mapper.agent.AgentScheduleMapper">
+<mapper namespace="com.xbk.knowledge.infrastructure.dao.IAgentScheduleDao">
 
-    <resultMap id="AgentScheduleResultMap" type="com.xbk.knowledge.domain.model.entity.agent.AgentSchedule">
+    <resultMap id="AgentScheduleResultMap" type="com.xbk.knowledge.infrastructure.dao.po.AgentSchedulePO">
         <id column="id" property="id"/>
         <result column="agent_id" property="agentId"/>
         <result column="agent_code" property="agentCode"/>
@@ -17,27 +17,29 @@
     </resultMap>
 
     <sql id="BaseColumns">
+        s.id, s.agent_id, a.agent_code as agent_code,
         s.cron, s.enabled, s.xxl_job_id, s.payload_template_json,
         s.created_by, s.updated_by, s.created_at, s.updated_at
     </sql>
 
-    <insert id="insertSchedule" parameterType="com.xbk.knowledge.domain.model.entity.agent.AgentSchedule" useGeneratedKeys="true" keyProperty="id">
+    <insert id="insertSchedule" parameterType="com.xbk.knowledge.infrastructure.dao.po.AgentSchedulePO" useGeneratedKeys="true" keyProperty="id">
         insert into agent_schedule (
+            agent_id, cron, enabled, xxl_job_id, payload_template_json,
             created_by, updated_by, created_at, updated_at
         ) values (
+            #{agentId}, #{cron}, #{enabled}, #{xxlJobId}, #{payloadTemplateJson},
             #{createdBy}, #{updatedBy}, #{createdAt}, #{updatedAt}
         )
     </insert>
 
-    <update id="updateSchedule" parameterType="com.xbk.knowledge.domain.model.entity.agent.AgentSchedule">
+    <update id="updateSchedule" parameterType="com.xbk.knowledge.infrastructure.dao.po.AgentSchedulePO">
         update agent_schedule
         set
             cron = #{cron},
             payload_template_json = #{payloadTemplateJson},
             updated_by = #{updatedBy},
             updated_at = #{updatedAt}
-        where 1 = 1
-and id = #{id}
+        where id = #{id}
     </update>
 
     <update id="updateEnabled">
@@ -45,8 +47,7 @@ and id = #{id}
         set enabled = #{enabled},
             updated_by = #{updatedBy},
             updated_at = now()
-        where 1 = 1
-and id = #{id}
+        where id = #{id}
     </update>
 
     <update id="updateXxlJobId">
@@ -54,50 +55,54 @@ and id = #{id}
         set xxl_job_id = #{xxlJobId},
             updated_by = #{updatedBy},
             updated_at = now()
-        where 1 = 1
-and id = #{id}
+        where id = #{id}
     </update>
 
     <delete id="deleteById">
-        delete from agent_schedule where 1 = 1
-and id = #{id}
+        delete from agent_schedule where id = #{id}
     </delete>
 
-    <select id="findById" resultMap="AgentScheduleResultMap" parameterType="com.xbk.knowledge.domain.model.vo.agent.AgentScheduleIdQuery">
+    <select id="findById" resultMap="AgentScheduleResultMap" parameterType="com.xbk.knowledge.domain.agent.model.valobj.AgentScheduleIdQuery">
         select <include refid="BaseColumns"/>
         from agent_schedule s
         left join agent a on a.id = s.agent_id
+        where s.id = #{id}
         limit 1
     </select>
 
-    <select id="findByOrgIdAndAgentId" resultMap="AgentScheduleResultMap">
+    <select id="findByAgentId" resultMap="AgentScheduleResultMap">
         select <include refid="BaseColumns"/>
         from agent_schedule s
         left join agent a on a.id = s.agent_id
+        where s.agent_id = #{agentId}
         limit 1
     </select>
 
-    <select id="count" resultType="long" parameterType="com.xbk.knowledge.domain.model.vo.agent.AgentSchedulePageQuery">
+    <select id="count" resultType="long" parameterType="com.xbk.knowledge.domain.agent.model.valobj.AgentSchedulePageQuery">
         select count(1)
         from agent_schedule s
-        <if test="agentId != null">
-            and s.agent_id = #{agentId}
-        </if>
-        <if test="enabled != null">
-            and s.enabled = #{enabled}
-        </if>
+        <where>
+            <if test="agentId != null">
+                s.agent_id = #{agentId}
+            </if>
+            <if test="enabled != null">
+                and s.enabled = #{enabled}
+            </if>
+        </where>
     </select>
 
-    <select id="findPage" resultMap="AgentScheduleResultMap" parameterType="com.xbk.knowledge.domain.model.vo.agent.AgentSchedulePageQuery">
+    <select id="findPage" resultMap="AgentScheduleResultMap" parameterType="com.xbk.knowledge.domain.agent.model.valobj.AgentSchedulePageQuery">
         select <include refid="BaseColumns"/>
         from agent_schedule s
         left join agent a on a.id = s.agent_id
-        <if test="agentId != null">
-            and s.agent_id = #{agentId}
-        </if>
-        <if test="enabled != null">
-            and s.enabled = #{enabled}
-        </if>
+        <where>
+            <if test="agentId != null">
+                s.agent_id = #{agentId}
+            </if>
+            <if test="enabled != null">
+                and s.enabled = #{enabled}
+            </if>
+        </where>
         order by s.updated_at desc, s.id desc
         limit #{offset}, #{pageSize}
     </select>

@@ -62,16 +62,6 @@ public class ModelConfigResponse implements Serializable {
     private Boolean toolEnabled;
 
     /**
-     * 优先级
-     */
-    private Integer priority;
-
-    /**
-     * 模型能力
-     */
-    private ModelCapabilityDTO capability;
-
-    /**
      * 创建时间
      */
     private LocalDateTime createdAt;

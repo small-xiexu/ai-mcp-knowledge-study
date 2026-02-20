@@ -39,7 +39,6 @@
                 <div class="nr-meta">
                   <el-tag size="small" :type="tagType(n.status)">{{ n.status }}</el-tag>
                   <span v-if="n.costMs != null" class="metric">{{ n.costMs }}ms</span>
-                  <span v-if="n.totalTokens != null" class="metric">{{ n.totalTokens }} tok</span>
                   <span v-if="n.toolCallCount != null && n.toolCallCount > 0" class="metric">tool={{ n.toolCallCount }}</span>
                   <span v-if="n.toolDeniedCount != null && n.toolDeniedCount > 0" class="metric">deny={{ n.toolDeniedCount }}</span>
                   <span v-if="n.outputTruncated === 1" class="metric warn">truncated</span>
@@ -195,4 +194,3 @@ load()
   line-height: 1.5;
 }
 </style>
-

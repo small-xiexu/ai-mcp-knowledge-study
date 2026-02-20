@@ -2,23 +2,20 @@ package com.xbk.knowledge.infrastructure.gateway;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xbk.knowledge.application.context.GatewayToolBindingContextHolder;
-import com.xbk.knowledge.domain.repository.agent.AgentRunRepository;
-import com.xbk.knowledge.domain.repository.agent.AgentRunContextRepository;
-import com.xbk.knowledge.domain.model.entity.approval.ApprovalRequest;
-import com.xbk.knowledge.domain.repository.approval.ApprovalRequestRepository;
-import com.xbk.knowledge.domain.repository.tool.ToolPolicyRepository;
-import com.xbk.knowledge.domain.model.entity.gateway.McpGateway;
-import com.xbk.knowledge.domain.model.entity.gateway.McpToolBinding;
-import com.xbk.knowledge.domain.model.entity.gateway.McpToolRegistry;
-import com.xbk.knowledge.domain.model.vo.gateway.ToolBindingQuery;
-import com.xbk.knowledge.domain.repository.gateway.McpGatewayRepository;
-import com.xbk.knowledge.domain.repository.gateway.McpToolBindingRepository;
-import com.xbk.knowledge.domain.repository.gateway.McpToolRegistryRepository;
-import com.xbk.knowledge.domain.service.gateway.GatewayToolService;
+import com.xbk.knowledge.domain.agent.adapter.repository.AgentRunRepository;
+import com.xbk.knowledge.domain.agent.adapter.repository.AgentRunContextRepository;
+import com.xbk.knowledge.domain.approval.model.entity.ApprovalRequest;
+import com.xbk.knowledge.domain.approval.adapter.repository.ApprovalRequestRepository;
+import com.xbk.knowledge.domain.gateway.model.entity.McpGateway;
+import com.xbk.knowledge.domain.gateway.model.entity.McpToolBinding;
+import com.xbk.knowledge.domain.gateway.model.entity.McpToolRegistry;
+import com.xbk.knowledge.domain.gateway.model.valobj.ToolBindingQuery;
+import com.xbk.knowledge.domain.gateway.adapter.repository.McpGatewayRepository;
+import com.xbk.knowledge.domain.gateway.adapter.repository.McpToolBindingRepository;
+import com.xbk.knowledge.domain.gateway.adapter.repository.McpToolRegistryRepository;
+import com.xbk.knowledge.domain.gateway.service.GatewayToolService;
 import com.xbk.knowledge.infrastructure.audit.IdentityAuditLogService;
 import com.xbk.knowledge.domain.model.entity.SysAuditEvent;
-import com.xbk.knowledge.types.context.OrgContext;
-import com.xbk.knowledge.types.context.OrgContextHolder;
 import com.xbk.knowledge.types.exception.ApprovalRequiredException;
 import com.xbk.knowledge.types.exception.BusinessException;
 import com.xbk.knowledge.types.tool.ToolNameUtils;
@@ -79,7 +76,6 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
     private final AgentRunRepository agentRunRepository;
     private final AgentRunContextRepository agentRunContextRepository;
     private final IdentityAuditLogService auditLogService;
-    private final ToolPolicyRepository toolPolicyRepository;
     private final ApprovalRequestRepository approvalRequestRepository;
 
     /**
@@ -101,7 +97,7 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
                 continue;
             }
             List<McpToolRegistry> toolRegistries = toolRegistryRepository.findEnabledByGatewayId(
-                    new com.xbk.knowledge.domain.model.vo.gateway.GatewayIdQuery(gateway.getGatewayId())
+                    new com.xbk.knowledge.domain.gateway.model.valobj.GatewayIdQuery(gateway.getGatewayId())
             );
             if (toolRegistries == null || toolRegistries.isEmpty()) {
                 continue;
@@ -306,18 +302,13 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
 
         /*
          * 重要：工具回调可能在异步/跨线程环境执行（例如流式/Reactive）。
-         * 为保证治理门禁一致性（orgId、runId、权限、审计归属），在构建回调时捕获上下文快照，
-         * call() 期间禁止再依赖 ThreadLocal（OrgContextHolder/StpUtil/MDC）获取关键字段。
+         * 为保证治理门禁一致性（scopeId、runId、权限、审计归属），在构建回调时捕获上下文快照，
+         * call() 期间禁止再依赖线程上下文（如 StpUtil/MDC）获取关键字段。
          */
         final String boundRunId = TraceIdUtils.getOrCreateTraceId();
-        Long boundOrgId = OrgContextHolder.currentOrgIdOrNull();
-        if (boundOrgId == null) {
-            boundOrgId = 1L;
-        }
-        final Long finalOrgId = boundOrgId;
-        OrgContext orgCtx = OrgContextHolder.get();
-        final Long boundOperatorId = orgCtx == null ? null : orgCtx.operatorUserId();
-        final Long boundOperatorOrgId = orgCtx == null ? null : orgCtx.operatorOrgId();
+        final Long finalScopeId = 1L;
+        final Long boundOperatorId = null;
+        final Long boundOperatorScopeId = 1L;
         final boolean bypassEnabled = ToolInvokeBypassContextHolder.isEnabled();
         final boolean login = StpUtil.isLogin();
         final boolean toolInvokePermitted = !login || StpUtil.hasPermission(PERMISSION_TOOL_INVOKE);
@@ -334,13 +325,13 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
                     String previousCallId = MDC.get(CALL_ID_MDC_KEY);
                     MDC.put(CALL_ID_MDC_KEY, callId);
                     String runId = boundRunId;
-                    Long orgId = finalOrgId;
+                    Long scopeId = finalScopeId;
                     if (!bypassEnabled && !toolInvokePermitted) {
-                        recordToolDeniedAndAudit(runId, orgId, candidate, "PERMISSION_DENIED", boundOperatorId, boundOperatorOrgId);
+                        recordToolDeniedAndAudit(runId,  candidate, "PERMISSION_DENIED", boundOperatorId, boundOperatorScopeId);
                         return "[PERMISSION_DENIED] 无权限调用工具（缺少权限: " + PERMISSION_TOOL_INVOKE + "），toolKey=" + candidate.toolKey;
                     }
                     String requesterType = boundOperatorId == null ? "system" : "user";
-                    maybeRequireApproval(runId, orgId, candidate, safeArgs, boundOperatorId, requesterType, boundOperatorId, boundOperatorOrgId);
+                    maybeRequireApproval(runId,  candidate, safeArgs, boundOperatorId, requesterType, boundOperatorId, boundOperatorScopeId);
                     log.info("gateway_tool_call source=AI stage=start runId={} callId={} gatewayId={} toolName={} functionName={} toolKey={} argsKeys={}",
                             runId,
                             callId,
@@ -369,7 +360,7 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
                                 callResult.errorCode(),
                                 latencyMs);
 
-                        recordToolMetricsAndAudit(runId, orgId, candidate, safeArgs, callResult.success(), callResult.errorCode(), latencyMs, null, boundOperatorId, boundOperatorOrgId);
+                        recordToolMetricsAndAudit(runId,  candidate, safeArgs, callResult.success(), callResult.errorCode(), latencyMs, null, boundOperatorId, boundOperatorScopeId);
 
                         if (callResult.success()) {
                             return callResult.content();
@@ -390,7 +381,7 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
                                 latencyMs,
                                 e.getMessage(),
                                 e);
-                        recordToolMetricsAndAudit(runId, orgId, candidate, safeArgs, false, "TOOL_EXEC_FAILED", latencyMs, e.getMessage(), boundOperatorId, boundOperatorOrgId);
+                        recordToolMetricsAndAudit(runId,  candidate, safeArgs, false, "TOOL_EXEC_FAILED", latencyMs, e.getMessage(), boundOperatorId, boundOperatorScopeId);
                         throw e;
                     } finally {
                         if (StringUtils.hasText(previousCallId)) {
@@ -413,41 +404,22 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
      * 高风险审批门禁（方式B）。
      *
      * 规则：
-     * 1) 风险等级来源优先 tool_policy（按 org + toolKey），其次取工具注册 risk_level，缺省 MEDIUM
-     * 2) 当 tool_policy.approval_required=1 或 riskLevel=HIGH 时触发审批
+     * 1) 风险等级取工具注册 risk_level，缺省 MEDIUM
+     * 2) riskLevel=HIGH 时触发审批
      * 3) 已存在 APPROVED 且未过期则放行；否则创建或复用 PENDING 审批单并中断执行
      */
-    private void maybeRequireApproval(String runId,
-                                      Long orgId,
+    private void maybeRequireApproval(String runId, 
                                       ToolCandidate candidate,
                                       Map<String, Object> safeArgs,
                                       Long requesterId,
                                       String requesterType,
                                       Long operatorId,
-                                      Long operatorOrgId) {
-        if (!StringUtils.hasText(runId) || orgId == null || candidate == null || !StringUtils.hasText(candidate.toolKey)) {
+                                      Long operatorScopeId) {
+        if (!StringUtils.hasText(runId) || candidate == null || !StringUtils.hasText(candidate.toolKey)) {
             return;
         }
         String riskLevel = StringUtils.hasText(candidate.riskLevel) ? candidate.riskLevel : "MEDIUM";
         boolean approvalRequired = "HIGH".equalsIgnoreCase(riskLevel);
-
-        // 重新基于 policy 计算（避免 lambda final 限制：拆成显式查询）
-        try {
-            if (toolPolicyRepository != null) {
-                com.xbk.knowledge.domain.model.entity.tool.ToolPolicy policy =
-                        toolPolicyRepository.findEnabled(orgId, candidate.toolKey).orElse(null);
-                if (policy != null) {
-                    if (StringUtils.hasText(policy.getRiskLevel())) {
-                        riskLevel = policy.getRiskLevel();
-                    }
-                    if (policy.getApprovalRequired() != null && policy.getApprovalRequired() == 1) {
-                        approvalRequired = true;
-                    }
-                }
-            }
-        } catch (Exception e) {
-            log.warn("查询 tool_policy 失败（第二次兜底），orgId: {}, toolKey: {}", orgId, candidate.toolKey, e);
-        }
 
         riskLevel = StringUtils.hasText(riskLevel) ? riskLevel : "MEDIUM";
         if (!approvalRequired && "HIGH".equalsIgnoreCase(riskLevel)) {
@@ -459,16 +431,16 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
 
         LocalDateTime now = LocalDateTime.now();
         try {
-            if (approvalRequestRepository.findLatestApproved(orgId, runId, candidate.toolKey, now).isPresent()) {
+            if (approvalRequestRepository.findLatestApproved(runId, candidate.toolKey, now).isPresent()) {
                 return;
             }
         } catch (Exception e) {
-            log.warn("查询 APPROVED 审批单失败，orgId: {}, runId: {}, toolKey: {}", orgId, runId, candidate.toolKey, e);
+            log.warn("查询 APPROVED 审批单失败，runId: {}, toolKey: {}", runId, candidate.toolKey, e);
         }
 
         try {
             ApprovalRequest pending = approvalRequestRepository
-                    .findLatestPending(orgId, runId, candidate.toolKey, now)
+                    .findLatestPending(runId, candidate.toolKey, now)
                     .orElse(null);
             if (pending != null && pending.getId() != null) {
                 throw new ApprovalRequiredException(
@@ -481,7 +453,7 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
         } catch (ApprovalRequiredException e) {
             throw e;
         } catch (Exception e) {
-            log.warn("查询 PENDING 审批单失败，orgId: {}, runId: {}, toolKey: {}", orgId, runId, candidate.toolKey, e);
+            log.warn("查询 PENDING 审批单失败，runId: {}, toolKey: {}", runId, candidate.toolKey, e);
         }
 
         String argsJson;
@@ -506,8 +478,8 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
         workflowNodeKey = ctx == null ? null : ctx.getWorkflowNodeKey();
         if (workflowId == null || workflowVersionId == null || !StringUtils.hasText(workflowNodeKey)) {
             // fallback：按 agent_run 归属
-            com.xbk.knowledge.domain.model.entity.agent.AgentRun run = agentRunRepository
-                    .findByRunId(orgId, runId)
+            com.xbk.knowledge.domain.agent.model.entity.AgentRun run = agentRunRepository
+                    .findByRunId(runId)
                     .orElse(null);
             if (run != null && run.getAgentId() != null && run.getAgentVersionId() != null) {
                 agentId = run.getAgentId();
@@ -518,7 +490,6 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
         }
 
         ApprovalRequest req = ApprovalRequest.builder()
-                .orgId(orgId)
                 .approvalType("TOOL_INVOKE")
                 .status("PENDING")
                 .runId(runId)
@@ -541,25 +512,24 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
                 .build();
         approvalRequestRepository.insert(req);
         if (agentId != null && agentVersionId != null) {
-            upsertPendingToolSnapshot(orgId, runId, candidate.toolKey, riskLevel, digest, req.getId(), now);
+            upsertPendingToolSnapshot(runId, candidate.toolKey, riskLevel, digest, req.getId(), now);
         }
-        recordApprovalCreatedAudit(runId, orgId, req, operatorId, operatorOrgId);
+        recordApprovalCreatedAudit(runId,  req, operatorId, operatorScopeId);
         throw new ApprovalRequiredException(req.getId(), candidate.toolKey, riskLevel, "工具调用需要审批（已生成审批单）");
     }
 
-    private void upsertPendingToolSnapshot(Long orgId,
-                                          String runId,
+    private void upsertPendingToolSnapshot(String runId,
                                           String toolKey,
                                           String riskLevel,
                                           String argsDigest,
                                           Long approvalRequestId,
                                           LocalDateTime now) {
-        if (agentRunContextRepository == null || orgId == null || !StringUtils.hasText(runId)) {
+        if (agentRunContextRepository == null || !StringUtils.hasText(runId)) {
             return;
         }
         try {
             java.util.Map<String, Object> map = new LinkedHashMap<>();
-            agentRunContextRepository.findByRunId(orgId, runId).ifPresent(ctx -> {
+            agentRunContextRepository.findByRunId(runId).ifPresent(ctx -> {
                 if (ctx != null && StringUtils.hasText(ctx.getSnapshotJson())) {
                     try {
                         java.util.Map<String, Object> existed = objectMapper.readValue(
@@ -581,8 +551,7 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
             map.put("pendingAt", now == null ? null : now.toString());
 
             String json = objectMapper.writeValueAsString(map);
-            com.xbk.knowledge.domain.model.entity.agent.AgentRunContext ctx = com.xbk.knowledge.domain.model.entity.agent.AgentRunContext.builder()
-                    .orgId(orgId)
+            com.xbk.knowledge.domain.agent.model.entity.AgentRunContext ctx = com.xbk.knowledge.domain.agent.model.entity.AgentRunContext.builder()
                     .runId(runId)
                     .status("SAVED")
                     .snapshotJson(json)
@@ -600,19 +569,19 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
         return "argsKeys=" + safeArgs.keySet();
     }
 
-    private void recordApprovalCreatedAudit(String runId, Long orgId, ApprovalRequest req, Long operatorId, Long operatorOrgId) {
+    private void recordApprovalCreatedAudit(String runId,  ApprovalRequest req, Long operatorId, Long operatorScopeId) {
         try {
             if (auditLogService == null || req == null || req.getId() == null) {
                 return;
             }
             SysAuditEvent event = SysAuditEvent.builder()
                     .operatorId(operatorId)
-                    .operatorOrgId(operatorOrgId)
+                    .operatorScopeId(operatorScopeId)
                     .operatorType(operatorId == null ? "system" : "user")
                     .eventType("TOOL_APPROVAL")
                     .resourceType("approval_request")
                     .resourceId(String.valueOf(req.getId()))
-                    .resourceOrgId(orgId)
+                    .resourceScopeId(1L)
                     .action("CREATED")
                     .requestId(runId)
                     .result(1)
@@ -627,15 +596,14 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
         }
     }
 
-    private void recordToolDeniedAndAudit(String runId,
-                                          Long orgId,
+    private void recordToolDeniedAndAudit(String runId, 
                                           ToolCandidate candidate,
                                           String reason,
                                           Long operatorId,
-                                          Long operatorOrgId) {
+                                          Long operatorScopeId) {
         try {
             if (agentRunRepository != null && StringUtils.hasText(runId)) {
-                agentRunRepository.incrementToolDeniedCount(runId, orgId, 1);
+                agentRunRepository.incrementToolDeniedCount(runId,  1);
             }
         } catch (Exception e) {
             log.warn("更新 agent_run 工具拒绝计数失败，runId: {}, toolKey: {}", runId, candidate == null ? null : candidate.toolKey, e);
@@ -647,12 +615,12 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
             }
             SysAuditEvent event = SysAuditEvent.builder()
                     .operatorId(operatorId)
-                    .operatorOrgId(operatorOrgId)
+                    .operatorScopeId(operatorScopeId)
                     .operatorType(operatorId == null ? "system" : "user")
                     .eventType("TOOL_INVOKE")
                     .resourceType("gateway_tool")
                     .resourceId(candidate.toolKey)
-                    .resourceOrgId(orgId)
+                    .resourceScopeId(1L)
                     .action("DENIED")
                     .requestId(runId)
                     .result(0)
@@ -665,8 +633,7 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
         }
     }
 
-    private void recordToolMetricsAndAudit(String runId,
-                                           Long orgId,
+    private void recordToolMetricsAndAudit(String runId, 
                                            ToolCandidate candidate,
                                            Map<String, Object> safeArgs,
                                            boolean success,
@@ -674,10 +641,10 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
                                            long latencyMs,
                                            String errorMessage,
                                            Long operatorId,
-                                           Long operatorOrgId) {
+                                           Long operatorScopeId) {
         try {
             if (agentRunRepository != null && StringUtils.hasText(runId)) {
-                agentRunRepository.incrementToolCallCount(runId, orgId, 1);
+                agentRunRepository.incrementToolCallCount(runId,  1);
             }
         } catch (Exception e) {
             log.warn("更新 agent_run 工具调用计数失败，runId: {}, toolKey: {}", runId, candidate == null ? null : candidate.toolKey, e);
@@ -689,12 +656,12 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
             }
             SysAuditEvent event = SysAuditEvent.builder()
                     .operatorId(operatorId)
-                    .operatorOrgId(operatorOrgId)
+                    .operatorScopeId(operatorScopeId)
                     .operatorType(operatorId == null ? "system" : "user")
                     .eventType("TOOL_INVOKE")
                     .resourceType("gateway_tool")
                     .resourceId(candidate.toolKey)
-                    .resourceOrgId(orgId)
+                    .resourceScopeId(1L)
                     .action(success ? "SUCCESS" : "FAILED")
                     .requestId(runId)
                     .result(success ? 1 : 0)

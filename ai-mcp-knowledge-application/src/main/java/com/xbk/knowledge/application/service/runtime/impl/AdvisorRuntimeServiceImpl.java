@@ -5,9 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xbk.knowledge.application.service.runtime.AdvisorRuntimeService;
 import com.xbk.knowledge.config.ai.RequestResponseLoggingAdvisor;
 import com.xbk.knowledge.config.ai.ToolCallLoggingAdvisor;
-import com.xbk.knowledge.domain.model.vo.advisor.AdvisorBindingQuery;
-import com.xbk.knowledge.domain.model.vo.advisor.AdvisorBindingView;
-import com.xbk.knowledge.domain.repository.advisor.AdvisorBindingRepository;
+import com.xbk.knowledge.domain.advisor.model.valobj.AdvisorBindingQuery;
+import com.xbk.knowledge.domain.advisor.model.valobj.AdvisorBindingView;
+import com.xbk.knowledge.domain.advisor.adapter.repository.AdvisorBindingRepository;
 import com.xbk.knowledge.types.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,65 +54,62 @@ public class AdvisorRuntimeServiceImpl implements AdvisorRuntimeService {
     /**
      * resolveForAgentVersion。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      * @param agentVersionId 参数
      * @param runId 参数
      * @param sessionId 参数
      * @return 返回结果
      */
     @Override
-    public CallAdvisor[] resolveForAgentVersion(Long orgId, Long agentVersionId, String runId, Long sessionId) {
-        return resolveForTarget(orgId, "AGENT_VERSION", agentVersionId, runId, sessionId);
+    public CallAdvisor[] resolveForAgentVersion(Long agentVersionId, String runId, Long sessionId) {
+        return resolveForTarget("AGENT_VERSION", agentVersionId, runId, sessionId);
     }
 
     /**
      * resolveForWorkflowVersion。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      * @param workflowVersionId 参数
      * @param runId 参数
      * @param sessionId 参数
      * @return 返回结果
      */
     @Override
-    public CallAdvisor[] resolveForWorkflowVersion(Long orgId, Long workflowVersionId, String runId, Long sessionId) {
-        return resolveForTarget(orgId, "WORKFLOW_VERSION", workflowVersionId, runId, sessionId);
+    public CallAdvisor[] resolveForWorkflowVersion(Long workflowVersionId, String runId, Long sessionId) {
+        return resolveForTarget("WORKFLOW_VERSION", workflowVersionId, runId, sessionId);
     }
 
     /**
      * evictBindingCache。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      * @param bindType 参数
      * @param bindTargetId 参数
      */
     @Override
-    public void evictBindingCache(Long orgId, String bindType, Long bindTargetId) {
-        if (orgId == null || !StringUtils.hasText(bindType) || bindTargetId == null) {
+    public void evictBindingCache(String bindType, Long bindTargetId) {
+        if (!StringUtils.hasText(bindType) || bindTargetId == null) {
             return;
         }
-        BindingKey key = new BindingKey(orgId, bindType.trim().toUpperCase(Locale.ROOT), bindTargetId);
+        BindingKey key = new BindingKey(bindType.trim().toUpperCase(Locale.ROOT), bindTargetId);
         bindingCache.remove(key);
     }
 
     /**
      * evictAll。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      */
     @Override
-    public void evictAll(Long orgId) {
-        if (orgId == null) {
-            return;
-        }
-        bindingCache.keySet().removeIf(k -> k != null && orgId.equals(k.orgId));
+    public void evictAll() {
+        bindingCache.clear();
     }
 
-    private CallAdvisor[] resolveForTarget(Long orgId, String bindType, Long bindTargetId, String runId, Long sessionId) {
-        if (orgId == null || !StringUtils.hasText(bindType) || bindTargetId == null) {
+    private CallAdvisor[] resolveForTarget(String bindType, Long bindTargetId, String runId, Long sessionId) {
+        if (!StringUtils.hasText(bindType) || bindTargetId == null) {
             return new CallAdvisor[0];
         }
-        List<AdvisorBindingView> views = loadBindingViews(orgId, bindType, bindTargetId);
+        List<AdvisorBindingView> views = loadBindingViews(bindType, bindTargetId);
         if (views.isEmpty()) {
             return new CallAdvisor[0];
         }
@@ -133,13 +130,13 @@ public class AdvisorRuntimeServiceImpl implements AdvisorRuntimeService {
         return advisors.toArray(new CallAdvisor[0]);
     }
 
-    private List<AdvisorBindingView> loadBindingViews(Long orgId, String bindType, Long bindTargetId) {
-        BindingKey key = new BindingKey(orgId, bindType.trim().toUpperCase(Locale.ROOT), bindTargetId);
+    private List<AdvisorBindingView> loadBindingViews(String bindType, Long bindTargetId) {
+        BindingKey key = new BindingKey(bindType.trim().toUpperCase(Locale.ROOT), bindTargetId);
         List<AdvisorBindingView> cached = bindingCache.get(key);
         if (cached != null) {
             return cached;
         }
-        AdvisorBindingQuery q = new AdvisorBindingQuery(orgId, key.bindType, bindTargetId);
+        AdvisorBindingQuery q = new AdvisorBindingQuery(key.bindType, bindTargetId);
         List<AdvisorBindingView> views = advisorBindingRepository.listBindingViews(q);
         if (views == null || views.isEmpty()) {
             bindingCache.put(key, Collections.emptyList());
@@ -248,6 +245,6 @@ public class AdvisorRuntimeServiceImpl implements AdvisorRuntimeService {
         }
     }
 
-    private record BindingKey(Long orgId, String bindType, Long bindTargetId) {
+    private record BindingKey(String bindType, Long bindTargetId) {
     }
 }

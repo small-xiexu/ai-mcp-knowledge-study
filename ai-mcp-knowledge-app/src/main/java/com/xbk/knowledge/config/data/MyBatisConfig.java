@@ -23,7 +23,9 @@ import javax.sql.DataSource;
  * @author xiexu
  */
 @Configuration
-@MapperScan("com.xbk.knowledge.infrastructure.mapper")
+@MapperScan({
+        "com.xbk.knowledge.infrastructure.dao"
+})
 public class MyBatisConfig {
 
     /**

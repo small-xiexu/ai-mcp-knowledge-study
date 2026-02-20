@@ -5,7 +5,7 @@ import com.xbk.knowledge.domain.model.entity.XxlJobLogDetail;
 import com.xbk.knowledge.domain.model.entity.XxlJobLogInfo;
 import com.xbk.knowledge.domain.model.vo.xxl.XxlJobLogPageQuery;
 import com.xbk.knowledge.domain.model.vo.xxl.XxlJobPageQuery;
-import com.xbk.knowledge.domain.repository.xxl.XxlJobRepository;
+import com.xbk.knowledge.domain.model.adapter.repository.xxl.XxlJobRepository;
 import com.xbk.knowledge.domain.service.xxl.IXxlJobService;
 import com.xbk.knowledge.types.common.PageResult;
 import lombok.RequiredArgsConstructor;

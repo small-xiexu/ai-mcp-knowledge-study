@@ -22,7 +22,6 @@ public class AgentScheduleResponse implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private Long id;
-    private Long orgId;
     private Long agentId;
     private String agentCode;
 
@@ -34,4 +33,3 @@ public class AgentScheduleResponse implements Serializable {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
-

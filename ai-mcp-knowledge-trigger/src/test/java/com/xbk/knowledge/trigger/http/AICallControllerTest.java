@@ -2,13 +2,11 @@ package com.xbk.knowledge.trigger.http;
 
 import com.xbk.knowledge.api.dto.ai.AIRequest;
 import com.xbk.knowledge.api.dto.ai.AIResponse;
-import com.xbk.knowledge.api.dto.ai.ModelRecommendRequest;
 import com.xbk.knowledge.application.model.dto.AICallResult;
 import com.xbk.knowledge.application.service.app.AiChatAppService;
 import com.xbk.knowledge.application.service.app.ModelConfigAppService;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
-import com.xbk.knowledge.domain.model.vo.task.TaskTypeQuery;
 import com.xbk.knowledge.types.common.Result;
 import com.xbk.knowledge.types.common.ResultCode;
 import com.xbk.knowledge.types.enums.ModelType;
@@ -86,22 +84,6 @@ public class AICallControllerTest {
 
         assertEquals(1, result.getData().size());
         assertEquals("m1", result.getData().get(0).getModelName());
-    }
-
-    /**
-     * 对外暴露 shouldReturnErrorWhenNoRecommendation 作为调用入口，便于上层复用。
-     */
-    @Test
-    public void shouldReturnErrorWhenNoRecommendation() {
-        AiChatAppService aiChatAppService = Mockito.mock(AiChatAppService.class);
-        ModelConfigAppService modelConfigAppService = Mockito.mock(ModelConfigAppService.class);
-        AICallController controller = new AICallController(modelConfigAppService, aiChatAppService);
-
-        when(modelConfigAppService.getRecommendedModel(any(TaskTypeQuery.class))).thenReturn(null);
-
-        Result<com.xbk.knowledge.api.dto.ai.ModelInfo> result = controller.getRecommendedModel(ModelRecommendRequest.builder().taskType("t").build());
-
-        assertEquals(ResultCode.NOT_FOUND.getCode(), result.getCode());
     }
 
 }

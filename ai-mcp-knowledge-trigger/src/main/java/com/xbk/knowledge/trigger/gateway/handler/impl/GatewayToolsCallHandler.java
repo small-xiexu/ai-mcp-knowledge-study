@@ -1,6 +1,6 @@
 package com.xbk.knowledge.trigger.gateway.handler.impl;
 
-import com.xbk.knowledge.domain.service.gateway.GatewayToolService;
+import com.xbk.knowledge.domain.gateway.service.GatewayToolService;
 import com.xbk.knowledge.trigger.gateway.handler.IRequestHandler;
 import com.xbk.knowledge.trigger.gateway.model.McpSchemaVO;
 import lombok.RequiredArgsConstructor;

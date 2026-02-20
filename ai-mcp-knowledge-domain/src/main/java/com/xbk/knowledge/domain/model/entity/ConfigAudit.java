@@ -37,9 +37,8 @@ public class ConfigAudit {
     private Long id;
 
     /**
-     * 组织ID（资源归属 org）。
+     * scopeId（资源归属 scope）。
      */
-    private Long orgId;
 
     /**
      * 表名

@@ -5,14 +5,13 @@ import com.xbk.knowledge.api.dto.advisor.*;
 import com.xbk.knowledge.api.dto.common.IdRequest;
 import com.xbk.knowledge.application.service.app.AdvisorAppService;
 import com.xbk.knowledge.application.service.app.AdvisorBindingAppService;
-import com.xbk.knowledge.domain.model.entity.advisor.Advisor;
-import com.xbk.knowledge.domain.model.vo.advisor.AdvisorBindingQuery;
-import com.xbk.knowledge.domain.model.vo.advisor.AdvisorBindingView;
-import com.xbk.knowledge.domain.model.vo.advisor.AdvisorPageQuery;
+import com.xbk.knowledge.domain.advisor.model.entity.Advisor;
+import com.xbk.knowledge.domain.advisor.model.valobj.AdvisorBindingQuery;
+import com.xbk.knowledge.domain.advisor.model.valobj.AdvisorBindingView;
+import com.xbk.knowledge.domain.advisor.model.valobj.AdvisorPageQuery;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.common.PageResultConverter;
 import com.xbk.knowledge.types.common.Result;
-import com.xbk.knowledge.types.context.OrgContextHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Advisor 资产与绑定管理接口（按 org 隔离）。
+ * Advisor 资产与绑定管理接口。
  
   * @author xiexu
   */
@@ -46,11 +45,8 @@ public class AdvisorController {
     @PostMapping("/list")
     @SaCheckPermission("advisor:read")
     public Result<PageResult<AdvisorResponse>> list(@Valid @RequestBody AdvisorQueryRequest request) {
-        Long orgId = currentOrgId();
         Integer enabled = request.getEnabled() == null ? null : (request.getEnabled() ? 1 : 0);
-        AdvisorPageQuery query = new AdvisorPageQuery(
-                orgId,
-                request.getKeyword(),
+        AdvisorPageQuery query = new AdvisorPageQuery(request.getKeyword(),
                 enabled,
                 request.getAdvisorType(),
                 request.getOffset(),
@@ -70,8 +66,7 @@ public class AdvisorController {
     @PostMapping("/get")
     @SaCheckPermission("advisor:read")
     public Result<AdvisorResponse> get(@Valid @RequestBody IdRequest request) {
-        Long orgId = currentOrgId();
-        Advisor advisor = advisorAppService.get(orgId, request.getId());
+        Advisor advisor = advisorAppService.get(request.getId());
         return Result.success(toResponse(advisor));
     }
 
@@ -84,11 +79,9 @@ public class AdvisorController {
     @PostMapping("/save")
     @SaCheckPermission("advisor:write")
     public Result<AdvisorResponse> save(@Valid @RequestBody AdvisorSaveRequest request) {
-        Long orgId = currentOrgId();
         Advisor advisor = Advisor.builder()
                 .id(request.getId())
-                .orgId(orgId)
-                .advisorCode(request.getAdvisorCode())
+                                .advisorCode(request.getAdvisorCode())
                 .advisorName(request.getAdvisorName())
                 .advisorType(request.getAdvisorType())
                 .enabled(request.getEnabled() == null || request.getEnabled() ? 1 : 0)
@@ -107,8 +100,7 @@ public class AdvisorController {
     @PostMapping("/enable")
     @SaCheckPermission("advisor:write")
     public Result<AdvisorResponse> enable(@Valid @RequestBody IdRequest request) {
-        Long orgId = currentOrgId();
-        Advisor enabled = advisorAppService.enable(orgId, request.getId());
+        Advisor enabled = advisorAppService.enable(request.getId());
         return Result.success(toResponse(enabled));
     }
 
@@ -121,8 +113,7 @@ public class AdvisorController {
     @PostMapping("/disable")
     @SaCheckPermission("advisor:write")
     public Result<AdvisorResponse> disable(@Valid @RequestBody IdRequest request) {
-        Long orgId = currentOrgId();
-        Advisor disabled = advisorAppService.disable(orgId, request.getId());
+        Advisor disabled = advisorAppService.disable(request.getId());
         return Result.success(toResponse(disabled));
     }
 
@@ -135,8 +126,7 @@ public class AdvisorController {
     @PostMapping("/remove")
     @SaCheckPermission("advisor:write")
     public Result<Void> remove(@Valid @RequestBody IdRequest request) {
-        Long orgId = currentOrgId();
-        advisorAppService.remove(orgId, request.getId());
+        advisorAppService.remove(request.getId());
         return Result.success();
     }
 
@@ -149,8 +139,7 @@ public class AdvisorController {
     @PostMapping("/bindings/list")
     @SaCheckPermission("advisor:read")
     public Result<List<AdvisorBindingViewResponse>> listBindings(@Valid @RequestBody AdvisorBindingGetRequest request) {
-        Long orgId = currentOrgId();
-        AdvisorBindingQuery query = new AdvisorBindingQuery(orgId, request.getBindType(), request.getBindTargetId());
+        AdvisorBindingQuery query = new AdvisorBindingQuery(request.getBindType(), request.getBindTargetId());
         List<AdvisorBindingView> list = advisorBindingAppService.listBindings(query);
         if (CollectionUtils.isEmpty(list)) {
             return Result.success(List.of());
@@ -171,7 +160,6 @@ public class AdvisorController {
     @PostMapping("/bindings/save")
     @SaCheckPermission("advisor:write")
     public Result<Void> saveBindings(@Valid @RequestBody AdvisorBindingSaveRequest request) {
-        Long orgId = currentOrgId();
         List<AdvisorBindingAppService.AdvisorBindingSaveItem> items = new ArrayList<>();
         if (request.getItems() != null) {
             for (AdvisorBindingSaveRequest.AdvisorBindingSaveItem it : request.getItems()) {
@@ -185,7 +173,7 @@ public class AdvisorController {
                 items.add(x);
             }
         }
-        advisorBindingAppService.saveBindings(orgId, request.getBindType(), request.getBindTargetId(), items);
+        advisorBindingAppService.saveBindings(request.getBindType(), request.getBindTargetId(), items);
         return Result.success("保存成功", null);
     }
 
@@ -195,7 +183,6 @@ public class AdvisorController {
         }
         AdvisorResponse resp = new AdvisorResponse();
         resp.setId(a.getId());
-        resp.setOrgId(a.getOrgId());
         resp.setAdvisorCode(a.getAdvisorCode());
         resp.setAdvisorName(a.getAdvisorName());
         resp.setAdvisorType(a.getAdvisorType());
@@ -212,7 +199,6 @@ public class AdvisorController {
         }
         AdvisorBindingViewResponse resp = new AdvisorBindingViewResponse();
         resp.setBindingId(v.getBindingId());
-        resp.setOrgId(v.getOrgId());
         resp.setBindType(v.getBindType());
         resp.setBindTargetId(v.getBindTargetId());
         resp.setAdvisorId(v.getAdvisorId());
@@ -230,9 +216,4 @@ public class AdvisorController {
         return resp;
     }
 
-    private Long currentOrgId() {
-        Long orgId = OrgContextHolder.currentOrgIdOrNull();
-        return orgId != null ? orgId : 1L;
-    }
 }
-

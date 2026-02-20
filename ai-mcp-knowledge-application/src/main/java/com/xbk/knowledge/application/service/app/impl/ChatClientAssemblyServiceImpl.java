@@ -1,15 +1,13 @@
 package com.xbk.knowledge.application.service.app.impl;
 
-import com.xbk.knowledge.application.provider.ModelProviderFactory;
+import com.xbk.knowledge.application.service.armory.factory.DefaultAiClientArmoryStrategyFactory;
 import com.xbk.knowledge.application.service.app.ChatClientAssemblyService;
 import com.xbk.knowledge.application.service.app.ModelConfigAppService;
-import com.xbk.knowledge.config.ai.ChatClientEnhancer;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.api.CallAdvisor;
-import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.stereotype.Service;
 
 /**
@@ -25,8 +23,7 @@ import org.springframework.stereotype.Service;
 public class ChatClientAssemblyServiceImpl implements ChatClientAssemblyService {
 
     private final ModelConfigAppService modelConfigAppService;
-    private final ModelProviderFactory modelProviderFactory;
-    private final ChatClientEnhancer chatClientEnhancer;
+    private final DefaultAiClientArmoryStrategyFactory armoryStrategyFactory;
 
     /**
      * 构建默认 ChatClient（使用激活的对话模型）
@@ -69,15 +66,6 @@ public class ChatClientAssemblyServiceImpl implements ChatClientAssemblyService 
      */
     @Override
     public ChatClient buildChatClient(ModelConfig modelConfig, boolean enableTools, CallAdvisor... extraAdvisors) {
-        /*
-         * 目的：由 Provider 负责模型实例化，保持扩展点一致
-         */
-        ChatModel chatModel = modelProviderFactory
-                .getProvider(modelConfig.getModelType())
-                .createChatModel(modelConfig);
-        /*
-         * 目的：统一增强器装配（系统提示、工具、MCP 等）
-         */
-        return chatClientEnhancer.enhance(chatModel, enableTools, extraAdvisors);
+        return armoryStrategyFactory.chatClient(modelConfig, enableTools, extraAdvisors);
     }
 }

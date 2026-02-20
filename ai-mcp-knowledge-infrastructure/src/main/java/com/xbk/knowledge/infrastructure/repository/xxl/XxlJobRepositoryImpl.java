@@ -8,7 +8,7 @@ import com.xbk.knowledge.domain.model.entity.XxlJobLogDetail;
 import com.xbk.knowledge.domain.model.entity.XxlJobLogInfo;
 import com.xbk.knowledge.domain.model.vo.xxl.XxlJobLogPageQuery;
 import com.xbk.knowledge.domain.model.vo.xxl.XxlJobPageQuery;
-import com.xbk.knowledge.domain.repository.xxl.XxlJobRepository;
+import com.xbk.knowledge.domain.model.adapter.repository.xxl.XxlJobRepository;
 import com.xbk.knowledge.infrastructure.redis.key.XxlJobRedisKeys;
 import com.xbk.knowledge.types.common.PageResult;
 import lombok.RequiredArgsConstructor;
@@ -408,6 +408,9 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
                 .build();
     }
 
+    /**
+     * 根据执行器应用名解析执行器分组 ID。
+     */
     private Long resolveJobGroupId(String appName) {
         /*
          * 目的：优先读取缓存，避免频繁查询执行器列表
@@ -864,6 +867,9 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
                 .build();
     }
 
+    /**
+     * 按候选字段读取 Long 值。
+     */
     private Long readLong(JsonNode node, String... fields) {
         for (String field : fields) {
             JsonNode value = node.get(field);
@@ -874,6 +880,9 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
         return null;
     }
 
+    /**
+     * 按候选字段读取 Integer 值。
+     */
     private Integer readInteger(JsonNode node, String... fields) {
         for (String field : fields) {
             JsonNode value = node.get(field);
@@ -884,6 +893,9 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
         return null;
     }
 
+    /**
+     * 按候选字段读取 Boolean 值。
+     */
     private Boolean readBoolean(JsonNode node, String... fields) {
         for (String field : fields) {
             JsonNode value = node.get(field);
@@ -894,6 +906,9 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
         return null;
     }
 
+    /**
+     * 按候选字段读取文本值。
+     */
     private String readText(JsonNode node, String... fields) {
         for (String field : fields) {
             JsonNode value = node.get(field);
@@ -921,14 +936,23 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
             this.body = body;
         }
 
+        /**
+         * 返回响应状态码。
+         */
         private HttpStatusCode status() {
             return status;
         }
 
+        /**
+         * 返回响应头。
+         */
         private HttpHeaders headers() {
             return headers;
         }
 
+        /**
+         * 返回响应体。
+         */
         private String body() {
             return body;
         }

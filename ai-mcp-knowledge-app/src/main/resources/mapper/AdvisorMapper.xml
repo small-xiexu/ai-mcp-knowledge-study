@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xbk.knowledge.infrastructure.mapper.advisor.AdvisorMapper">
+<mapper namespace="com.xbk.knowledge.infrastructure.dao.IAdvisorDao">
 
-    <resultMap id="AdvisorMap" type="com.xbk.knowledge.domain.model.entity.advisor.Advisor">
+    <resultMap id="AdvisorMap" type="com.xbk.knowledge.infrastructure.dao.po.AdvisorPO">
         <id column="id" property="id"/>
         <result column="advisor_code" property="advisorCode"/>
         <result column="advisor_name" property="advisorName"/>

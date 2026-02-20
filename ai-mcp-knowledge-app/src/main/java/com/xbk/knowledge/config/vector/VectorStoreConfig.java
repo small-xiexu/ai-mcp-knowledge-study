@@ -24,7 +24,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -108,29 +107,12 @@ public class VectorStoreConfig {
         ModelConfig selected = enabledModels.stream()
                 .filter(model -> model != null && model.getModelType() != null)
                 .filter(model -> supportedTypes.contains(model.getModelType()))
-                .max(Comparator.comparing(this::resolvePriority, this::comparePriority))
+                .findFirst()
                 .orElse(null);
         if (selected == null) {
             throw new IllegalStateException("未配置指定类型的嵌入模型");
         }
         return selected;
-    }
-
-    private Integer resolvePriority(ModelConfig modelConfig) {
-        return modelConfig != null ? modelConfig.getPriority() : null;
-    }
-
-    private int comparePriority(Integer left, Integer right) {
-        if (left == null && right == null) {
-            return 0;
-        }
-        if (left == null) {
-            return -1;
-        }
-        if (right == null) {
-            return 1;
-        }
-        return left.compareTo(right);
     }
 
     /**

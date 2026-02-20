@@ -1,9 +1,9 @@
 package com.xbk.knowledge.application.service.app;
 
-import com.xbk.knowledge.domain.model.entity.workflow.Workflow;
-import com.xbk.knowledge.domain.model.entity.workflow.WorkflowVersion;
-import com.xbk.knowledge.domain.model.entity.workflow.WorkflowNode;
-import com.xbk.knowledge.domain.model.entity.workflow.WorkflowEdge;
+import com.xbk.knowledge.domain.workflow.model.entity.Workflow;
+import com.xbk.knowledge.domain.workflow.model.entity.WorkflowVersion;
+import com.xbk.knowledge.domain.workflow.model.entity.WorkflowNode;
+import com.xbk.knowledge.domain.workflow.model.entity.WorkflowEdge;
 import com.xbk.knowledge.types.common.PageResult;
 
 import java.util.List;
@@ -15,24 +15,23 @@ import java.util.List;
   */
 public interface WorkflowAppService {
 
-    PageResult<Workflow> list(Long orgId, String keyword, int offset, int pageSize);
+    PageResult<Workflow> list(String keyword, int offset, int pageSize);
 
-    Workflow get(Long orgId, Long id);
+    Workflow get(Long id);
 
-    Workflow create(Long orgId, Workflow workflow);
+    Workflow create(Workflow workflow);
 
-    Workflow update(Long orgId, Workflow workflow);
+    Workflow update(Workflow workflow);
 
-    WorkflowVersion createVersion(Long orgId, Long workflowId, String changeSummary);
+    WorkflowVersion createVersion(Long workflowId, String changeSummary);
 
-    List<WorkflowVersion> listVersions(Long orgId, Long workflowId);
+    List<WorkflowVersion> listVersions(Long workflowId);
 
-    WorkflowVersion getVersion(Long orgId, Long workflowVersionId);
+    WorkflowVersion getVersion(Long workflowVersionId);
 
-    WorkflowVersion publishVersion(Long orgId, Long workflowVersionId);
+    WorkflowVersion publishVersion(Long workflowVersionId);
 
-    WorkflowVersion saveGraph(Long orgId,
-                              Long workflowVersionId,
+    WorkflowVersion saveGraph(Long workflowVersionId,
                               String graphJson,
                               String defaultConfigJson,
                               List<WorkflowNode> nodes,

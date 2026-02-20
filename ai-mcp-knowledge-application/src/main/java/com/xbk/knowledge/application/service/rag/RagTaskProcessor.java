@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xbk.knowledge.domain.model.entity.RagTask;
 import com.xbk.knowledge.domain.model.vo.rag.FileProcessError;
-import com.xbk.knowledge.domain.repository.rag.RagTaskRepository;
+import com.xbk.knowledge.domain.model.adapter.repository.rag.RagTaskRepository;
 import com.xbk.knowledge.types.enums.RagTaskStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

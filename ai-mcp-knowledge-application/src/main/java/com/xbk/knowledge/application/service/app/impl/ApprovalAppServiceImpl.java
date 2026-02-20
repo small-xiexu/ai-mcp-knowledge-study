@@ -2,8 +2,8 @@ package com.xbk.knowledge.application.service.app.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.xbk.knowledge.application.provider.ModelProviderFactory;
 import com.xbk.knowledge.application.service.app.ApprovalAppService;
+import com.xbk.knowledge.application.service.app.ChatClientAssemblyService;
 import com.xbk.knowledge.application.service.app.IdentityContextService;
 import com.xbk.knowledge.application.service.app.WorkflowRuntimeAppService;
 import com.xbk.knowledge.application.support.contract.PlatformContractV1OutputSupport;
@@ -11,23 +11,20 @@ import com.xbk.knowledge.application.support.rag.AgentRagGovernanceSupport;
 import com.xbk.knowledge.application.support.rag.AgentRagGovernanceSupport.ResolvedRag;
 import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.model.entity.SysAuditEvent;
-import com.xbk.knowledge.domain.model.entity.agent.AgentRun;
-import com.xbk.knowledge.domain.model.entity.agent.AgentVersion;
-import com.xbk.knowledge.domain.model.entity.approval.ApprovalRequest;
-import com.xbk.knowledge.domain.model.vo.agent.AgentVersionIdQuery;
-import com.xbk.knowledge.domain.repository.agent.AgentRunContextRepository;
-import com.xbk.knowledge.domain.repository.agent.AgentRunRepository;
-import com.xbk.knowledge.domain.repository.agent.AgentVersionRepository;
-import com.xbk.knowledge.domain.repository.approval.ApprovalRequestRepository;
-import com.xbk.knowledge.domain.repository.audit.SysAuditEventRepository;
-import com.xbk.knowledge.domain.repository.workflow.WorkflowRunContextRepository;
-import com.xbk.knowledge.domain.repository.workflow.WorkflowRunRepository;
+import com.xbk.knowledge.domain.agent.model.entity.AgentRun;
+import com.xbk.knowledge.domain.agent.model.entity.AgentVersion;
+import com.xbk.knowledge.domain.approval.model.entity.ApprovalRequest;
+import com.xbk.knowledge.domain.agent.model.valobj.AgentVersionIdQuery;
+import com.xbk.knowledge.domain.agent.adapter.repository.AgentRunContextRepository;
+import com.xbk.knowledge.domain.agent.adapter.repository.AgentRunRepository;
+import com.xbk.knowledge.domain.agent.adapter.repository.AgentVersionRepository;
+import com.xbk.knowledge.domain.approval.adapter.repository.ApprovalRequestRepository;
+import com.xbk.knowledge.domain.model.adapter.repository.audit.SysAuditEventRepository;
+import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowRunContextRepository;
+import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowRunRepository;
 import com.xbk.knowledge.domain.service.model.IModelConfigService;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.contract.PlatformContractV1;
-import com.xbk.knowledge.types.context.OrgContext;
-import com.xbk.knowledge.types.context.OrgContextHolder;
-import com.xbk.knowledge.types.context.OrgContextHolder;
 import com.xbk.knowledge.types.exception.BusinessException;
 import com.xbk.knowledge.types.exception.NotFoundException;
 import com.xbk.knowledge.types.trace.TraceIdUtils;
@@ -72,7 +69,7 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
     private final AgentRunContextRepository agentRunContextRepository;
     private final AgentVersionRepository agentVersionRepository;
     private final IModelConfigService modelConfigService;
-    private final ModelProviderFactory modelProviderFactory;
+    private final ChatClientAssemblyService chatClientAssemblyService;
     private final ToolCallbackProvider toolCallbackProvider;
     private final IdentityContextService identityContextService;
     private final ObjectMapper objectMapper;
@@ -86,18 +83,18 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
     /**
      * list。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      * @param status 参数
      * @param offset 参数
      * @param pageSize 参数
      * @return 返回结果
      */
     @Override
-    public PageResult<ApprovalRequest> list(Long orgId, String status, int offset, int pageSize) {
+    public PageResult<ApprovalRequest> list(String status, int offset, int pageSize) {
         int safeOffset = Math.max(offset, 0);
         int safeSize = pageSize <= 0 ? 20 : Math.min(pageSize, 200);
-        List<ApprovalRequest> list = approvalRequestRepository.list(orgId, status, safeOffset, safeSize);
-        long total = approvalRequestRepository.count(orgId, status);
+        List<ApprovalRequest> list = approvalRequestRepository.list(status, safeOffset, safeSize);
+        long total = approvalRequestRepository.count(status);
         int pageNum = safeSize == 0 ? 1 : (safeOffset / safeSize) + 1;
         return PageResult.of(list, total, pageNum, safeSize);
     }
@@ -105,34 +102,34 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
     /**
      * get。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      * @param id 参数
      * @return 返回结果
      */
     @Override
-    public ApprovalRequest get(Long orgId, Long id) {
-        return approvalRequestRepository.findById(orgId, id)
+    public ApprovalRequest get(Long id) {
+        return approvalRequestRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("审批单不存在，id=" + id));
     }
 
     /**
      * approve。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      * @param id 参数
      * @param decisionComment 参数
      * @return 返回结果
      */
     @Override
-    public PlatformContractV1 approve(Long orgId, Long id, String decisionComment) {
-        if (orgId == null || id == null) {
-            throw new IllegalArgumentException("orgId/id 不能为空");
+    public PlatformContractV1 approve(Long id, String decisionComment) {
+        if (id == null) {
+            throw new IllegalArgumentException("id 不能为空");
         }
         long start = System.currentTimeMillis();
         Long approverId = identityContextService.getCurrentUserId();
         LocalDateTime now = LocalDateTime.now();
 
-        ApprovalRequest req = approvalRequestRepository.findById(orgId, id)
+        ApprovalRequest req = approvalRequestRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("审批单不存在，id=" + id));
         if (!"PENDING".equalsIgnoreCase(req.getStatus())) {
             throw new BusinessException("审批单非待审批状态，不可审批，status=" + req.getStatus());
@@ -145,32 +142,31 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
         }
 
         // 先标记 APPROVED，确保工具回调侧门禁能识别为已通过
-        int updated = approvalRequestRepository.markApproved(orgId, id, approverId, decisionComment, now);
+        int updated = approvalRequestRepository.markApproved(id, approverId, decisionComment, now);
         if (updated <= 0) {
             throw new BusinessException("审批状态更新失败（可能已被处理），id=" + id);
         }
-        recordApprovalAudit(orgId, req.getRunId(), id, "APPROVED", now, null);
+        recordApprovalAudit(req.getRunId(), id, "APPROVED", now, null);
 
         // 分支：Agent 场景沿用旧逻辑；Workflow 场景交给 WorkflowRuntime 续跑
         if (req.getAgentVersionId() != null) {
-            AgentRun run = agentRunRepository.findByRunId(orgId, req.getRunId())
+            AgentRun run = agentRunRepository.findByRunId(req.getRunId())
                     .orElseThrow(() -> new NotFoundException("关联 run 不存在，runId=" + req.getRunId()));
-            agentRunRepository.updateStatus(orgId, req.getRunId(), "RUNNING", null, null);
+            agentRunRepository.updateStatus(req.getRunId(), "RUNNING", null, null);
 
-            AgentVersion version = agentVersionRepository.findById(new AgentVersionIdQuery(orgId, req.getAgentVersionId()))
+            AgentVersion version = agentVersionRepository.findById(new AgentVersionIdQuery(req.getAgentVersionId()))
                     .orElseThrow(() -> new NotFoundException("关联 AgentVersion 不存在，id=" + req.getAgentVersionId()));
-            ModelConfig model = resolveModelForVersion(orgId, version);
+            ModelConfig model = resolveModelForVersion(version);
 
             // 执行工具（使用 toolKey 精确定位回调）
             String toolResult = executeApprovedTool(req.getToolKey(), req.getArgumentsSnapshotJson(), req.getRunId());
 
             // 继续调用模型（不启用工具，避免二次工具调用），强制输出 v1 JSON 并解析/修复
-            ContinuedOutput continued = continueRunByModel(version, model, run.getSessionId(), run.getAgentCode(), run.getRunId(), run.getOrgId(), run.getAgentVersionId(), toolResult);
+            ContinuedOutput continued = continueRunByModel(version, model, run.getSessionId(), run.getAgentCode(), run.getRunId(), run.getAgentVersionId(), toolResult);
 
             long costMs = System.currentTimeMillis() - start;
             agentRunRepository.updateStatusAndMetrics(AgentRun.builder()
                     .runId(run.getRunId())
-                    .orgId(orgId)
                     .status("SUCCESS")
                     .modelIdUsed(model == null ? null : model.getId())
                     .modelNameUsed(model == null ? null : model.getModelName())
@@ -184,7 +180,7 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
                     .build());
 
             try {
-                agentRunContextRepository.updateStatus(orgId, run.getRunId(), "RESUMED");
+                agentRunContextRepository.updateStatus(run.getRunId(), "RESUMED");
             } catch (Exception e) {
                 log.warn("更新 agent_run_context 状态失败，runId: {}", run.getRunId(), e);
             }
@@ -195,7 +191,6 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
                             .agentCode(run.getAgentCode())
                             .agentVersionId(version.getId())
                             .agentVersionNo(version.getVersionNo())
-                            .orgId(orgId)
                             .modelUsed(model == null ? null : model.getModelName())
                             .costMs(costMs)
                             .repairAttempts(0)
@@ -212,7 +207,7 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
 
         if (req.getWorkflowVersionId() != null) {
             // Workflow 续跑：由 WorkflowRuntime 负责执行工具 + 继续执行图
-            PlatformContractV1 result = workflowRuntimeAppService.resumeFromApproval(orgId, id);
+            PlatformContractV1 result = workflowRuntimeAppService.resumeFromApproval(id);
             return result;
         }
 
@@ -222,52 +217,51 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
     /**
      * reject。
      *
-     * @param orgId 参数
+     * @param scopeId 参数
      * @param id 参数
      * @param decisionComment 参数
      * @return 返回结果
      */
     @Override
-    public ApprovalRequest reject(Long orgId, Long id, String decisionComment) {
-        if (orgId == null || id == null) {
-            throw new IllegalArgumentException("orgId/id 不能为空");
+    public ApprovalRequest reject(Long id, String decisionComment) {
+        if (id == null) {
+            throw new IllegalArgumentException("id 不能为空");
         }
         Long approverId = identityContextService.getCurrentUserId();
         LocalDateTime now = LocalDateTime.now();
-        ApprovalRequest req = approvalRequestRepository.findById(orgId, id)
+        ApprovalRequest req = approvalRequestRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("审批单不存在，id=" + id));
         if (!"PENDING".equalsIgnoreCase(req.getStatus())) {
             throw new BusinessException("审批单非待审批状态，不可拒绝，status=" + req.getStatus());
         }
-        int updated = approvalRequestRepository.markRejected(orgId, id, approverId, decisionComment, now);
+        int updated = approvalRequestRepository.markRejected(id, approverId, decisionComment, now);
         if (updated <= 0) {
             throw new BusinessException("拒绝审批失败（可能已被处理），id=" + id);
         }
-        recordApprovalAudit(orgId, req.getRunId(), id, "REJECTED", now, decisionComment);
+        recordApprovalAudit(req.getRunId(), id, "REJECTED", now, decisionComment);
 
         if (StringUtils.hasText(req.getRunId())) {
             if (req.getAgentVersionId() != null) {
-                agentRunRepository.updateStatus(orgId, req.getRunId(), "CANCELLED", "审批拒绝", LocalDateTime.now());
+                agentRunRepository.updateStatus(req.getRunId(), "CANCELLED", "审批拒绝", LocalDateTime.now());
                 try {
-                    agentRunContextRepository.updateStatus(orgId, req.getRunId(), "EXPIRED");
+                    agentRunContextRepository.updateStatus(req.getRunId(), "EXPIRED");
                 } catch (Exception e) {
                     log.warn("更新 agent_run_context 状态失败（reject），runId: {}", req.getRunId(), e);
                 }
             } else if (req.getWorkflowVersionId() != null) {
-                workflowRunRepository.updateStatus(orgId, req.getRunId(), "CANCELLED", "审批拒绝", LocalDateTime.now());
+                workflowRunRepository.updateStatus(req.getRunId(), "CANCELLED", "审批拒绝", LocalDateTime.now());
                 try {
-                    workflowRunContextRepository.updateStatus(orgId, req.getRunId(), "EXPIRED");
+                    workflowRunContextRepository.updateStatus(req.getRunId(), "EXPIRED");
                 } catch (Exception e) {
                     log.warn("更新 workflow_run_context 状态失败（reject），runId: {}", req.getRunId(), e);
                 }
             }
         }
-        return approvalRequestRepository.findById(orgId, id)
+        return approvalRequestRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("审批单不存在，id=" + id));
     }
 
-    private void recordApprovalAudit(Long orgId,
-                                     String runId,
+    private void recordApprovalAudit(String runId,
                                      Long approvalId,
                                      String action,
                                      LocalDateTime occurredAt,
@@ -276,19 +270,18 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
             return;
         }
         try {
-            OrgContext ctx = OrgContextHolder.get();
-            Long operatorId = ctx == null ? null : ctx.operatorUserId();
-            Long operatorOrgId = ctx == null ? null : ctx.operatorOrgId();
+            Long operatorId = identityContextService.getCurrentUserId();
+            Long operatorScopeId = 1L;
             String operatorType = operatorId == null ? "system" : "user";
 
             SysAuditEvent event = SysAuditEvent.builder()
                     .operatorId(operatorId)
-                    .operatorOrgId(operatorOrgId)
+                    .operatorScopeId(operatorScopeId)
                     .operatorType(operatorType)
                     .eventType("TOOL_APPROVAL")
                     .resourceType("approval_request")
                     .resourceId(String.valueOf(approvalId))
-                    .resourceOrgId(orgId)
+                    .resourceScopeId(operatorScopeId)
                     .action(action)
                     .requestId(runId)
                     .sourceIp(resolveSourceIp())
@@ -380,8 +373,7 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
                                               ModelConfig model,
                                               Long sessionId,
                                               String agentCode,
-                                              String runId,
-                                              Long orgId,
+                                              String runId, 
                                               Long agentVersionId,
                                               String toolResult) {
         if (version == null) {
@@ -390,7 +382,8 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
         if (model == null) {
             throw new BusinessException("未找到可用模型");
         }
-        ChatClient chatClient = modelProviderFactory.createChatClient(model);
+        boolean enableTools = model.getToolEnabled() == null || Boolean.TRUE.equals(model.getToolEnabled());
+        ChatClient chatClient = chatClientAssemblyService.buildChatClient(model, enableTools);
 
         String system = version.getSystemPromptSnapshot();
         if (!StringUtils.hasText(system)) {
@@ -401,7 +394,7 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
         String user = "";
         String ragTagsJson = null;
         try {
-            AgentRunContextSnapshot snap = loadSnapshotFromRunContext(orgId, runId);
+            AgentRunContextSnapshot snap = loadSnapshotFromRunContext(runId);
             if (snap != null && StringUtils.hasText(snap.content)) {
                 user = snap.content;
             }
@@ -532,11 +525,11 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
         return "已执行并通过审批的工具调用结果如下（仅供继续推理，不再触发工具调用）:\n" + content;
     }
 
-    private AgentRunContextSnapshot loadSnapshotFromRunContext(Long orgId, String runId) {
-        if (agentRunContextRepository == null || orgId == null || !StringUtils.hasText(runId)) {
+    private AgentRunContextSnapshot loadSnapshotFromRunContext(String runId) {
+        if (agentRunContextRepository == null || !StringUtils.hasText(runId)) {
             return null;
         }
-        return agentRunContextRepository.findByRunId(orgId, runId)
+        return agentRunContextRepository.findByRunId(runId)
                 .map(ctx -> {
                     if (ctx == null || !StringUtils.hasText(ctx.getSnapshotJson())) {
                         return null;
@@ -553,28 +546,19 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
                 .orElse(null);
     }
 
-    private ModelConfig resolveModelForVersion(Long orgId, AgentVersion version) {
+    private ModelConfig resolveModelForVersion(AgentVersion version) {
         if (version == null) {
             return null;
-        }
-        if ("FIXED_MODEL".equalsIgnoreCase(version.getModelStrategyType())) {
-            if (version.getFixedModelId() == null) {
-                throw new BusinessException("FIXED_MODEL 策略下 fixedModelId 不能为空");
-            }
-            ModelConfig model = modelConfigService.queryModelConfigById(new com.xbk.knowledge.domain.model.vo.common.IdQuery(version.getFixedModelId()));
-            if (model != null && model.getOrgId() != null && orgId != null && !orgId.equals(model.getOrgId())) {
-                throw new BusinessException("模型不属于当前组织，modelId: " + model.getId());
-            }
-            return model;
         }
         List<ModelConfig> enabled = modelConfigService.queryEnabledModels(new com.xbk.knowledge.domain.model.vo.common.EnabledQuery(true));
         if (enabled == null || enabled.isEmpty()) {
             throw new BusinessException("未配置可用模型");
         }
         return enabled.stream()
-                .filter(m -> m != null && m.getOrgId() != null && orgId != null && orgId.equals(m.getOrgId()))
-                .max(Comparator.comparingInt(m -> m.getPriority() == null ? 0 : m.getPriority()))
-                .orElseThrow(() -> new BusinessException("当前组织未配置可用模型"));
+                .filter(m -> m != null && m.getId() != null)
+                .sorted(Comparator.comparingLong(m -> m.getId() == null ? Long.MAX_VALUE : m.getId()))
+                .findFirst()
+                .orElseThrow(() -> new BusinessException("未配置可用模型"));
     }
 
     private static final class AgentRunContextSnapshot {

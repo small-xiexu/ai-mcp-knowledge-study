@@ -9,13 +9,12 @@ import com.xbk.knowledge.api.dto.agent.PromptTemplateUpdateRequest;
 import com.xbk.knowledge.api.dto.common.IdRequest;
 import com.xbk.knowledge.application.service.app.IdentityContextService;
 import com.xbk.knowledge.application.service.app.PromptTemplateAppService;
-import com.xbk.knowledge.domain.model.entity.agent.PromptTemplate;
-import com.xbk.knowledge.domain.model.vo.agent.PromptTemplateIdQuery;
-import com.xbk.knowledge.domain.model.vo.agent.PromptTemplatePageQuery;
+import com.xbk.knowledge.domain.agent.model.entity.PromptTemplate;
+import com.xbk.knowledge.domain.agent.model.valobj.PromptTemplateIdQuery;
+import com.xbk.knowledge.domain.agent.model.valobj.PromptTemplatePageQuery;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.common.PageResultConverter;
 import com.xbk.knowledge.types.common.Result;
-import com.xbk.knowledge.types.context.OrgContextHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 
 /**
- * PromptTemplate 控制面接口（GLOBAL/ORG）。
+ * PromptTemplate 控制面接口。
  *
  * 职责：HTTP 接口适配，用于转发应用层能力（模板创建/编辑/发布/归档/查询）。
  *
@@ -48,11 +47,7 @@ public class PromptTemplateController {
     @PostMapping("/list")
     @SaCheckPermission("agent:read")
     public Result<PageResult<PromptTemplateResponse>> list(@Valid @RequestBody PromptTemplateQueryRequest request) {
-        Long orgId = currentOrgId();
-        PromptTemplatePageQuery query = new PromptTemplatePageQuery(
-                orgId,
-                request.getKeyword(),
-                request.getScope(),
+        PromptTemplatePageQuery query = new PromptTemplatePageQuery(request.getKeyword(),
                 request.getState(),
                 request.getOffset(),
                 request.getPageSize()
@@ -71,13 +66,12 @@ public class PromptTemplateController {
     @PostMapping("/get")
     @SaCheckPermission("agent:read")
     public Result<PromptTemplateResponse> get(@Valid @RequestBody IdRequest request) {
-        Long orgId = currentOrgId();
-        PromptTemplate template = promptTemplateAppService.queryById(new PromptTemplateIdQuery(orgId, request.getId()));
+        PromptTemplate template = promptTemplateAppService.queryById(new PromptTemplateIdQuery(request.getId()));
         return Result.success(toResponse(template));
     }
 
     /**
-     * 创建模板（GLOBAL/ORG）。
+     * 创建模板。
      *
      * @param request 创建请求
      * @return 创建后的模板
@@ -85,11 +79,8 @@ public class PromptTemplateController {
     @PostMapping("/create")
     @SaCheckPermission("agent:write")
     public Result<PromptTemplateResponse> create(@Valid @RequestBody PromptTemplateCreateRequest request) {
-        Long orgId = currentOrgId();
         Long userId = identityContextService.getCurrentUserId();
         PromptTemplate template = PromptTemplate.builder()
-                .scope(request.getScope())
-                .orgId(orgId)
                 .templateCode(request.getTemplateCode())
                 .templateName(request.getTemplateName())
                 .content(request.getContent())
@@ -110,11 +101,9 @@ public class PromptTemplateController {
     @PostMapping("/update")
     @SaCheckPermission("agent:write")
     public Result<PromptTemplateResponse> update(@Valid @RequestBody PromptTemplateUpdateRequest request) {
-        Long orgId = currentOrgId();
         Long userId = identityContextService.getCurrentUserId();
         PromptTemplate template = PromptTemplate.builder()
                 .id(request.getId())
-                .orgId(orgId)
                 .templateName(request.getTemplateName())
                 .content(request.getContent())
                 .variableSpecJson(request.getVariableSpecJson())
@@ -133,9 +122,8 @@ public class PromptTemplateController {
     @PostMapping("/publish")
     @SaCheckPermission("agent:publish")
     public Result<PromptTemplateResponse> publish(@Valid @RequestBody PromptTemplatePublishRequest request) {
-        Long orgId = currentOrgId();
         Long userId = identityContextService.getCurrentUserId();
-        PromptTemplate published = promptTemplateAppService.publish(new PromptTemplateIdQuery(orgId, request.getId()), userId);
+        PromptTemplate published = promptTemplateAppService.publish(new PromptTemplateIdQuery(request.getId()), userId);
         return Result.success("模板发布成功", toResponse(published));
     }
 
@@ -148,9 +136,8 @@ public class PromptTemplateController {
     @PostMapping("/archive")
     @SaCheckPermission("agent:publish")
     public Result<PromptTemplateResponse> archive(@Valid @RequestBody PromptTemplatePublishRequest request) {
-        Long orgId = currentOrgId();
         Long userId = identityContextService.getCurrentUserId();
-        PromptTemplate archived = promptTemplateAppService.archive(new PromptTemplateIdQuery(orgId, request.getId()), userId);
+        PromptTemplate archived = promptTemplateAppService.archive(new PromptTemplateIdQuery(request.getId()), userId);
         return Result.success("模板归档成功", toResponse(archived));
     }
 
@@ -163,8 +150,6 @@ public class PromptTemplateController {
     private PromptTemplateResponse toResponse(PromptTemplate t) {
         return PromptTemplateResponse.builder()
                 .id(t.getId())
-                .scope(t.getScope())
-                .orgId(t.getOrgId())
                 .templateCode(t.getTemplateCode())
                 .templateName(t.getTemplateName())
                 .versionNo(t.getVersionNo())
@@ -176,15 +161,4 @@ public class PromptTemplateController {
                 .build();
     }
 
-    /**
-     * 获取当前请求的目标 orgId。
-     *
-     * 说明：未注入 OrgContext 时默认使用 ROOT org（1）。
-     *
-     * @return orgId
-     */
-    private Long currentOrgId() {
-        Long orgId = OrgContextHolder.currentOrgIdOrNull();
-        return orgId != null ? orgId : 1L;
-    }
 }

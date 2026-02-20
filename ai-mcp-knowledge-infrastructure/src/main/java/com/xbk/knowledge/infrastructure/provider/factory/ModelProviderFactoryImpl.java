@@ -1,11 +1,9 @@
 package com.xbk.knowledge.infrastructure.provider.factory;
 
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
 import com.xbk.knowledge.application.provider.ModelProvider;
 import com.xbk.knowledge.application.provider.ModelProviderFactory;
 import com.xbk.knowledge.types.enums.ModelType;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -73,24 +71,6 @@ public class ModelProviderFactoryImpl implements ModelProviderFactory {
             throw new IllegalArgumentException("不支持的模型类型: " + modelType);
         }
         return provider;
-    }
-
-    /**
-     * 根据模型配置创建 ChatClient
-     *
-     * @param config 模型配置
-     * @return ChatClient 实例
-     *
-     * 为什么：统一在工厂层完成模型选择与创建
-     */
-    @Override
-    public ChatClient createChatClient(ModelConfig config) {
-        
-        ModelType modelType = config.getModelType();
-        
-        ModelProvider provider = getProvider(modelType);
-        
-        return provider.createChatClient(config);
     }
 
     /**

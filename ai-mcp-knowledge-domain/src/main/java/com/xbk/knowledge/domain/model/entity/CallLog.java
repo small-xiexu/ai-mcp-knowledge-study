@@ -38,9 +38,8 @@ public class CallLog {
     private Long id;
 
     /**
-     * 组织ID。
+     * scopeId。
      */
-    private Long orgId;
 
     /**
      * 模型ID
@@ -48,13 +47,6 @@ public class CallLog {
      * 为什么：定位调用使用的模型配置
      */
     private Long modelId;
-
-    /**
-     * 任务类型
-     *
-     * 为什么：记录业务语义，便于统计与分析
-     */
-    private String taskType;
 
     /**
      * 请求内容

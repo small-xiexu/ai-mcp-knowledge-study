@@ -54,16 +54,6 @@ public class AgentVersionDraftRequest extends BaseRequest {
     private Long workflowVersionId;
 
     /**
-     * 模型策略：TASK_TYPE_POLICY/FIXED_MODEL
-     */
-    @Builder.Default
-    private String modelStrategyType = "TASK_TYPE_POLICY";
-
-    private String taskTypeCode;
-
-    private Long fixedModelId;
-
-    /**
      * RAG 模式：DISABLED/OPTIONAL/REQUIRED
      */
     @Builder.Default

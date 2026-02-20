@@ -11,17 +11,17 @@ import org.springframework.ai.chat.client.advisor.api.CallAdvisor;
   */
 public interface AdvisorRuntimeService {
 
-    CallAdvisor[] resolveForAgentVersion(Long orgId, Long agentVersionId, String runId, Long sessionId);
+    CallAdvisor[] resolveForAgentVersion(Long agentVersionId, String runId, Long sessionId);
 
-    CallAdvisor[] resolveForWorkflowVersion(Long orgId, Long workflowVersionId, String runId, Long sessionId);
+    CallAdvisor[] resolveForWorkflowVersion(Long workflowVersionId, String runId, Long sessionId);
 
     /**
      * 绑定配置变更后调用，用于驱逐缓存（可选）。
      */
-    void evictBindingCache(Long orgId, String bindType, Long bindTargetId);
+    void evictBindingCache(String bindType, Long bindTargetId);
 
     /**
-     * Advisor 资产变更后调用，用于驱逐该 org 下的所有绑定缓存（可选）。
+     * Advisor 资产变更后调用，用于驱逐所有绑定缓存（可选）。
      */
-    void evictAll(Long orgId);
+    void evictAll();
 }

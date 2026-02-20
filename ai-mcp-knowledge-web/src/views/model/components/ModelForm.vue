@@ -121,49 +121,6 @@
             </div>
           </el-form-item>
         </el-col>
-        <el-col :span="12">
-          <el-form-item
-            label="优先级"
-            prop="priority"
-          >
-            <el-input-number
-              v-model="formData.priority"
-              :min="0"
-              :max="100"
-              controls-position="right"
-              class="gemini-input-number"
-            />
-          </el-form-item>
-        </el-col>
-      </el-row>
-
-      <div class="divider-text">模型能力配置</div>
-
-      <el-row :gutter="20">
-        <el-col :span="12">
-          <el-form-item label="Max Tokens">
-            <el-input-number
-              v-model="formData.capability.maxTokens"
-              :min="0"
-              :step="1000"
-              style="width: 100%"
-              controls-position="right"
-              class="gemini-input-number"
-            />
-          </el-form-item>
-        </el-col>
-        <el-col :span="12">
-          <el-form-item label="Quality Score">
-            <el-input-number
-              v-model="formData.capability.qualityScore"
-              :min="0"
-              :max="100"
-              style="width: 100%"
-              controls-position="right"
-              class="gemini-input-number"
-            />
-          </el-form-item>
-        </el-col>
       </el-row>
     </el-form>
 
@@ -220,13 +177,8 @@ const formData = reactive({
   modelType: '',
   apiKey: '',
   baseUrl: '',
-  priority: 0,
   enabled: true,
-  toolEnabled: true,
-  capability: {
-    maxTokens: 4096,
-    qualityScore: 80
-  }
+  toolEnabled: true
 })
 
 const rules: FormRules = {
@@ -242,11 +194,8 @@ const resetForm = () => {
   formData.modelType = ''
   formData.apiKey = ''
   formData.baseUrl = ''
-  formData.priority = 0
   formData.enabled = true
   formData.toolEnabled = true
-  formData.capability.maxTokens = 4096
-  formData.capability.qualityScore = 80
   formRef.value?.clearValidate()
 }
 
@@ -261,13 +210,8 @@ watch(
       formData.modelType = data.modelType
       formData.apiKey = data.apiKey || ''
       formData.baseUrl = data.baseUrl || ''
-      formData.priority = data.priority
       formData.enabled = data.enabled
       formData.toolEnabled = data.toolEnabled !== false
-      if (data.capability) {
-        formData.capability.maxTokens = data.capability.maxInputTokens || 4096
-        formData.capability.qualityScore = data.capability.qualityScore || 80
-      }
     } else {
       isEdit.value = false
       resetForm()
@@ -296,12 +240,7 @@ const handleSubmit = async () => {
         apiKey: formData.apiKey,
         baseUrl: formData.baseUrl,
         enabled: formData.enabled,
-        toolEnabled: formData.toolEnabled,
-        priority: formData.priority,
-        capability: {
-          maxTokens: formData.capability.maxTokens,
-          qualityScore: formData.capability.qualityScore
-        }
+        toolEnabled: formData.toolEnabled
       }
 
       if (isEdit.value) {

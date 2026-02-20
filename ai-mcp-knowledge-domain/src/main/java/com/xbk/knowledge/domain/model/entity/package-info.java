@@ -1,5 +1,5 @@
 /**
- * 领域实体集合，包含 ModelConfig/ModelCapability/TaskType/CallLog/ConfigAudit。
+ * 领域实体集合，包含 ModelConfig/CallLog/ConfigAudit。
  *
  * @author xiexu
  */

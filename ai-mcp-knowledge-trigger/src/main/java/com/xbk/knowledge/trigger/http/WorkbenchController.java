@@ -5,7 +5,6 @@ import com.xbk.knowledge.api.dto.workbench.WorkbenchSummaryResponse;
 import com.xbk.knowledge.application.model.workbench.WorkbenchSummary;
 import com.xbk.knowledge.application.service.app.WorkbenchAppService;
 import com.xbk.knowledge.types.common.Result;
-import com.xbk.knowledge.types.context.OrgContextHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -37,8 +36,7 @@ public class WorkbenchController {
     @PostMapping("/summary")
     @SaCheckLogin
     public Result<WorkbenchSummaryResponse> summary(@RequestBody(required = false) Object ignored) {
-        Long orgId = currentOrgId();
-        WorkbenchSummary summary = workbenchAppService.summary(orgId);
+        WorkbenchSummary summary = workbenchAppService.summary();
         return Result.success(toResponse(summary));
     }
 
@@ -51,7 +49,6 @@ public class WorkbenchController {
         List<WorkbenchSummaryResponse.GuideStep> steps = (s.getGuideSteps() == null ? Collections.<WorkbenchSummaryResponse.GuideStep>emptyList() :
                 s.getGuideSteps().stream().map(this::toStep).toList());
         return WorkbenchSummaryResponse.builder()
-                .org(toOrg(s.getOrg()))
                 .model(toModel(s.getModel()))
                 .agent(toAgent(s.getAgent()))
                 .prompt(toPrompt(s.getPrompt()))
@@ -60,18 +57,6 @@ public class WorkbenchController {
                 .knowledge(toKnowledge(s.getKnowledge()))
                 .todo(toTodo(s.getTodo()))
                 .guideSteps(steps)
-                .build();
-    }
-
-    private WorkbenchSummaryResponse.OrgInfo toOrg(WorkbenchSummary.OrgInfo o) {
-        if (o == null) {
-            return null;
-        }
-        return WorkbenchSummaryResponse.OrgInfo.builder()
-                .currentOrgId(o.getCurrentOrgId())
-                .operatorOrgId(o.getOperatorOrgId())
-                .superAdmin(o.isSuperAdmin())
-                .explicitTargetOrg(o.isExplicitTargetOrg())
                 .build();
     }
 
@@ -102,9 +87,8 @@ public class WorkbenchController {
             return null;
         }
         return WorkbenchSummaryResponse.PromptInfo.builder()
-                .globalPublished(p.getGlobalPublished())
-                .orgDraft(p.getOrgDraft())
-                .orgPublished(p.getOrgPublished())
+                .draft(p.getDraft())
+                .published(p.getPublished())
                 .build();
     }
 
@@ -113,8 +97,6 @@ public class WorkbenchController {
             return null;
         }
         return WorkbenchSummaryResponse.ToolInfo.builder()
-                .toolPolicyTotal(t.getToolPolicyTotal())
-                .toolPolicyEnabled(t.getToolPolicyEnabled())
                 .approvalsPending(t.getApprovalsPending())
                 .build();
     }
@@ -164,10 +146,4 @@ public class WorkbenchController {
                 .writeAction(s.isWriteAction())
                 .build();
     }
-
-    private Long currentOrgId() {
-        Long orgId = OrgContextHolder.currentOrgIdOrNull();
-        return orgId != null ? orgId : 1L;
-    }
 }
-

@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xbk.knowledge.infrastructure.mapper.gateway.McpToolRegistryMapper">
+<mapper namespace="com.xbk.knowledge.infrastructure.dao.IMcpToolRegistryDao">
 
-    <resultMap id="McpToolRegistryMap" type="com.xbk.knowledge.domain.model.entity.gateway.McpToolRegistry">
+    <resultMap id="McpToolRegistryMap" type="com.xbk.knowledge.infrastructure.dao.po.McpToolRegistryPO">
         <id column="id" property="id"/>
         <result column="gateway_id" property="gatewayId"/>
         <result column="tool_name" property="toolName"/>
@@ -21,7 +21,7 @@
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
 
-    <insert id="insertToolRegistry" parameterType="com.xbk.knowledge.domain.model.entity.gateway.McpToolRegistry" useGeneratedKeys="true" keyProperty="id">
+    <insert id="insertToolRegistry" parameterType="com.xbk.knowledge.infrastructure.dao.po.McpToolRegistryPO" useGeneratedKeys="true" keyProperty="id">
         insert into mcp_tool_registry (
             gateway_id,
             tool_name,
@@ -53,7 +53,7 @@
         )
     </insert>
 
-    <update id="updateToolRegistry" parameterType="com.xbk.knowledge.domain.model.entity.gateway.McpToolRegistry">
+    <update id="updateToolRegistry" parameterType="com.xbk.knowledge.infrastructure.dao.po.McpToolRegistryPO">
         update mcp_tool_registry
         set gateway_id = #{gatewayId},
             tool_name = #{toolName},

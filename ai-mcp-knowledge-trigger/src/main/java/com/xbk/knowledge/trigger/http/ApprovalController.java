@@ -6,11 +6,10 @@ import com.xbk.knowledge.api.dto.approval.ApprovalIdRequest;
 import com.xbk.knowledge.api.dto.approval.ApprovalListRequest;
 import com.xbk.knowledge.api.dto.approval.ApprovalResponse;
 import com.xbk.knowledge.application.service.app.ApprovalAppService;
-import com.xbk.knowledge.domain.model.entity.approval.ApprovalRequest;
+import com.xbk.knowledge.domain.approval.model.entity.ApprovalRequest;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.common.PageResultConverter;
 import com.xbk.knowledge.types.common.Result;
-import com.xbk.knowledge.types.context.OrgContextHolder;
 import com.xbk.knowledge.types.contract.PlatformContractV1;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -43,10 +42,7 @@ public class ApprovalController {
     @PostMapping("/list")
     @SaCheckPermission("tool:approve")
     public Result<PageResult<ApprovalResponse>> list(@Valid @RequestBody ApprovalListRequest request) {
-        Long orgId = currentOrgId();
-        PageResult<ApprovalRequest> page = approvalAppService.list(
-                orgId,
-                request.getStatus(),
+        PageResult<ApprovalRequest> page = approvalAppService.list(request.getStatus(),
                 request.getOffset() == null ? 0 : request.getOffset(),
                 request.getPageSize() == null ? 20 : request.getPageSize()
         );
@@ -60,8 +56,7 @@ public class ApprovalController {
     @PostMapping("/get")
     @SaCheckPermission("tool:approve")
     public Result<ApprovalResponse> get(@Valid @RequestBody ApprovalIdRequest request) {
-        Long orgId = currentOrgId();
-        ApprovalRequest approval = approvalAppService.get(orgId, request.getId());
+        ApprovalRequest approval = approvalAppService.get(request.getId());
         return Result.success(toResponse(approval));
     }
 
@@ -71,8 +66,7 @@ public class ApprovalController {
     @PostMapping("/approve")
     @SaCheckPermission("tool:approve")
     public Result<PlatformContractV1> approve(@Valid @RequestBody ApprovalDecisionRequest request) {
-        Long orgId = currentOrgId();
-        PlatformContractV1 result = approvalAppService.approve(orgId, request.getId(), request.getDecisionComment());
+        PlatformContractV1 result = approvalAppService.approve(request.getId(), request.getDecisionComment());
         return Result.success("审批通过并已续跑完成", result);
     }
 
@@ -82,8 +76,7 @@ public class ApprovalController {
     @PostMapping("/reject")
     @SaCheckPermission("tool:approve")
     public Result<ApprovalResponse> reject(@Valid @RequestBody ApprovalDecisionRequest request) {
-        Long orgId = currentOrgId();
-        ApprovalRequest result = approvalAppService.reject(orgId, request.getId(), request.getDecisionComment());
+        ApprovalRequest result = approvalAppService.reject(request.getId(), request.getDecisionComment());
         return Result.success("审批已拒绝", toResponse(result));
     }
 
@@ -93,7 +86,6 @@ public class ApprovalController {
         }
         return ApprovalResponse.builder()
                 .id(approval.getId())
-                .orgId(approval.getOrgId())
                 .approvalType(approval.getApprovalType())
                 .status(approval.getStatus())
                 .runId(approval.getRunId())
@@ -117,13 +109,4 @@ public class ApprovalController {
                 .build();
     }
 
-    /**
-     * 获取当前请求目标 orgId。
-     *
-     * 说明：未注入 OrgContext 时默认使用 ROOT org（1）。
-     */
-    private Long currentOrgId() {
-        Long orgId = OrgContextHolder.currentOrgIdOrNull();
-        return orgId != null ? orgId : 1L;
-    }
 }

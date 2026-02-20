@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xbk.knowledge.infrastructure.mapper.workflow.WorkflowVersionMapper">
+<mapper namespace="com.xbk.knowledge.infrastructure.dao.IWorkflowVersionDao">
 
-    <resultMap id="WorkflowVersionMap" type="com.xbk.knowledge.domain.model.entity.workflow.WorkflowVersion">
+    <resultMap id="WorkflowVersionMap" type="com.xbk.knowledge.infrastructure.dao.po.WorkflowVersionPO">
         <id column="id" property="id"/>
         <result column="workflow_id" property="workflowId"/>
         <result column="version_no" property="versionNo"/>
@@ -18,7 +18,7 @@
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
 
-    <insert id="insertVersion" parameterType="com.xbk.knowledge.domain.model.entity.workflow.WorkflowVersion"
+    <insert id="insertVersion" parameterType="com.xbk.knowledge.infrastructure.dao.po.WorkflowVersionPO"
             useGeneratedKeys="true" keyProperty="id">
         insert into workflow_version (
             graph_json, default_config_json,
@@ -29,7 +29,7 @@
         )
     </insert>
 
-    <update id="updateVersion" parameterType="com.xbk.knowledge.domain.model.entity.workflow.WorkflowVersion">
+    <update id="updateVersion" parameterType="com.xbk.knowledge.infrastructure.dao.po.WorkflowVersionPO">
         update workflow_version
         set state = #{state},
             change_summary = #{changeSummary},

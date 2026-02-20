@@ -3,7 +3,6 @@ import type { PageResult, PageRequest } from '@/types/api'
 
 export interface Advisor {
   id: number
-  orgId: number
   advisorCode: string
   advisorName: string
   advisorType: string
@@ -15,7 +14,6 @@ export interface Advisor {
 
 export interface AdvisorBindingView {
   bindingId: number
-  orgId: number
   bindType: string
   bindTargetId: number
   advisorId: number
@@ -54,4 +52,3 @@ export const saveAdvisorBindings = (data: {
   bindTargetId: number
   items: Array<{ advisorId: number; orderNo?: number; enabled?: boolean }>
 }) => request.post<void>('/advisors/bindings/save', data)
-

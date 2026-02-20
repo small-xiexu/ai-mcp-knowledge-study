@@ -6,7 +6,7 @@ import com.xbk.knowledge.domain.model.vo.metrics.ModelUsage;
 import com.xbk.knowledge.domain.model.vo.metrics.ModelUsageQuery;
 import com.xbk.knowledge.domain.model.vo.metrics.ResponseTime;
 import com.xbk.knowledge.domain.model.vo.metrics.SuccessRate;
-import com.xbk.knowledge.domain.repository.metrics.CallLogRepository;
+import com.xbk.knowledge.domain.model.adapter.repository.metrics.CallLogRepository;
 import com.xbk.knowledge.domain.service.metrics.IMetricsDomainService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

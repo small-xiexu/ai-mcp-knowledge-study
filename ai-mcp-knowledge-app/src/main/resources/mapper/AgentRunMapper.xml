@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xbk.knowledge.infrastructure.mapper.agent.AgentRunMapper">
+<mapper namespace="com.xbk.knowledge.infrastructure.dao.IAgentRunDao">
 
-    <resultMap id="AgentRunMap" type="com.xbk.knowledge.domain.model.entity.agent.AgentRun">
+    <resultMap id="AgentRunMap" type="com.xbk.knowledge.infrastructure.dao.po.AgentRunPO">
         <id column="run_id" property="runId"/>
         <result column="agent_id" property="agentId"/>
         <result column="agent_code" property="agentCode"/>
@@ -17,9 +17,6 @@
         <result column="status" property="status"/>
         <result column="model_id_used" property="modelIdUsed"/>
         <result column="model_name_used" property="modelNameUsed"/>
-        <result column="prompt_tokens" property="promptTokens"/>
-        <result column="completion_tokens" property="completionTokens"/>
-        <result column="total_tokens" property="totalTokens"/>
         <result column="tool_call_count" property="toolCallCount"/>
         <result column="tool_denied_count" property="toolDeniedCount"/>
         <result column="repair_attempts" property="repairAttempts"/>
@@ -29,7 +26,7 @@
         <result column="ended_at" property="endedAt"/>
     </resultMap>
 
-    <insert id="insertRun" parameterType="com.xbk.knowledge.domain.model.entity.agent.AgentRun">
+    <insert id="insertRun" parameterType="com.xbk.knowledge.infrastructure.dao.po.AgentRunPO">
         insert into agent_run (
             run_id,
             agent_id,
@@ -43,9 +40,6 @@
             status,
             model_id_used,
             model_name_used,
-            prompt_tokens,
-            completion_tokens,
-            total_tokens,
             tool_call_count,
             tool_denied_count,
             repair_attempts,
@@ -66,9 +60,6 @@
             #{status},
             #{modelIdUsed},
             #{modelNameUsed},
-            #{promptTokens},
-            #{completionTokens},
-            #{totalTokens},
             #{toolCallCount},
             #{toolDeniedCount},
             #{repairAttempts},
@@ -79,14 +70,11 @@
         )
     </insert>
 
-    <update id="updateStatusAndMetrics" parameterType="com.xbk.knowledge.domain.model.entity.agent.AgentRun">
+    <update id="updateStatusAndMetrics" parameterType="com.xbk.knowledge.infrastructure.dao.po.AgentRunPO">
         update agent_run
         set status = #{status},
             model_id_used = #{modelIdUsed},
             model_name_used = #{modelNameUsed},
-            prompt_tokens = coalesce(#{promptTokens}, prompt_tokens),
-            completion_tokens = coalesce(#{completionTokens}, completion_tokens),
-            total_tokens = coalesce(#{totalTokens}, total_tokens),
             tool_call_count = coalesce(#{toolCallCount}, tool_call_count),
             tool_denied_count = coalesce(#{toolDeniedCount}, tool_denied_count),
             repair_attempts = coalesce(#{repairAttempts}, repair_attempts),
@@ -119,9 +107,6 @@
             status,
             model_id_used,
             model_name_used,
-            prompt_tokens,
-            completion_tokens,
-            total_tokens,
             tool_call_count,
             tool_denied_count,
             repair_attempts,

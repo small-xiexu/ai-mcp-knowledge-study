@@ -9,13 +9,6 @@
           </template>
 
           <el-form label-width="80px">
-            <el-form-item label="任务类型">
-              <el-input
-                v-model="config.taskType"
-                placeholder="请输入任务类型（选填）"
-              />
-            </el-form-item>
-
             <el-form-item label="策略">
               <el-select
                 v-model="config.strategy"
@@ -158,7 +151,6 @@ const inputText = ref('')
 const messages = ref<Message[]>([])
 const messageListRef = ref<HTMLElement>()
 const config = reactive({
-  taskType: '',
   strategy: 'QUALITY_PRIORITY'
 })
 
@@ -190,8 +182,7 @@ const handleSend = async () => {
     }
 
     const res = await chat({
-      ...requestData,
-      taskType: config.taskType || undefined
+      ...requestData
     })
 
     const data = res.data

@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xbk.knowledge.infrastructure.mapper.advisor.AdvisorBindingMapper">
+<mapper namespace="com.xbk.knowledge.infrastructure.dao.IAdvisorBindingDao">
 
-    <resultMap id="AdvisorBindingMap" type="com.xbk.knowledge.domain.model.entity.advisor.AdvisorBinding">
+    <resultMap id="AdvisorBindingMap" type="com.xbk.knowledge.infrastructure.dao.po.AdvisorBindingPO">
         <id column="id" property="id"/>
         <result column="bind_type" property="bindType"/>
         <result column="bind_target_id" property="bindTargetId"/>
@@ -15,7 +15,7 @@
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
 
-    <resultMap id="AdvisorBindingViewMap" type="com.xbk.knowledge.domain.model.vo.advisor.AdvisorBindingView">
+    <resultMap id="AdvisorBindingViewMap" type="com.xbk.knowledge.domain.advisor.model.valobj.AdvisorBindingView">
         <id column="binding_id" property="bindingId"/>
         <result column="bind_type" property="bindType"/>
         <result column="bind_target_id" property="bindTargetId"/>
@@ -45,7 +45,7 @@
             created_at,
             updated_at
         from advisor_binding
-          and bind_type = #{q.bindType}
+        where bind_type = #{q.bindType}
           and bind_target_id = #{q.bindTargetId}
         order by order_no asc, id asc
     </select>
@@ -69,14 +69,14 @@
             a.updated_at as advisor_updated_at
         from advisor_binding b
         inner join advisor a on a.id = b.advisor_id
-          and b.bind_type = #{q.bindType}
+        where b.bind_type = #{q.bindType}
           and b.bind_target_id = #{q.bindTargetId}
         order by b.order_no asc, b.id asc
     </select>
 
     <delete id="deleteByTarget">
         delete from advisor_binding
-          and bind_type = #{q.bindType}
+        where bind_type = #{q.bindType}
           and bind_target_id = #{q.bindTargetId}
     </delete>
 
@@ -101,4 +101,3 @@
     </insert>
 
 </mapper>
-

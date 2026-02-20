@@ -1,6 +1,6 @@
 package com.xbk.knowledge.trigger.job;
 
-import com.xbk.knowledge.domain.repository.rag.RagTaskRepository;
+import com.xbk.knowledge.domain.model.adapter.repository.rag.RagTaskRepository;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

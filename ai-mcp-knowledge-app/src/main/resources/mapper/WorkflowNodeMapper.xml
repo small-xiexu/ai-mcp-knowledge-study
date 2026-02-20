@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xbk.knowledge.infrastructure.mapper.workflow.WorkflowNodeMapper">
+<mapper namespace="com.xbk.knowledge.infrastructure.dao.IWorkflowNodeDao">
 
-    <resultMap id="WorkflowNodeMap" type="com.xbk.knowledge.domain.model.entity.workflow.WorkflowNode">
+    <resultMap id="WorkflowNodeMap" type="com.xbk.knowledge.infrastructure.dao.po.WorkflowNodePO">
         <id column="id" property="id"/>
         <result column="workflow_version_id" property="workflowVersionId"/>
         <result column="node_key" property="nodeKey"/>
@@ -17,7 +17,7 @@
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
 
-    <insert id="insertNode" parameterType="com.xbk.knowledge.domain.model.entity.workflow.WorkflowNode"
+    <insert id="insertNode" parameterType="com.xbk.knowledge.infrastructure.dao.po.WorkflowNodePO"
             useGeneratedKeys="true" keyProperty="id">
         insert into workflow_node (
             config_json, position_x, position_y,

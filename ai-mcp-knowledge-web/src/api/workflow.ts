@@ -4,7 +4,6 @@ import type { PlatformContractV1 } from '@/types/workflow'
 
 export interface Workflow {
   id: number
-  orgId: number
   workflowCode: string
   workflowName: string
   description?: string
@@ -16,7 +15,6 @@ export interface Workflow {
 
 export interface WorkflowVersion {
   id: number
-  orgId: number
   workflowId: number
   versionNo: number
   state: string
@@ -29,7 +27,6 @@ export interface WorkflowVersion {
 
 export interface WorkflowRun {
   id: number
-  orgId: number
   runId: string
   workflowId: number
   workflowCode: string
@@ -48,7 +45,6 @@ export interface WorkflowRun {
 
 export interface WorkflowNodeRun {
   id: number
-  orgId: number
   runId: string
   nodeKey: string
   nodeType: string
@@ -56,9 +52,6 @@ export interface WorkflowNodeRun {
   status: string
   modelIdUsed?: number | null
   modelNameUsed?: string | null
-  promptTokens?: number | null
-  completionTokens?: number | null
-  totalTokens?: number | null
   toolCallCount?: number | null
   toolDeniedCount?: number | null
   inputDigest?: string | null

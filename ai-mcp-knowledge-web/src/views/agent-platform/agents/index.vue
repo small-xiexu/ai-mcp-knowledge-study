@@ -3,7 +3,7 @@
     <div class="page-header">
       <div>
         <h2 class="page-title">Agent 管理</h2>
-        <p class="subtitle">按部门(org)隔离的 Agent 控制面</p>
+        <p class="subtitle">统一 Agent 控制面</p>
       </div>
       <div class="header-actions">
         <el-button class="gemini-btn-secondary" @click="fetchData">

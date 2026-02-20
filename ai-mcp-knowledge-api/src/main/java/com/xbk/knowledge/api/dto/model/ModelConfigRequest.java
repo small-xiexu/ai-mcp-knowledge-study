@@ -68,14 +68,4 @@ public class ModelConfigRequest extends BaseRequest {
     @Builder.Default
     private Boolean toolEnabled = true;
 
-    /**
-     * 优先级（数字越大优先级越高）
-     */
-    @Builder.Default
-    private Integer priority = 0;
-
-    /**
-     * 模型能力配置
-     */
-    private ModelCapabilityRequest capability;
 }

@@ -27,7 +27,7 @@ public class ModelSelectionChainFactory {
     /**
      * 1. 通过构造函数注入处理器集合。
      * 2. Spring 可自动注入 ModelSelectionHandler 实现到 map 中，key 为 bean 名称。
-     * 3. 责任链顺序固定：显式策略 -> 任务类型 -> 默认兜底。
+     * 3. 责任链顺序固定：显式策略 -> 默认兜底。
      * 4. 找到第一个责任链，然后将后续责任链依次挂载到第一个责任链上。
      *
      * @param handlerGroup Spring 注入的所有处理器
@@ -38,15 +38,11 @@ public class ModelSelectionChainFactory {
                 handlerGroup.get(ModelSelectionHandlerOrder.explicit_strategy.getBeanName()),
                 "未找到责任链处理器：" + ModelSelectionHandlerOrder.explicit_strategy.getBeanName()
         );
-        ModelSelectionHandler taskTypeHandler = Objects.requireNonNull(
-                handlerGroup.get(ModelSelectionHandlerOrder.task_type.getBeanName()),
-                "未找到责任链处理器：" + ModelSelectionHandlerOrder.task_type.getBeanName()
-        );
         ModelSelectionHandler defaultHandler = Objects.requireNonNull(
                 handlerGroup.get(ModelSelectionHandlerOrder.default_fallback.getBeanName()),
                 "未找到责任链处理器：" + ModelSelectionHandlerOrder.default_fallback.getBeanName()
         );
-        head.appendNext(taskTypeHandler).appendNext(defaultHandler);
+        head.appendNext(defaultHandler);
         this.chainHead = head;
     }
 
@@ -64,7 +60,6 @@ public class ModelSelectionChainFactory {
     public enum ModelSelectionHandlerOrder {
 
         explicit_strategy("explicitStrategySelectionHandler", "显式策略处理器"),
-        task_type("taskTypeSelectionHandler", "任务类型处理器"),
         default_fallback("defaultSelectionHandler", "默认兜底处理器");
 
         private final String beanName;

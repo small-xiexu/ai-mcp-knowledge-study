@@ -1,9 +1,9 @@
 package com.xbk.knowledge.application.service.app.impl;
 
 import com.xbk.knowledge.application.service.app.UserIdentityAppService;
-import com.xbk.knowledge.domain.model.entity.SysUser;
-import com.xbk.knowledge.domain.model.vo.identity.UserPageQuery;
-import com.xbk.knowledge.domain.repository.identity.IdentityRepository;
+import com.xbk.knowledge.domain.identity.model.entity.SysUser;
+import com.xbk.knowledge.domain.identity.model.valobj.UserPageQuery;
+import com.xbk.knowledge.domain.identity.adapter.repository.IdentityRepository;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.exception.BusinessException;
 import com.xbk.knowledge.types.exception.NotFoundException;
