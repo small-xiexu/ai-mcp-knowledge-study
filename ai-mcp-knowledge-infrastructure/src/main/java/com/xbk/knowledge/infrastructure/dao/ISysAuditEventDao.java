@@ -2,7 +2,6 @@ package com.xbk.knowledge.infrastructure.dao;
 
 import com.xbk.knowledge.infrastructure.dao.po.SysAuditEventPO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.xbk.knowledge.domain.audit.model.entity.SysAuditEvent;
 import com.xbk.knowledge.domain.identity.model.valobj.AuditEventPageQuery;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -24,7 +23,7 @@ public interface ISysAuditEventDao extends BaseMapper<SysAuditEventPO> {
      * @param event 审计事件
      * @return 影响行数
      */
-    int insertEvent(SysAuditEvent event);
+    int insertEvent(SysAuditEventPO event);
 
     /**
      * 分页查询审计事件。
@@ -32,7 +31,7 @@ public interface ISysAuditEventDao extends BaseMapper<SysAuditEventPO> {
      * @param query 查询条件
      * @return 列表
      */
-    List<SysAuditEvent> findPage(AuditEventPageQuery query);
+    List<SysAuditEventPO> findPage(AuditEventPageQuery query);
 
     /**
      * 统计审计事件数量。

@@ -1,6 +1,6 @@
 package com.xbk.knowledge.infrastructure.dao;
 
-import com.xbk.knowledge.domain.rag.model.entity.RagTask;
+import com.xbk.knowledge.infrastructure.dao.po.RagTaskPO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -23,7 +23,7 @@ public interface IRagTaskDao {
      * 入参：任务
      * 出参：无
      */
-    void insertTask(@Param("task") RagTask task);
+    void insertTask(@Param("task") RagTaskPO task);
 
     /**
      * 更新任务
@@ -32,7 +32,7 @@ public interface IRagTaskDao {
      * 入参：任务
      * 出参：无
      */
-    void updateTask(@Param("task") RagTask task);
+    void updateTask(@Param("task") RagTaskPO task);
 
     /**
      * 按任务ID查询
@@ -41,7 +41,7 @@ public interface IRagTaskDao {
      * 入参：任务ID
      * 出参：任务
      */
-    RagTask findByTaskId(@Param("taskId") String taskId);
+    RagTaskPO findByTaskId(@Param("taskId") String taskId);
 
     /**
      * 分页查询任务
@@ -50,7 +50,7 @@ public interface IRagTaskDao {
      * 入参：偏移量、条数
      * 出参：任务列表
      */
-    List<RagTask> findPage(@Param("offset") int offset, @Param("limit") int limit);
+    List<RagTaskPO> findPage(@Param("offset") int offset, @Param("limit") int limit);
 
     /**
      * 统计任务总数
@@ -74,7 +74,7 @@ public interface IRagTaskDao {
      * 入参：起始时间
      * 出参：失败任务列表
      */
-    List<RagTask> findFailedTasksSince(@Param("since") LocalDateTime since);
+    List<RagTaskPO> findFailedTasksSince(@Param("since") LocalDateTime since);
 
     /**
      * 查询指定时间前仍处于 PROCESSING 状态的任务
@@ -83,7 +83,7 @@ public interface IRagTaskDao {
      * 入参：截止时间
      * 出参：超时任务列表
      */
-    List<RagTask> findProcessingTasksBefore(@Param("before") LocalDateTime before);
+    List<RagTaskPO> findProcessingTasksBefore(@Param("before") LocalDateTime before);
 
     /**
      * 删除指定时间前的已完成任务

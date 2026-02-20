@@ -1,10 +1,5 @@
 package com.xbk.knowledge.domain.rag.model.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
 import com.xbk.knowledge.types.enums.RagTaskStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,7 +16,6 @@ import java.time.LocalDateTime;
  * 职责：记录知识库构建任务
  * @author sxie
  */
-@TableName("ai_rag_task")
 @Getter
 @Setter
 @Builder
@@ -34,7 +28,6 @@ public class RagTask {
      *
      * 为什么：用于持久化唯一标识
      */
-    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
@@ -112,7 +105,6 @@ public class RagTask {
      *
      * 为什么：用于审计与排序
      */
-    @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
     /**
@@ -120,6 +112,5 @@ public class RagTask {
      *
      * 为什么：用于审计与变更追踪
      */
-    @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedAt;
 }

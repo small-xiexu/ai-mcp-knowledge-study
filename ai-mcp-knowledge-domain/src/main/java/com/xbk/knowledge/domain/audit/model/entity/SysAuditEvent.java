@@ -1,10 +1,5 @@
 package com.xbk.knowledge.domain.audit.model.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -21,7 +16,6 @@ import java.time.LocalDateTime;
  *
  * @author sxie
  */
-@TableName("sys_audit_event")
 @Getter
 @Setter
 @Builder
@@ -32,7 +26,6 @@ public class SysAuditEvent {
     /**
      * 主键ID。
      */
-    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
@@ -123,6 +116,5 @@ public class SysAuditEvent {
     /**
      * 发生时间。
      */
-    @TableField(fill = FieldFill.INSERT)
     private LocalDateTime occurredAt;
 }

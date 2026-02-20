@@ -2,7 +2,9 @@ package com.xbk.knowledge.infrastructure.gateway.repository;
 
 import com.xbk.knowledge.domain.gateway.model.entity.McpToolSchema;
 import com.xbk.knowledge.domain.gateway.adapter.repository.McpToolSchemaRepository;
+import com.xbk.knowledge.infrastructure.common.BeanMappingUtils;
 import com.xbk.knowledge.infrastructure.dao.IMcpToolSchemaDao;
+import com.xbk.knowledge.infrastructure.dao.po.McpToolSchemaPO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -31,7 +33,8 @@ public class McpToolSchemaRepositoryImpl implements McpToolSchemaRepository {
         if (gatewayId == null || toolId == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(mapper.findActiveByGatewayIdAndToolId(gatewayId, toolId));
+        return Optional.ofNullable(mapper.findActiveByGatewayIdAndToolId(gatewayId, toolId))
+                .map(item -> BeanMappingUtils.map(item, McpToolSchema.class));
     }
 
     /**
@@ -46,10 +49,10 @@ public class McpToolSchemaRepositoryImpl implements McpToolSchemaRepository {
             return null;
         }
         if (schema.getId() == null) {
-            mapper.insertToolSchema(schema);
+            mapper.insertToolSchema(BeanMappingUtils.map(schema, McpToolSchemaPO.class));
             return schema;
         }
-        mapper.updateToolSchema(schema);
+        mapper.updateToolSchema(BeanMappingUtils.map(schema, McpToolSchemaPO.class));
         return schema;
     }
 }

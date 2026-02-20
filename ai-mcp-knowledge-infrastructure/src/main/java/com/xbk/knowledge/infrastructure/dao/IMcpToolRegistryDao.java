@@ -2,7 +2,6 @@ package com.xbk.knowledge.infrastructure.dao;
 
 import com.xbk.knowledge.infrastructure.dao.po.McpToolRegistryPO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.xbk.knowledge.domain.gateway.model.entity.McpToolRegistry;
 import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.GatewayIdQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.ToolNameQuery;
@@ -20,28 +19,28 @@ import java.util.List;
 public interface IMcpToolRegistryDao extends BaseMapper<McpToolRegistryPO> {
 
     /** 新增工具注册记录 */
-    int insertToolRegistry(McpToolRegistry registry);
+    int insertToolRegistry(McpToolRegistryPO registry);
 
     /** 更新工具注册记录 */
-    int updateToolRegistry(McpToolRegistry registry);
+    int updateToolRegistry(McpToolRegistryPO registry);
 
     /** 按主键删除工具注册记录 */
     int deleteToolRegistryById(IdQuery query);
 
     /** 按主键查询工具注册记录 */
-    McpToolRegistry findById(IdQuery query);
+    McpToolRegistryPO findById(IdQuery query);
 
     /** 按 gatewayId + toolName 唯一定位工具 */
-    McpToolRegistry findByGatewayIdAndToolName(ToolNameQuery query);
+    McpToolRegistryPO findByGatewayIdAndToolName(ToolNameQuery query);
 
     /** 按 gatewayId 查询该网关下所有工具 */
-    List<McpToolRegistry> findByGatewayId(GatewayIdQuery query);
+    List<McpToolRegistryPO> findByGatewayId(GatewayIdQuery query);
 
     /** 按 gatewayId 查询该网关下已启用的工具 */
-    List<McpToolRegistry> findEnabledByGatewayId(GatewayIdQuery query);
+    List<McpToolRegistryPO> findEnabledByGatewayId(GatewayIdQuery query);
 
     /** 分页查询工具列表 */
-    List<McpToolRegistry> findPage(ToolRegistryPageQuery query);
+    List<McpToolRegistryPO> findPage(ToolRegistryPageQuery query);
 
     /** 统计指定网关下的工具总数 */
     long countByGatewayId(GatewayIdQuery query);

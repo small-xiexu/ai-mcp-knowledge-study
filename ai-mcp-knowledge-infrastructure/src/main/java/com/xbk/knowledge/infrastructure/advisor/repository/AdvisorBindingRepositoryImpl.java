@@ -4,7 +4,9 @@ import com.xbk.knowledge.domain.advisor.model.entity.AdvisorBinding;
 import com.xbk.knowledge.domain.advisor.model.valobj.AdvisorBindingQuery;
 import com.xbk.knowledge.domain.advisor.model.valobj.AdvisorBindingView;
 import com.xbk.knowledge.domain.advisor.adapter.repository.AdvisorBindingRepository;
+import com.xbk.knowledge.infrastructure.common.BeanMappingUtils;
 import com.xbk.knowledge.infrastructure.dao.IAdvisorBindingDao;
+import com.xbk.knowledge.infrastructure.dao.po.AdvisorBindingPO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
@@ -34,7 +36,7 @@ public class AdvisorBindingRepositoryImpl implements AdvisorBindingRepository {
         if (query == null || !StringUtils.hasText(query.bindType()) || query.bindTargetId() == null) {
             return Collections.emptyList();
         }
-        return mapper.listBindings(query);
+        return BeanMappingUtils.mapList(mapper.listBindings(query), AdvisorBinding.class);
     }
 
     /**
@@ -77,6 +79,6 @@ public class AdvisorBindingRepositoryImpl implements AdvisorBindingRepository {
                 || binding.getBindTargetId() == null || binding.getAdvisorId() == null) {
             return 0;
         }
-        return mapper.insertBinding(binding);
+        return mapper.insertBinding(BeanMappingUtils.map(binding, AdvisorBindingPO.class));
     }
 }

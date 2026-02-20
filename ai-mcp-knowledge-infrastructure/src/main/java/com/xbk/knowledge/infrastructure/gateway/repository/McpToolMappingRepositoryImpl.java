@@ -5,7 +5,9 @@ import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.ToolMappingQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.ToolIdQuery;
 import com.xbk.knowledge.domain.gateway.adapter.repository.McpToolMappingRepository;
+import com.xbk.knowledge.infrastructure.common.BeanMappingUtils;
 import com.xbk.knowledge.infrastructure.dao.IMcpToolMappingDao;
+import com.xbk.knowledge.infrastructure.dao.po.McpToolMappingPO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -34,7 +36,7 @@ public class McpToolMappingRepositoryImpl implements McpToolMappingRepository {
         if (query == null || query.getToolId() == null || query.getMappingType() == null) {
             return Collections.emptyList();
         }
-        return mapper.findByToolIdAndMappingType(query);
+        return BeanMappingUtils.mapList(mapper.findByToolIdAndMappingType(query), McpToolMapping.class);
     }
 
     /**
@@ -49,10 +51,10 @@ public class McpToolMappingRepositoryImpl implements McpToolMappingRepository {
             return null;
         }
         if (mapping.getId() == null) {
-            mapper.insertToolMapping(mapping);
+            mapper.insertToolMapping(BeanMappingUtils.map(mapping, McpToolMappingPO.class));
             return mapping;
         }
-        mapper.updateToolMapping(mapping);
+        mapper.updateToolMapping(BeanMappingUtils.map(mapping, McpToolMappingPO.class));
         return mapping;
     }
 

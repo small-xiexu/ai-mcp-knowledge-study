@@ -4,7 +4,9 @@ import com.xbk.knowledge.domain.workflow.model.entity.WorkflowVersion;
 import com.xbk.knowledge.domain.workflow.model.valobj.WorkflowVersionIdQuery;
 import com.xbk.knowledge.domain.workflow.model.valobj.WorkflowVersionListQuery;
 import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowVersionRepository;
+import com.xbk.knowledge.infrastructure.common.BeanMappingUtils;
 import com.xbk.knowledge.infrastructure.dao.IWorkflowVersionDao;
+import com.xbk.knowledge.infrastructure.dao.po.WorkflowVersionPO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -34,7 +36,8 @@ public class WorkflowVersionRepositoryImpl implements WorkflowVersionRepository 
         if (query == null || query.getId() == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(mapper.findById(query));
+        return Optional.ofNullable(mapper.findById(query))
+                .map(item -> BeanMappingUtils.map(item, WorkflowVersion.class));
     }
 
     /**
@@ -48,7 +51,7 @@ public class WorkflowVersionRepositoryImpl implements WorkflowVersionRepository 
         if (query == null || query.getWorkflowId() == null) {
             return Collections.emptyList();
         }
-        return mapper.listByWorkflowId(query);
+        return BeanMappingUtils.mapList(mapper.listByWorkflowId(query), WorkflowVersion.class);
     }
 
     /**
@@ -62,7 +65,7 @@ public class WorkflowVersionRepositoryImpl implements WorkflowVersionRepository 
         if (version == null) {
             return null;
         }
-        mapper.insertVersion(version);
+        mapper.insertVersion(BeanMappingUtils.map(version, WorkflowVersionPO.class));
         return version;
     }
 
@@ -77,7 +80,7 @@ public class WorkflowVersionRepositoryImpl implements WorkflowVersionRepository 
         if (version == null || version.getId() == null) {
             return 0;
         }
-        return mapper.updateVersion(version);
+        return mapper.updateVersion(BeanMappingUtils.map(version, WorkflowVersionPO.class));
     }
 
     /**
@@ -92,6 +95,7 @@ public class WorkflowVersionRepositoryImpl implements WorkflowVersionRepository 
         if (workflowId == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(mapper.findPublishedVersion(workflowId));
+        return Optional.ofNullable(mapper.findPublishedVersion(workflowId))
+                .map(item -> BeanMappingUtils.map(item, WorkflowVersion.class));
     }
 }

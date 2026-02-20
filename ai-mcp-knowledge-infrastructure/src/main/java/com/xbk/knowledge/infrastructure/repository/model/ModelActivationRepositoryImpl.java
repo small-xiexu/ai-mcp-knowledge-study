@@ -2,7 +2,9 @@ package com.xbk.knowledge.infrastructure.repository.model;
 
 import com.xbk.knowledge.domain.llm.model.entity.ModelActivation;
 import com.xbk.knowledge.domain.llm.adapter.repository.ModelActivationRepository;
+import com.xbk.knowledge.infrastructure.common.BeanMappingUtils;
 import com.xbk.knowledge.infrastructure.dao.IModelActivationDao;
+import com.xbk.knowledge.infrastructure.dao.po.ModelActivationPO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -29,7 +31,7 @@ public class ModelActivationRepositoryImpl implements ModelActivationRepository 
      */
     @Override
     public ModelActivation queryActivation() {
-        return modelActivationMapper.findActivation();
+        return BeanMappingUtils.map(modelActivationMapper.findActivation(), ModelActivation.class);
     }
 
     /**
@@ -41,7 +43,7 @@ public class ModelActivationRepositoryImpl implements ModelActivationRepository 
      */
     @Override
     public void saveOrUpdate(ModelActivation activation) {
-        ModelActivation existing = modelActivationMapper.findActivation();
+        ModelActivation existing = BeanMappingUtils.map(modelActivationMapper.findActivation(), ModelActivation.class);
         LocalDateTime now = LocalDateTime.now();
         if (existing == null) {
             /*
@@ -49,7 +51,7 @@ public class ModelActivationRepositoryImpl implements ModelActivationRepository 
  */
             activation.setCreatedAt(now);
             activation.setUpdatedAt(now);
-            modelActivationMapper.insertActivation(activation);
+            modelActivationMapper.insertActivation(BeanMappingUtils.map(activation, ModelActivationPO.class));
             return;
         }
         /*
@@ -58,6 +60,6 @@ public class ModelActivationRepositoryImpl implements ModelActivationRepository 
         activation.setId(existing.getId());
         activation.setCreatedAt(existing.getCreatedAt());
         activation.setUpdatedAt(now);
-        modelActivationMapper.updateActivation(activation);
+        modelActivationMapper.updateActivation(BeanMappingUtils.map(activation, ModelActivationPO.class));
     }
 }

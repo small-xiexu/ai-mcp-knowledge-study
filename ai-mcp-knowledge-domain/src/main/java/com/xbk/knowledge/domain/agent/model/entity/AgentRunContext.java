@@ -1,10 +1,5 @@
 package com.xbk.knowledge.domain.agent.model.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -21,15 +16,12 @@ import java.time.LocalDateTime;
  *
  * @author sxie
  */
-@TableName("agent_run_context")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class AgentRunContext {
-
-    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     private String runId;
@@ -40,11 +32,7 @@ public class AgentRunContext {
     private String status;
 
     private String snapshotJson;
-
-    @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
-
-    @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedAt;
 }
 

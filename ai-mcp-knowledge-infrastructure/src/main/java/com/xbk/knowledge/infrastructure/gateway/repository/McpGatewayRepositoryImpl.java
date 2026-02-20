@@ -5,7 +5,9 @@ import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.GatewayIdQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.GatewayPageQuery;
 import com.xbk.knowledge.domain.gateway.adapter.repository.McpGatewayRepository;
+import com.xbk.knowledge.infrastructure.common.BeanMappingUtils;
 import com.xbk.knowledge.infrastructure.dao.IMcpGatewayDao;
+import com.xbk.knowledge.infrastructure.dao.po.McpGatewayPO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -35,7 +37,8 @@ public class McpGatewayRepositoryImpl implements McpGatewayRepository {
         if (query == null || query.getGatewayId() == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(mapper.findByGatewayId(query));
+        return Optional.ofNullable(mapper.findByGatewayId(query))
+                .map(item -> BeanMappingUtils.map(item, McpGateway.class));
     }
 
     /**
@@ -49,7 +52,8 @@ public class McpGatewayRepositoryImpl implements McpGatewayRepository {
         if (query == null || query.getId() == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(mapper.findById(query));
+        return Optional.ofNullable(mapper.findById(query))
+                .map(item -> BeanMappingUtils.map(item, McpGateway.class));
     }
 
     /**
@@ -64,10 +68,10 @@ public class McpGatewayRepositoryImpl implements McpGatewayRepository {
             return null;
         }
         if (gateway.getId() == null) {
-            mapper.insertGateway(gateway);
+            mapper.insertGateway(BeanMappingUtils.map(gateway, McpGatewayPO.class));
             return gateway;
         }
-        mapper.updateGateway(gateway);
+        mapper.updateGateway(BeanMappingUtils.map(gateway, McpGatewayPO.class));
         return gateway;
     }
 
@@ -95,7 +99,7 @@ public class McpGatewayRepositoryImpl implements McpGatewayRepository {
         if (query == null) {
             return Collections.emptyList();
         }
-        return mapper.findPage(query);
+        return BeanMappingUtils.mapList(mapper.findPage(query), McpGateway.class);
     }
 
     /**
@@ -105,7 +109,7 @@ public class McpGatewayRepositoryImpl implements McpGatewayRepository {
      */
     @Override
     public List<McpGateway> findAllEnabled() {
-        return mapper.findAllEnabled();
+        return BeanMappingUtils.mapList(mapper.findAllEnabled(), McpGateway.class);
     }
 
     /**

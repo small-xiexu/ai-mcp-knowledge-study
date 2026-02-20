@@ -1,7 +1,9 @@
 package com.xbk.knowledge.infrastructure.audit;
 
 import com.xbk.knowledge.domain.audit.model.entity.SysAuditEvent;
+import com.xbk.knowledge.infrastructure.common.BeanMappingUtils;
 import com.xbk.knowledge.infrastructure.dao.ISysAuditEventDao;
+import com.xbk.knowledge.infrastructure.dao.po.SysAuditEventPO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -32,7 +34,7 @@ public class IdentityAuditLogService {
             if (event.getOccurredAt() == null) {
                 event.setOccurredAt(LocalDateTime.now());
             }
-            sysAuditEventMapper.insertEvent(event);
+            sysAuditEventMapper.insertEvent(BeanMappingUtils.map(event, SysAuditEventPO.class));
         } catch (Exception e) {
             log.error("写入身份审计日志失败，eventType: {}, resourceType: {}, action: {}",
                     event.getEventType(), event.getResourceType(), event.getAction(), e);

@@ -1,10 +1,5 @@
 package com.xbk.knowledge.domain.gateway.model.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,7 +15,6 @@ import java.time.LocalDateTime;
  * 职责：领域实体，承载网关的 API 鉴权凭证与限流策略
  * @author sxie
  */
-@TableName("mcp_gateway_auth")
 @Getter
 @Setter
 @Builder
@@ -33,7 +27,6 @@ public class McpGatewayAuth {
      *
      * 为什么：用于持久化唯一标识
      */
-    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
@@ -80,7 +73,6 @@ public class McpGatewayAuth {
      *
      * 为什么：用于审计与排序
      */
-    @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
     /**
@@ -88,6 +80,5 @@ public class McpGatewayAuth {
      *
      * 为什么：用于审计与变更追踪
      */
-    @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedAt;
 }

@@ -4,7 +4,9 @@ import com.xbk.knowledge.domain.agent.model.entity.PromptTemplate;
 import com.xbk.knowledge.domain.agent.model.valobj.PromptTemplateIdQuery;
 import com.xbk.knowledge.domain.agent.model.valobj.PromptTemplatePageQuery;
 import com.xbk.knowledge.domain.agent.adapter.repository.PromptTemplateRepository;
+import com.xbk.knowledge.infrastructure.common.BeanMappingUtils;
 import com.xbk.knowledge.infrastructure.dao.IPromptTemplateDao;
+import com.xbk.knowledge.infrastructure.dao.po.PromptTemplatePO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -35,7 +37,8 @@ public class PromptTemplateRepositoryImpl implements PromptTemplateRepository {
         if (query == null || query.getId() == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(promptTemplateMapper.findById(query));
+        return Optional.ofNullable(promptTemplateMapper.findById(query))
+                .map(item -> BeanMappingUtils.map(item, PromptTemplate.class));
     }
 
     /**
@@ -70,7 +73,7 @@ public class PromptTemplateRepositoryImpl implements PromptTemplateRepository {
         if (template.getUpdatedAt() == null) {
             template.setUpdatedAt(now);
         }
-        promptTemplateMapper.insertTemplate(template);
+        promptTemplateMapper.insertTemplate(BeanMappingUtils.map(template, PromptTemplatePO.class));
         return template;
     }
 
@@ -88,7 +91,7 @@ public class PromptTemplateRepositoryImpl implements PromptTemplateRepository {
         if (template.getUpdatedAt() == null) {
             template.setUpdatedAt(LocalDateTime.now());
         }
-        return promptTemplateMapper.updateDraft(template);
+        return promptTemplateMapper.updateDraft(BeanMappingUtils.map(template, PromptTemplatePO.class));
     }
 
     /**
@@ -132,7 +135,7 @@ public class PromptTemplateRepositoryImpl implements PromptTemplateRepository {
         if (query == null) {
             return Collections.emptyList();
         }
-        return promptTemplateMapper.findPage(query);
+        return BeanMappingUtils.mapList(promptTemplateMapper.findPage(query), PromptTemplate.class);
     }
 
     /**

@@ -13,7 +13,9 @@ import com.xbk.knowledge.domain.metrics.model.valobj.ResponseTime;
 import com.xbk.knowledge.domain.metrics.model.valobj.SuccessRate;
 import com.xbk.knowledge.domain.metrics.model.valobj.TimeRangeQuery;
 import com.xbk.knowledge.domain.metrics.adapter.repository.CallLogRepository;
+import com.xbk.knowledge.infrastructure.common.BeanMappingUtils;
 import com.xbk.knowledge.infrastructure.dao.ICallLogDao;
+import com.xbk.knowledge.infrastructure.dao.po.CallLogPO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -55,7 +57,7 @@ public class CallLogRepositoryImpl implements CallLogRepository {
         /*
          * 目的：统一落库入口，避免重复插入逻辑
  */
-        callLogMapper.insertCallLog(callLog);
+        callLogMapper.insertCallLog(BeanMappingUtils.map(callLog, CallLogPO.class));
         aggregate.setCallLog(callLog);
         return aggregate;
     }
@@ -73,7 +75,7 @@ public class CallLogRepositoryImpl implements CallLogRepository {
         if (query == null || query.getModelId() == null) {
             return Collections.emptyList();
         }
-        return callLogMapper.selectByModelId(query);
+        return BeanMappingUtils.mapList(callLogMapper.selectByModelId(query), CallLog.class);
     }
 
     /**
@@ -89,7 +91,7 @@ public class CallLogRepositoryImpl implements CallLogRepository {
         if (query == null || query.getStatus() == null) {
             return Collections.emptyList();
         }
-        return callLogMapper.selectByStatus(query);
+        return BeanMappingUtils.mapList(callLogMapper.selectByStatus(query), CallLog.class);
     }
 
     /**
@@ -105,7 +107,7 @@ public class CallLogRepositoryImpl implements CallLogRepository {
         if (query == null) {
             return Collections.emptyList();
         }
-        return callLogMapper.selectByCreatedAtBetween(query);
+        return BeanMappingUtils.mapList(callLogMapper.selectByCreatedAtBetween(query), CallLog.class);
     }
 
     /**

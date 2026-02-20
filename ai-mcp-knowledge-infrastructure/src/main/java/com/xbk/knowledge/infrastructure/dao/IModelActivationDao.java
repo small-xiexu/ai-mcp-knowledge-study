@@ -1,6 +1,6 @@
 package com.xbk.knowledge.infrastructure.dao;
 
-import com.xbk.knowledge.domain.llm.model.entity.ModelActivation;
+import com.xbk.knowledge.infrastructure.dao.po.ModelActivationPO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -20,7 +20,7 @@ public interface IModelActivationDao {
      * 入参：无
      * 出参：激活配置
      */
-    ModelActivation findActivation();
+    ModelActivationPO findActivation();
 
     /**
      * 插入激活配置
@@ -29,7 +29,7 @@ public interface IModelActivationDao {
      * 入参：激活配置
      * 出参：无
      */
-    void insertActivation(@Param("activation") ModelActivation activation);
+    void insertActivation(@Param("activation") ModelActivationPO activation);
 
     /**
      * 更新激活配置
@@ -38,5 +38,5 @@ public interface IModelActivationDao {
      * 入参：激活配置
      * 出参：无
      */
-    void updateActivation(@Param("activation") ModelActivation activation);
+    void updateActivation(@Param("activation") ModelActivationPO activation);
 }

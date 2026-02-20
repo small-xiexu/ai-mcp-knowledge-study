@@ -1,10 +1,5 @@
 package com.xbk.knowledge.domain.mcp.model.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
 import com.xbk.knowledge.types.enums.McpServerType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,7 +16,6 @@ import java.time.LocalDateTime;
  * 职责：领域实体，用于承载 MCP Server 配置状态
  * @author sxie
  */
-@TableName("ai_mcp_server_config")
 @Getter
 @Setter
 @Builder
@@ -34,7 +28,6 @@ public class McpServerConfig {
      *
      * 为什么：用于持久化唯一标识
      */
-    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
@@ -137,7 +130,6 @@ public class McpServerConfig {
      *
      * 为什么：用于审计与排序
      */
-    @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
     /**
@@ -145,6 +137,5 @@ public class McpServerConfig {
      *
      * 为什么：用于审计与变更追踪
      */
-    @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedAt;
 }

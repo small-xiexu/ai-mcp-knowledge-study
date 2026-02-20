@@ -2,7 +2,6 @@ package com.xbk.knowledge.infrastructure.dao;
 
 import com.xbk.knowledge.infrastructure.dao.po.CallLogPO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.xbk.knowledge.domain.metrics.model.entity.CallLog;
 import com.xbk.knowledge.domain.metrics.model.valobj.CallMetrics;
 import com.xbk.knowledge.domain.metrics.model.valobj.CallStatusQuery;
 import com.xbk.knowledge.domain.metrics.model.valobj.MetricsQuery;
@@ -33,7 +32,7 @@ public interface ICallLogDao extends BaseMapper<CallLogPO> {
      * 入参：调用日志
      * 出参：影响行数
      */
-    int insertCallLog(CallLog callLog);
+    int insertCallLog(CallLogPO callLog);
 
     /**
      * 根据模型ID查询调用日志
@@ -42,7 +41,7 @@ public interface ICallLogDao extends BaseMapper<CallLogPO> {
      * 入参：模型ID查询条件
      * 出参：调用日志列表
      */
-    List<CallLog> selectByModelId(ModelIdQuery query);
+    List<CallLogPO> selectByModelId(ModelIdQuery query);
 
     /**
      * 根据状态查询调用日志
@@ -51,7 +50,7 @@ public interface ICallLogDao extends BaseMapper<CallLogPO> {
      * 入参：调用状态查询条件
      * 出参：调用日志列表
      */
-    List<CallLog> selectByStatus(CallStatusQuery query);
+    List<CallLogPO> selectByStatus(CallStatusQuery query);
 
     /**
      * 根据时间范围查询调用日志
@@ -60,7 +59,7 @@ public interface ICallLogDao extends BaseMapper<CallLogPO> {
      * 入参：时间范围查询条件
      * 出参：调用日志列表
      */
-    List<CallLog> selectByCreatedAtBetween(TimeRangeQuery query);
+    List<CallLogPO> selectByCreatedAtBetween(TimeRangeQuery query);
 
     /**
      * 统计指定模型的调用次数

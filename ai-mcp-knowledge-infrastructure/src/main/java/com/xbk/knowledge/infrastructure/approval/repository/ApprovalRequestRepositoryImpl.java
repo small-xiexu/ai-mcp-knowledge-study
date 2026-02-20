@@ -2,7 +2,9 @@ package com.xbk.knowledge.infrastructure.approval.repository;
 
 import com.xbk.knowledge.domain.approval.model.entity.ApprovalRequest;
 import com.xbk.knowledge.domain.approval.adapter.repository.ApprovalRequestRepository;
+import com.xbk.knowledge.infrastructure.common.BeanMappingUtils;
 import com.xbk.knowledge.infrastructure.dao.IApprovalRequestDao;
+import com.xbk.knowledge.infrastructure.dao.po.ApprovalRequestPO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
@@ -40,7 +42,7 @@ public class ApprovalRequestRepositoryImpl implements ApprovalRequestRepository 
         if (request.getUpdatedAt() == null) {
             request.setUpdatedAt(LocalDateTime.now());
         }
-        mapper.insertRequest(request);
+        mapper.insertRequest(BeanMappingUtils.map(request, ApprovalRequestPO.class));
         return request;
     }
 
@@ -56,7 +58,8 @@ public class ApprovalRequestRepositoryImpl implements ApprovalRequestRepository 
         if (id == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(mapper.findById(id));
+        return Optional.ofNullable(mapper.findById(id))
+                .map(item -> BeanMappingUtils.map(item, ApprovalRequest.class));
     }
 
     /**
@@ -73,7 +76,8 @@ public class ApprovalRequestRepositoryImpl implements ApprovalRequestRepository 
         if (!StringUtils.hasText(runId) || !StringUtils.hasText(toolKey) || now == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(mapper.findLatestApproved(runId, toolKey, now));
+        return Optional.ofNullable(mapper.findLatestApproved(runId, toolKey, now))
+                .map(item -> BeanMappingUtils.map(item, ApprovalRequest.class));
     }
 
     /**
@@ -90,7 +94,8 @@ public class ApprovalRequestRepositoryImpl implements ApprovalRequestRepository 
         if (!StringUtils.hasText(runId) || !StringUtils.hasText(toolKey) || now == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(mapper.findLatestPending(runId, toolKey, now));
+        return Optional.ofNullable(mapper.findLatestPending(runId, toolKey, now))
+                .map(item -> BeanMappingUtils.map(item, ApprovalRequest.class));
     }
 
     /**
@@ -142,7 +147,7 @@ public class ApprovalRequestRepositoryImpl implements ApprovalRequestRepository 
     public List<ApprovalRequest> list(String status, int offset, int pageSize) {
         int safeOffset = Math.max(offset, 0);
         int safeSize = pageSize <= 0 ? 20 : Math.min(pageSize, 200);
-        return mapper.list(status, safeOffset, safeSize);
+        return BeanMappingUtils.mapList(mapper.list(status, safeOffset, safeSize), ApprovalRequest.class);
     }
 
     /**
@@ -170,8 +175,8 @@ public class ApprovalRequestRepositoryImpl implements ApprovalRequestRepository 
             return Collections.emptyList();
         }
         int safeLimit = limit <= 0 ? 200 : Math.min(limit, 1000);
-        List<ApprovalRequest> list = mapper.listExpiredPending(now, safeLimit);
-        return list == null ? Collections.emptyList() : list;
+        List<ApprovalRequestPO> list = mapper.listExpiredPending(now, safeLimit);
+        return list == null ? Collections.emptyList() : BeanMappingUtils.mapList(list, ApprovalRequest.class);
     }
 
     /**

@@ -1,10 +1,5 @@
 package com.xbk.knowledge.domain.audit.model.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,7 +15,6 @@ import java.time.LocalDateTime;
  * 职责：领域实体，用于承载核心业务状态与生命周期
  * @author sxie
  */
-@TableName("ai_config_audit")
 @Getter
 @Setter
 @Builder
@@ -33,7 +27,6 @@ public class ConfigAudit {
      *
      * 为什么：用于持久化唯一标识
      */
-    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
@@ -87,6 +80,5 @@ public class ConfigAudit {
      *
      * 为什么：用于时序分析与审计
      */
-    @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 }

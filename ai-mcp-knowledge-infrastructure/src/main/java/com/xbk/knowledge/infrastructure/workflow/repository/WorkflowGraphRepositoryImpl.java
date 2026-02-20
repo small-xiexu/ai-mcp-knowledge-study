@@ -4,8 +4,11 @@ import com.xbk.knowledge.domain.workflow.model.entity.WorkflowEdge;
 import com.xbk.knowledge.domain.workflow.model.entity.WorkflowNode;
 import com.xbk.knowledge.domain.workflow.model.valobj.WorkflowGraphQuery;
 import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowGraphRepository;
+import com.xbk.knowledge.infrastructure.common.BeanMappingUtils;
 import com.xbk.knowledge.infrastructure.dao.IWorkflowEdgeDao;
 import com.xbk.knowledge.infrastructure.dao.IWorkflowNodeDao;
+import com.xbk.knowledge.infrastructure.dao.po.WorkflowEdgePO;
+import com.xbk.knowledge.infrastructure.dao.po.WorkflowNodePO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -35,7 +38,7 @@ public class WorkflowGraphRepositoryImpl implements WorkflowGraphRepository {
         if (query == null || query.getWorkflowVersionId() == null) {
             return Collections.emptyList();
         }
-        return nodeMapper.listNodes(query);
+        return BeanMappingUtils.mapList(nodeMapper.listNodes(query), WorkflowNode.class);
     }
 
     /**
@@ -49,7 +52,7 @@ public class WorkflowGraphRepositoryImpl implements WorkflowGraphRepository {
         if (query == null || query.getWorkflowVersionId() == null) {
             return Collections.emptyList();
         }
-        return edgeMapper.listEdges(query);
+        return BeanMappingUtils.mapList(edgeMapper.listEdges(query), WorkflowEdge.class);
     }
 
     /**
@@ -74,7 +77,7 @@ public class WorkflowGraphRepositoryImpl implements WorkflowGraphRepository {
                     continue;
                 }
                 n.setWorkflowVersionId(workflowVersionId);
-                nodeMapper.insertNode(n);
+                nodeMapper.insertNode(BeanMappingUtils.map(n, WorkflowNodePO.class));
             }
         }
         if (edges != null) {
@@ -83,7 +86,7 @@ public class WorkflowGraphRepositoryImpl implements WorkflowGraphRepository {
                     continue;
                 }
                 e.setWorkflowVersionId(workflowVersionId);
-                edgeMapper.insertEdge(e);
+                edgeMapper.insertEdge(BeanMappingUtils.map(e, WorkflowEdgePO.class));
             }
         }
     }

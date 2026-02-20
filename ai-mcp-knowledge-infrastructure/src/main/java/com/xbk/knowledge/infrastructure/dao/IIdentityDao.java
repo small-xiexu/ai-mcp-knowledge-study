@@ -1,13 +1,12 @@
 package com.xbk.knowledge.infrastructure.dao;
 
-import com.xbk.knowledge.infrastructure.dao.po.SysUserPO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.xbk.knowledge.domain.identity.model.entity.SysPermission;
-import com.xbk.knowledge.domain.identity.model.entity.SysRole;
-import com.xbk.knowledge.domain.identity.model.entity.SysUser;
 import com.xbk.knowledge.domain.identity.model.valobj.PermissionPageQuery;
 import com.xbk.knowledge.domain.identity.model.valobj.RolePageQuery;
 import com.xbk.knowledge.domain.identity.model.valobj.UserPageQuery;
+import com.xbk.knowledge.infrastructure.dao.po.SysPermissionPO;
+import com.xbk.knowledge.infrastructure.dao.po.SysRolePO;
+import com.xbk.knowledge.infrastructure.dao.po.SysUserPO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -30,7 +29,7 @@ public interface IIdentityDao extends BaseMapper<SysUserPO> {
      * @param username 用户名
      * @return 用户实体
      */
-    SysUser findByUsername(@Param("username") String username);
+    SysUserPO findByUsername(@Param("username") String username);
 
     /**
      * 按用户ID查询用户。
@@ -38,7 +37,7 @@ public interface IIdentityDao extends BaseMapper<SysUserPO> {
      * @param userId 用户ID
      * @return 用户实体
      */
-    SysUser findById(@Param("userId") Long userId);
+    SysUserPO findById(@Param("userId") Long userId);
 
     /**
      * 查询角色编码列表。
@@ -69,7 +68,7 @@ public interface IIdentityDao extends BaseMapper<SysUserPO> {
      * @param query 查询条件
      * @return 用户列表
      */
-    List<SysUser> findPage(UserPageQuery query);
+    List<SysUserPO> findPage(UserPageQuery query);
 
     /**
      * 统计用户总数。
@@ -85,7 +84,7 @@ public interface IIdentityDao extends BaseMapper<SysUserPO> {
      * @param user 用户实体
      * @return 影响行数
      */
-    int insertUser(SysUser user);
+    int insertUser(SysUserPO user);
 
     /**
      * 更新用户基础信息。
@@ -93,7 +92,7 @@ public interface IIdentityDao extends BaseMapper<SysUserPO> {
      * @param user 用户实体
      * @return 影响行数
      */
-    int updateUser(SysUser user);
+    int updateUser(SysUserPO user);
 
     /**
      * 判断用户名是否存在。
@@ -133,7 +132,7 @@ public interface IIdentityDao extends BaseMapper<SysUserPO> {
      * @param query 查询条件
      * @return 角色列表
      */
-    List<SysRole> findRolePage(RolePageQuery query);
+    List<SysRolePO> findRolePage(RolePageQuery query);
 
     /**
      * 统计角色数量。
@@ -149,7 +148,7 @@ public interface IIdentityDao extends BaseMapper<SysUserPO> {
      * @param role 角色实体
      * @return 影响行数
      */
-    int insertRole(SysRole role);
+    int insertRole(SysRolePO role);
 
     /**
      * 更新角色。
@@ -157,7 +156,7 @@ public interface IIdentityDao extends BaseMapper<SysUserPO> {
      * @param role 角色实体
      * @return 影响行数
      */
-    int updateRole(SysRole role);
+    int updateRole(SysRolePO role);
 
     /**
      * 按ID查询角色。
@@ -165,7 +164,7 @@ public interface IIdentityDao extends BaseMapper<SysUserPO> {
      * @param roleId 角色ID
      * @return 角色实体
      */
-    SysRole findRoleById(@Param("roleId") Long roleId);
+    SysRolePO findRoleById(@Param("roleId") Long roleId);
 
     /**
      * 统计角色编码数量。
@@ -211,7 +210,7 @@ public interface IIdentityDao extends BaseMapper<SysUserPO> {
      * @param query 查询条件
      * @return 权限列表
      */
-    List<SysPermission> findPermissionPage(PermissionPageQuery query);
+    List<SysPermissionPO> findPermissionPage(PermissionPageQuery query);
 
     /**
      * 统计权限数量。

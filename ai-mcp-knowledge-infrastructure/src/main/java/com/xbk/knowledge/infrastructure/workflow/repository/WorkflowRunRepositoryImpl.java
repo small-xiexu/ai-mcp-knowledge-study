@@ -2,7 +2,9 @@ package com.xbk.knowledge.infrastructure.workflow.repository;
 
 import com.xbk.knowledge.domain.workflow.model.entity.WorkflowRun;
 import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowRunRepository;
+import com.xbk.knowledge.infrastructure.common.BeanMappingUtils;
 import com.xbk.knowledge.infrastructure.dao.IWorkflowRunDao;
+import com.xbk.knowledge.infrastructure.dao.po.WorkflowRunPO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -32,7 +34,7 @@ public class WorkflowRunRepositoryImpl implements WorkflowRunRepository {
         if (run == null) {
             return;
         }
-        mapper.insertRun(run);
+        mapper.insertRun(BeanMappingUtils.map(run, WorkflowRunPO.class));
     }
 
     /**
@@ -62,7 +64,7 @@ public class WorkflowRunRepositoryImpl implements WorkflowRunRepository {
         if (run == null || run.getRunId() == null) {
             return;
         }
-        mapper.updateStatusAndMetrics(run);
+        mapper.updateStatusAndMetrics(BeanMappingUtils.map(run, WorkflowRunPO.class));
     }
 
     /**
@@ -76,7 +78,8 @@ public class WorkflowRunRepositoryImpl implements WorkflowRunRepository {
         if (runId == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(mapper.findByRunId(runId));
+        return Optional.ofNullable(mapper.findByRunId(runId))
+                .map(item -> BeanMappingUtils.map(item, WorkflowRun.class));
     }
 
     /**
@@ -91,7 +94,7 @@ public class WorkflowRunRepositoryImpl implements WorkflowRunRepository {
     public List<WorkflowRun> list(String status, int offset, int pageSize) {
         int safeOffset = Math.max(offset, 0);
         int safeSize = pageSize <= 0 ? 20 : Math.min(pageSize, 200);
-        return mapper.list(status, safeOffset, safeSize);
+        return BeanMappingUtils.mapList(mapper.list(status, safeOffset, safeSize), WorkflowRun.class);
     }
 
     /**

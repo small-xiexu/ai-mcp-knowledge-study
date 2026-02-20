@@ -5,7 +5,9 @@ import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.ToolBindingQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.ToolIdQuery;
 import com.xbk.knowledge.domain.gateway.adapter.repository.McpToolBindingRepository;
+import com.xbk.knowledge.infrastructure.common.BeanMappingUtils;
 import com.xbk.knowledge.infrastructure.dao.IMcpToolBindingDao;
+import com.xbk.knowledge.infrastructure.dao.po.McpToolBindingPO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -34,7 +36,7 @@ public class McpToolBindingRepositoryImpl implements McpToolBindingRepository {
         if (query == null || query.getBindType() == null || query.getBindTargetId() == null) {
             return Collections.emptyList();
         }
-        return mapper.findByBindTypeAndTargetId(query);
+        return BeanMappingUtils.mapList(mapper.findByBindTypeAndTargetId(query), McpToolBinding.class);
     }
 
     /**
@@ -49,7 +51,7 @@ public class McpToolBindingRepositoryImpl implements McpToolBindingRepository {
             return Collections.emptyList();
         }
         ToolIdQuery query = new ToolIdQuery(toolId);
-        return mapper.findByToolId(query);
+        return BeanMappingUtils.mapList(mapper.findByToolId(query), McpToolBinding.class);
     }
 
     /**
@@ -64,10 +66,10 @@ public class McpToolBindingRepositoryImpl implements McpToolBindingRepository {
             return null;
         }
         if (binding.getId() == null) {
-            mapper.insertToolBinding(binding);
+            mapper.insertToolBinding(BeanMappingUtils.map(binding, McpToolBindingPO.class));
             return binding;
         }
-        mapper.updateToolBinding(binding);
+        mapper.updateToolBinding(BeanMappingUtils.map(binding, McpToolBindingPO.class));
         return binding;
     }
 

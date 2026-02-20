@@ -1,10 +1,5 @@
 package com.xbk.knowledge.domain.chat.model.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -21,7 +16,6 @@ import java.time.LocalDateTime;
  *
  * @author sxie
  */
-@TableName("ai_chat_session")
 @Getter
 @Setter
 @Builder
@@ -34,7 +28,6 @@ public class ChatSession {
      *
      * 为什么：用于持久化唯一标识
      */
-    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
@@ -84,7 +77,6 @@ public class ChatSession {
      *
      * 为什么：用于时序分析与审计
      */
-    @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
     /**
@@ -92,6 +84,5 @@ public class ChatSession {
      *
      * 为什么：用于判断会话活跃度与清理
      */
-    @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedAt;
 }

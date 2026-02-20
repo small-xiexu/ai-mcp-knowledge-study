@@ -115,13 +115,37 @@ public class DefaultAiClientArmoryStrategyFactory {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class DynamicContext {
+        /**
+         * 本次装配使用的模型配置。
+         */
         private ModelConfig modelConfig;
+        /**
+         * 调用方请求的工具开关。
+         */
         private boolean requestedEnableTools;
+        /**
+         * 节点链路最终解析后的工具开关。
+         */
         private boolean resolvedEnableTools;
+        /**
+         * 调用方传入的额外 Advisor 列表（可为空）。
+         */
         private CallAdvisor[] extraAdvisors;
+        /**
+         * 框架内置 Advisor 与额外 Advisor 合并后的结果。
+         */
         private List<CallAdvisor> mergedAdvisors;
+        /**
+         * 当前模型可用的工具回调提供器。
+         */
         private ToolCallbackProvider toolCallbackProvider;
+        /**
+         * 基于模型配置构建出的 ChatModel。
+         */
         private ChatModel chatModel;
+        /**
+         * 节点链路最终产出的 ChatClient。
+         */
         private ChatClient chatClient;
 
         /**

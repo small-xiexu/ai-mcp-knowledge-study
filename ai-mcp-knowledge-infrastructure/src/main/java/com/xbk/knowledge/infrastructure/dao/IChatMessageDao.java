@@ -2,7 +2,6 @@ package com.xbk.knowledge.infrastructure.dao;
 
 import com.xbk.knowledge.infrastructure.dao.po.ChatMessagePO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.xbk.knowledge.domain.chat.model.entity.ChatMessage;
 import com.xbk.knowledge.domain.chat.model.valobj.ChatMessagePageQuery;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -27,7 +26,7 @@ public interface IChatMessageDao extends BaseMapper<ChatMessagePO> {
      * 入参：消息实体
      * 出参：影响行数
      */
-    int insertMessage(ChatMessage message);
+    int insertMessage(ChatMessagePO message);
 
     /**
      * 分页查询会话消息
@@ -36,7 +35,7 @@ public interface IChatMessageDao extends BaseMapper<ChatMessagePO> {
      * 入参：查询条件
      * 出参：消息列表
      */
-    List<ChatMessage> findPage(ChatMessagePageQuery query);
+    List<ChatMessagePO> findPage(ChatMessagePageQuery query);
 
     /**
      * 统计会话消息总数

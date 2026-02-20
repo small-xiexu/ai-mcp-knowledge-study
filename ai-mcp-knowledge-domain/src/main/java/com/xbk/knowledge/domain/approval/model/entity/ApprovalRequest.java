@@ -1,10 +1,5 @@
 package com.xbk.knowledge.domain.approval.model.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -21,15 +16,12 @@ import java.time.LocalDateTime;
  *
  * @author sxie
  */
-@TableName("approval_request")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ApprovalRequest {
-
-    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     private String approvalType;
@@ -72,10 +64,6 @@ public class ApprovalRequest {
     private String argumentsDigest;
 
     private LocalDateTime expireAt;
-
-    @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
-
-    @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedAt;
 }

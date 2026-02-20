@@ -2,7 +2,6 @@ package com.xbk.knowledge.infrastructure.dao;
 
 import com.xbk.knowledge.infrastructure.dao.po.ChatSessionPO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.xbk.knowledge.domain.chat.model.entity.ChatSession;
 import com.xbk.knowledge.domain.chat.model.valobj.ChatSessionPageQuery;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -27,7 +26,7 @@ public interface IChatSessionDao extends BaseMapper<ChatSessionPO> {
      * 入参：会话实体
      * 出参：影响行数
      */
-    int insertSession(ChatSession session);
+    int insertSession(ChatSessionPO session);
 
     /**
      * 更新会话
@@ -36,7 +35,7 @@ public interface IChatSessionDao extends BaseMapper<ChatSessionPO> {
      * 入参：会话实体
      * 出参：影响行数
      */
-    int updateSession(ChatSession session);
+    int updateSession(ChatSessionPO session);
 
     /**
      * 删除会话
@@ -54,7 +53,7 @@ public interface IChatSessionDao extends BaseMapper<ChatSessionPO> {
      * 入参：会话ID
      * 出参：会话实体
      */
-    ChatSession findById(Long sessionId);
+    ChatSessionPO findById(Long sessionId);
 
     /**
      * 分页查询会话
@@ -63,7 +62,7 @@ public interface IChatSessionDao extends BaseMapper<ChatSessionPO> {
      * 入参：分页条件
      * 出参：会话列表
      */
-    List<ChatSession> findPage(ChatSessionPageQuery query);
+    List<ChatSessionPO> findPage(ChatSessionPageQuery query);
 
     /**
      * 统计会话总数

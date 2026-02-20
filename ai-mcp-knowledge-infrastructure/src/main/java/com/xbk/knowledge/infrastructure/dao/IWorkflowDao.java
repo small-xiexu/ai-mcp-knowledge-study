@@ -2,7 +2,6 @@ package com.xbk.knowledge.infrastructure.dao;
 
 import com.xbk.knowledge.infrastructure.dao.po.WorkflowPO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.xbk.knowledge.domain.workflow.model.entity.Workflow;
 import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.workflow.model.valobj.WorkflowCodeQuery;
 import org.apache.ibatis.annotations.Mapper;
@@ -18,15 +17,15 @@ import java.util.List;
 @Mapper
 public interface IWorkflowDao extends BaseMapper<WorkflowPO> {
 
-    int insertWorkflow(Workflow workflow);
+    int insertWorkflow(WorkflowPO workflow);
 
-    int updateWorkflow(Workflow workflow);
+    int updateWorkflow(WorkflowPO workflow);
 
-    Workflow findById(IdQuery query);
+    WorkflowPO findById(IdQuery query);
 
-    Workflow findByCode(WorkflowCodeQuery query);
+    WorkflowPO findByCode(WorkflowCodeQuery query);
 
-    List<Workflow> list(@Param("keyword") String keyword,
+    List<WorkflowPO> list(@Param("keyword") String keyword,
                         @Param("offset") int offset,
                         @Param("pageSize") int pageSize);
 

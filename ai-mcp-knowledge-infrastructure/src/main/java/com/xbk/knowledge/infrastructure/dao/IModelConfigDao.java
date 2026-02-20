@@ -1,13 +1,12 @@
 package com.xbk.knowledge.infrastructure.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
+import com.xbk.knowledge.infrastructure.dao.po.ModelConfigPO;
 import com.xbk.knowledge.domain.common.model.valobj.EnabledIdsQuery;
 import com.xbk.knowledge.domain.common.model.valobj.EnabledQuery;
 import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.llm.model.valobj.ModelConfigPageQuery;
 import com.xbk.knowledge.domain.llm.model.valobj.ModelNameQuery;
-import com.xbk.knowledge.infrastructure.dao.po.ModelConfigPO;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -30,7 +29,7 @@ public interface IModelConfigDao extends BaseMapper<ModelConfigPO> {
      * 入参：模型配置
      * 出参：影响行数
      */
-    int insertModelConfig(ModelConfig modelConfig);
+    int insertModelConfig(ModelConfigPO modelConfig);
 
     /**
      * 更新模型配置
@@ -39,7 +38,7 @@ public interface IModelConfigDao extends BaseMapper<ModelConfigPO> {
      * 入参：模型配置
      * 出参：影响行数
      */
-    int updateModelConfig(ModelConfig modelConfig);
+    int updateModelConfig(ModelConfigPO modelConfig);
 
     /**
      * 删除模型配置
@@ -57,7 +56,7 @@ public interface IModelConfigDao extends BaseMapper<ModelConfigPO> {
      * 入参：ID 查询条件
      * 出参：模型配置
      */
-    ModelConfig findById(IdQuery query);
+    ModelConfigPO findById(IdQuery query);
 
     /**
      * 根据模型名称查询模型配置
@@ -66,7 +65,7 @@ public interface IModelConfigDao extends BaseMapper<ModelConfigPO> {
      * 入参：模型名称查询条件
      * 出参：模型配置
      */
-    ModelConfig findByModelName(ModelNameQuery query);
+    ModelConfigPO findByModelName(ModelNameQuery query);
 
     /**
      * 根据启用状态查询模型配置
@@ -75,7 +74,7 @@ public interface IModelConfigDao extends BaseMapper<ModelConfigPO> {
      * 入参：启用状态查询条件
      * 出参：模型配置列表
      */
-    List<ModelConfig> findByEnabled(EnabledQuery query);
+    List<ModelConfigPO> findByEnabled(EnabledQuery query);
 
     /**
      * 查询所有启用的模型配置
@@ -84,7 +83,7 @@ public interface IModelConfigDao extends BaseMapper<ModelConfigPO> {
      * 入参：无
      * 出参：模型配置列表
      */
-    List<ModelConfig> findEnabledTrue();
+    List<ModelConfigPO> findEnabledTrue();
 
     /**
      * 根据ID列表查询启用的模型配置
@@ -93,7 +92,7 @@ public interface IModelConfigDao extends BaseMapper<ModelConfigPO> {
      * 入参：模型ID列表查询条件
      * 出参：模型配置列表
      */
-    List<ModelConfig> findEnabledByIds(EnabledIdsQuery query);
+    List<ModelConfigPO> findEnabledByIds(EnabledIdsQuery query);
 
     /**
      * 查询模型配置分页数据
@@ -102,7 +101,7 @@ public interface IModelConfigDao extends BaseMapper<ModelConfigPO> {
      * 入参：分页查询条件
      * 出参：模型配置列表
      */
-    List<ModelConfig> findPage(ModelConfigPageQuery query);
+    List<ModelConfigPO> findPage(ModelConfigPageQuery query);
 
     /**
      * 统计模型配置总数

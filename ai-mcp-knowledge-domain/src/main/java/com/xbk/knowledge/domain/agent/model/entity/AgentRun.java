@@ -1,7 +1,5 @@
 package com.xbk.knowledge.domain.agent.model.entity;
 
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,19 +11,15 @@ import java.time.LocalDateTime;
 /**
  * AgentRun 实体（运行记录）。
  *
- * 对应表：agent_run
  *
  * @author sxie
  */
-@TableName("agent_run")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class AgentRun {
-
-    @TableId(value = "run_id")
     private String runId;
 
     private Long agentId;

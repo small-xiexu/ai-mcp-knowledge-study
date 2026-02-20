@@ -2,7 +2,6 @@ package com.xbk.knowledge.infrastructure.dao;
 
 import com.xbk.knowledge.infrastructure.dao.po.McpServerConfigPO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.xbk.knowledge.domain.mcp.model.entity.McpServerConfig;
 import com.xbk.knowledge.domain.common.model.valobj.EnabledQuery;
 import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.mcp.model.valobj.McpServerConfigPageQuery;
@@ -29,7 +28,7 @@ public interface IMcpServerConfigDao extends BaseMapper<McpServerConfigPO> {
      * 入参：MCP Server 配置
      * 出参：影响行数
      */
-    int insertMcpServerConfig(McpServerConfig config);
+    int insertMcpServerConfig(McpServerConfigPO config);
 
     /**
      * 更新 MCP Server 配置
@@ -38,7 +37,7 @@ public interface IMcpServerConfigDao extends BaseMapper<McpServerConfigPO> {
      * 入参：MCP Server 配置
      * 出参：影响行数
      */
-    int updateMcpServerConfig(McpServerConfig config);
+    int updateMcpServerConfig(McpServerConfigPO config);
 
     /**
      * 删除 MCP Server 配置
@@ -56,7 +55,7 @@ public interface IMcpServerConfigDao extends BaseMapper<McpServerConfigPO> {
      * 入参：ID 查询条件
      * 出参：MCP Server 配置
      */
-    McpServerConfig findById(IdQuery query);
+    McpServerConfigPO findById(IdQuery query);
 
     /**
      * 根据名称查询 MCP Server 配置
@@ -65,7 +64,7 @@ public interface IMcpServerConfigDao extends BaseMapper<McpServerConfigPO> {
      * 入参：名称查询条件
      * 出参：MCP Server 配置
      */
-    McpServerConfig findByName(McpServerNameQuery query);
+    McpServerConfigPO findByName(McpServerNameQuery query);
 
     /**
      * 根据启用状态查询 MCP Server 配置
@@ -74,7 +73,7 @@ public interface IMcpServerConfigDao extends BaseMapper<McpServerConfigPO> {
      * 入参：启用状态查询条件
      * 出参：MCP Server 配置列表
      */
-    List<McpServerConfig> findByEnabled(EnabledQuery query);
+    List<McpServerConfigPO> findByEnabled(EnabledQuery query);
 
     /**
      * 查询 MCP Server 配置分页数据
@@ -83,7 +82,7 @@ public interface IMcpServerConfigDao extends BaseMapper<McpServerConfigPO> {
      * 入参：分页查询条件
      * 出参：MCP Server 配置列表
      */
-    List<McpServerConfig> findPage(McpServerConfigPageQuery query);
+    List<McpServerConfigPO> findPage(McpServerConfigPageQuery query);
 
     /**
      * 统计 MCP Server 配置总数

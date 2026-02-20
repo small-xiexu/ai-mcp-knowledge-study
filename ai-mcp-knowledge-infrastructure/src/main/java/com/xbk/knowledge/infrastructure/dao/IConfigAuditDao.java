@@ -2,7 +2,6 @@ package com.xbk.knowledge.infrastructure.dao;
 
 import com.xbk.knowledge.infrastructure.dao.po.ConfigAuditPO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.xbk.knowledge.domain.audit.model.entity.ConfigAudit;
 import com.xbk.knowledge.domain.audit.model.valobj.AuditQuery;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -25,7 +24,7 @@ public interface IConfigAuditDao extends BaseMapper<ConfigAuditPO> {
      * 入参：审计日志
      * 出参：影响行数
      */
-    int insertConfigAudit(ConfigAudit audit);
+    int insertConfigAudit(ConfigAuditPO audit);
 
     /**
      * 按条件分页查询审计日志
@@ -34,7 +33,7 @@ public interface IConfigAuditDao extends BaseMapper<ConfigAuditPO> {
      * 入参：审计查询条件
      * 出参：审计日志列表
      */
-    List<ConfigAudit> findByConditions(AuditQuery query);
+    List<ConfigAuditPO> findByConditions(AuditQuery query);
 
     /**
      * 查询所有可用表名

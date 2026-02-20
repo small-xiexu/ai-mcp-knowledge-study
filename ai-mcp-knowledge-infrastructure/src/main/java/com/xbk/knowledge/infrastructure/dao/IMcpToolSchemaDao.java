@@ -2,7 +2,6 @@ package com.xbk.knowledge.infrastructure.dao;
 
 import com.xbk.knowledge.infrastructure.dao.po.McpToolSchemaPO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.xbk.knowledge.domain.gateway.model.entity.McpToolSchema;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -15,12 +14,12 @@ import org.apache.ibatis.annotations.Param;
 public interface IMcpToolSchemaDao extends BaseMapper<McpToolSchemaPO> {
 
     /** 新增 Schema 缓存记录 */
-    int insertToolSchema(McpToolSchema schema);
+    int insertToolSchema(McpToolSchemaPO schema);
 
     /** 更新 Schema 缓存记录 */
-    int updateToolSchema(McpToolSchema schema);
+    int updateToolSchema(McpToolSchemaPO schema);
 
     /** 按 gatewayId + toolId 查询当前生效的 Schema 快照 */
-    McpToolSchema findActiveByGatewayIdAndToolId(@Param("gatewayId") String gatewayId,
+    McpToolSchemaPO findActiveByGatewayIdAndToolId(@Param("gatewayId") String gatewayId,
                                                  @Param("toolId") Long toolId);
 }

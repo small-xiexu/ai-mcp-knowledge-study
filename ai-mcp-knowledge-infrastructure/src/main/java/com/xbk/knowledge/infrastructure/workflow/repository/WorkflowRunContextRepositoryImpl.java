@@ -2,7 +2,9 @@ package com.xbk.knowledge.infrastructure.workflow.repository;
 
 import com.xbk.knowledge.domain.workflow.model.entity.WorkflowRunContext;
 import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowRunContextRepository;
+import com.xbk.knowledge.infrastructure.common.BeanMappingUtils;
 import com.xbk.knowledge.infrastructure.dao.IWorkflowRunContextDao;
+import com.xbk.knowledge.infrastructure.dao.po.WorkflowRunContextPO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
@@ -31,7 +33,7 @@ public class WorkflowRunContextRepositoryImpl implements WorkflowRunContextRepos
         if (ctx == null) {
             return;
         }
-        mapper.upsert(ctx);
+        mapper.upsert(BeanMappingUtils.map(ctx, WorkflowRunContextPO.class));
     }
 
     /**
@@ -45,7 +47,8 @@ public class WorkflowRunContextRepositoryImpl implements WorkflowRunContextRepos
         if (!StringUtils.hasText(runId)) {
             return Optional.empty();
         }
-        return Optional.ofNullable(mapper.findByRunId(runId));
+        return Optional.ofNullable(mapper.findByRunId(runId))
+                .map(item -> BeanMappingUtils.map(item, WorkflowRunContext.class));
     }
 
     /**

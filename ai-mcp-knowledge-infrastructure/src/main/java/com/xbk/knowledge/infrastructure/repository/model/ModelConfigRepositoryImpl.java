@@ -8,7 +8,9 @@ import com.xbk.knowledge.domain.common.model.valobj.EnabledQuery;
 import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.llm.model.valobj.ModelConfigPageQuery;
 import com.xbk.knowledge.domain.llm.model.valobj.ModelNameQuery;
+import com.xbk.knowledge.infrastructure.common.BeanMappingUtils;
 import com.xbk.knowledge.infrastructure.dao.IModelConfigDao;
+import com.xbk.knowledge.infrastructure.dao.po.ModelConfigPO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -44,7 +46,7 @@ public class ModelConfigRepositoryImpl implements ModelConfigRepository {
         if (query == null) {
             return Collections.emptyList();
         }
-        return modelConfigMapper.findByEnabled(query);
+        return BeanMappingUtils.mapList(modelConfigMapper.findByEnabled(query), ModelConfig.class);
     }
 
     /**
@@ -57,7 +59,7 @@ public class ModelConfigRepositoryImpl implements ModelConfigRepository {
      */
     @Override
     public List<ModelConfig> findByEnabledTrue() {
-        return modelConfigMapper.findEnabledTrue();
+        return BeanMappingUtils.mapList(modelConfigMapper.findEnabledTrue(), ModelConfig.class);
     }
 
     /**
@@ -73,7 +75,7 @@ public class ModelConfigRepositoryImpl implements ModelConfigRepository {
         if (query == null || query.getModelName() == null) {
             return Optional.empty();
         }
-        ModelConfig modelConfig = modelConfigMapper.findByModelName(query);
+        ModelConfig modelConfig = BeanMappingUtils.map(modelConfigMapper.findByModelName(query), ModelConfig.class);
         return Optional.ofNullable(modelConfig);
     }
 
@@ -90,7 +92,7 @@ public class ModelConfigRepositoryImpl implements ModelConfigRepository {
         if (query == null || query.getIds() == null || query.getIds().isEmpty()) {
             return Collections.emptyList();
         }
-        return modelConfigMapper.findEnabledByIds(query);
+        return BeanMappingUtils.mapList(modelConfigMapper.findEnabledByIds(query), ModelConfig.class);
     }
 
     /**
@@ -106,7 +108,7 @@ public class ModelConfigRepositoryImpl implements ModelConfigRepository {
         if (query == null || query.getId() == null) {
             return Optional.empty();
         }
-        ModelConfig modelConfig = modelConfigMapper.findById(query);
+        ModelConfig modelConfig = BeanMappingUtils.map(modelConfigMapper.findById(query), ModelConfig.class);
         return Optional.ofNullable(modelConfig);
     }
 
@@ -123,7 +125,7 @@ public class ModelConfigRepositoryImpl implements ModelConfigRepository {
         if (query == null) {
             return Collections.emptyList();
         }
-        return modelConfigMapper.findPage(query);
+        return BeanMappingUtils.mapList(modelConfigMapper.findPage(query), ModelConfig.class);
     }
 
     /**
@@ -177,14 +179,14 @@ public class ModelConfigRepositoryImpl implements ModelConfigRepository {
             if (modelConfig.getUpdatedAt() == null) {
                 modelConfig.setUpdatedAt(now);
             }
-            modelConfigMapper.insertModelConfig(modelConfig);
+            modelConfigMapper.insertModelConfig(BeanMappingUtils.map(modelConfig, ModelConfigPO.class));
             aggregate.setModelConfig(modelConfig);
             return aggregate;
         }
         if (modelConfig.getUpdatedAt() == null) {
             modelConfig.setUpdatedAt(now);
         }
-        modelConfigMapper.updateModelConfig(modelConfig);
+        modelConfigMapper.updateModelConfig(BeanMappingUtils.map(modelConfig, ModelConfigPO.class));
         aggregate.setModelConfig(modelConfig);
         return aggregate;
     }

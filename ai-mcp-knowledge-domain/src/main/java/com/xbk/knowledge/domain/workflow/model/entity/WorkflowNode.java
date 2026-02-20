@@ -1,10 +1,5 @@
 package com.xbk.knowledge.domain.workflow.model.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,19 +11,15 @@ import java.time.LocalDateTime;
 /**
  * WorkflowNode 实体。
  *
- * 对应表：workflow_node
  *
  * @author sxie
  */
-@TableName("workflow_node")
 @Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class WorkflowNode {
-
-    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     private Long workflowVersionId;
@@ -50,11 +41,7 @@ public class WorkflowNode {
     private Integer positionX;
 
     private Integer positionY;
-
-    @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
-
-    @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedAt;
 }
 

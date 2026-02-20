@@ -6,7 +6,9 @@ import com.xbk.knowledge.domain.gateway.model.valobj.GatewayIdQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.ToolNameQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.ToolRegistryPageQuery;
 import com.xbk.knowledge.domain.gateway.adapter.repository.McpToolRegistryRepository;
+import com.xbk.knowledge.infrastructure.common.BeanMappingUtils;
 import com.xbk.knowledge.infrastructure.dao.IMcpToolRegistryDao;
+import com.xbk.knowledge.infrastructure.dao.po.McpToolRegistryPO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -36,7 +38,8 @@ public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository 
         if (query == null || query.getId() == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(mapper.findById(query));
+        return Optional.ofNullable(mapper.findById(query))
+                .map(item -> BeanMappingUtils.map(item, McpToolRegistry.class));
     }
 
     /**
@@ -50,7 +53,8 @@ public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository 
         if (query == null || query.getGatewayId() == null || query.getToolName() == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(mapper.findByGatewayIdAndToolName(query));
+        return Optional.ofNullable(mapper.findByGatewayIdAndToolName(query))
+                .map(item -> BeanMappingUtils.map(item, McpToolRegistry.class));
     }
 
     /**
@@ -64,7 +68,7 @@ public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository 
         if (query == null || query.getGatewayId() == null) {
             return Collections.emptyList();
         }
-        return mapper.findByGatewayId(query);
+        return BeanMappingUtils.mapList(mapper.findByGatewayId(query), McpToolRegistry.class);
     }
 
     /**
@@ -78,7 +82,7 @@ public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository 
         if (query == null || query.getGatewayId() == null) {
             return Collections.emptyList();
         }
-        return mapper.findEnabledByGatewayId(query);
+        return BeanMappingUtils.mapList(mapper.findEnabledByGatewayId(query), McpToolRegistry.class);
     }
 
     /**
@@ -92,7 +96,7 @@ public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository 
         if (query == null || query.getGatewayId() == null) {
             return Collections.emptyList();
         }
-        return mapper.findPage(query);
+        return BeanMappingUtils.mapList(mapper.findPage(query), McpToolRegistry.class);
     }
 
     /**
@@ -121,10 +125,10 @@ public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository 
             registry.setRiskLevel("MEDIUM");
         }
         if (registry.getId() == null) {
-            mapper.insertToolRegistry(registry);
+            mapper.insertToolRegistry(BeanMappingUtils.map(registry, McpToolRegistryPO.class));
             return registry;
         }
-        mapper.updateToolRegistry(registry);
+        mapper.updateToolRegistry(BeanMappingUtils.map(registry, McpToolRegistryPO.class));
         return registry;
     }
 

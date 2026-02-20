@@ -3,7 +3,9 @@ package com.xbk.knowledge.infrastructure.advisor.repository;
 import com.xbk.knowledge.domain.advisor.model.entity.Advisor;
 import com.xbk.knowledge.domain.advisor.model.valobj.AdvisorPageQuery;
 import com.xbk.knowledge.domain.advisor.adapter.repository.AdvisorRepository;
+import com.xbk.knowledge.infrastructure.common.BeanMappingUtils;
 import com.xbk.knowledge.infrastructure.dao.IAdvisorDao;
+import com.xbk.knowledge.infrastructure.dao.po.AdvisorPO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
@@ -35,7 +37,8 @@ public class AdvisorRepositoryImpl implements AdvisorRepository {
         if (id == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(mapper.findById(id));
+        return Optional.ofNullable(mapper.findById(id))
+                .map(item -> BeanMappingUtils.map(item, Advisor.class));
     }
 
     /**
@@ -50,7 +53,8 @@ public class AdvisorRepositoryImpl implements AdvisorRepository {
         if (!StringUtils.hasText(advisorCode)) {
             return Optional.empty();
         }
-        return Optional.ofNullable(mapper.findByCode(advisorCode));
+        return Optional.ofNullable(mapper.findByCode(advisorCode))
+                .map(item -> BeanMappingUtils.map(item, Advisor.class));
     }
 
     /**
@@ -64,7 +68,7 @@ public class AdvisorRepositoryImpl implements AdvisorRepository {
         if (query == null) {
             return Collections.emptyList();
         }
-        return mapper.findPage(query);
+        return BeanMappingUtils.mapList(mapper.findPage(query), Advisor.class);
     }
 
     /**
@@ -92,7 +96,7 @@ public class AdvisorRepositoryImpl implements AdvisorRepository {
         if (advisor == null) {
             return null;
         }
-        mapper.insertAdvisor(advisor);
+        mapper.insertAdvisor(BeanMappingUtils.map(advisor, AdvisorPO.class));
         return advisor;
     }
 
@@ -107,7 +111,7 @@ public class AdvisorRepositoryImpl implements AdvisorRepository {
         if (advisor == null || advisor.getId() == null) {
             return 0;
         }
-        return mapper.updateAdvisor(advisor);
+        return mapper.updateAdvisor(BeanMappingUtils.map(advisor, AdvisorPO.class));
     }
 
     /**
@@ -141,4 +145,3 @@ public class AdvisorRepositoryImpl implements AdvisorRepository {
         return mapper.deleteById(id);
     }
 }
-

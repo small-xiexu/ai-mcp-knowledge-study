@@ -2,7 +2,6 @@ package com.xbk.knowledge.infrastructure.dao;
 
 import com.xbk.knowledge.infrastructure.dao.po.McpToolMappingPO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.xbk.knowledge.domain.gateway.model.entity.McpToolMapping;
 import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.ToolMappingQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.ToolIdQuery;
@@ -19,10 +18,10 @@ import java.util.List;
 public interface IMcpToolMappingDao extends BaseMapper<McpToolMappingPO> {
 
     /** 新增参数映射记录 */
-    int insertToolMapping(McpToolMapping mapping);
+    int insertToolMapping(McpToolMappingPO mapping);
 
     /** 更新参数映射记录 */
-    int updateToolMapping(McpToolMapping mapping);
+    int updateToolMapping(McpToolMappingPO mapping);
 
     /** 按主键删除参数映射记录 */
     int deleteToolMappingById(IdQuery query);
@@ -31,5 +30,5 @@ public interface IMcpToolMappingDao extends BaseMapper<McpToolMappingPO> {
     int deleteToolMappingByToolId(ToolIdQuery query);
 
     /** 按工具 ID + 映射类型（request/response）查询参数映射列表 */
-    List<McpToolMapping> findByToolIdAndMappingType(ToolMappingQuery query);
+    List<McpToolMappingPO> findByToolIdAndMappingType(ToolMappingQuery query);
 }

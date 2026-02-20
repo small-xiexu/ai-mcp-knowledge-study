@@ -4,7 +4,9 @@ import com.xbk.knowledge.domain.workflow.model.entity.Workflow;
 import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.workflow.model.valobj.WorkflowCodeQuery;
 import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowRepository;
+import com.xbk.knowledge.infrastructure.common.BeanMappingUtils;
 import com.xbk.knowledge.infrastructure.dao.IWorkflowDao;
+import com.xbk.knowledge.infrastructure.dao.po.WorkflowPO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
@@ -35,7 +37,8 @@ public class WorkflowRepositoryImpl implements WorkflowRepository {
         if (query == null || query.getId() == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(workflowMapper.findById(query));
+        return Optional.ofNullable(workflowMapper.findById(query))
+                .map(item -> BeanMappingUtils.map(item, Workflow.class));
     }
 
     /**
@@ -49,7 +52,8 @@ public class WorkflowRepositoryImpl implements WorkflowRepository {
         if (query == null || !StringUtils.hasText(query.getWorkflowCode())) {
             return Optional.empty();
         }
-        return Optional.ofNullable(workflowMapper.findByCode(query));
+        return Optional.ofNullable(workflowMapper.findByCode(query))
+                .map(item -> BeanMappingUtils.map(item, Workflow.class));
     }
 
     /**
@@ -63,7 +67,7 @@ public class WorkflowRepositoryImpl implements WorkflowRepository {
         if (workflow == null) {
             return null;
         }
-        workflowMapper.insertWorkflow(workflow);
+        workflowMapper.insertWorkflow(BeanMappingUtils.map(workflow, WorkflowPO.class));
         return workflow;
     }
 
@@ -78,7 +82,7 @@ public class WorkflowRepositoryImpl implements WorkflowRepository {
         if (workflow == null || workflow.getId() == null) {
             return 0;
         }
-        return workflowMapper.updateWorkflow(workflow);
+        return workflowMapper.updateWorkflow(BeanMappingUtils.map(workflow, WorkflowPO.class));
     }
 
     /**
@@ -94,7 +98,7 @@ public class WorkflowRepositoryImpl implements WorkflowRepository {
     public List<Workflow> list(String keyword, int offset, int pageSize) {
         int safeOffset = Math.max(offset, 0);
         int safeSize = pageSize <= 0 ? 20 : Math.min(pageSize, 200);
-        return workflowMapper.list(keyword, safeOffset, safeSize);
+        return BeanMappingUtils.mapList(workflowMapper.list(keyword, safeOffset, safeSize), Workflow.class);
     }
 
     /**

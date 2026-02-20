@@ -3,7 +3,9 @@ package com.xbk.knowledge.infrastructure.repository.chat;
 import com.xbk.knowledge.domain.chat.model.entity.ChatSession;
 import com.xbk.knowledge.domain.chat.model.valobj.ChatSessionPageQuery;
 import com.xbk.knowledge.domain.chat.adapter.repository.ChatSessionRepository;
+import com.xbk.knowledge.infrastructure.common.BeanMappingUtils;
 import com.xbk.knowledge.infrastructure.dao.IChatSessionDao;
+import com.xbk.knowledge.infrastructure.dao.po.ChatSessionPO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -38,7 +40,7 @@ public class ChatSessionRepositoryImpl implements ChatSessionRepository {
         LocalDateTime now = LocalDateTime.now();
         session.setCreatedAt(now);
         session.setUpdatedAt(now);
-        chatSessionMapper.insertSession(session);
+        chatSessionMapper.insertSession(BeanMappingUtils.map(session, ChatSessionPO.class));
         return session;
     }
 
@@ -52,7 +54,7 @@ public class ChatSessionRepositoryImpl implements ChatSessionRepository {
     @Override
     public ChatSession update(ChatSession session) {
         session.setUpdatedAt(LocalDateTime.now());
-        chatSessionMapper.updateSession(session);
+        chatSessionMapper.updateSession(BeanMappingUtils.map(session, ChatSessionPO.class));
         return session;
     }
 
@@ -77,7 +79,7 @@ public class ChatSessionRepositoryImpl implements ChatSessionRepository {
      */
     @Override
     public ChatSession findById(Long sessionId) {
-        return chatSessionMapper.findById(sessionId);
+        return BeanMappingUtils.map(chatSessionMapper.findById(sessionId), ChatSession.class);
     }
 
     /**
@@ -89,7 +91,7 @@ public class ChatSessionRepositoryImpl implements ChatSessionRepository {
      */
     @Override
     public List<ChatSession> findPage(ChatSessionPageQuery query) {
-        return chatSessionMapper.findPage(query);
+        return BeanMappingUtils.mapList(chatSessionMapper.findPage(query), ChatSession.class);
     }
 
     /**

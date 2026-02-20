@@ -6,7 +6,9 @@ import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.mcp.model.valobj.McpServerConfigPageQuery;
 import com.xbk.knowledge.domain.mcp.model.valobj.McpServerNameQuery;
 import com.xbk.knowledge.domain.mcp.adapter.repository.McpServerConfigRepository;
+import com.xbk.knowledge.infrastructure.common.BeanMappingUtils;
 import com.xbk.knowledge.infrastructure.dao.IMcpServerConfigDao;
+import com.xbk.knowledge.infrastructure.dao.po.McpServerConfigPO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -40,7 +42,7 @@ public class McpServerConfigRepositoryImpl implements McpServerConfigRepository 
         if (query == null || query.getServerName() == null) {
             return Optional.empty();
         }
-        McpServerConfig config = mcpServerConfigMapper.findByName(query);
+        McpServerConfig config = BeanMappingUtils.map(mcpServerConfigMapper.findByName(query), McpServerConfig.class);
         return Optional.ofNullable(config);
     }
 
@@ -57,7 +59,7 @@ public class McpServerConfigRepositoryImpl implements McpServerConfigRepository 
         if (query == null || query.getId() == null) {
             return Optional.empty();
         }
-        McpServerConfig config = mcpServerConfigMapper.findById(query);
+        McpServerConfig config = BeanMappingUtils.map(mcpServerConfigMapper.findById(query), McpServerConfig.class);
         return Optional.ofNullable(config);
     }
 
@@ -75,10 +77,10 @@ public class McpServerConfigRepositoryImpl implements McpServerConfigRepository 
             return null;
         }
         if (config.getId() == null) {
-            mcpServerConfigMapper.insertMcpServerConfig(config);
+            mcpServerConfigMapper.insertMcpServerConfig(BeanMappingUtils.map(config, McpServerConfigPO.class));
             return config;
         }
-        mcpServerConfigMapper.updateMcpServerConfig(config);
+        mcpServerConfigMapper.updateMcpServerConfig(BeanMappingUtils.map(config, McpServerConfigPO.class));
         return config;
     }
 
@@ -127,7 +129,7 @@ public class McpServerConfigRepositoryImpl implements McpServerConfigRepository 
         if (query == null) {
             return Collections.emptyList();
         }
-        return mcpServerConfigMapper.findPage(query);
+        return BeanMappingUtils.mapList(mcpServerConfigMapper.findPage(query), McpServerConfig.class);
     }
 
     /**
@@ -143,7 +145,7 @@ public class McpServerConfigRepositoryImpl implements McpServerConfigRepository 
         if (query == null) {
             return Collections.emptyList();
         }
-        return mcpServerConfigMapper.findByEnabled(query);
+        return BeanMappingUtils.mapList(mcpServerConfigMapper.findByEnabled(query), McpServerConfig.class);
     }
 
     /**

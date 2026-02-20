@@ -3,7 +3,9 @@ package com.xbk.knowledge.infrastructure.gateway.repository;
 import com.xbk.knowledge.domain.gateway.model.entity.McpGatewayAuth;
 import com.xbk.knowledge.domain.gateway.model.valobj.GatewayIdQuery;
 import com.xbk.knowledge.domain.gateway.adapter.repository.McpGatewayAuthRepository;
+import com.xbk.knowledge.infrastructure.common.BeanMappingUtils;
 import com.xbk.knowledge.infrastructure.dao.IMcpGatewayAuthDao;
+import com.xbk.knowledge.infrastructure.dao.po.McpGatewayAuthPO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -33,7 +35,8 @@ public class McpGatewayAuthRepositoryImpl implements McpGatewayAuthRepository {
         if (id == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(mapper.findById(id));
+        return Optional.ofNullable(mapper.findById(id))
+                .map(item -> BeanMappingUtils.map(item, McpGatewayAuth.class));
     }
 
     /**
@@ -47,7 +50,8 @@ public class McpGatewayAuthRepositoryImpl implements McpGatewayAuthRepository {
         if (apiKey == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(mapper.findByApiKey(apiKey));
+        return Optional.ofNullable(mapper.findByApiKey(apiKey))
+                .map(item -> BeanMappingUtils.map(item, McpGatewayAuth.class));
     }
 
     /**
@@ -61,7 +65,7 @@ public class McpGatewayAuthRepositoryImpl implements McpGatewayAuthRepository {
         if (query == null || query.getGatewayId() == null) {
             return Collections.emptyList();
         }
-        return mapper.findByGatewayId(query);
+        return BeanMappingUtils.mapList(mapper.findByGatewayId(query), McpGatewayAuth.class);
     }
 
     /**
@@ -76,10 +80,10 @@ public class McpGatewayAuthRepositoryImpl implements McpGatewayAuthRepository {
             return null;
         }
         if (auth.getId() == null) {
-            mapper.insertGatewayAuth(auth);
+            mapper.insertGatewayAuth(BeanMappingUtils.map(auth, McpGatewayAuthPO.class));
             return auth;
         }
-        mapper.updateGatewayAuth(auth);
+        mapper.updateGatewayAuth(BeanMappingUtils.map(auth, McpGatewayAuthPO.class));
         return auth;
     }
 

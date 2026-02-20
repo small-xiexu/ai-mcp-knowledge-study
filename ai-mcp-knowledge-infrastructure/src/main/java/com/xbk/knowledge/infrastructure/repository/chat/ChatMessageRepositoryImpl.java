@@ -3,7 +3,9 @@ package com.xbk.knowledge.infrastructure.repository.chat;
 import com.xbk.knowledge.domain.chat.model.entity.ChatMessage;
 import com.xbk.knowledge.domain.chat.model.valobj.ChatMessagePageQuery;
 import com.xbk.knowledge.domain.chat.adapter.repository.ChatMessageRepository;
+import com.xbk.knowledge.infrastructure.common.BeanMappingUtils;
 import com.xbk.knowledge.infrastructure.dao.IChatMessageDao;
+import com.xbk.knowledge.infrastructure.dao.po.ChatMessagePO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -36,7 +38,7 @@ public class ChatMessageRepositoryImpl implements ChatMessageRepository {
          * 目的：基础设施层统一维护时间戳
  */
         message.setCreatedAt(LocalDateTime.now());
-        chatMessageMapper.insertMessage(message);
+        chatMessageMapper.insertMessage(BeanMappingUtils.map(message, ChatMessagePO.class));
         return message;
     }
 
@@ -49,7 +51,7 @@ public class ChatMessageRepositoryImpl implements ChatMessageRepository {
      */
     @Override
     public List<ChatMessage> findPage(ChatMessagePageQuery query) {
-        return chatMessageMapper.findPage(query);
+        return BeanMappingUtils.mapList(chatMessageMapper.findPage(query), ChatMessage.class);
     }
 
     /**

@@ -2,7 +2,6 @@ package com.xbk.knowledge.infrastructure.dao;
 
 import com.xbk.knowledge.infrastructure.dao.po.WorkflowRunPO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.xbk.knowledge.domain.workflow.model.entity.WorkflowRun;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -17,18 +16,18 @@ import java.util.List;
 @Mapper
 public interface IWorkflowRunDao extends BaseMapper<WorkflowRunPO> {
 
-    int insertRun(WorkflowRun run);
+    int insertRun(WorkflowRunPO run);
 
-    WorkflowRun findByRunId(@Param("runId") String runId);
+    WorkflowRunPO findByRunId(@Param("runId") String runId);
 
     int updateStatus(@Param("runId") String runId,
                      @Param("status") String status,
                      @Param("errorMessage") String errorMessage,
                      @Param("endedAt") LocalDateTime endedAt);
 
-    int updateStatusAndMetrics(WorkflowRun run);
+    int updateStatusAndMetrics(WorkflowRunPO run);
 
-    List<WorkflowRun> list(@Param("status") String status,
+    List<WorkflowRunPO> list(@Param("status") String status,
                            @Param("offset") int offset,
                            @Param("pageSize") int pageSize);
 

@@ -4,7 +4,9 @@ import com.xbk.knowledge.domain.audit.model.aggregate.ConfigAuditAggregate;
 import com.xbk.knowledge.domain.audit.model.entity.ConfigAudit;
 import com.xbk.knowledge.domain.audit.model.valobj.AuditQuery;
 import com.xbk.knowledge.domain.audit.adapter.repository.ConfigAuditRepository;
+import com.xbk.knowledge.infrastructure.common.BeanMappingUtils;
 import com.xbk.knowledge.infrastructure.dao.IConfigAuditDao;
+import com.xbk.knowledge.infrastructure.dao.po.ConfigAuditPO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -46,7 +48,7 @@ public class ConfigAuditRepositoryImpl implements ConfigAuditRepository {
         /*
          * 目的：统一落库入口，避免重复插入逻辑
  */
-        configAuditMapper.insertConfigAudit(audit);
+        configAuditMapper.insertConfigAudit(BeanMappingUtils.map(audit, ConfigAuditPO.class));
         aggregate.setConfigAudit(audit);
         return aggregate;
     }
@@ -64,7 +66,7 @@ public class ConfigAuditRepositoryImpl implements ConfigAuditRepository {
         if (query == null) {
             return Collections.emptyList();
         }
-        return configAuditMapper.findByConditions(query);
+        return BeanMappingUtils.mapList(configAuditMapper.findByConditions(query), ConfigAudit.class);
     }
 
     /**

@@ -2,7 +2,9 @@ package com.xbk.knowledge.infrastructure.workflow.repository;
 
 import com.xbk.knowledge.domain.workflow.model.entity.WorkflowNodeRun;
 import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowNodeRunRepository;
+import com.xbk.knowledge.infrastructure.common.BeanMappingUtils;
 import com.xbk.knowledge.infrastructure.dao.IWorkflowNodeRunDao;
+import com.xbk.knowledge.infrastructure.dao.po.WorkflowNodeRunPO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
@@ -32,7 +34,7 @@ public class WorkflowNodeRunRepositoryImpl implements WorkflowNodeRunRepository 
         if (nodeRun == null) {
             return;
         }
-        mapper.insertNodeRun(nodeRun);
+        mapper.insertNodeRun(BeanMappingUtils.map(nodeRun, WorkflowNodeRunPO.class));
     }
 
     /**
@@ -45,7 +47,7 @@ public class WorkflowNodeRunRepositoryImpl implements WorkflowNodeRunRepository 
         if (nodeRun == null || nodeRun.getId() == null) {
             return;
         }
-        mapper.updateNodeRun(nodeRun);
+        mapper.updateNodeRun(BeanMappingUtils.map(nodeRun, WorkflowNodeRunPO.class));
     }
 
     /**
@@ -60,7 +62,8 @@ public class WorkflowNodeRunRepositoryImpl implements WorkflowNodeRunRepository 
         if (!StringUtils.hasText(runId) || !StringUtils.hasText(nodeKey)) {
             return Optional.empty();
         }
-        return Optional.ofNullable(mapper.findByRunIdAndNodeKey(runId, nodeKey));
+        return Optional.ofNullable(mapper.findByRunIdAndNodeKey(runId, nodeKey))
+                .map(item -> BeanMappingUtils.map(item, WorkflowNodeRun.class));
     }
 
     /**
@@ -74,7 +77,7 @@ public class WorkflowNodeRunRepositoryImpl implements WorkflowNodeRunRepository 
         if (!StringUtils.hasText(runId)) {
             return Collections.emptyList();
         }
-        return mapper.listByRunId(runId);
+        return BeanMappingUtils.mapList(mapper.listByRunId(runId), WorkflowNodeRun.class);
     }
 
     /**

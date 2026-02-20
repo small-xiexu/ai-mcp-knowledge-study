@@ -7,7 +7,11 @@ import com.xbk.knowledge.domain.identity.model.valobj.PermissionPageQuery;
 import com.xbk.knowledge.domain.identity.model.valobj.RolePageQuery;
 import com.xbk.knowledge.domain.identity.model.valobj.UserPageQuery;
 import com.xbk.knowledge.domain.identity.adapter.repository.IdentityRepository;
+import com.xbk.knowledge.infrastructure.common.BeanMappingUtils;
 import com.xbk.knowledge.infrastructure.dao.IIdentityDao;
+import com.xbk.knowledge.infrastructure.dao.po.SysPermissionPO;
+import com.xbk.knowledge.infrastructure.dao.po.SysRolePO;
+import com.xbk.knowledge.infrastructure.dao.po.SysUserPO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -37,7 +41,7 @@ public class IdentityRepositoryImpl implements IdentityRepository {
      */
     @Override
     public Optional<SysUser> findByUsername(String username) {
-        SysUser user = identityMapper.findByUsername(username);
+        SysUser user = BeanMappingUtils.map(identityMapper.findByUsername(username), SysUser.class);
         return Optional.ofNullable(user);
     }
 
@@ -49,7 +53,7 @@ public class IdentityRepositoryImpl implements IdentityRepository {
      */
     @Override
     public Optional<SysUser> findById(Long userId) {
-        SysUser user = identityMapper.findById(userId);
+        SysUser user = BeanMappingUtils.map(identityMapper.findById(userId), SysUser.class);
         return Optional.ofNullable(user);
     }
 
@@ -93,7 +97,7 @@ public class IdentityRepositoryImpl implements IdentityRepository {
      */
     @Override
     public List<SysUser> findPage(UserPageQuery query) {
-        return identityMapper.findPage(query);
+        return BeanMappingUtils.mapList(identityMapper.findPage(query), SysUser.class);
     }
 
     /**
@@ -115,7 +119,7 @@ public class IdentityRepositoryImpl implements IdentityRepository {
      */
     @Override
     public SysUser insert(SysUser user) {
-        identityMapper.insertUser(user);
+        identityMapper.insertUser(BeanMappingUtils.map(user, SysUserPO.class));
         return user;
     }
 
@@ -127,7 +131,7 @@ public class IdentityRepositoryImpl implements IdentityRepository {
      */
     @Override
     public int updateUser(SysUser user) {
-        return identityMapper.updateUser(user);
+        return identityMapper.updateUser(BeanMappingUtils.map(user, SysUserPO.class));
     }
 
     /**
@@ -175,7 +179,7 @@ public class IdentityRepositoryImpl implements IdentityRepository {
      */
     @Override
     public List<SysRole> findRolePage(RolePageQuery query) {
-        return identityMapper.findRolePage(query);
+        return BeanMappingUtils.mapList(identityMapper.findRolePage(query), SysRole.class);
     }
 
     /**
@@ -197,7 +201,7 @@ public class IdentityRepositoryImpl implements IdentityRepository {
      */
     @Override
     public SysRole insertRole(SysRole role) {
-        identityMapper.insertRole(role);
+        identityMapper.insertRole(BeanMappingUtils.map(role, SysRolePO.class));
         return role;
     }
 
@@ -209,7 +213,7 @@ public class IdentityRepositoryImpl implements IdentityRepository {
      */
     @Override
     public int updateRole(SysRole role) {
-        return identityMapper.updateRole(role);
+        return identityMapper.updateRole(BeanMappingUtils.map(role, SysRolePO.class));
     }
 
     /**
@@ -220,7 +224,8 @@ public class IdentityRepositoryImpl implements IdentityRepository {
      */
     @Override
     public Optional<SysRole> findRoleById(Long roleId) {
-        return Optional.ofNullable(identityMapper.findRoleById(roleId));
+        return Optional.ofNullable(identityMapper.findRoleById(roleId))
+                .map(item -> BeanMappingUtils.map(item, SysRole.class));
     }
 
     /**
@@ -272,7 +277,7 @@ public class IdentityRepositoryImpl implements IdentityRepository {
      */
     @Override
     public List<SysPermission> findPermissionPage(PermissionPageQuery query) {
-        return identityMapper.findPermissionPage(query);
+        return BeanMappingUtils.mapList(identityMapper.findPermissionPage(query), SysPermission.class);
     }
 
     /**

@@ -2,7 +2,9 @@ package com.xbk.knowledge.infrastructure.repository.rag;
 
 import com.xbk.knowledge.domain.rag.model.entity.RagTask;
 import com.xbk.knowledge.domain.rag.adapter.repository.RagTaskRepository;
+import com.xbk.knowledge.infrastructure.common.BeanMappingUtils;
 import com.xbk.knowledge.infrastructure.dao.IRagTaskDao;
+import com.xbk.knowledge.infrastructure.dao.po.RagTaskPO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -36,7 +38,7 @@ public class RagTaskRepositoryImpl implements RagTaskRepository {
         LocalDateTime now = LocalDateTime.now();
         task.setCreatedAt(now);
         task.setUpdatedAt(now);
-        ragTaskMapper.insertTask(task);
+        ragTaskMapper.insertTask(BeanMappingUtils.map(task, RagTaskPO.class));
         return task;
     }
 
@@ -50,7 +52,7 @@ public class RagTaskRepositoryImpl implements RagTaskRepository {
     @Override
     public RagTask update(RagTask task) {
         task.setUpdatedAt(LocalDateTime.now());
-        ragTaskMapper.updateTask(task);
+        ragTaskMapper.updateTask(BeanMappingUtils.map(task, RagTaskPO.class));
         return task;
     }
 
@@ -63,7 +65,7 @@ public class RagTaskRepositoryImpl implements RagTaskRepository {
      */
     @Override
     public RagTask findByTaskId(String taskId) {
-        return ragTaskMapper.findByTaskId(taskId);
+        return BeanMappingUtils.map(ragTaskMapper.findByTaskId(taskId), RagTask.class);
     }
 
     /**
@@ -75,7 +77,7 @@ public class RagTaskRepositoryImpl implements RagTaskRepository {
      */
     @Override
     public List<RagTask> findPage(int offset, int limit) {
-        return ragTaskMapper.findPage(offset, limit);
+        return BeanMappingUtils.mapList(ragTaskMapper.findPage(offset, limit), RagTask.class);
     }
 
     /**
@@ -137,7 +139,7 @@ public class RagTaskRepositoryImpl implements RagTaskRepository {
      */
     @Override
     public List<RagTask> findFailedTasksSince(LocalDateTime since) {
-        return ragTaskMapper.findFailedTasksSince(since);
+        return BeanMappingUtils.mapList(ragTaskMapper.findFailedTasksSince(since), RagTask.class);
     }
 
     /**
@@ -149,7 +151,7 @@ public class RagTaskRepositoryImpl implements RagTaskRepository {
      */
     @Override
     public List<RagTask> findProcessingTasksBefore(LocalDateTime before) {
-        return ragTaskMapper.findProcessingTasksBefore(before);
+        return BeanMappingUtils.mapList(ragTaskMapper.findProcessingTasksBefore(before), RagTask.class);
     }
 
     /**

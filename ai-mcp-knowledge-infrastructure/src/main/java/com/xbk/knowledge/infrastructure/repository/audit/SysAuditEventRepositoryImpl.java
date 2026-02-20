@@ -3,7 +3,9 @@ package com.xbk.knowledge.infrastructure.repository.audit;
 import com.xbk.knowledge.domain.audit.model.entity.SysAuditEvent;
 import com.xbk.knowledge.domain.identity.model.valobj.AuditEventPageQuery;
 import com.xbk.knowledge.domain.audit.adapter.repository.SysAuditEventRepository;
+import com.xbk.knowledge.infrastructure.common.BeanMappingUtils;
 import com.xbk.knowledge.infrastructure.dao.ISysAuditEventDao;
+import com.xbk.knowledge.infrastructure.dao.po.SysAuditEventPO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -36,7 +38,7 @@ public class SysAuditEventRepositoryImpl implements SysAuditEventRepository {
         if (event.getOperatorScopeId() == null) {
             event.setOperatorScopeId(0L);
         }
-        sysAuditEventMapper.insertEvent(event);
+        sysAuditEventMapper.insertEvent(BeanMappingUtils.map(event, SysAuditEventPO.class));
     }
 
     /**
@@ -47,7 +49,7 @@ public class SysAuditEventRepositoryImpl implements SysAuditEventRepository {
      */
     @Override
     public List<SysAuditEvent> findPage(AuditEventPageQuery query) {
-        return sysAuditEventMapper.findPage(query);
+        return BeanMappingUtils.mapList(sysAuditEventMapper.findPage(query), SysAuditEvent.class);
     }
 
     /**
