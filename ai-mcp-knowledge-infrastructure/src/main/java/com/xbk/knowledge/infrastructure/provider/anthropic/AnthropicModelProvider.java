@@ -2,7 +2,7 @@ package com.xbk.knowledge.infrastructure.provider.anthropic;
 
 import com.xbk.knowledge.infrastructure.protocol.AbstractAnthropicProtocolAdapter;
 import com.xbk.knowledge.application.provider.ModelProvider;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import com.xbk.knowledge.types.enums.ModelType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
  * 封装 Anthropic Claude 模型的创建和调用
  *
  * 职责：模型调用实现，用于适配具体厂商 SDK
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Component
@@ -61,7 +61,7 @@ public class AnthropicModelProvider extends AbstractAnthropicProtocolAdapter imp
         try {
             /*
              * 目的：通过创建模型验证配置有效性
-             */
+ */
             createChatModel(config);
             return true;
         } catch (Exception e) {

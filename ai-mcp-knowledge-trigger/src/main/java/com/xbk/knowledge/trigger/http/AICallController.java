@@ -10,8 +10,8 @@ import com.xbk.knowledge.api.dto.ai.ModelInfo;
 import com.xbk.knowledge.application.model.dto.AICallCommand;
 import com.xbk.knowledge.application.model.dto.AICallResult;
 import com.xbk.knowledge.application.service.app.AiChatAppService;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
-import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.common.model.valobj.EnabledQuery;
 import com.xbk.knowledge.application.service.app.ModelConfigAppService;
 import com.xbk.knowledge.trigger.converter.DTOConverter;
 import com.xbk.knowledge.types.exception.BusinessException;
@@ -42,7 +42,7 @@ import java.util.function.Function;
  * <p>
  * 职责：HTTP 接口适配，用于转发应用层能力
  *
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @RestController
@@ -203,9 +203,9 @@ public class AICallController implements IAICallService {
      * 流式统计 usage 快照
      * 仅保存最新的 token 统计值，便于在流结束时回传
      *
-     * @author xiexu
+     * @author sxie
      */
-    private static class UsageStats {
+      private static class UsageStats {
         private Integer promptTokens;
         private Integer completionTokens;
         private Integer totalTokens;

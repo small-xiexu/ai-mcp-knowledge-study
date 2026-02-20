@@ -10,7 +10,7 @@ import java.util.Optional;
  * 网关认证仓储接口
  *
  * 职责：定义网关认证信息的持久化操作契约
- * @author xiexu
+ * @author sxie
  */
 public interface McpGatewayAuthRepository {
 

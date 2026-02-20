@@ -2,8 +2,8 @@ package com.xbk.knowledge.trigger.http;
 
 import com.xbk.knowledge.api.dto.metrics.ModelUsageQueryRequest;
 import com.xbk.knowledge.application.service.app.MetricsAppService;
-import com.xbk.knowledge.domain.model.vo.metrics.ModelUsage;
-import com.xbk.knowledge.domain.model.vo.metrics.ModelUsageQuery;
+import com.xbk.knowledge.domain.metrics.model.valobj.ModelUsage;
+import com.xbk.knowledge.domain.metrics.model.valobj.ModelUsageQuery;
 import com.xbk.knowledge.types.common.Result;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;

@@ -1,9 +1,9 @@
 package com.xbk.knowledge.infrastructure.repository;
 
-import com.xbk.knowledge.domain.model.aggregate.model.ModelConfigAggregate;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
-import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
-import com.xbk.knowledge.domain.model.vo.model.ModelNameQuery;
+import com.xbk.knowledge.domain.llm.model.aggregate.ModelConfigAggregate;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.common.model.valobj.EnabledQuery;
+import com.xbk.knowledge.domain.llm.model.valobj.ModelNameQuery;
 import com.xbk.knowledge.infrastructure.dao.IModelConfigDao;
 import com.xbk.knowledge.infrastructure.repository.model.ModelConfigRepositoryImpl;
 import org.junit.jupiter.api.Test;

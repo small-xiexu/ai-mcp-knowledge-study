@@ -21,7 +21,7 @@ import java.util.Optional;
  *
  * 职责：基础设施层实现，用于落地身份与权限数据访问。
  *
- * @author xiexu
+ * @author sxie
  */
 @Repository
 @RequiredArgsConstructor

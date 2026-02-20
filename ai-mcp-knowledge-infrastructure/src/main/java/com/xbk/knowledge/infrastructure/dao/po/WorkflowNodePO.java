@@ -5,7 +5,7 @@ import com.xbk.knowledge.domain.workflow.model.entity.WorkflowNode;
 /**
  * WorkflowNode 持久化对象。
  *
- * @author xiexu
+ * @author sxie
  */
 public class WorkflowNodePO extends WorkflowNode {
 }

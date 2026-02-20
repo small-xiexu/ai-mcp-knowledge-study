@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
  *
  * 职责：接口层 DTO，用于输出用户基础信息。
  *
- * @author xiexu
+ * @author sxie
  */
 @Data
 @Builder

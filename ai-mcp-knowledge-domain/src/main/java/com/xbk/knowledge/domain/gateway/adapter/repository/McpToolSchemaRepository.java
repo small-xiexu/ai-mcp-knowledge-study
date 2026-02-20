@@ -8,7 +8,7 @@ import java.util.Optional;
  * 工具 Schema 缓存仓储接口
  *
  * 职责：定义工具 Schema 缓存的持久化操作契约
- * @author xiexu
+ * @author sxie
  */
 public interface McpToolSchemaRepository {
 

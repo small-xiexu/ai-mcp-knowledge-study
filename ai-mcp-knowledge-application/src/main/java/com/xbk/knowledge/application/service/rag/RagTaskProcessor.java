@@ -2,9 +2,9 @@ package com.xbk.knowledge.application.service.rag;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.xbk.knowledge.domain.model.entity.RagTask;
-import com.xbk.knowledge.domain.model.vo.rag.FileProcessError;
-import com.xbk.knowledge.domain.model.adapter.repository.rag.RagTaskRepository;
+import com.xbk.knowledge.domain.rag.model.entity.RagTask;
+import com.xbk.knowledge.domain.rag.model.valobj.FileProcessError;
+import com.xbk.knowledge.domain.rag.adapter.repository.RagTaskRepository;
 import com.xbk.knowledge.types.enums.RagTaskStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +45,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * 负责异步处理 Git 仓库解析任务
  *
  * 职责：异步任务执行与进度更新
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Component

@@ -11,9 +11,9 @@ import java.util.List;
 
 /**
  * AgentVersion DAO（通过 XML 承载 SQL）。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Mapper
 public interface IAgentVersionDao extends BaseMapper<AgentVersionPO> {
 

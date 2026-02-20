@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * 会话更新请求
  *
- * @author xiexu
+ * @author sxie
  */
 @Data
 public class ChatSessionUpdateRequest {

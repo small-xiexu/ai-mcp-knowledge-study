@@ -1,8 +1,8 @@
 package com.xbk.knowledge.infrastructure.repository.chat;
 
-import com.xbk.knowledge.domain.model.entity.ChatMessage;
-import com.xbk.knowledge.domain.model.vo.chat.ChatMessagePageQuery;
-import com.xbk.knowledge.domain.model.adapter.repository.chat.ChatMessageRepository;
+import com.xbk.knowledge.domain.chat.model.entity.ChatMessage;
+import com.xbk.knowledge.domain.chat.model.valobj.ChatMessagePageQuery;
+import com.xbk.knowledge.domain.chat.adapter.repository.ChatMessageRepository;
 import com.xbk.knowledge.infrastructure.dao.IChatMessageDao;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -15,7 +15,7 @@ import java.util.List;
  *
  * 职责：消息数据持久化访问
  *
- * @author xiexu
+ * @author sxie
  */
 @Repository
 @RequiredArgsConstructor
@@ -34,7 +34,7 @@ public class ChatMessageRepositoryImpl implements ChatMessageRepository {
     public ChatMessage create(ChatMessage message) {
         /*
          * 目的：基础设施层统一维护时间戳
-         */
+ */
         message.setCreatedAt(LocalDateTime.now());
         chatMessageMapper.insertMessage(message);
         return message;

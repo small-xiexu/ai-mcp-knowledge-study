@@ -1,6 +1,6 @@
 package com.xbk.knowledge.application.service.app.impl;
 
-import com.xbk.knowledge.domain.model.vo.metrics.MetricsQuery;
+import com.xbk.knowledge.domain.metrics.model.valobj.MetricsQuery;
 import com.xbk.knowledge.domain.service.metrics.IMetricsDomainService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

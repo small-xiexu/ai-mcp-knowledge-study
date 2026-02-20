@@ -8,7 +8,7 @@ import org.springframework.util.StringUtils;
  * 说明：当前 {@code /jobinfo/add} 的 content 预期为纯数字 jobId；
  * 为防止误绑错误 jobId，禁止从非数字字符串中“提取数字兜底”。
  *
- * @author xiexu
+ * @author sxie
  */
 public final class XxlJobIdParser {
 

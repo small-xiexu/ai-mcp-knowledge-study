@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 /**
  * 工具 ID 查询条件值对象。
  *
- * @author xiexu
+ * @author sxie
  */
 @Data
 @NoArgsConstructor

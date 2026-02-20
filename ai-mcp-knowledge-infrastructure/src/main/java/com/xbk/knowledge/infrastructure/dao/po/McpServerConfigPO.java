@@ -5,7 +5,7 @@ import com.xbk.knowledge.domain.mcp.model.entity.McpServerConfig;
 /**
  * McpServerConfig 持久化对象。
  *
- * @author xiexu
+ * @author sxie
  */
 public class McpServerConfigPO extends McpServerConfig {
 }

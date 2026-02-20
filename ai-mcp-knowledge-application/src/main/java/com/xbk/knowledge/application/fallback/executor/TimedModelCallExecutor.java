@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
  * 模型调用计时装饰器
  * 统一记录模型调用耗时，避免业务层重复计时代码
  *
- * @author xiexu
+ * @author sxie
  */
 @Primary
 @Component

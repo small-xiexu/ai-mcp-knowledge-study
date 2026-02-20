@@ -6,7 +6,7 @@ import com.xbk.knowledge.application.service.app.AgentScheduleAppService;
 import com.xbk.knowledge.application.service.app.IdentityContextService;
 import com.xbk.knowledge.application.service.app.XxlJobAppService;
 import com.xbk.knowledge.application.support.xxl.XxlJobIdParser;
-import com.xbk.knowledge.domain.model.entity.XxlJobInfo;
+import com.xbk.knowledge.domain.job.model.entity.XxlJobInfo;
 import com.xbk.knowledge.domain.agent.model.entity.Agent;
 import com.xbk.knowledge.domain.agent.model.entity.AgentSchedule;
 import com.xbk.knowledge.domain.agent.model.valobj.AgentCodeQuery;
@@ -30,7 +30,7 @@ import java.util.Map;
  * - schedule 落库后创建/更新 xxl-job，并将 jobId 回写到 schedule.xxl_job_id
  * - enable/disable 同步 start/stop xxl-job
  *
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Service

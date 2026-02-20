@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * Gateway 鉴权 Mapper
  *
- * @author xiexu
+ * @author sxie
  */
 @Mapper
 public interface IMcpGatewayAuthDao extends BaseMapper<McpGatewayAuthPO> {

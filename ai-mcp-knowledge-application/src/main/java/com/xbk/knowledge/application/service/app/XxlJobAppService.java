@@ -1,18 +1,20 @@
 package com.xbk.knowledge.application.service.app;
 
-import com.xbk.knowledge.domain.model.entity.XxlJobInfo;
-import com.xbk.knowledge.domain.model.entity.XxlJobLogDetail;
-import com.xbk.knowledge.domain.model.entity.XxlJobLogInfo;
-import com.xbk.knowledge.domain.model.vo.xxl.XxlJobLogPageQuery;
-import com.xbk.knowledge.domain.model.vo.xxl.XxlJobPageQuery;
+import com.xbk.knowledge.domain.job.model.entity.XxlJobInfo;
+import com.xbk.knowledge.domain.job.model.entity.XxlJobLogDetail;
+import com.xbk.knowledge.domain.job.model.entity.XxlJobLogInfo;
+import com.xbk.knowledge.domain.job.model.valobj.XxlJobLogPageQuery;
+import com.xbk.knowledge.domain.job.model.valobj.XxlJobPageQuery;
 import com.xbk.knowledge.types.common.PageResult;
+
+import java.util.List;
 
 /**
  * XXL 任务应用服务
  * 负责任务查询用例编排
  *
  * 职责：应用服务接口，用于对外暴露用例能力
- * @author xiexu
+ * @author sxie
  */
 public interface XxlJobAppService {
 
@@ -31,7 +33,7 @@ public interface XxlJobAppService {
      * @param refresh 是否强制刷新缓存
      * @return 任务列表
      */
-    java.util.List<XxlJobInfo> queryAllJobs(String appName, boolean refresh);
+    List<XxlJobInfo> queryAllJobs(String appName, boolean refresh);
 
     /**
      * 查询 XXL 任务详情

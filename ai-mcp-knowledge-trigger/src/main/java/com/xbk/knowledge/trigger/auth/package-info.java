@@ -1,6 +1,6 @@
 /**
  * 身份鉴权接入组件。
  *
- * @author xiexu
+ * @author sxie
  */
 package com.xbk.knowledge.trigger.auth;

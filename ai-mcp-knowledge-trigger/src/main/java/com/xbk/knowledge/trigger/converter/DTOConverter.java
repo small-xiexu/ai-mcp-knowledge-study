@@ -15,7 +15,7 @@ import java.util.Map;
  *
  * 职责：接口层 DTO 转换，用于隔离传输与领域模型
  *
- * @author xiexu
+ * @author sxie
  */
 public class DTOConverter {
 

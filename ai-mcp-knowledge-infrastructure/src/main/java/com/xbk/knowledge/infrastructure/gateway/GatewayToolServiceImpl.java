@@ -56,7 +56,7 @@ import java.util.UUID;
  * 2. 工具调用执行（callTool）：参数映射 → HTTP 请求 → 响应提取 → 指标记录
  * 3. 协议初始化（initialize）：返回网关能力声明
  *
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Service

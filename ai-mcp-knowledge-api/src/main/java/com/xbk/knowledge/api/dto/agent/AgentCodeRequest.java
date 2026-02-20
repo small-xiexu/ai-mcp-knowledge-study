@@ -10,9 +10,9 @@ import lombok.NoArgsConstructor;
 
 /**
  * Agent 详情查询请求（按 agentCode）。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Data
 @Builder
 @NoArgsConstructor

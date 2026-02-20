@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
  * 对应数据库表：mcp_tool_mapping
  *
  * 职责：领域实体，承载 MCP 工具参数与 HTTP 请求参数之间的映射关系
- * @author xiexu
+ * @author sxie
  */
 @TableName("mcp_tool_mapping")
 @Getter

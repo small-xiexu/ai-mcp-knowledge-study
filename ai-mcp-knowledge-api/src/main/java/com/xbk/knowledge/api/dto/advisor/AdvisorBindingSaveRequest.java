@@ -4,13 +4,14 @@ import lombok.Data;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+
 import java.util.List;
 
 /**
  * Advisor 绑定保存请求。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Data
 public class AdvisorBindingSaveRequest {
 

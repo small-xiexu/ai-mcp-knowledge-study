@@ -5,7 +5,7 @@ import com.xbk.knowledge.application.model.dto.ModelSelectionDecision;
 import com.xbk.knowledge.application.service.selection.chain.AbstractModelSelectionHandler;
 import com.xbk.knowledge.application.service.selection.chain.ModelSelectionChain;
 import com.xbk.knowledge.application.service.selection.handler.ModelSelectionHandler;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

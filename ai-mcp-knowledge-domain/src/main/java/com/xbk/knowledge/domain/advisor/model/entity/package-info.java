@@ -3,6 +3,6 @@
  *
  * 职责：承载 Advisor 资产与绑定关系等核心实体模型。
  *
- * @author xiexu
+ * @author sxie
  */
 package com.xbk.knowledge.domain.advisor.model.entity;

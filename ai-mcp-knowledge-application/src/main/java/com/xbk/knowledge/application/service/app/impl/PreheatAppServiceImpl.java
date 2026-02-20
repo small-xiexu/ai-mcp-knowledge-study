@@ -7,12 +7,12 @@ import com.xbk.knowledge.application.service.app.McpServerConfigAppService;
 import com.xbk.knowledge.application.service.app.PreheatAppService;
 import com.xbk.knowledge.application.service.armory.factory.DefaultAiClientArmoryStrategyFactory;
 import com.xbk.knowledge.application.service.runtime.AdvisorRuntimeService;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.agent.model.entity.AgentVersion;
 import com.xbk.knowledge.domain.workflow.model.entity.WorkflowNode;
 import com.xbk.knowledge.domain.workflow.model.entity.WorkflowVersion;
 import com.xbk.knowledge.domain.agent.model.valobj.AgentVersionIdQuery;
-import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
+import com.xbk.knowledge.domain.common.model.valobj.EnabledQuery;
 import com.xbk.knowledge.domain.workflow.model.valobj.WorkflowGraphQuery;
 import com.xbk.knowledge.domain.workflow.model.valobj.WorkflowVersionIdQuery;
 import com.xbk.knowledge.domain.agent.adapter.repository.AgentVersionRepository;
@@ -37,9 +37,9 @@ import java.util.Comparator;
 
 /**
  * 预热应用服务实现。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor

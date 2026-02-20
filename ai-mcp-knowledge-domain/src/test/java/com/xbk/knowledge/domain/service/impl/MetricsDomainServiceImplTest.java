@@ -1,10 +1,10 @@
 package com.xbk.knowledge.domain.service.impl;
 
-import com.xbk.knowledge.domain.model.vo.metrics.CallMetrics;
-import com.xbk.knowledge.domain.model.vo.metrics.MetricsQuery;
-import com.xbk.knowledge.domain.model.vo.metrics.ModelUsage;
-import com.xbk.knowledge.domain.model.vo.metrics.ModelUsageQuery;
-import com.xbk.knowledge.domain.model.adapter.repository.metrics.CallLogRepository;
+import com.xbk.knowledge.domain.metrics.model.valobj.CallMetrics;
+import com.xbk.knowledge.domain.metrics.model.valobj.MetricsQuery;
+import com.xbk.knowledge.domain.metrics.model.valobj.ModelUsage;
+import com.xbk.knowledge.domain.metrics.model.valobj.ModelUsageQuery;
+import com.xbk.knowledge.domain.metrics.adapter.repository.CallLogRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

@@ -10,7 +10,7 @@ import com.xbk.knowledge.api.dto.mcp.McpServerConfigResponse;
 import com.xbk.knowledge.application.service.app.McpServerConfigAppService;
 import com.xbk.knowledge.application.service.runtime.McpServerRuntimeService;
 import com.xbk.knowledge.domain.mcp.model.entity.McpServerConfig;
-import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.mcp.model.valobj.McpServerConfigPageQuery;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.common.PageResultConverter;
@@ -30,7 +30,7 @@ import java.util.Map;
  * 负责接收 HTTP 请求，调用应用服务，转换响应
  *
  * 职责：HTTP 接口适配，用于转发应用层能力
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @RestController
@@ -59,7 +59,7 @@ public class McpServerConfigController {
 
         /*
          * 目的：统一分页转换逻辑，保障响应格式一致
-         */
+ */
         PageResult<McpServerConfigResponse> result = PageResultConverter.convert(pageResult, this::convertToResponse);
 
         return Result.success(result);
@@ -94,7 +94,7 @@ public class McpServerConfigController {
     public Result<McpServerConfigResponse> createConfig(@Valid @RequestBody McpServerConfigRequest request) {
         /*
          * 目的：从请求 DTO 组装领域实体，避免接口层结构泄露
-         */
+ */
         McpServerConfig config = buildFromRequest(request);
         McpServerConfig savedConfig = mcpServerConfigAppService.createMcpServerConfig(config);
         McpServerConfigResponse response = convertToResponse(savedConfig);
@@ -201,7 +201,7 @@ public class McpServerConfigController {
     private McpServerConfig buildFromRequest(McpServerConfigRequest request) {
         /*
          * 目的：统一构建领域对象，保证入参映射可维护
-         */
+ */
         return McpServerConfig
                 .builder()
                 .serverName(request.getServerName())
@@ -226,7 +226,7 @@ public class McpServerConfigController {
         }
         /*
          * 目的：补充运行时状态，前端无需二次调用查询
-         */
+ */
         Long id = config.getId();
         Boolean running = mcpServerRuntimeService.isRunning(id);
         return McpServerConfigResponse
@@ -258,7 +258,7 @@ public class McpServerConfigController {
         /*
          * 目的：序列化可变结构字段，避免表结构频繁变更
          * 约束：序列化失败时返回 null，交由应用层处理
-         */
+ */
         try {
             return objectMapper.writeValueAsString(value);
         } catch (Exception e) {
@@ -274,7 +274,7 @@ public class McpServerConfigController {
         /*
          * 目的：将存储的 JSON 数组解析为列表，给前端可直接展示
          * 约束：解析失败时降级为空列表
-         */
+ */
         try {
             return objectMapper.readValue(json, new TypeReference<List<String>>() {});
         } catch (Exception e) {
@@ -290,7 +290,7 @@ public class McpServerConfigController {
         /*
          * 目的：将存储的 JSON 对象解析为 Map，确保前端表单可直接回显
          * 约束：解析失败时降级为空 Map
-         */
+ */
         try {
             return objectMapper.readValue(json, new TypeReference<Map<String, String>>() {});
         } catch (Exception e) {

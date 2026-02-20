@@ -2,10 +2,11 @@ package com.xbk.knowledge.infrastructure.dao;
 
 import com.xbk.knowledge.infrastructure.dao.po.ChatSessionPO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.xbk.knowledge.domain.model.entity.ChatSession;
-import com.xbk.knowledge.domain.model.vo.chat.ChatSessionPageQuery;
+import com.xbk.knowledge.domain.chat.model.entity.ChatSession;
+import com.xbk.knowledge.domain.chat.model.valobj.ChatSessionPageQuery;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -14,7 +15,7 @@ import java.util.List;
  *
  * 职责：MyBatis Mapper 接口，用于映射数据库操作
  *
- * @author xiexu
+ * @author sxie
  */
 @Mapper
 public interface IChatSessionDao extends BaseMapper<ChatSessionPO> {
@@ -80,5 +81,5 @@ public interface IChatSessionDao extends BaseMapper<ChatSessionPO> {
      * 入参：截止时间
      * 出参：影响行数
      */
-    int deleteByUpdatedBefore(java.time.LocalDateTime updatedBefore);
+    int deleteByUpdatedBefore(LocalDateTime updatedBefore);
 }

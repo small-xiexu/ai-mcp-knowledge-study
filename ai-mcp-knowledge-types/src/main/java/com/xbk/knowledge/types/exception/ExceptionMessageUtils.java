@@ -5,7 +5,7 @@ package com.xbk.knowledge.types.exception;
  * 统一异常消息解析逻辑，避免各处重复拼装导致风格不一致
  *
  * 职责：异常信息处理工具，用于提升日志与错误响应的可读性
- * @author xiexu
+ * @author sxie
  */
 public final class ExceptionMessageUtils {
 

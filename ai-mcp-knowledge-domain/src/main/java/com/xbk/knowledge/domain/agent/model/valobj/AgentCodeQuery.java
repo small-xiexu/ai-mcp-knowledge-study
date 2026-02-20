@@ -6,9 +6,9 @@ import lombok.NoArgsConstructor;
 
 /**
  * Agent 按 code 查询条件（含 scope 边界）。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

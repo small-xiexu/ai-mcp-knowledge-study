@@ -6,9 +6,9 @@ import org.springframework.ai.chat.client.advisor.api.CallAdvisor;
  * Advisor 运行时装配服务。
  *
  * 职责：按 AgentVersion/WorkflowVersion 绑定配置解析并生成可用于 ChatClient 的 CallAdvisor 列表。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 public interface AdvisorRuntimeService {
 
     CallAdvisor[] resolveForAgentVersion(Long agentVersionId, String runId, Long sessionId);

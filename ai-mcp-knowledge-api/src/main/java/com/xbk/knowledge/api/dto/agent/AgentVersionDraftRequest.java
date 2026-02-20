@@ -13,9 +13,9 @@ import lombok.NoArgsConstructor;
  * AgentVersion 草稿创建/更新请求。
  *
  * 说明：本阶段优先保证“可发布/可回滚”的闭环，字段允许逐步扩展。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Data
 @Builder
 @NoArgsConstructor

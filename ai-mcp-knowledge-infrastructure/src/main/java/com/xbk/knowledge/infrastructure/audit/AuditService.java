@@ -2,9 +2,9 @@ package com.xbk.knowledge.infrastructure.audit;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.xbk.knowledge.domain.model.aggregate.audit.ConfigAuditAggregate;
-import com.xbk.knowledge.domain.model.entity.ConfigAudit;
-import com.xbk.knowledge.domain.model.adapter.repository.audit.ConfigAuditRepository;
+import com.xbk.knowledge.domain.audit.model.aggregate.ConfigAuditAggregate;
+import com.xbk.knowledge.domain.audit.model.entity.ConfigAudit;
+import com.xbk.knowledge.domain.audit.adapter.repository.ConfigAuditRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +20,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
  * 集中处理审计持久化与序列化，避免切面承担转换细节
  *
  * 职责：基础设施审计能力，用于持久化变更记录
- * @author xiexu
+ * @author sxie
  */
 @Service
 @Slf4j
@@ -50,7 +50,7 @@ public class AuditService {
 
         /*
          * 目的：统一解析操作者并序列化数据
-         */
+ */
         String operator = resolveOperator();
         String oldValueJson = toJson(oldValue);
         String newValueJson = toJson(newValue);

@@ -5,7 +5,7 @@ import com.xbk.knowledge.domain.approval.model.entity.ApprovalRequest;
 /**
  * ApprovalRequest 持久化对象。
  *
- * @author xiexu
+ * @author sxie
  */
 public class ApprovalRequestPO extends ApprovalRequest {
 }

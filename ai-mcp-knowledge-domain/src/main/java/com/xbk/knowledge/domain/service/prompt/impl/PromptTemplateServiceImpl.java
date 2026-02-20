@@ -16,9 +16,9 @@ import java.util.List;
 
 /**
  * PromptTemplate 领域服务实现。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Service
 @RequiredArgsConstructor
 public class PromptTemplateServiceImpl implements IPromptTemplateService {

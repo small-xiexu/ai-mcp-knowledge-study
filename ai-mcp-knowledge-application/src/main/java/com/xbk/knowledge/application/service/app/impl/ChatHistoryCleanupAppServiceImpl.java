@@ -1,8 +1,8 @@
 package com.xbk.knowledge.application.service.app.impl;
 
 import com.xbk.knowledge.application.service.app.ChatHistoryCleanupAppService;
-import com.xbk.knowledge.domain.model.adapter.repository.chat.ChatMessageRepository;
-import com.xbk.knowledge.domain.model.adapter.repository.chat.ChatSessionRepository;
+import com.xbk.knowledge.domain.chat.adapter.repository.ChatMessageRepository;
+import com.xbk.knowledge.domain.chat.adapter.repository.ChatSessionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
  *
  * 职责：应用层用例实现，用于协调仓储清理逻辑
  *
- * @author xiexu
+ * @author sxie
  */
 @Service
 @RequiredArgsConstructor
@@ -39,7 +39,7 @@ public class ChatHistoryCleanupAppServiceImpl implements ChatHistoryCleanupAppSe
         }
         /*
          * 目的：先清理消息，避免会话删除后遗留孤儿消息
-         */
+ */
         chatMessageRepository.deleteBySessionUpdatedBefore(updatedBefore);
         return chatSessionRepository.deleteByUpdatedBefore(updatedBefore);
     }

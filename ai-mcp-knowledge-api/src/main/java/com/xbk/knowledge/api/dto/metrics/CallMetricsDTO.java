@@ -12,7 +12,7 @@ import java.io.Serializable;
  * 用于承载聚合统计结果，避免在接口层重复计算
  *
  * 职责：接口层 DTO，用于承载请求/响应参数并保证传输边界稳定
- * @author xiexu
+ * @author sxie
  */
 @Data
 @Builder

@@ -6,7 +6,7 @@ import com.xbk.knowledge.domain.workflow.model.entity.Workflow;
 import com.xbk.knowledge.domain.workflow.model.entity.WorkflowEdge;
 import com.xbk.knowledge.domain.workflow.model.entity.WorkflowNode;
 import com.xbk.knowledge.domain.workflow.model.entity.WorkflowVersion;
-import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.workflow.model.valobj.WorkflowCodeQuery;
 import com.xbk.knowledge.domain.workflow.model.valobj.WorkflowVersionIdQuery;
 import com.xbk.knowledge.domain.workflow.model.valobj.WorkflowVersionListQuery;
@@ -26,9 +26,9 @@ import java.util.List;
 
 /**
  * Workflow 控制面应用服务实现。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor

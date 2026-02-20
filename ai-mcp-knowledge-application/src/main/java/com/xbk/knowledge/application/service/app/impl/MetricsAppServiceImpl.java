@@ -1,12 +1,12 @@
 package com.xbk.knowledge.application.service.app.impl;
 
 import com.xbk.knowledge.application.service.app.MetricsAppService;
-import com.xbk.knowledge.domain.model.vo.metrics.CallMetrics;
-import com.xbk.knowledge.domain.model.vo.metrics.MetricsQuery;
-import com.xbk.knowledge.domain.model.vo.metrics.ModelUsage;
-import com.xbk.knowledge.domain.model.vo.metrics.ModelUsageQuery;
-import com.xbk.knowledge.domain.model.vo.metrics.ResponseTime;
-import com.xbk.knowledge.domain.model.vo.metrics.SuccessRate;
+import com.xbk.knowledge.domain.metrics.model.valobj.CallMetrics;
+import com.xbk.knowledge.domain.metrics.model.valobj.MetricsQuery;
+import com.xbk.knowledge.domain.metrics.model.valobj.ModelUsage;
+import com.xbk.knowledge.domain.metrics.model.valobj.ModelUsageQuery;
+import com.xbk.knowledge.domain.metrics.model.valobj.ResponseTime;
+import com.xbk.knowledge.domain.metrics.model.valobj.SuccessRate;
 import com.xbk.knowledge.domain.service.metrics.IMetricsDomainService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,7 +18,7 @@ import java.util.List;
  * 负责指标查询用例编排
  *
  * 职责：应用层用例实现，用于协调领域能力
- * @author xiexu
+ * @author sxie
  */
 @Service
 @RequiredArgsConstructor

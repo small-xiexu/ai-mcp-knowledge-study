@@ -29,7 +29,7 @@ import reactor.core.publisher.Mono;
  * 职责：暴露 MCP 协议的 SSE 连接端点和消息处理端点，
  * 供外部 MCP 客户端（如 Claude Desktop、Cursor 等）接入
  *
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @RestController

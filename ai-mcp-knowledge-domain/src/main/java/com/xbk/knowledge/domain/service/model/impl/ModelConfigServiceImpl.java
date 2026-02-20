@@ -1,12 +1,12 @@
 package com.xbk.knowledge.domain.service.model.impl;
 
-import com.xbk.knowledge.domain.model.aggregate.model.ModelConfigAggregate;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
-import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
-import com.xbk.knowledge.domain.model.vo.common.IdQuery;
-import com.xbk.knowledge.domain.model.vo.model.ModelConfigPageQuery;
-import com.xbk.knowledge.domain.model.vo.model.ModelNameQuery;
-import com.xbk.knowledge.domain.model.adapter.repository.model.ModelConfigRepository;
+import com.xbk.knowledge.domain.llm.model.aggregate.ModelConfigAggregate;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.common.model.valobj.EnabledQuery;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
+import com.xbk.knowledge.domain.llm.model.valobj.ModelConfigPageQuery;
+import com.xbk.knowledge.domain.llm.model.valobj.ModelNameQuery;
+import com.xbk.knowledge.domain.llm.adapter.repository.ModelConfigRepository;
 import com.xbk.knowledge.domain.service.model.IModelConfigService;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.exception.NotFoundException;
@@ -26,7 +26,7 @@ import java.util.function.Supplier;
  *
  * 职责：领域服务实现，用于封装业务规则
  *
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Service

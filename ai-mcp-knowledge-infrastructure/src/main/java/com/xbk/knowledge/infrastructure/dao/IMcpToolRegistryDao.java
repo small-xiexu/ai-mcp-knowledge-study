@@ -3,7 +3,7 @@ package com.xbk.knowledge.infrastructure.dao;
 import com.xbk.knowledge.infrastructure.dao.po.McpToolRegistryPO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.xbk.knowledge.domain.gateway.model.entity.McpToolRegistry;
-import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.GatewayIdQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.ToolNameQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.ToolRegistryPageQuery;
@@ -14,7 +14,7 @@ import java.util.List;
 /**
  * 工具注册 Mapper
  *
- * @author xiexu
+ * @author sxie
  */
 @Mapper
 public interface IMcpToolRegistryDao extends BaseMapper<McpToolRegistryPO> {

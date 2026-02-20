@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * Gateway 可观测性应用服务实现
  * 在内存维护工具级统计窗口，提供统一指标口径与告警规则。
  *
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Service

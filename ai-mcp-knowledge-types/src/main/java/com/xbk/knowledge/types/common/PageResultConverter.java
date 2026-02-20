@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
  * 用于将 PageResult<T> 转换为 PageResult<R>
  *
  * 职责：通用工具，用于减少分页转换重复代码
- * @author xiexu
+ * @author sxie
  */
 public final class PageResultConverter {
 

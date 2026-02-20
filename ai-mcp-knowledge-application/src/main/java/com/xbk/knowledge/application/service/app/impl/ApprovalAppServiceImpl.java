@@ -9,8 +9,8 @@ import com.xbk.knowledge.application.service.app.WorkflowRuntimeAppService;
 import com.xbk.knowledge.application.support.contract.PlatformContractV1OutputSupport;
 import com.xbk.knowledge.application.support.rag.AgentRagGovernanceSupport;
 import com.xbk.knowledge.application.support.rag.AgentRagGovernanceSupport.ResolvedRag;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
-import com.xbk.knowledge.domain.model.entity.SysAuditEvent;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.audit.model.entity.SysAuditEvent;
 import com.xbk.knowledge.domain.agent.model.entity.AgentRun;
 import com.xbk.knowledge.domain.agent.model.entity.AgentVersion;
 import com.xbk.knowledge.domain.approval.model.entity.ApprovalRequest;
@@ -19,7 +19,8 @@ import com.xbk.knowledge.domain.agent.adapter.repository.AgentRunContextReposito
 import com.xbk.knowledge.domain.agent.adapter.repository.AgentRunRepository;
 import com.xbk.knowledge.domain.agent.adapter.repository.AgentVersionRepository;
 import com.xbk.knowledge.domain.approval.adapter.repository.ApprovalRequestRepository;
-import com.xbk.knowledge.domain.model.adapter.repository.audit.SysAuditEventRepository;
+import com.xbk.knowledge.domain.audit.adapter.repository.SysAuditEventRepository;
+import com.xbk.knowledge.domain.common.model.valobj.EnabledQuery;
 import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowRunContextRepository;
 import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowRunRepository;
 import com.xbk.knowledge.domain.service.model.IModelConfigService;
@@ -28,6 +29,7 @@ import com.xbk.knowledge.types.contract.PlatformContractV1;
 import com.xbk.knowledge.types.exception.BusinessException;
 import com.xbk.knowledge.types.exception.NotFoundException;
 import com.xbk.knowledge.types.trace.TraceIdUtils;
+import com.xbk.knowledge.types.tool.ToolKeyAware;
 import com.xbk.knowledge.types.tool.ToolInvokeBypassContextHolder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +37,9 @@ import org.slf4j.MDC;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.document.Document;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.stereotype.Service;
@@ -43,7 +47,9 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +63,7 @@ import java.util.Optional;
  * 2) 将工具结果注入到模型上下文中，继续生成 PlatformContractV1 最终结果
  * 3) 更新 approval_request/agent_run/agent_run_context 状态，并写审计（工具调用审计由工具回调侧写入）
  *
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Service
@@ -303,7 +309,7 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
             if (attrs == null || attrs.getRequest() == null) {
                 return null;
             }
-            jakarta.servlet.http.HttpServletRequest req = attrs.getRequest();
+            HttpServletRequest req = attrs.getRequest();
             String forwarded = req.getHeader("X-Forwarded-For");
             if (StringUtils.hasText(forwarded)) {
                 int idx = forwarded.indexOf(',');
@@ -360,7 +366,7 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
             if (cb == null) {
                 continue;
             }
-            if (cb instanceof com.xbk.knowledge.types.tool.ToolKeyAware aware) {
+            if (cb instanceof ToolKeyAware aware) {
                 if (toolKey.equals(aware.toolKey())) {
                     return Optional.of(cb);
                 }
@@ -432,7 +438,7 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
             );
         }
 
-        org.springframework.ai.chat.model.ChatResponse resp = chatClient.prompt(prompt).call().chatResponse();
+        ChatResponse resp = chatClient.prompt(prompt).call().chatResponse();
         if (resp == null || resp.getResult() == null || resp.getResult().getOutput() == null) {
             throw new BusinessException("模型未返回可用输出");
         }
@@ -457,13 +463,13 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
         throw new BusinessException("审批续跑输出无法解析为 PlatformContractV1 JSON");
     }
 
-    private String formatRagDocuments(List<org.springframework.ai.document.Document> docs) {
+    private String formatRagDocuments(List<Document> docs) {
         if (docs == null || docs.isEmpty()) {
             return "";
         }
         StringBuilder sb = new StringBuilder();
         int idx = 0;
-        for (org.springframework.ai.document.Document d : docs) {
+        for (Document d : docs) {
             if (d == null) {
                 continue;
             }
@@ -495,7 +501,7 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
         if (rag.droppedTags() != null && !rag.droppedTags().isEmpty()) {
             List<String> actions = contract.getActionsNext();
             if (actions == null) {
-                actions = new java.util.ArrayList<>();
+                actions = new ArrayList<>();
                 contract.setActionsNext(actions);
             }
             actions.add("RAG 标签未在白名单内，已忽略: " + String.join(",", rag.droppedTags()));
@@ -509,7 +515,7 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
                 new SystemMessage(outputSupport.contractInstruction()),
                 new UserMessage("请将以下内容修复为符合要求的 JSON：\n" + safe)
         );
-        org.springframework.ai.chat.model.ChatResponse resp = client.prompt(prompt).call().chatResponse();
+        ChatResponse resp = client.prompt(prompt).call().chatResponse();
         if (resp == null || resp.getResult() == null || resp.getResult().getOutput() == null) {
             return "";
         }
@@ -550,7 +556,7 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
         if (version == null) {
             return null;
         }
-        List<ModelConfig> enabled = modelConfigService.queryEnabledModels(new com.xbk.knowledge.domain.model.vo.common.EnabledQuery(true));
+        List<ModelConfig> enabled = modelConfigService.queryEnabledModels(new EnabledQuery(true));
         if (enabled == null || enabled.isEmpty()) {
             throw new BusinessException("未配置可用模型");
         }

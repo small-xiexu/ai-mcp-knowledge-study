@@ -7,7 +7,7 @@ import com.xbk.knowledge.application.model.workbench.WorkbenchSummary;
  *
  * 职责：聚合多模块数据，为前端工作台提供“一次请求拿到全量状态”的汇总能力。
  *
- * @author xiexu
+ * @author sxie
  */
 public interface WorkbenchAppService {
 

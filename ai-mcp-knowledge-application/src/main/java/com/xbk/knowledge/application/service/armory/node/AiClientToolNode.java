@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * 工具节点，负责解析 MCP 工具回调能力。
+ * @author sxie
  */
 @Slf4j
 @Component

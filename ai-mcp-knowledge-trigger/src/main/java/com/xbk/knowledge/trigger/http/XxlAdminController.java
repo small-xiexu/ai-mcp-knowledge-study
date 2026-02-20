@@ -15,11 +15,11 @@ import com.xbk.knowledge.api.dto.xxl.XxlJobTriggerRequest;
 import com.xbk.knowledge.api.dto.xxl.XxlJobUpdateRequest;
 import com.xbk.knowledge.application.service.app.XxlJobAppService;
 import com.xbk.knowledge.config.XxlAdminProperties;
-import com.xbk.knowledge.domain.model.entity.XxlJobInfo;
-import com.xbk.knowledge.domain.model.entity.XxlJobLogDetail;
-import com.xbk.knowledge.domain.model.entity.XxlJobLogInfo;
-import com.xbk.knowledge.domain.model.vo.xxl.XxlJobLogPageQuery;
-import com.xbk.knowledge.domain.model.vo.xxl.XxlJobPageQuery;
+import com.xbk.knowledge.domain.job.model.entity.XxlJobInfo;
+import com.xbk.knowledge.domain.job.model.entity.XxlJobLogDetail;
+import com.xbk.knowledge.domain.job.model.entity.XxlJobLogInfo;
+import com.xbk.knowledge.domain.job.model.valobj.XxlJobLogPageQuery;
+import com.xbk.knowledge.domain.job.model.valobj.XxlJobPageQuery;
 import com.xbk.knowledge.trigger.security.XxlPermissionGuard;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.common.PageResultConverter;
@@ -33,13 +33,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * XXL 调度中心 Controller
  * 负责接收 HTTP 请求，调用应用服务，转换响应
  *
  * 职责：HTTP 接口适配，用于转发应用层能力
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @RestController
@@ -81,12 +83,12 @@ public class XxlAdminController {
      * @return 任务列表
      */
     @PostMapping("/jobs/options")
-    public Result<java.util.List<XxlJobResponse>> listJobOptions(@RequestBody(required = false) XxlJobOptionRequest request) {
+    public Result<List<XxlJobResponse>> listJobOptions(@RequestBody(required = false) XxlJobOptionRequest request) {
         xxlPermissionGuard.assertCanView();
         String appName = resolveAppName(null);
         boolean refresh = request != null && Boolean.TRUE.equals(request.getRefresh());
-        java.util.List<XxlJobInfo> jobs = xxlJobAppService.queryAllJobs(appName, refresh);
-        java.util.List<XxlJobResponse> responses = new java.util.ArrayList<>();
+        List<XxlJobInfo> jobs = xxlJobAppService.queryAllJobs(appName, refresh);
+        List<XxlJobResponse> responses = new ArrayList<>();
         for (XxlJobInfo job : jobs) {
             responses.add(convertJobResponse(job));
         }

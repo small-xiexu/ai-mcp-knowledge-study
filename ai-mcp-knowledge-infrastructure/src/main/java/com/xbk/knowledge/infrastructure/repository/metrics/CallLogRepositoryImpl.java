@@ -1,18 +1,18 @@
 package com.xbk.knowledge.infrastructure.repository.metrics;
 
-import com.xbk.knowledge.domain.model.aggregate.call.CallLogAggregate;
-import com.xbk.knowledge.domain.model.entity.CallLog;
-import com.xbk.knowledge.domain.model.vo.metrics.CallMetrics;
-import com.xbk.knowledge.domain.model.vo.metrics.CallStatusQuery;
-import com.xbk.knowledge.domain.model.vo.metrics.MetricsQuery;
-import com.xbk.knowledge.domain.model.vo.model.ModelIdQuery;
-import com.xbk.knowledge.domain.model.vo.model.ModelIdStatusQuery;
-import com.xbk.knowledge.domain.model.vo.metrics.ModelUsage;
-import com.xbk.knowledge.domain.model.vo.metrics.ModelUsageQuery;
-import com.xbk.knowledge.domain.model.vo.metrics.ResponseTime;
-import com.xbk.knowledge.domain.model.vo.metrics.SuccessRate;
-import com.xbk.knowledge.domain.model.vo.metrics.TimeRangeQuery;
-import com.xbk.knowledge.domain.model.adapter.repository.metrics.CallLogRepository;
+import com.xbk.knowledge.domain.metrics.model.aggregate.CallLogAggregate;
+import com.xbk.knowledge.domain.metrics.model.entity.CallLog;
+import com.xbk.knowledge.domain.metrics.model.valobj.CallMetrics;
+import com.xbk.knowledge.domain.metrics.model.valobj.CallStatusQuery;
+import com.xbk.knowledge.domain.metrics.model.valobj.MetricsQuery;
+import com.xbk.knowledge.domain.llm.model.valobj.ModelIdQuery;
+import com.xbk.knowledge.domain.llm.model.valobj.ModelIdStatusQuery;
+import com.xbk.knowledge.domain.metrics.model.valobj.ModelUsage;
+import com.xbk.knowledge.domain.metrics.model.valobj.ModelUsageQuery;
+import com.xbk.knowledge.domain.metrics.model.valobj.ResponseTime;
+import com.xbk.knowledge.domain.metrics.model.valobj.SuccessRate;
+import com.xbk.knowledge.domain.metrics.model.valobj.TimeRangeQuery;
+import com.xbk.knowledge.domain.metrics.adapter.repository.CallLogRepository;
 import com.xbk.knowledge.infrastructure.dao.ICallLogDao;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -26,7 +26,7 @@ import java.util.List;
  * 通过 Mapper 执行 XML SQL，隔离持久化细节
  *
  * 职责：仓储实现，用于落地数据访问
- * @author xiexu
+ * @author sxie
  */
 @Repository
 @RequiredArgsConstructor
@@ -54,7 +54,7 @@ public class CallLogRepositoryImpl implements CallLogRepository {
         }
         /*
          * 目的：统一落库入口，避免重复插入逻辑
-         */
+ */
         callLogMapper.insertCallLog(callLog);
         aggregate.setCallLog(callLog);
         return aggregate;

@@ -10,7 +10,7 @@ import com.xbk.knowledge.application.fallback.core.ModelCallOutcome;
  *
  * 设计模式：责任链节点（Interceptor）
  * 职责：应用层拦截器，用于解耦横切逻辑并避免流程膨胀
- * @author xiexu
+ * @author sxie
  */
 public interface ModelCallPolicy extends ModelCallPolicyChain {
 

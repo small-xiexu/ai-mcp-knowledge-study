@@ -10,9 +10,9 @@ import java.lang.annotation.Target;
  *
  * 说明：armory 编排节点会默认注入带该注解的 Advisor；
  * 其他 Advisor 通过运行时绑定按需装配。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface GlobalChatAdvisor {

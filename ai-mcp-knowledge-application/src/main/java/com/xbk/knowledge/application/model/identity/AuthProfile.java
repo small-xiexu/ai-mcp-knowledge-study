@@ -12,7 +12,7 @@ import java.util.List;
  *
  * 职责：应用层模型，用于聚合身份与权限信息。
  *
- * @author xiexu
+ * @author sxie
  */
 @Data
 @Builder

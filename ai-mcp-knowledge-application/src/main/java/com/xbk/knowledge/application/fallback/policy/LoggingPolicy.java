@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
  *
  * 设计模式：责任链节点（Logging Interceptor）
  * 职责：责任链中的观测节点，用于标准化日志输出
- * @author xiexu
+ * @author sxie
  */
 @Component
 @Slf4j

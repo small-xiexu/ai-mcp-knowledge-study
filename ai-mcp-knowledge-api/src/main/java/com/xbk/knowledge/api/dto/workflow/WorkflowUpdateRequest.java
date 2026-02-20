@@ -6,9 +6,9 @@ import lombok.Data;
 
 /**
  * Workflow 更新请求（按 id 更新）。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Data
 public class WorkflowUpdateRequest {
 

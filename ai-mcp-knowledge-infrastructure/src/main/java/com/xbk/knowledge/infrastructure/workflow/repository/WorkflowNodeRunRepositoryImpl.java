@@ -14,7 +14,7 @@ import java.util.Optional;
 /**
  * WorkflowNodeRunRepositoryImpl。
  *
- * @author xiexu
+ * @author sxie
  */
 @Repository
 @RequiredArgsConstructor
@@ -26,35 +26,31 @@ public class WorkflowNodeRunRepositoryImpl implements WorkflowNodeRunRepository 
      * insert。
      *
      * @param nodeRun 参数
-     * @return 返回结果
      */
     @Override
-    public WorkflowNodeRun insert(WorkflowNodeRun nodeRun) {
+    public void insert(WorkflowNodeRun nodeRun) {
         if (nodeRun == null) {
-            return null;
+            return;
         }
         mapper.insertNodeRun(nodeRun);
-        return nodeRun;
     }
 
     /**
      * updateById。
      *
      * @param nodeRun 参数
-     * @return 返回结果
      */
     @Override
-    public int updateById(WorkflowNodeRun nodeRun) {
+    public void updateById(WorkflowNodeRun nodeRun) {
         if (nodeRun == null || nodeRun.getId() == null) {
-            return 0;
+            return;
         }
-        return mapper.updateNodeRun(nodeRun);
+        mapper.updateNodeRun(nodeRun);
     }
 
     /**
      * findByRunIdAndNodeKey。
      *
-     * @param scopeId 参数
      * @param runId 参数
      * @param nodeKey 参数
      * @return 返回结果
@@ -70,7 +66,6 @@ public class WorkflowNodeRunRepositoryImpl implements WorkflowNodeRunRepository 
     /**
      * listByRunId。
      *
-     * @param scopeId 参数
      * @param runId 参数
      * @return 返回结果
      */
@@ -85,7 +80,6 @@ public class WorkflowNodeRunRepositoryImpl implements WorkflowNodeRunRepository 
     /**
      * incrementToolCallCount。
      *
-     * @param scopeId 参数
      * @param runId 参数
      * @param nodeKey 参数
      * @param delta 参数
@@ -102,7 +96,6 @@ public class WorkflowNodeRunRepositoryImpl implements WorkflowNodeRunRepository 
     /**
      * incrementToolDeniedCount。
      *
-     * @param scopeId 参数
      * @param runId 参数
      * @param nodeKey 参数
      * @param delta 参数
@@ -119,7 +112,6 @@ public class WorkflowNodeRunRepositoryImpl implements WorkflowNodeRunRepository 
     /**
      * deleteByRunIds。
      *
-     * @param scopeId 参数
      * @param runIds 参数
      * @return 返回结果
      */

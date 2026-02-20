@@ -9,9 +9,9 @@ import java.time.LocalDateTime;
  * Advisor 绑定视图（用于控制面展示与运行时装配）。
  *
  * 说明：该对象由 join 查询返回，不对应单表实体。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Getter
 @Setter
 public class AdvisorBindingView {

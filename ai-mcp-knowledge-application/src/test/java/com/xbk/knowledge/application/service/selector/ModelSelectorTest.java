@@ -1,7 +1,7 @@
 package com.xbk.knowledge.application.service.selector;
 
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
-import com.xbk.knowledge.domain.model.adapter.repository.model.ModelConfigRepository;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.adapter.repository.ModelConfigRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

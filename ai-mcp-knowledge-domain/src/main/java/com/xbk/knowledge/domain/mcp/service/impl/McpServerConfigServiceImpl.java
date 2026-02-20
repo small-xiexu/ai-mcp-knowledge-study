@@ -1,8 +1,8 @@
 package com.xbk.knowledge.domain.mcp.service.impl;
 
 import com.xbk.knowledge.domain.mcp.model.entity.McpServerConfig;
-import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
-import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.common.model.valobj.EnabledQuery;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.mcp.model.valobj.McpServerConfigPageQuery;
 import com.xbk.knowledge.domain.mcp.model.valobj.McpServerNameQuery;
 import com.xbk.knowledge.domain.mcp.adapter.repository.McpServerConfigRepository;
@@ -22,7 +22,7 @@ import java.util.function.Supplier;
  * 封装 MCP Server 配置的业务逻辑
  *
  * 职责：领域服务实现，用于封装业务规则
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Service
@@ -47,7 +47,7 @@ public class McpServerConfigServiceImpl implements IMcpServerConfigService {
         int pageSize = query.getPageSize() == null ? 10 : query.getPageSize();
         /*
          * 目的：规范化分页参数，避免异常分页导致性能问题
-         */
+ */
         McpServerConfigPageQuery pageQuery = new McpServerConfigPageQuery(offset, pageSize);
         List<McpServerConfig> configs = mcpServerConfigRepository.findPage(pageQuery);
 
@@ -88,7 +88,7 @@ public class McpServerConfigServiceImpl implements IMcpServerConfigService {
     public McpServerConfig createMcpServerConfig(McpServerConfig config) {
         /*
          * 目的：校验名称唯一性，避免数据库异常
-         */
+ */
         String serverName = config.getServerName();
         McpServerNameQuery nameQuery = new McpServerNameQuery(serverName);
         if (mcpServerConfigRepository
@@ -99,7 +99,7 @@ public class McpServerConfigServiceImpl implements IMcpServerConfigService {
 
         /*
          * 目的：补齐创建/更新时间，保证审计字段一致
-         */
+ */
         LocalDateTime now = LocalDateTime.now();
         config.setCreatedAt(now);
         config.setUpdatedAt(now);
@@ -121,7 +121,7 @@ public class McpServerConfigServiceImpl implements IMcpServerConfigService {
 
         /*
          * 目的：读取现有配置，确保更新基于最新数据
-         */
+ */
         Long configId = config.getId();
         IdQuery idQuery = new IdQuery(configId);
         String notFoundMessage = "MCP Server 配置不存在，id: " + configId;
@@ -132,7 +132,7 @@ public class McpServerConfigServiceImpl implements IMcpServerConfigService {
 
         /*
          * 目的：校验名称唯一性，避免冲突
-         */
+ */
         String serverName = config.getServerName();
         McpServerNameQuery nameQuery = new McpServerNameQuery(serverName);
         mcpServerConfigRepository
@@ -147,7 +147,7 @@ public class McpServerConfigServiceImpl implements IMcpServerConfigService {
 
         /*
          * 目的：覆盖可更新字段并刷新更新时间
-         */
+ */
         existingConfig.setServerName(serverName);
         existingConfig.setServerType(config.getServerType());
         existingConfig.setEnabled(config.getEnabled());
@@ -182,7 +182,7 @@ public class McpServerConfigServiceImpl implements IMcpServerConfigService {
         IdQuery idQuery = new IdQuery(id);
         /*
          * 目的：先检查存在性，避免静默失败
-         */
+ */
         if (!mcpServerConfigRepository.existsById(idQuery)) {
             throw new NotFoundException("MCP Server 配置不存在，id: " + id);
         }

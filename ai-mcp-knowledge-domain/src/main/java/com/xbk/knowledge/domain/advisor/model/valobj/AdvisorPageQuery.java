@@ -9,9 +9,9 @@ package com.xbk.knowledge.domain.advisor.model.valobj;
  * @param advisorType 类型筛选（可空）
  * @param offset 偏移量
  * @param pageSize 页大小
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 public record AdvisorPageQuery(String keyword,
                                Integer enabled,
                                String advisorType,

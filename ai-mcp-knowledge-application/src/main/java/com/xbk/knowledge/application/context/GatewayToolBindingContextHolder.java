@@ -11,7 +11,7 @@ import java.util.Set;
  * 模型 ID 和会话 ID，以便按绑定关系过滤可见工具。由于 ToolCallbackProvider
  * 接口无法传递额外参数，因此通过 ThreadLocal 在调用链路中透传上下文
  *
- * @author xiexu
+ * @author sxie
  */
 public final class GatewayToolBindingContextHolder {
 

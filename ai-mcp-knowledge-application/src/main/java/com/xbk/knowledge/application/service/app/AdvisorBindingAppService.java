@@ -7,9 +7,9 @@ import java.util.List;
 
 /**
  * Advisor 绑定控制面应用服务。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 public interface AdvisorBindingAppService {
 
     List<AdvisorBindingView> listBindings(AdvisorBindingQuery query);

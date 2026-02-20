@@ -12,7 +12,7 @@ import java.io.Serializable;
  * 用于统一响应耗时统计口径，便于性能分析
  *
  * 职责：接口层 DTO，用于承载请求/响应参数并保证传输边界稳定
- * @author xiexu
+ * @author sxie
  */
 @Data
 @Builder

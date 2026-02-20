@@ -1,12 +1,12 @@
 package com.xbk.knowledge.domain.service.metrics.impl;
 
-import com.xbk.knowledge.domain.model.vo.metrics.CallMetrics;
-import com.xbk.knowledge.domain.model.vo.metrics.MetricsQuery;
-import com.xbk.knowledge.domain.model.vo.metrics.ModelUsage;
-import com.xbk.knowledge.domain.model.vo.metrics.ModelUsageQuery;
-import com.xbk.knowledge.domain.model.vo.metrics.ResponseTime;
-import com.xbk.knowledge.domain.model.vo.metrics.SuccessRate;
-import com.xbk.knowledge.domain.model.adapter.repository.metrics.CallLogRepository;
+import com.xbk.knowledge.domain.metrics.model.valobj.CallMetrics;
+import com.xbk.knowledge.domain.metrics.model.valobj.MetricsQuery;
+import com.xbk.knowledge.domain.metrics.model.valobj.ModelUsage;
+import com.xbk.knowledge.domain.metrics.model.valobj.ModelUsageQuery;
+import com.xbk.knowledge.domain.metrics.model.valobj.ResponseTime;
+import com.xbk.knowledge.domain.metrics.model.valobj.SuccessRate;
+import com.xbk.knowledge.domain.metrics.adapter.repository.CallLogRepository;
 import com.xbk.knowledge.domain.service.metrics.IMetricsDomainService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,7 @@ import java.util.List;
  * 封装监控指标的业务逻辑
  *
  * 职责：领域服务实现，用于封装业务规则
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Service
@@ -44,19 +44,19 @@ public class MetricsDomainServiceImpl implements IMetricsDomainService {
         }
         /*
          * 目的：校验时间范围，避免无效查询
-         */
+ */
         LocalDateTime startTime = query.getStartTime();
         LocalDateTime endTime = query.getEndTime();
         validateTimeRange(startTime, endTime);
 
         /*
          * 目的：调用仓储完成指标聚合
-         */
+ */
         CallMetrics metrics = callLogRepository.aggregateCallMetrics(query);
 
         /*
          * 目的：规范化输出，避免前端空指针
-         */
+ */
         return normalizeCallMetrics(metrics);
     }
 
@@ -74,19 +74,19 @@ public class MetricsDomainServiceImpl implements IMetricsDomainService {
         }
         /*
          * 目的：校验时间范围，避免无效查询
-         */
+ */
         LocalDateTime startTime = query.getStartTime();
         LocalDateTime endTime = query.getEndTime();
         validateTimeRange(startTime, endTime);
 
         /*
          * 目的：调用仓储完成指标聚合
-         */
+ */
         SuccessRate successRate = callLogRepository.aggregateSuccessRate(query);
 
         /*
          * 目的：规范化输出，保证成功率口径统一
-         */
+ */
         return normalizeSuccessRate(successRate);
     }
 
@@ -104,19 +104,19 @@ public class MetricsDomainServiceImpl implements IMetricsDomainService {
         }
         /*
          * 目的：校验时间范围，避免无效查询
-         */
+ */
         LocalDateTime startTime = query.getStartTime();
         LocalDateTime endTime = query.getEndTime();
         validateTimeRange(startTime, endTime);
 
         /*
          * 目的：调用仓储完成指标聚合
-         */
+ */
         ResponseTime responseTime = callLogRepository.aggregateResponseTime(query);
 
         /*
          * 目的：规范化输出，避免 null 导致图表渲染失败
-         */
+ */
         return normalizeResponseTime(responseTime);
     }
 
@@ -134,19 +134,19 @@ public class MetricsDomainServiceImpl implements IMetricsDomainService {
         }
         /*
          * 目的：校验时间范围，避免无效查询
-         */
+ */
         LocalDateTime startTime = query.getStartTime();
         LocalDateTime endTime = query.getEndTime();
         validateTimeRange(startTime, endTime);
 
         /*
          * 目的：调用仓储完成指标聚合
-         */
+ */
         List<ModelUsage> usageList = callLogRepository.aggregateModelUsage(query);
 
         /*
          * 目的：保证返回稳定结构，避免空指针
-         */
+ */
         return usageList != null ? usageList : Collections.emptyList();
     }
 

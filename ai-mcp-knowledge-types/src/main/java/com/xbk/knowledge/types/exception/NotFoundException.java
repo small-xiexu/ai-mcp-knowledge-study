@@ -7,7 +7,7 @@ import com.xbk.knowledge.types.common.ResultCode;
  * 用于表示请求的资源不存在
  *
  * 职责：通用异常定义，用于统一错误语义
- * @author xiexu
+ * @author sxie
  */
 public class NotFoundException extends BusinessException {
 

@@ -5,7 +5,7 @@ import com.xbk.knowledge.application.fallback.core.CircuitBreaker;
 import com.xbk.knowledge.application.fallback.core.ModelCallContext;
 import com.xbk.knowledge.application.fallback.core.ModelCallOutcome;
 import com.xbk.knowledge.application.fallback.policy.AbstractModelCallPolicy;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 

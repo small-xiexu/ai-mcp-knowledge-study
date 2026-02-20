@@ -15,7 +15,7 @@ import java.util.List;
  *
  * 职责：应用层用例实现，用于编排权限查询流程。
  *
- * @author xiexu
+ * @author sxie
  */
 @Service
 @RequiredArgsConstructor

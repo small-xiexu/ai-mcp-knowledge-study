@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * 会话响应
  *
- * @author xiexu
+ * @author sxie
  */
 @Data
 public class ChatSessionResponse {

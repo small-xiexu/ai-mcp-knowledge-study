@@ -3,12 +3,12 @@ package com.xbk.knowledge.application.service.app.impl;
 import com.xbk.knowledge.application.provider.ModelProviderFactory;
 import com.xbk.knowledge.application.service.armory.factory.DefaultAiClientArmoryStrategyFactory;
 import com.xbk.knowledge.application.service.app.ModelConfigAppService;
-import com.xbk.knowledge.domain.model.entity.ModelActivation;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
-import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
-import com.xbk.knowledge.domain.model.vo.common.IdQuery;
-import com.xbk.knowledge.domain.model.vo.model.ModelConfigPageQuery;
-import com.xbk.knowledge.domain.model.adapter.repository.model.ModelActivationRepository;
+import com.xbk.knowledge.domain.llm.model.entity.ModelActivation;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.common.model.valobj.EnabledQuery;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
+import com.xbk.knowledge.domain.llm.model.valobj.ModelConfigPageQuery;
+import com.xbk.knowledge.domain.llm.adapter.repository.ModelActivationRepository;
 import com.xbk.knowledge.domain.service.model.IModelConfigService;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.enums.ModelType;
@@ -23,7 +23,7 @@ import java.util.List;
  * 负责模型配置相关用例编排
  *
  * 职责：应用层用例实现，用于协调领域能力
- * @author xiexu
+ * @author sxie
  */
 @Service
 @RequiredArgsConstructor
@@ -169,7 +169,7 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
         }
         /*
          * 目的：通过配置表反查当前激活模型
-         */
+ */
         IdQuery query = new IdQuery(activation.getChatModelId());
         return modelConfigService.queryModelConfigById(query);
     }
@@ -189,7 +189,7 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
         }
         /*
          * 目的：通过配置表反查当前激活模型
-         */
+ */
         IdQuery query = new IdQuery(activation.getEmbeddingModelId());
         return modelConfigService.queryModelConfigById(query);
     }
@@ -210,7 +210,7 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
         }
         /*
          * 目的：保留当前嵌入模型配置，避免覆盖
-         */
+ */
         ModelActivation existing = modelActivationRepository.queryActivation();
         Long embeddingModelId = existing != null ? existing.getEmbeddingModelId() : null;
         ModelActivation activation = ModelActivation.builder()
@@ -241,7 +241,7 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
         }
         /*
          * 目的：保留当前对话模型配置，避免覆盖
-         */
+ */
         ModelActivation existing = modelActivationRepository.queryActivation();
         Long chatModelId = existing != null ? existing.getChatModelId() : null;
         ModelActivation activation = ModelActivation.builder()

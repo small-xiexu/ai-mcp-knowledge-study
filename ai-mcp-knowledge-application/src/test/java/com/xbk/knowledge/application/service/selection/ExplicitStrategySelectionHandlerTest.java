@@ -3,7 +3,7 @@ package com.xbk.knowledge.application.service.selection;
 import com.xbk.knowledge.application.model.dto.AICallCommand;
 import com.xbk.knowledge.application.service.selector.ModelSelector;
 import com.xbk.knowledge.application.service.selection.handler.ExplicitStrategySelectionHandler;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import com.xbk.knowledge.types.enums.ModelSelectionStrategy;
 import com.xbk.knowledge.types.exception.BusinessException;
 import org.junit.jupiter.api.Test;

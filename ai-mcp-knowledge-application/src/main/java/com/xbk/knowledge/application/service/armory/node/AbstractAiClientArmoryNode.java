@@ -4,6 +4,8 @@ import com.xbk.knowledge.application.service.armory.factory.DefaultAiClientArmor
 
 /**
  * AI 客户端装配节点抽象基类。
+ *
+ * @author sxie
  */
 public abstract class AbstractAiClientArmoryNode implements AiClientArmoryNode {
 

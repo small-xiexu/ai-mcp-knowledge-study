@@ -1,7 +1,7 @@
 package com.xbk.knowledge.infrastructure.repository.model;
 
-import com.xbk.knowledge.domain.model.entity.ModelActivation;
-import com.xbk.knowledge.domain.model.adapter.repository.model.ModelActivationRepository;
+import com.xbk.knowledge.domain.llm.model.entity.ModelActivation;
+import com.xbk.knowledge.domain.llm.adapter.repository.ModelActivationRepository;
 import com.xbk.knowledge.infrastructure.dao.IModelActivationDao;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
  * 模型激活配置仓储实现
  *
  * 职责：模型激活数据持久化访问
- * @author xiexu
+ * @author sxie
  */
 @Repository
 @RequiredArgsConstructor
@@ -46,7 +46,7 @@ public class ModelActivationRepositoryImpl implements ModelActivationRepository 
         if (existing == null) {
             /*
              * 目的：首次创建时补齐时间戳
-             */
+ */
             activation.setCreatedAt(now);
             activation.setUpdatedAt(now);
             modelActivationMapper.insertActivation(activation);
@@ -54,7 +54,7 @@ public class ModelActivationRepositoryImpl implements ModelActivationRepository 
         }
         /*
          * 目的：沿用原 ID 与创建时间，仅更新更新时间
-         */
+ */
         activation.setId(existing.getId());
         activation.setCreatedAt(existing.getCreatedAt());
         activation.setUpdatedAt(now);

@@ -13,7 +13,7 @@ import java.util.List;
  *
  * 职责：触发层鉴权适配，用于将平台权限模型接入 Sa-Token。
  *
- * @author xiexu
+ * @author sxie
  */
 @Component
 @RequiredArgsConstructor

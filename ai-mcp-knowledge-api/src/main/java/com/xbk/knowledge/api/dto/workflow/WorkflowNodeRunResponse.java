@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 /**
  * Workflow 节点运行明细响应。
  *
- * @author xiexu
+ * @author sxie
  */
 @Data
 public class WorkflowNodeRunResponse {

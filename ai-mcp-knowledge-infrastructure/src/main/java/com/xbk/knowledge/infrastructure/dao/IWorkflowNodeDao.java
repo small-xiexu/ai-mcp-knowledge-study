@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * IWorkflowNodeDao。
  *
- * @author xiexu
+ * @author sxie
  */
 @Mapper
 public interface IWorkflowNodeDao extends BaseMapper<WorkflowNodePO> {

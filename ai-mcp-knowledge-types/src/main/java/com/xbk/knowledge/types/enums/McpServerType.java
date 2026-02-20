@@ -5,7 +5,7 @@ package com.xbk.knowledge.types.enums;
  * 标识 MCP Server 的接入协议与运行方式
  *
  * 职责：通用枚举，用于统一协议类型语义
- * @author xiexu
+ * @author sxie
  */
 public enum McpServerType {
 

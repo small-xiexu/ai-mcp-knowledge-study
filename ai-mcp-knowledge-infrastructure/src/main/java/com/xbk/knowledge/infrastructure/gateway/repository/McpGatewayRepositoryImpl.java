@@ -1,7 +1,7 @@
 package com.xbk.knowledge.infrastructure.gateway.repository;
 
 import com.xbk.knowledge.domain.gateway.model.entity.McpGateway;
-import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.GatewayIdQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.GatewayPageQuery;
 import com.xbk.knowledge.domain.gateway.adapter.repository.McpGatewayRepository;
@@ -16,7 +16,7 @@ import java.util.Optional;
 /**
  * Gateway 实例仓储实现
  *
- * @author xiexu
+ * @author sxie
  */
 @Repository
 @RequiredArgsConstructor

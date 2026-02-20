@@ -5,7 +5,7 @@ import com.xbk.knowledge.domain.agent.model.entity.PromptTemplate;
 /**
  * PromptTemplate 持久化对象。
  *
- * @author xiexu
+ * @author sxie
  */
 public class PromptTemplatePO extends PromptTemplate {
 }

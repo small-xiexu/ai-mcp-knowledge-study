@@ -1,8 +1,8 @@
 package com.xbk.knowledge.application.service.app.impl;
 
 import com.xbk.knowledge.application.service.app.AuditAppService;
-import com.xbk.knowledge.domain.model.entity.ConfigAudit;
-import com.xbk.knowledge.domain.model.vo.audit.AuditQuery;
+import com.xbk.knowledge.domain.audit.model.entity.ConfigAudit;
+import com.xbk.knowledge.domain.audit.model.valobj.AuditQuery;
 import com.xbk.knowledge.domain.service.audit.IAuditService;
 import com.xbk.knowledge.types.common.PageResult;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +14,7 @@ import java.util.List;
  * 负责审计查询用例编排
  *
  * 职责：应用层用例实现，用于协调领域能力
- * @author xiexu
+ * @author sxie
  */
 @Service
 @RequiredArgsConstructor

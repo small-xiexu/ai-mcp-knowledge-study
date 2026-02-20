@@ -4,7 +4,7 @@ package com.xbk.knowledge.types.enums;
  * HTTP 参数位置枚举
  *
  * 职责：定义参数在 HTTP 请求中的位置
- * @author xiexu
+ * @author sxie
  */
 public enum HttpLocation {
     /** 请求体 */

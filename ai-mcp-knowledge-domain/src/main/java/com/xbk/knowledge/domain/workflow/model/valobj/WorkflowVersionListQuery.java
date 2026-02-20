@@ -7,9 +7,9 @@ import lombok.NoArgsConstructor;
 
 /**
  * WorkflowVersion 列表查询条件（按 workflowId）。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Data
 @Builder
 @NoArgsConstructor

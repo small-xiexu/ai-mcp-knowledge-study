@@ -3,6 +3,6 @@
  *
  * 职责：定义 MCP 服务配置管理相关领域能力。
  *
- * @author xiexu
+ * @author sxie
  */
 package com.xbk.knowledge.domain.mcp.service;

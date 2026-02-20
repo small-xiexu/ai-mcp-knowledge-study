@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
  *
  * 职责：在审批“方式B”续跑场景中保存可恢复的运行输入快照。
  *
- * @author xiexu
+ * @author sxie
  */
 @TableName("agent_run_context")
 @Getter

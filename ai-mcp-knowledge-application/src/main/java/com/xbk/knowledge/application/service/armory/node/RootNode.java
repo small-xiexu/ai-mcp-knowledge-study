@@ -1,12 +1,13 @@
 package com.xbk.knowledge.application.service.armory.node;
 
 import com.xbk.knowledge.application.service.armory.factory.DefaultAiClientArmoryStrategyFactory;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
  * 根节点，负责入参校验与上下文初始化。
+ * @author sxie
  */
 @Slf4j
 @Component

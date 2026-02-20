@@ -4,7 +4,7 @@ import com.xbk.knowledge.application.model.dto.AICallResult;
 import com.xbk.knowledge.application.fallback.core.CircuitBreaker;
 import com.xbk.knowledge.application.fallback.core.ModelCallContext;
 import com.xbk.knowledge.application.fallback.core.ModelCallOutcome;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
  *
  * 设计模式：责任链节点（Circuit Breaker Interceptor）
  * 职责：责任链中的稳定性节点，用于隔离不健康模型
- * @author xiexu
+ * @author sxie
  */
 @Component
 @Order(2)

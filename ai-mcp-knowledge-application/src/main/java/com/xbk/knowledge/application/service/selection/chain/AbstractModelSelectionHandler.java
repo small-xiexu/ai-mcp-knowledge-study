@@ -8,7 +8,7 @@ import com.xbk.knowledge.application.service.selection.handler.ModelSelectionHan
  * 模型选择责任链抽象处理器
  * 维护责任链指针，便于子类显式触发下一个节点
  *
- * @author xiexu
+ * @author sxie
  */
 public abstract class AbstractModelSelectionHandler implements ModelSelectionHandler {
 

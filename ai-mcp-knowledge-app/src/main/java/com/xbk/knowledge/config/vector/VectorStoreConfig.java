@@ -1,8 +1,8 @@
 package com.xbk.knowledge.config.vector;
 
 import com.xbk.knowledge.application.service.app.ModelConfigAppService;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
-import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.common.model.valobj.EnabledQuery;
 import com.xbk.knowledge.types.enums.ModelType;
 import org.springframework.ai.document.MetadataMode;
 import org.springframework.ai.embedding.EmbeddingModel;
@@ -30,7 +30,7 @@ import java.util.List;
  * 向量存储配置
  * 手工装配多向量库，避免自动配置在多 EmbeddingModel 场景下冲突
  *
- * @author xiexu
+ * @author sxie
  */
 @Configuration
 @Profile("!test")

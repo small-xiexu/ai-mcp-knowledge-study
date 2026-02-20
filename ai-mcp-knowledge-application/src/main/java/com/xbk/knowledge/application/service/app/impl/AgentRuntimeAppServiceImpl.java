@@ -10,7 +10,7 @@ import com.xbk.knowledge.application.service.runtime.AdvisorRuntimeService;
 import com.xbk.knowledge.application.support.contract.PlatformContractV1OutputSupport;
 import com.xbk.knowledge.application.support.rag.AgentRagGovernanceSupport;
 import com.xbk.knowledge.application.support.rag.AgentRagGovernanceSupport.ResolvedRag;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.agent.model.entity.Agent;
 import com.xbk.knowledge.domain.agent.model.entity.AgentRun;
 import com.xbk.knowledge.domain.agent.model.entity.AgentRunContext;
@@ -19,7 +19,8 @@ import com.xbk.knowledge.domain.workflow.model.entity.Workflow;
 import com.xbk.knowledge.domain.workflow.model.entity.WorkflowVersion;
 import com.xbk.knowledge.domain.agent.model.valobj.AgentCodeQuery;
 import com.xbk.knowledge.domain.agent.model.valobj.AgentVersionIdQuery;
-import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.common.model.valobj.EnabledQuery;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.workflow.model.valobj.WorkflowVersionIdQuery;
 import com.xbk.knowledge.domain.agent.adapter.repository.AgentRepository;
 import com.xbk.knowledge.domain.agent.adapter.repository.AgentRunRepository;
@@ -37,22 +38,25 @@ import com.xbk.knowledge.types.trace.TraceIdUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.api.CallAdvisor;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.metadata.Usage;
+import org.springframework.ai.document.Document;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.MDC;
 
@@ -65,7 +69,7 @@ import org.slf4j.MDC;
  * - 输出 Platform Contract v1（先不做结构化解析修复；P1 再加）
  * - 工具调用暂不启用（先保证主链路稳定；Iteration 3 再做 allowlist + toolKey）
  *
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Service
@@ -635,7 +639,7 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
             return null;
         }
         // 单组织简化：从启用模型中选第一个（按 id 升序）
-        List<ModelConfig> enabled = modelConfigService.queryEnabledModels(new com.xbk.knowledge.domain.model.vo.common.EnabledQuery(true));
+        List<ModelConfig> enabled = modelConfigService.queryEnabledModels(new EnabledQuery(true));
         if (enabled == null || enabled.isEmpty()) {
             throw new BusinessException("未配置可用模型");
         }
@@ -676,8 +680,8 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         }
         boolean modelToolEnabled = modelConfig.getToolEnabled() == null || Boolean.TRUE.equals(modelConfig.getToolEnabled());
         Long agentVersionId = version == null ? null : version.getId();
-        org.springframework.ai.chat.client.advisor.api.CallAdvisor[] extra = agentVersionId == null
-                ? new org.springframework.ai.chat.client.advisor.api.CallAdvisor[0]
+        CallAdvisor[] extra = agentVersionId == null
+                ? new CallAdvisor[0]
                 : advisorRuntimeService.resolveForAgentVersion(agentVersionId, runId, sessionId);
         return chatClientAssemblyService.buildChatClient(modelConfig, modelToolEnabled, extra);
     }
@@ -721,13 +725,13 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         );
     }
 
-    private String formatRagDocuments(List<org.springframework.ai.document.Document> docs) {
+    private String formatRagDocuments(List<Document> docs) {
         if (docs == null || docs.isEmpty()) {
             return "";
         }
         StringBuilder sb = new StringBuilder();
         int idx = 0;
-        for (org.springframework.ai.document.Document d : docs) {
+        for (Document d : docs) {
             if (d == null) {
                 continue;
             }
@@ -759,7 +763,7 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         if (rag.droppedTags() != null && !rag.droppedTags().isEmpty()) {
             List<String> actions = parsed.contract.getActionsNext();
             if (actions == null) {
-                actions = new java.util.ArrayList<>();
+                actions = new ArrayList<>();
                 parsed.contract.setActionsNext(actions);
             }
             actions.add("RAG 标签未在白名单内，已忽略: " + String.join(",", rag.droppedTags()));
@@ -775,7 +779,7 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         String uncertainty = StringUtils.hasText(reason)
                 ? ("RAG(REQUIRED) 未命中，无法确定答案：" + reason)
                 : "RAG(REQUIRED) 未命中，无法确定答案。";
-        List<String> actions = new java.util.ArrayList<>();
+        List<String> actions = new ArrayList<>();
         if (rag != null && rag.effectiveTags() != null && !rag.effectiveTags().isEmpty()) {
             actions.add("请确认知识库标签是否正确：effectiveTags=" + String.join(",", rag.effectiveTags()));
         } else {

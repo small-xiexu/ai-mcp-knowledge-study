@@ -5,7 +5,7 @@ import com.xbk.knowledge.domain.gateway.model.entity.McpToolMapping;
 /**
  * McpToolMapping 持久化对象。
  *
- * @author xiexu
+ * @author sxie
  */
 public class McpToolMappingPO extends McpToolMapping {
 }

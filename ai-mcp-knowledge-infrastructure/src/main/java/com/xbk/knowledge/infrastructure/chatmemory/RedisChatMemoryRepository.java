@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
  * 负责将会话上下文以 JSON 形式持久化到 Redis，并配置过期时间
  *
  * 职责：ChatMemoryRepository 适配器，用于 Redis 存储对话上下文
- * @author xiexu
+ * @author sxie
  */
 public class RedisChatMemoryRepository implements ChatMemoryRepository {
 
@@ -199,9 +199,9 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
      * Redis 存储结构
      * 仅保存角色与内容，避免引入复杂对象序列化
      *
-     * @author xiexu
+     * @author sxie
      */
-    private static class RedisChatMessage {
+      private static class RedisChatMessage {
         private String type;
         private String content;
 

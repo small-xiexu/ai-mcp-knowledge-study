@@ -1,7 +1,7 @@
 package com.xbk.knowledge.application.fallback.strategy;
 
 import com.xbk.knowledge.application.model.dto.AICallCommand;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -15,7 +15,7 @@ import java.util.Set;
  *
  * 设计模式：策略实现（Strategy Implementation）
  * 职责：默认策略实现，用于维持现有业务语义
- * @author xiexu
+ * @author sxie
  */
 @Component
 public class PriorityFailoverStrategy implements FailoverStrategy {

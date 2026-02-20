@@ -8,7 +8,7 @@ import com.xbk.knowledge.application.fallback.plan.DefaultFailoverPlan;
 import com.xbk.knowledge.application.fallback.plan.FailoverCandidate;
 import com.xbk.knowledge.application.fallback.plan.FailoverPlan;
 import com.xbk.knowledge.application.fallback.strategy.FailoverStrategy;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -20,7 +20,7 @@ import java.util.List;
  *
  * 设计模式：模板方法实现（Template Method Implementation）
  * 职责：模板方法的默认实现，用于整合策略与管道并屏蔽遍历细节
- * @author xiexu
+ * @author sxie
  */
 @Component
 @RequiredArgsConstructor

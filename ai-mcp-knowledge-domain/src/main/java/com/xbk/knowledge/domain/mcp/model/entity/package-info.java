@@ -3,6 +3,6 @@
  *
  * 职责：承载 MCP Server 配置等核心实体模型。
  *
- * @author xiexu
+ * @author sxie
  */
 package com.xbk.knowledge.domain.mcp.model.entity;

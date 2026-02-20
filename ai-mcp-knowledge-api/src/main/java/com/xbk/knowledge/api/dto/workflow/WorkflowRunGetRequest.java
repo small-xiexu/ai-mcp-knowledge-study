@@ -5,9 +5,9 @@ import lombok.Data;
 
 /**
  * WorkflowRun 按 runId 查询请求。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Data
 public class WorkflowRunGetRequest {
 

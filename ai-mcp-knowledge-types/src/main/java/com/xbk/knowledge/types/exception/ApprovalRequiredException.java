@@ -7,7 +7,7 @@ import lombok.Getter;
  *
  * 职责：用于中断本次模型执行，将 run 置为 PENDING_APPROVAL，并将审批单信息回传到平台标准结构。
  *
- * @author xiexu
+ * @author sxie
  */
 @Getter
 public class ApprovalRequiredException extends RuntimeException {

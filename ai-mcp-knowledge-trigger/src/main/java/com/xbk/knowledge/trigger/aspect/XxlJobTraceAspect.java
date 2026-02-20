@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
  * 统一为定时任务注入 traceId，并在结束时清理
  *
  * 职责：AOP 切面，用于统一链路追踪上下文
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Aspect

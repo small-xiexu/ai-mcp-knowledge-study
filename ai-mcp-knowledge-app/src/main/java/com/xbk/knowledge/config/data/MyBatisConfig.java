@@ -20,12 +20,16 @@ import javax.sql.DataSource;
  * 使用 MyBatis-Plus 的 SqlSessionFactory，避免 Spring Boot 3 下工厂类型识别异常
  *
  * 职责：应用装配配置，用于集中接入框架能力
- * @author xiexu
+ * @author sxie
  */
 @Configuration
 @MapperScan({
         "com.xbk.knowledge.infrastructure.dao"
 })
+/**
+ *
+ * @author sxie
+ */
 public class MyBatisConfig {
 
     /**

@@ -17,9 +17,9 @@ import java.time.LocalDateTime;
  * WorkflowNode 实体。
  *
  * 对应表：workflow_node
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @TableName("workflow_node")
 @Getter
 @Setter

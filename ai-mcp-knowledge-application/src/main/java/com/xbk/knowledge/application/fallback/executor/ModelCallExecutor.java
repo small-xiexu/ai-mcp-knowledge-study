@@ -9,7 +9,7 @@ import com.xbk.knowledge.application.fallback.core.ModelCallContext;
  *
  * 设计模式：策略接口（Strategy）
  * 职责：应用层执行组件，用于隔离底层调用细节
- * @author xiexu
+ * @author sxie
  */
 public interface ModelCallExecutor {
 

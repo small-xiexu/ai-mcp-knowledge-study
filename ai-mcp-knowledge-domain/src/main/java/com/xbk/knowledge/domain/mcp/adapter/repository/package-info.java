@@ -3,6 +3,6 @@
  *
  * 职责：定义 mcp 子域的持久化边界。
  *
- * @author xiexu
+ * @author sxie
  */
 package com.xbk.knowledge.domain.mcp.adapter.repository;

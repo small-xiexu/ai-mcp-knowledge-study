@@ -8,7 +8,7 @@ import java.util.Map;
  * Gateway 可观测性应用服务
  * 统一维护工具级指标与告警快照，供内部/外部路径复用同一口径。
  *
- * @author xiexu
+ * @author sxie
  */
 public interface GatewayObservabilityAppService {
 

@@ -16,7 +16,7 @@ import java.time.temporal.ChronoUnit;
  * 职责：维护单个 SSE 会话的运行时状态，包括 sessionId、SSE sink、创建时间、
  * 最后访问时间和活跃标记，用于会话管理和过期清理
  *
- * @author xiexu
+ * @author sxie
  */
 @Getter
 @Builder

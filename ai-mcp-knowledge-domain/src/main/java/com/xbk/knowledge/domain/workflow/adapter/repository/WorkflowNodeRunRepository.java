@@ -7,20 +7,20 @@ import java.util.Optional;
 
 /**
  * WorkflowNodeRun 仓储接口。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 public interface WorkflowNodeRunRepository {
 
     /**
      * 方法：insert。
      */
-    WorkflowNodeRun insert(WorkflowNodeRun nodeRun);
+    void insert(WorkflowNodeRun nodeRun);
 
     /**
      * 方法：updateById。
      */
-    int updateById(WorkflowNodeRun nodeRun);
+    void updateById(WorkflowNodeRun nodeRun);
 
     /**
      * 方法：findByRunIdAndNodeKey。

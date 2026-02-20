@@ -11,7 +11,7 @@ import java.util.Optional;
  *
  * 职责：承载统一审批单（高风险工具、未来可扩展发布审批等）的查询与状态变更能力。
  *
- * @author xiexu
+ * @author sxie
  */
 public interface ApprovalRequestRepository {
 

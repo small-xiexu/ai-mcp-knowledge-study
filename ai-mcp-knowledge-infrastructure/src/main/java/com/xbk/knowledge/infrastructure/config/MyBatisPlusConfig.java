@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
  * 启用分页拦截器，避免手写分页逻辑
  *
  * 职责：基础设施配置，用于完成框架适配
- * @author xiexu
+ * @author sxie
  */
 @Configuration
 public class MyBatisPlusConfig {

@@ -1,7 +1,7 @@
 package com.xbk.knowledge.domain.workflow.adapter.repository;
 
 import com.xbk.knowledge.domain.workflow.model.entity.Workflow;
-import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.workflow.model.valobj.WorkflowCodeQuery;
 
 import java.util.List;
@@ -9,9 +9,9 @@ import java.util.Optional;
 
 /**
  * Workflow 资产仓储接口。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 public interface WorkflowRepository {
 
     /**

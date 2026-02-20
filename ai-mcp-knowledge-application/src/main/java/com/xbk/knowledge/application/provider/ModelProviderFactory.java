@@ -7,7 +7,7 @@ import com.xbk.knowledge.types.enums.ModelType;
  * 定义了根据模型类型获取 Provider 的契约
  *
  * 职责：模型调用抽象契约，用于隔离厂商差异
- * @author xiexu
+ * @author sxie
  */
 public interface ModelProviderFactory {
 

@@ -20,7 +20,7 @@ import java.util.Set;
  * 为什么需要组合：系统同时存在两种工具来源——MCP Server 动态注册的工具和 Gateway HTTP 配置的工具，
  * 需要统一合并后提供给 ChatClient，同时处理工具名称去重
  *
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Primary

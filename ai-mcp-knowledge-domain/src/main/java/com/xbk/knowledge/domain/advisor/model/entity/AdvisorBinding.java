@@ -17,9 +17,9 @@ import java.time.LocalDateTime;
  * Advisor 绑定关系实体。
  *
  * 对应表：advisor_binding
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @TableName("advisor_binding")
 @Getter
 @Setter

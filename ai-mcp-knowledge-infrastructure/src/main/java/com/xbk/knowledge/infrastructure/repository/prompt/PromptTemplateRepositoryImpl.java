@@ -15,9 +15,9 @@ import java.util.Optional;
 
 /**
  * PromptTemplate 仓储实现。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Repository
 @RequiredArgsConstructor
 public class PromptTemplateRepositoryImpl implements PromptTemplateRepository {

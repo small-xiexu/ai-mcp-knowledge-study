@@ -1,7 +1,7 @@
 package com.xbk.knowledge.infrastructure.gateway.repository;
 
 import com.xbk.knowledge.domain.gateway.model.entity.McpToolMapping;
-import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.ToolMappingQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.ToolIdQuery;
 import com.xbk.knowledge.domain.gateway.adapter.repository.McpToolMappingRepository;
@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * 工具参数映射仓储实现
  *
- * @author xiexu
+ * @author sxie
  */
 @Repository
 @RequiredArgsConstructor

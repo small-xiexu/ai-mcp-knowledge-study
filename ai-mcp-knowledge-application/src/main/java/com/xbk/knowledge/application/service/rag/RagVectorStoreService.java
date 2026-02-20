@@ -1,7 +1,7 @@
 package com.xbk.knowledge.application.service.rag;
 
 import com.xbk.knowledge.application.service.app.ModelConfigAppService;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import com.xbk.knowledge.types.enums.ModelType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
  * 负责根据激活的嵌入模型构建向量库，并提供检索/维护能力
  *
  * 职责：向量库访问与 Embedding 适配
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Service

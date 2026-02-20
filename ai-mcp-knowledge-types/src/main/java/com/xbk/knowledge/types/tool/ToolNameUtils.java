@@ -6,9 +6,9 @@ package com.xbk.knowledge.types.tool;
  * 目的：
  * - 为 LLM function/tool name 提供稳定、可预测、尽量兼容各厂商约束的命名格式。
  * - 避免不同来源（Gateway/MCP）与不同实例（gatewayId/serverName）之间的重名冲突。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 public final class ToolNameUtils {
 
     private static final int MAX_NAME_LEN = 64;

@@ -17,9 +17,9 @@ import java.time.LocalDateTime;
  * PromptTemplate 实体（模板资产）。
  *
  * 对应表：prompt_template
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @TableName("prompt_template")
 @Getter
 @Setter

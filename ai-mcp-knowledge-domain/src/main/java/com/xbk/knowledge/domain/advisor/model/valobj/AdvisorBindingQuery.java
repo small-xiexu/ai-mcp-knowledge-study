@@ -6,9 +6,9 @@ package com.xbk.knowledge.domain.advisor.model.valobj;
  * @param scopeId scopeId
  * @param bindType 绑定类型：AGENT_VERSION/WORKFLOW_VERSION
  * @param bindTargetId 绑定目标 ID
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 public record AdvisorBindingQuery(String bindType,
                                   Long bindTargetId) {
 }

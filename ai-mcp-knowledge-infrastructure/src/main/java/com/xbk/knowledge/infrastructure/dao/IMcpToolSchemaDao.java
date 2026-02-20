@@ -9,7 +9,7 @@ import org.apache.ibatis.annotations.Param;
 /**
  * 工具 Schema 缓存 Mapper
  *
- * @author xiexu
+ * @author sxie
  */
 @Mapper
 public interface IMcpToolSchemaDao extends BaseMapper<McpToolSchemaPO> {

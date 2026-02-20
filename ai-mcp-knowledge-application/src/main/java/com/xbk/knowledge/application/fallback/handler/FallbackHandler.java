@@ -3,7 +3,7 @@ package com.xbk.knowledge.application.fallback.handler;
 import com.xbk.knowledge.application.model.dto.AICallCommand;
 import com.xbk.knowledge.application.fallback.executor.FailoverExecutor;
 import com.xbk.knowledge.application.model.dto.AICallResult;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +16,7 @@ import java.util.List;
  * 设计模式：模板方法 + 迭代器（由执行器内部体现）
  * 职责：应用层容错入口，用于统一触发降级执行器
  *
- * @author xiexu
+ * @author sxie
  */
 @Service
 @RequiredArgsConstructor

@@ -1,7 +1,7 @@
 package com.xbk.knowledge.infrastructure.provider.factory;
 
 import com.xbk.knowledge.application.provider.ModelProvider;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import com.xbk.knowledge.types.enums.ModelType;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

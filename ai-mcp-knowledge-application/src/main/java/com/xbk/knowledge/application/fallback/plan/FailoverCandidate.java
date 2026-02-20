@@ -1,6 +1,6 @@
 package com.xbk.knowledge.application.fallback.plan;
 
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
  *
  * 设计模式：值对象（Value Object）
  * 职责：应用层降级候选，用于表达是否为备用模型并降低判断成本
- * @author xiexu
+ * @author sxie
  */
 @Data
 @Builder

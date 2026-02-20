@@ -7,7 +7,7 @@ import lombok.Getter;
  * 用于集中管理响应码与默认消息，避免散落在业务代码中
  *
  * 职责：统一错误语义，降低维护成本
- * @author xiexu
+ * @author sxie
  */
 @Getter
 public enum ResultCode {

@@ -16,7 +16,7 @@ import java.util.Optional;
  *
  * 职责：身份与权限数据访问抽象。
  *
- * @author xiexu
+ * @author sxie
  */
 public interface IdentityRepository {
 

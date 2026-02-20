@@ -1,6 +1,6 @@
 package com.xbk.knowledge.application.service.app.impl;
 
-import com.xbk.knowledge.domain.model.vo.audit.AuditQuery;
+import com.xbk.knowledge.domain.audit.model.valobj.AuditQuery;
 import com.xbk.knowledge.domain.service.audit.IAuditService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

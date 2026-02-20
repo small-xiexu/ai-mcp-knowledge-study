@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
  * 对应数据库表：mcp_tool_binding
  *
  * 职责：领域实体，承载工具与目标资源之间的绑定关系与启停控制
- * @author xiexu
+ * @author sxie
  */
 @TableName("mcp_tool_binding")
 @Getter

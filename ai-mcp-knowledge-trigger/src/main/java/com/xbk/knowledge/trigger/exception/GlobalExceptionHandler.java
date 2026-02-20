@@ -26,7 +26,7 @@ import java.util.function.Consumer;
  * 统一处理所有 Controller 层抛出的异常
  *
  * 职责：接口层异常处理，用于统一错误返回
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @RestControllerAdvice

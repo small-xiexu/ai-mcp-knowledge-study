@@ -17,9 +17,9 @@ import java.util.List;
  * 请求响应日志 Advisor（可配置）。
  *
  * 说明：用于打印大模型的入参和出参，便于调试与排障。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Slf4j
 @Component
 public class RequestResponseLoggingAdvisor implements CallAdvisor {

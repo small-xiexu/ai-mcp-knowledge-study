@@ -2,17 +2,17 @@ package com.xbk.knowledge.infrastructure.dao;
 
 import com.xbk.knowledge.infrastructure.dao.po.CallLogPO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.xbk.knowledge.domain.model.entity.CallLog;
-import com.xbk.knowledge.domain.model.vo.metrics.CallMetrics;
-import com.xbk.knowledge.domain.model.vo.metrics.CallStatusQuery;
-import com.xbk.knowledge.domain.model.vo.metrics.MetricsQuery;
-import com.xbk.knowledge.domain.model.vo.model.ModelIdQuery;
-import com.xbk.knowledge.domain.model.vo.model.ModelIdStatusQuery;
-import com.xbk.knowledge.domain.model.vo.metrics.ModelUsage;
-import com.xbk.knowledge.domain.model.vo.metrics.ModelUsageQuery;
-import com.xbk.knowledge.domain.model.vo.metrics.ResponseTime;
-import com.xbk.knowledge.domain.model.vo.metrics.SuccessRate;
-import com.xbk.knowledge.domain.model.vo.metrics.TimeRangeQuery;
+import com.xbk.knowledge.domain.metrics.model.entity.CallLog;
+import com.xbk.knowledge.domain.metrics.model.valobj.CallMetrics;
+import com.xbk.knowledge.domain.metrics.model.valobj.CallStatusQuery;
+import com.xbk.knowledge.domain.metrics.model.valobj.MetricsQuery;
+import com.xbk.knowledge.domain.llm.model.valobj.ModelIdQuery;
+import com.xbk.knowledge.domain.llm.model.valobj.ModelIdStatusQuery;
+import com.xbk.knowledge.domain.metrics.model.valobj.ModelUsage;
+import com.xbk.knowledge.domain.metrics.model.valobj.ModelUsageQuery;
+import com.xbk.knowledge.domain.metrics.model.valobj.ResponseTime;
+import com.xbk.knowledge.domain.metrics.model.valobj.SuccessRate;
+import com.xbk.knowledge.domain.metrics.model.valobj.TimeRangeQuery;
 import org.apache.ibatis.annotations.Mapper;
 import java.util.List;
 
@@ -21,7 +21,7 @@ import java.util.List;
  * 统一通过 XML 承载 SQL，避免注解式查询
  *
  * 职责：MyBatis Mapper 接口，用于映射数据库操作
- * @author xiexu
+ * @author sxie
  */
 @Mapper
 public interface ICallLogDao extends BaseMapper<CallLogPO> {

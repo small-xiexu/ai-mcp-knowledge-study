@@ -3,12 +3,12 @@ package com.xbk.knowledge.infrastructure.repository.xxl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xbk.knowledge.config.XxlAdminProperties;
-import com.xbk.knowledge.domain.model.entity.XxlJobInfo;
-import com.xbk.knowledge.domain.model.entity.XxlJobLogDetail;
-import com.xbk.knowledge.domain.model.entity.XxlJobLogInfo;
-import com.xbk.knowledge.domain.model.vo.xxl.XxlJobLogPageQuery;
-import com.xbk.knowledge.domain.model.vo.xxl.XxlJobPageQuery;
-import com.xbk.knowledge.domain.model.adapter.repository.xxl.XxlJobRepository;
+import com.xbk.knowledge.domain.job.model.entity.XxlJobInfo;
+import com.xbk.knowledge.domain.job.model.entity.XxlJobLogDetail;
+import com.xbk.knowledge.domain.job.model.entity.XxlJobLogInfo;
+import com.xbk.knowledge.domain.job.model.valobj.XxlJobLogPageQuery;
+import com.xbk.knowledge.domain.job.model.valobj.XxlJobPageQuery;
+import com.xbk.knowledge.domain.job.adapter.repository.XxlJobRepository;
 import com.xbk.knowledge.infrastructure.redis.key.XxlJobRedisKeys;
 import com.xbk.knowledge.types.common.PageResult;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +25,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -35,7 +36,7 @@ import java.util.List;
  * 通过 WebClient 调用 xxl-admin 接口并统一处理登录态
  *
  * 职责：基础设施实现，负责对接外部调度中心
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Repository
@@ -78,14 +79,14 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
         Integer pageSize = query.getPageSize();
         /*
          * 目的：规范化分页参数，避免异常分页导致接口报错
-         */
+ */
         int safePageNum = pageNum == null ? 1 : pageNum;
         int safePageSize = pageSize == null ? DEFAULT_PAGE_SIZE : pageSize;
         int start = (safePageNum - 1) * safePageSize;
 
         /*
          * 目的：先解析执行器 ID，再调用任务分页接口
-         */
+ */
         Long jobGroupId = resolveJobGroupId(appName);
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
         form.add("jobGroup", String.valueOf(jobGroupId));
@@ -127,7 +128,7 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
 
         /*
          * 目的：缓存未命中或强刷时回源查询
-         */
+ */
         List<XxlJobInfo> allJobs = fetchAllJobsFromXxl(appName);
         Integer ttlSeconds = xxlAdminProperties.getJobCacheTtlSeconds();
         int ttl = ttlSeconds == null ? 600 : ttlSeconds;
@@ -201,7 +202,7 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
         while (true) {
             /*
              * 目的：分页拉取，避免一次性请求过大
-             */
+ */
             MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
             form.add("jobGroup", String.valueOf(jobGroupId));
             form.add("start", String.valueOf(start));
@@ -346,14 +347,14 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
         Integer pageSize = query.getPageSize();
         /*
          * 目的：规范化分页参数，避免异常分页导致接口报错
-         */
+ */
         int safePageNum = pageNum == null ? 1 : pageNum;
         int safePageSize = pageSize == null ? DEFAULT_PAGE_SIZE : pageSize;
         int start = (safePageNum - 1) * safePageSize;
 
         /*
          * 目的：先解析执行器 ID，再调用日志分页接口
-         */
+ */
         Long jobGroupId = resolveJobGroupId(appName);
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
         form.add("start", String.valueOf(start));
@@ -414,7 +415,7 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
     private Long resolveJobGroupId(String appName) {
         /*
          * 目的：优先读取缓存，避免频繁查询执行器列表
-         */
+ */
         String cacheKey = XxlJobRedisKeys.JOB_GROUP_PREFIX + appName;
         String cached = stringRedisTemplate.opsForValue().get(cacheKey);
         if (StringUtils.hasText(cached)) {
@@ -586,7 +587,7 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
      *
      * 为什么：统一读取状态、头与内容
      */
-    private reactor.core.publisher.Mono<XxlHttpResponse> toResponse(ClientResponse response) {
+    private Mono<XxlHttpResponse> toResponse(ClientResponse response) {
         return response.bodyToMono(String.class)
                 .defaultIfEmpty("")
                 .map(body -> new XxlHttpResponse(response.statusCode(), response.headers().asHttpHeaders(), body));

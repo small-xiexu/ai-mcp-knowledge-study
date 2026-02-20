@@ -2,7 +2,7 @@ package com.xbk.knowledge.infrastructure.provider.gemini;
 
 import com.xbk.knowledge.infrastructure.protocol.AbstractGeminiProtocolAdapter;
 import com.xbk.knowledge.application.provider.ModelProvider;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import com.xbk.knowledge.types.enums.ModelType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
  * - 通过 OpenAI 兼容协议可以绕过这个问题，同时保持完整的功能支持（工具调用、MCP 集成等）
  *
  * 职责：模型调用实现，用于适配具体厂商 SDK
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Component
@@ -66,7 +66,7 @@ public class GeminiModelProvider extends AbstractGeminiProtocolAdapter implement
         try {
             /*
              * 目的：通过创建模型验证配置有效性
-             */
+ */
             createChatModel(config);
             return true;
         } catch (Exception e) {

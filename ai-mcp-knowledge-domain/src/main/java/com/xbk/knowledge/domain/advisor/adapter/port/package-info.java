@@ -3,6 +3,6 @@
  *
  * 职责：承载面向外部系统的抽象接口。
  *
- * @author xiexu
+ * @author sxie
  */
 package com.xbk.knowledge.domain.advisor.adapter.port;

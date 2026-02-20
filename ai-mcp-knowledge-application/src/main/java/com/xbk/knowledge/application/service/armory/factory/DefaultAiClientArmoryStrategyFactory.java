@@ -5,7 +5,7 @@ import com.xbk.knowledge.application.service.armory.node.AiClientNode;
 import com.xbk.knowledge.application.service.armory.node.AiClientAdvisorNode;
 import com.xbk.knowledge.application.service.armory.node.AiClientToolNode;
 import com.xbk.knowledge.application.service.armory.node.RootNode;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,11 +18,14 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
  * AI 客户端装配工厂（自研节点编排）。
+ *
+ * @author sxie
  */
 @Service
 public class DefaultAiClientArmoryStrategyFactory {
@@ -32,11 +35,7 @@ public class DefaultAiClientArmoryStrategyFactory {
     private final RootNode rootNode;
     private final ConcurrentMap<String, ChatClient> standardChatClientRegistry = new ConcurrentHashMap<>();
 
-    public DefaultAiClientArmoryStrategyFactory(RootNode rootNode,
-                                                AiClientToolNode aiClientToolNode,
-                                                AiClientAdvisorNode aiClientAdvisorNode,
-                                                AiClientModelNode aiClientModelNode,
-                                                AiClientNode aiClientNode) {
+    public DefaultAiClientArmoryStrategyFactory(RootNode rootNode, AiClientToolNode aiClientToolNode, AiClientAdvisorNode aiClientAdvisorNode, AiClientModelNode aiClientModelNode, AiClientNode aiClientNode) {
         rootNode.setNext(aiClientToolNode);
         aiClientToolNode.setNext(aiClientAdvisorNode);
         aiClientAdvisorNode.setNext(aiClientModelNode);
@@ -47,16 +46,15 @@ public class DefaultAiClientArmoryStrategyFactory {
     /**
      * 基于节点链路构建 ChatClient。
      *
-     * @param modelConfig 模型配置
-     * @param enableTools 工具开关
+     * @param modelConfig   模型配置
+     * @param enableTools   工具开关
      * @param extraAdvisors 额外 Advisor
      * @return 装配完成的 ChatClient
      */
     public ChatClient chatClient(ModelConfig modelConfig, boolean enableTools, CallAdvisor... extraAdvisors) {
         if (isStandardAssemble(modelConfig, extraAdvisors)) {
             String cacheKey = buildCacheKey(modelConfig.getId(), enableTools);
-            return standardChatClientRegistry.computeIfAbsent(cacheKey,
-                    key -> assembleChatClient(modelConfig, enableTools, extraAdvisors));
+            return standardChatClientRegistry.computeIfAbsent(cacheKey, key -> assembleChatClient(modelConfig, enableTools, extraAdvisors));
         }
         return assembleChatClient(modelConfig, enableTools, extraAdvisors);
     }
@@ -66,10 +64,9 @@ public class DefaultAiClientArmoryStrategyFactory {
      *
      * @param modelConfig 模型配置
      * @param enableTools 工具开关
-     * @return 预热后的 ChatClient
      */
-    public ChatClient preheat(ModelConfig modelConfig, boolean enableTools) {
-        return chatClient(modelConfig, enableTools);
+    public void preheat(ModelConfig modelConfig, boolean enableTools) {
+        chatClient(modelConfig, enableTools);
     }
 
     /**
@@ -93,11 +90,7 @@ public class DefaultAiClientArmoryStrategyFactory {
     }
 
     private ChatClient assembleChatClient(ModelConfig modelConfig, boolean enableTools, CallAdvisor... extraAdvisors) {
-        DynamicContext dynamicContext = DynamicContext.builder()
-                .modelConfig(modelConfig)
-                .requestedEnableTools(enableTools)
-                .extraAdvisors(extraAdvisors)
-                .build();
+        DynamicContext dynamicContext = DynamicContext.builder().modelConfig(modelConfig).requestedEnableTools(enableTools).extraAdvisors(extraAdvisors).build();
         rootNode.handle(dynamicContext);
         ChatClient chatClient = dynamicContext.getChatClient();
         if (chatClient == null) {
@@ -107,9 +100,7 @@ public class DefaultAiClientArmoryStrategyFactory {
     }
 
     private boolean isStandardAssemble(ModelConfig modelConfig, CallAdvisor... extraAdvisors) {
-        return modelConfig != null
-                && modelConfig.getId() != null
-                && (extraAdvisors == null || extraAdvisors.length == 0);
+        return modelConfig != null && modelConfig.getId() != null && (extraAdvisors == null || extraAdvisors.length == 0);
     }
 
     private String buildCacheKey(Long modelId, boolean enableTools) {
@@ -141,9 +132,7 @@ public class DefaultAiClientArmoryStrategyFactory {
                 extraAdvisors = new CallAdvisor[0];
                 return;
             }
-            extraAdvisors = Arrays.stream(extraAdvisors)
-                    .filter(java.util.Objects::nonNull)
-                    .toArray(CallAdvisor[]::new);
+            extraAdvisors = Arrays.stream(extraAdvisors).filter(Objects::nonNull).toArray(CallAdvisor[]::new);
         }
     }
 }

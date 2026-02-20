@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 /**
  * Agent 持久化对象。
  *
- * @author xiexu
+ * @author sxie
  */
 @TableName("agent")
 @Getter

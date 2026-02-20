@@ -12,7 +12,7 @@ import java.util.List;
  * 定义 AI 模型调用的 API 契约
  *
  * 职责：接口契约，用于规范 Trigger 层对外服务
- * @author xiexu
+ * @author sxie
  */
 public interface IAICallService {
 

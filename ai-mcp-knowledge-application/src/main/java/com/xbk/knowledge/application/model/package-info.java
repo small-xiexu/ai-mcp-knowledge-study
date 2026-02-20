@@ -1,6 +1,6 @@
 /**
  * 应用层模型与 DTO 聚合
  *
- * @author xiexu
+ * @author sxie
  */
 package com.xbk.knowledge.application.model;

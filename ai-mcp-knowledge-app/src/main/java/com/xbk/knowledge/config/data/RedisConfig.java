@@ -8,7 +8,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 /**
  * Redis 基础装配，统一 StringRedisTemplate 入口，便于后续扩展序列化策略。
  *
- * @author xiexu
+ * @author sxie
  */
 @Configuration
 public class RedisConfig {

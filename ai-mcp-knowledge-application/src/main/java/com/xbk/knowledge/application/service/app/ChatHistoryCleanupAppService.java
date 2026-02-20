@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
  * 聊天历史清理服务
  * 负责清理超过保留期的聊天会话与消息
  *
- * @author xiexu
+ * @author sxie
  */
 public interface ChatHistoryCleanupAppService {
 

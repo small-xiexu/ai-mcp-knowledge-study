@@ -14,7 +14,7 @@ import java.util.Optional;
 /**
  * AgentRunContext 仓储实现。
  *
- * @author xiexu
+ * @author sxie
  */
 @Repository
 @RequiredArgsConstructor
@@ -26,12 +26,11 @@ public class AgentRunContextRepositoryImpl implements AgentRunContextRepository 
      * upsert。
      *
      * @param context 参数
-     * @return 返回结果
      */
     @Override
-    public int upsert(AgentRunContext context) {
+    public void upsert(AgentRunContext context) {
         if (context == null || !StringUtils.hasText(context.getRunId())) {
-            return 0;
+            return;
         }
         if (context.getCreatedAt() == null) {
             context.setCreatedAt(LocalDateTime.now());
@@ -39,13 +38,12 @@ public class AgentRunContextRepositoryImpl implements AgentRunContextRepository 
         if (context.getUpdatedAt() == null) {
             context.setUpdatedAt(LocalDateTime.now());
         }
-        return dao.upsert(toPO(context));
+        dao.upsert(toPO(context));
     }
 
     /**
      * findByRunId。
      *
-     * @param scopeId 参数
      * @param runId 参数
      * @return 返回结果
      */
@@ -60,7 +58,6 @@ public class AgentRunContextRepositoryImpl implements AgentRunContextRepository 
     /**
      * updateStatus。
      *
-     * @param scopeId 参数
      * @param runId 参数
      * @param status 参数
      * @return 返回结果

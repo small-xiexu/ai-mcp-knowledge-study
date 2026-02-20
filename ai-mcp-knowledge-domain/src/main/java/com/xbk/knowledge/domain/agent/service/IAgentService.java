@@ -7,9 +7,9 @@ import com.xbk.knowledge.types.common.PageResult;
 
 /**
  * Agent 领域服务接口。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 public interface IAgentService {
 
     PageResult<Agent> queryPage(AgentPageQuery query);

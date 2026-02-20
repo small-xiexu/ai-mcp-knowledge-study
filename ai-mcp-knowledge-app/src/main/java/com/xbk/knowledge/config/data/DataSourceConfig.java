@@ -18,7 +18,7 @@ import javax.sql.DataSource;
  * 拆分 MySQL（业务数据）与 PostgreSQL（向量存储）
  *
  * 职责：应用装配配置，用于集中接入基础设施能力
- * @author xiexu
+ * @author sxie
  */
 @Configuration
 public class DataSourceConfig {

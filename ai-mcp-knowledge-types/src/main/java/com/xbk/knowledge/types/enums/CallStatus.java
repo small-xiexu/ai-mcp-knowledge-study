@@ -5,7 +5,7 @@ package com.xbk.knowledge.types.enums;
  * 记录 AI 模型调用的结果状态
  *
  * 职责：通用枚举，用于统一业务语义
- * @author xiexu
+ * @author sxie
  */
 public enum CallStatus {
 

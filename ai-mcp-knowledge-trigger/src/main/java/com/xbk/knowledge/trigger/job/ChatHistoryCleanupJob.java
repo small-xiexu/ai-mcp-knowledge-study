@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
  * 聊天历史清理任务
  * 定时清理超过保留期的聊天会话与消息
  *
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Component

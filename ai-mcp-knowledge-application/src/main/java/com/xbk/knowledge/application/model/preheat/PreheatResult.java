@@ -7,9 +7,9 @@ import java.util.List;
 
 /**
  * 预热结果（用于控制面展示）。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Getter
 @Builder
 public class PreheatResult {

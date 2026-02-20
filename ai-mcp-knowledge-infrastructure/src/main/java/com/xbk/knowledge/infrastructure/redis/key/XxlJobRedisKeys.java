@@ -4,7 +4,7 @@ package com.xbk.knowledge.infrastructure.redis.key;
  * XXL-Job 相关 Redis Key 定义
  *
  * 职责：统一调度中心缓存 Key 命名
- * @author xiexu
+ * @author sxie
  */
 public final class XxlJobRedisKeys {
 

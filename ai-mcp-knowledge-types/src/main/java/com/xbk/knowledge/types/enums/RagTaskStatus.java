@@ -4,7 +4,7 @@ package com.xbk.knowledge.types.enums;
  * RAG 任务状态枚举
  *
  * 职责：统一任务状态语义
- * @author xiexu
+ * @author sxie
  */
 public enum RagTaskStatus {
 

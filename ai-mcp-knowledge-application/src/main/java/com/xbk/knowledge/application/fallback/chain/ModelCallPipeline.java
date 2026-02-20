@@ -5,6 +5,7 @@ import com.xbk.knowledge.application.fallback.core.ModelCallOutcome;
 import com.xbk.knowledge.application.fallback.executor.ModelCallExecutor;
 import com.xbk.knowledge.application.fallback.policy.AbstractModelCallPolicy;
 import com.xbk.knowledge.application.fallback.policy.ModelCallPolicy;
+import com.xbk.knowledge.application.model.dto.AICallResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -16,7 +17,7 @@ import java.util.List;
  *
  * 设计模式：责任链（Chain of Responsibility）
  * 职责：应用层调用入口，用于组合调用能力并降低耦合
- * @author xiexu
+ * @author sxie
  */
 @Component
 public class ModelCallPipeline {
@@ -74,7 +75,7 @@ public class ModelCallPipeline {
          */
         @Override
         public ModelCallOutcome apply(ModelCallContext context) {
-            com.xbk.knowledge.application.model.dto.AICallResult result = executor.execute(context);
+            AICallResult result = executor.execute(context);
             Boolean success = result.getSuccess();
             if (Boolean.TRUE.equals(success)) {
                 return ModelCallOutcome.success(result);

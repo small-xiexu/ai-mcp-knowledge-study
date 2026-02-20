@@ -24,7 +24,7 @@ import jakarta.validation.Valid;
  *
  * 职责：对外提供按 agentCode 调用的运行入口（同步/流式）。
  *
- * @author xiexu
+ * @author sxie
  */
 @RestController
 @RequestMapping("/api/agents/{agentCode}")

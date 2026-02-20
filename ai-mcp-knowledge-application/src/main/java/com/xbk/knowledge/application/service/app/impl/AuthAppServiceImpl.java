@@ -19,7 +19,7 @@ import java.util.List;
  *
  * 职责：应用层用例实现，用于编排认证与权限查询能力。
  *
- * @author xiexu
+ * @author sxie
  */
 @Service
 @RequiredArgsConstructor

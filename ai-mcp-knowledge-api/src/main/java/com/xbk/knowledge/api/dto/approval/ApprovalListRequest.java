@@ -5,7 +5,7 @@ import lombok.Data;
 /**
  * 审批单列表请求（分页）。
  *
- * @author xiexu
+ * @author sxie
  */
 @Data
 public class ApprovalListRequest {

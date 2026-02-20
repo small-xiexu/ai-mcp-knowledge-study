@@ -7,10 +7,10 @@ import com.xbk.knowledge.application.model.dto.AICallResult;
 import com.xbk.knowledge.application.model.dto.ModelSelectionDecision;
 import com.xbk.knowledge.application.service.app.AIModelService;
 import com.xbk.knowledge.application.service.selection.chain.ModelSelectionChain;
-import com.xbk.knowledge.domain.model.aggregate.call.CallLogAggregate;
-import com.xbk.knowledge.domain.model.entity.CallLog;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
-import com.xbk.knowledge.domain.model.adapter.repository.metrics.CallLogRepository;
+import com.xbk.knowledge.domain.metrics.model.aggregate.CallLogAggregate;
+import com.xbk.knowledge.domain.metrics.model.entity.CallLog;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.metrics.adapter.repository.CallLogRepository;
 import com.xbk.knowledge.types.enums.CallStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +23,7 @@ import java.time.LocalDateTime;
  * 提供统一的 AI 模型调用入口实现
  *
  * 职责：应用层用例实现，用于编排领域与基础设施
- * @author xiexu
+ * @author sxie
  */
 @Service
 @Slf4j
@@ -52,7 +52,7 @@ public class AIModelServiceImpl implements AIModelService {
 
         /*
          * 目的：统一走核心执行逻辑，保持日志与异常处理一致
-         */
+ */
         return executeCall(selectedModel, request, false);
     }
 
@@ -67,12 +67,12 @@ public class AIModelServiceImpl implements AIModelService {
     private AICallResult executeCall(ModelConfig modelConfig, AICallCommand request, boolean isFallback) {
         /*
          * 目的：提前构建日志基础信息，失败场景也可追溯
-         */
+ */
         CallLog callLog = buildCallLog(modelConfig, request);
 
         /*
          * 目的：统一通过执行器隔离模型实现细节
-         */
+ */
         ModelCallContext context = ModelCallContext.builder()
                 .model(modelConfig)
                 .request(request)
@@ -84,13 +84,13 @@ public class AIModelServiceImpl implements AIModelService {
 
         /*
          * 目的：兜底处理响应数据，避免空值影响日志记录
-         */
+ */
         Boolean success = response.getSuccess();
 
         if (Boolean.TRUE.equals(success)) {
             /*
              * 目的：成功分支记录日志并返回响应
-             */
+ */
             fillSuccessLog(callLog, response, isFallback);
             saveCallLog(callLog);
 
@@ -103,7 +103,7 @@ public class AIModelServiceImpl implements AIModelService {
 
         /*
          * 目的：失败分支记录日志并返回响应
-         */
+ */
         fillFailureLog(callLog, response);
         saveCallLog(callLog);
 

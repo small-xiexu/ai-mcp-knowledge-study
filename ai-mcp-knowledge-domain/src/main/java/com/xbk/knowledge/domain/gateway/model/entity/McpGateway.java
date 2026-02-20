@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
  * 对应数据库表：mcp_gateway
  *
  * 职责：领域实体，承载网关实例的核心配置与生命周期状态
- * @author xiexu
+ * @author sxie
  */
 @TableName("mcp_gateway")
 @Getter

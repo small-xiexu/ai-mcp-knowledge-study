@@ -6,7 +6,7 @@ import lombok.Data;
 /**
  * WorkflowRunNodeListRequest。
  *
- * @author xiexu
+ * @author sxie
  */
 @Data
 public class WorkflowRunNodeListRequest {

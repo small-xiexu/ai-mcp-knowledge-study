@@ -1,12 +1,12 @@
 package com.xbk.knowledge.domain.service.impl;
 
-import com.xbk.knowledge.domain.model.aggregate.model.ModelConfigAggregate;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
-import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
-import com.xbk.knowledge.domain.model.vo.common.IdQuery;
-import com.xbk.knowledge.domain.model.vo.model.ModelConfigPageQuery;
-import com.xbk.knowledge.domain.model.vo.model.ModelNameQuery;
-import com.xbk.knowledge.domain.model.adapter.repository.model.ModelConfigRepository;
+import com.xbk.knowledge.domain.llm.model.aggregate.ModelConfigAggregate;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.common.model.valobj.EnabledQuery;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
+import com.xbk.knowledge.domain.llm.model.valobj.ModelConfigPageQuery;
+import com.xbk.knowledge.domain.llm.model.valobj.ModelNameQuery;
+import com.xbk.knowledge.domain.llm.adapter.repository.ModelConfigRepository;
 import com.xbk.knowledge.types.exception.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

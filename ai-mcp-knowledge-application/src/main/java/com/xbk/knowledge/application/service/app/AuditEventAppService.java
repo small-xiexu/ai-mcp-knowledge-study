@@ -1,6 +1,6 @@
 package com.xbk.knowledge.application.service.app;
 
-import com.xbk.knowledge.domain.model.entity.SysAuditEvent;
+import com.xbk.knowledge.domain.audit.model.entity.SysAuditEvent;
 import com.xbk.knowledge.domain.identity.model.valobj.AuditEventPageQuery;
 import com.xbk.knowledge.types.common.PageResult;
 
@@ -9,7 +9,7 @@ import com.xbk.knowledge.types.common.PageResult;
  *
  * 职责：应用层用例接口，用于封装审计事件查询能力。
  *
- * @author xiexu
+ * @author sxie
  */
 public interface AuditEventAppService {
 

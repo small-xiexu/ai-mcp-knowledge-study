@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
  * 根据模型类型返回对应的 Provider
  *
  * 职责：模型调用实现，用于适配具体厂商 SDK
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Component

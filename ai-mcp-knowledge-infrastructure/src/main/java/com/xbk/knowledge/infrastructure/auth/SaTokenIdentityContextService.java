@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
  *
  * 职责：基础设施适配，实现登录态与 token 读取能力。
  *
- * @author xiexu
+ * @author sxie
  */
 @Service
 public class SaTokenIdentityContextService implements IdentityContextService {

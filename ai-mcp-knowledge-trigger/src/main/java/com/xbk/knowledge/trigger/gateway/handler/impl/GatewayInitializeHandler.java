@@ -18,7 +18,7 @@ import java.util.Map;
  * 职责：处理客户端发起的 initialize 请求，返回服务端能力声明（capabilities）、
  * 协议版本、服务器信息和使用说明
  *
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Service("gatewayInitializeHandler")

@@ -3,6 +3,6 @@
  *
  * 职责：定义 agent 子域持久化边界与仓储接口。
  *
- * @author xiexu
+ * @author sxie
  */
 package com.xbk.knowledge.domain.agent.adapter.repository;

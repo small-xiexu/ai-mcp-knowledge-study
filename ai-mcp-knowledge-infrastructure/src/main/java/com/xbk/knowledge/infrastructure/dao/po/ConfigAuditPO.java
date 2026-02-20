@@ -1,11 +1,11 @@
 package com.xbk.knowledge.infrastructure.dao.po;
 
-import com.xbk.knowledge.domain.model.entity.ConfigAudit;
+import com.xbk.knowledge.domain.audit.model.entity.ConfigAudit;
 
 /**
  * ConfigAudit 持久化对象。
  *
- * @author xiexu
+ * @author sxie
  */
 public class ConfigAuditPO extends ConfigAudit {
 }

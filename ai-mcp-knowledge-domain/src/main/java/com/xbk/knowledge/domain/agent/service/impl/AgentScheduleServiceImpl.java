@@ -21,7 +21,7 @@ import java.util.List;
  *
  * 说明：P2 最小集只做调度配置的 CRUD 与启停标记，XXL 联动由应用层编排。
  *
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Service

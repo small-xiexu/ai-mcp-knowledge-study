@@ -20,7 +20,7 @@ import java.util.List;
  * MCP 工具目录服务实现
  * 提供可读的工具清单并缓存一定时间
  *
- * @author xiexu
+ * @author sxie
  */
 @Service
 public class McpToolCatalogServiceImpl implements McpToolCatalogService {
@@ -40,7 +40,7 @@ public class McpToolCatalogServiceImpl implements McpToolCatalogService {
 
     /**
      * 构建工具提示词
-     *
+     * <p>
      * 为什么：减少频繁拼接带来的成本，使用缓存提升性能
      * 入参：无
      * 出参：工具提示词
@@ -65,7 +65,7 @@ public class McpToolCatalogServiceImpl implements McpToolCatalogService {
 
     /**
      * 列出可用工具
-     *
+     * <p>
      * 为什么：为前端展示与提示词构建提供数据
      * 入参：无
      * 出参：工具列表
@@ -75,7 +75,7 @@ public class McpToolCatalogServiceImpl implements McpToolCatalogService {
         ToolCallback[] callbacks = toolCallbackProvider != null
                 ? toolCallbackProvider.getToolCallbacks()
                 : new ToolCallback[0];
-        if (callbacks == null || callbacks.length == 0) {
+        if (callbacks.length == 0) {
             return Collections.emptyList();
         }
         List<McpToolInfo> result = new ArrayList<>();
@@ -84,7 +84,7 @@ public class McpToolCatalogServiceImpl implements McpToolCatalogService {
                 continue;
             }
             ToolDefinition definition = callback.getToolDefinition();
-            if (definition == null || !StringUtils.hasText(definition.name())) {
+            if (!StringUtils.hasText(definition.name())) {
                 continue;
             }
             String toolKey = null;
@@ -107,7 +107,7 @@ public class McpToolCatalogServiceImpl implements McpToolCatalogService {
 
     /**
      * 刷新缓存快照
-     *
+     * <p>
      * 为什么：统一生成提示词并设置过期时间
      */
     private ToolSnapshot refreshSnapshot(long now) {
@@ -143,7 +143,7 @@ public class McpToolCatalogServiceImpl implements McpToolCatalogService {
 
     /**
      * 工具提示词缓存快照
-     *
+     * <p>
      * 为什么：避免重复构建提示词
      */
     private static class ToolSnapshot {

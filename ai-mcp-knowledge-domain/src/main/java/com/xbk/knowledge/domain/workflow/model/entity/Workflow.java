@@ -17,9 +17,9 @@ import java.time.LocalDateTime;
  * Workflow 资产实体（独立于 Agent）。
  *
  * 对应表：workflow
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @TableName("workflow")
 @Getter
 @Setter

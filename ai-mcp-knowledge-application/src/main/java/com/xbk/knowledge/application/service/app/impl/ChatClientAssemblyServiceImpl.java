@@ -3,7 +3,7 @@ package com.xbk.knowledge.application.service.app.impl;
 import com.xbk.knowledge.application.service.armory.factory.DefaultAiClientArmoryStrategyFactory;
 import com.xbk.knowledge.application.service.app.ChatClientAssemblyService;
 import com.xbk.knowledge.application.service.app.ModelConfigAppService;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
  * 统一模型选择与 ChatClient 构建
  *
  * 职责：应用层用例实现，用于复用模型组装逻辑
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Service
@@ -40,7 +40,7 @@ public class ChatClientAssemblyServiceImpl implements ChatClientAssemblyService 
         }
         /*
          * 目的：复用统一构建逻辑，保持生成行为一致
-         */
+ */
         return buildChatClient(activeChatModel, extraAdvisors);
     }
 

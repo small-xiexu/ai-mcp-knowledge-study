@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * IWorkflowEdgeDao。
  *
- * @author xiexu
+ * @author sxie
  */
 @Mapper
 public interface IWorkflowEdgeDao extends BaseMapper<WorkflowEdgePO> {

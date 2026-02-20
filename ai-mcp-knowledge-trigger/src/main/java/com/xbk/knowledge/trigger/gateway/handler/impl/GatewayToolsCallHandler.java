@@ -17,7 +17,7 @@ import java.util.Map;
  * 职责：处理客户端的工具调用请求，解析 name 和 arguments 参数，
  * 委托 GatewayToolService 执行实际的 HTTP 工具调用，将结果封装为 MCP 协议响应
  *
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Service("gatewayToolsCallHandler")

@@ -19,7 +19,7 @@ import java.util.Map;
  * 职责：处理客户端的工具清单查询请求，从 GatewayToolService 获取已启用的工具定义列表，
  * 转换为 MCP 协议规定的 tools 数组格式返回
  *
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Service("gatewayToolsListHandler")

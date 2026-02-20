@@ -7,7 +7,7 @@ import lombok.Data;
  * 用于任务选项列表获取
  *
  * 职责：接口层 DTO，用于承载请求参数并保证传输边界稳定
- * @author xiexu
+ * @author sxie
  */
 @Data
 public class XxlJobOptionRequest {

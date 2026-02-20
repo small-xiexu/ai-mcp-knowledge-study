@@ -5,7 +5,7 @@ import com.xbk.knowledge.application.service.selection.handler.ModelSelectionHan
 /**
  * 模型选择责任链装配
  *
- * @author xiexu
+ * @author sxie
  */
 public interface ModelSelectionChainArmory {
 

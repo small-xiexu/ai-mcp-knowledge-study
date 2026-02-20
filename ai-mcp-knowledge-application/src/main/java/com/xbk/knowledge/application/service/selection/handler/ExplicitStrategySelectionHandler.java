@@ -4,7 +4,7 @@ import com.xbk.knowledge.application.model.dto.AICallCommand;
 import com.xbk.knowledge.application.model.dto.ModelSelectionDecision;
 import com.xbk.knowledge.application.service.selector.ModelSelector;
 import com.xbk.knowledge.application.service.selection.chain.AbstractModelSelectionHandler;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import com.xbk.knowledge.types.common.ResultCode;
 import com.xbk.knowledge.types.enums.ModelSelectionStrategy;
 import com.xbk.knowledge.types.exception.BusinessException;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
  *
  * 设计模式：责任链节点（显式策略优先）
  * 职责：命中显式策略直接处理，未命中则交给下一个节点
- * @author xiexu
+ * @author sxie
  */
 @Component
 public class ExplicitStrategySelectionHandler extends AbstractModelSelectionHandler {

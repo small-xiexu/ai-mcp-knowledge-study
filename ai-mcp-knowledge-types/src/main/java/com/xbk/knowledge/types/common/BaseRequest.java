@@ -9,7 +9,7 @@ import java.io.Serializable;
  * 所有 API 请求都应继承此类
  *
  * 职责：通用基础结构，用于统一分页与响应结构
- * @author xiexu
+ * @author sxie
  */
 @Data
 public class BaseRequest implements Serializable {

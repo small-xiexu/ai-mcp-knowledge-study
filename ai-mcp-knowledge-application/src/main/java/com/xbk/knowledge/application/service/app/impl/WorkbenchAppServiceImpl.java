@@ -2,18 +2,18 @@ package com.xbk.knowledge.application.service.app.impl;
 
 import com.xbk.knowledge.application.model.workbench.WorkbenchSummary;
 import com.xbk.knowledge.application.service.app.WorkbenchAppService;
-import com.xbk.knowledge.domain.model.entity.ModelActivation;
+import com.xbk.knowledge.domain.llm.model.entity.ModelActivation;
 import com.xbk.knowledge.domain.agent.model.valobj.AgentPageQuery;
 import com.xbk.knowledge.domain.agent.model.valobj.AgentSchedulePageQuery;
 import com.xbk.knowledge.domain.agent.model.valobj.PromptTemplatePageQuery;
-import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
+import com.xbk.knowledge.domain.common.model.valobj.EnabledQuery;
 import com.xbk.knowledge.domain.agent.adapter.repository.AgentRepository;
 import com.xbk.knowledge.domain.agent.adapter.repository.AgentScheduleRepository;
 import com.xbk.knowledge.domain.approval.adapter.repository.ApprovalRequestRepository;
-import com.xbk.knowledge.domain.model.adapter.repository.model.ModelActivationRepository;
-import com.xbk.knowledge.domain.model.adapter.repository.model.ModelConfigRepository;
+import com.xbk.knowledge.domain.llm.adapter.repository.ModelActivationRepository;
+import com.xbk.knowledge.domain.llm.adapter.repository.ModelConfigRepository;
 import com.xbk.knowledge.domain.agent.adapter.repository.PromptTemplateRepository;
-import com.xbk.knowledge.domain.model.adapter.repository.rag.RagTaskRepository;
+import com.xbk.knowledge.domain.rag.adapter.repository.RagTaskRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,7 +26,7 @@ import java.util.List;
  *
  * 说明：仅做轻量聚合与口径封装，不承载复杂业务流程。
  *
- * @author xiexu
+ * @author sxie
  */
 @Service
 @RequiredArgsConstructor

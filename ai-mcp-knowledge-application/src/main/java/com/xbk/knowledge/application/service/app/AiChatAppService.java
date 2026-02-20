@@ -10,7 +10,7 @@ import reactor.core.publisher.Flux;
  * 提供同步与流式对话能力，支持 RAG
  *
  * 职责：应用层用例接口，用于封装调用入口
- * @author xiexu
+ * @author sxie
  */
 public interface AiChatAppService {
 

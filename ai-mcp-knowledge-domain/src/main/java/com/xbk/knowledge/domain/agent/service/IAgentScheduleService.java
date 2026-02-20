@@ -9,9 +9,9 @@ import com.xbk.knowledge.types.common.PageResult;
  * AgentSchedule 领域服务。
  *
  * 职责：封装调度配置的核心业务规则。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 public interface IAgentScheduleService {
 
     PageResult<AgentSchedule> queryPage(AgentSchedulePageQuery query);

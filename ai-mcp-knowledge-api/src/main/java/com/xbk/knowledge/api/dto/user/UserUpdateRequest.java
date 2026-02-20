@@ -20,7 +20,7 @@ import jakarta.validation.constraints.Size;
  *
  * 职责：接口层 DTO，用于承载用户基础信息编辑参数。
  *
- * @author xiexu
+ * @author sxie
  */
 @Data
 @Builder

@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
  * 统一填充创建时间与更新时间
  *
  * 职责：基础设施配置，用于完成框架适配
- * @author xiexu
+ * @author sxie
  */
 @Component
 public class MyBatisMetaObjectHandler implements MetaObjectHandler {
@@ -30,7 +30,7 @@ public class MyBatisMetaObjectHandler implements MetaObjectHandler {
         this.strictInsertFill(metaObject, "updatedAt", LocalDateTime.class, now);
         /*
          * 单组织模式：统一为包含 scopeId 字段的实体回填默认值 1。
-         */
+ */
         if (metaObject != null && metaObject.hasSetter("scopeId")) {
             this.strictInsertFill(metaObject, "scopeId", Long.class, 1L);
         }

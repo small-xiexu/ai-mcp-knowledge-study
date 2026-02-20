@@ -13,13 +13,16 @@ import io.modelcontextprotocol.client.transport.ServerParameters;
 import io.modelcontextprotocol.client.transport.StdioClientTransport;
 import io.modelcontextprotocol.json.McpJsonMapper;
 import io.modelcontextprotocol.json.jackson.JacksonMcpJsonMapper;
+import io.modelcontextprotocol.spec.McpClientTransport;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import jakarta.annotation.PreDestroy;
+import java.net.URI;
 import java.net.http.HttpRequest;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * 负责按配置动态创建与管理 MCP 客户端连接
  *
  * 职责：基础设施实现，用于连接 MCP Server 并维护运行状态
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Service
@@ -78,14 +81,14 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
 
         /*
          * 目的：先关闭旧连接，避免资源泄露
-         */
+ */
         McpSyncClient existing = clientRegistry.remove(configId);
         closeQuietly(existing);
         metaRegistry.remove(configId);
 
         /*
          * 目的：按配置创建客户端并完成初始化
-         */
+ */
         McpSyncClient client = buildClient(config);
         client.initialize();
         clientRegistry.put(configId, client);
@@ -259,11 +262,11 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
         }
         /*
          * 目的：支持配置完整 URL（包含路径），避免 SDK 固定使用 /mcp 造成 404
-         */
+ */
         String baseUri = endpoint;
         String endpointPath = null;
         try {
-            java.net.URI uri = java.net.URI.create(endpoint);
+            URI uri = URI.create(endpoint);
             String scheme = uri.getScheme();
             String host = uri.getHost();
             int port = uri.getPort();
@@ -305,7 +308,7 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
      *
      * 为什么：统一设置请求/初始化超时
      */
-    private McpSyncClient buildSyncClient(io.modelcontextprotocol.spec.McpClientTransport transport,
+    private McpSyncClient buildSyncClient(McpClientTransport transport,
                                           McpServerConfig config) {
         int requestTimeoutMs = getTimeout(config.getRequestTimeoutMs(), DEFAULT_REQUEST_TIMEOUT_MS);
         int initTimeoutMs = getTimeout(config.getInitTimeoutMs(), DEFAULT_INIT_TIMEOUT_MS);
@@ -403,7 +406,7 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
      * 为什么：客户端变更后需要同步工具列表
      */
     private void refreshToolCallbacks() {
-        java.util.ArrayList<DynamicMcpToolCallbackProvider.McpClientDescriptor> descriptors = new java.util.ArrayList<>();
+        ArrayList<DynamicMcpToolCallbackProvider.McpClientDescriptor> descriptors = new ArrayList<>();
         for (Map.Entry<Long, McpSyncClient> entry : clientRegistry.entrySet()) {
             Long configId = entry.getKey();
             McpSyncClient client = entry.getValue();

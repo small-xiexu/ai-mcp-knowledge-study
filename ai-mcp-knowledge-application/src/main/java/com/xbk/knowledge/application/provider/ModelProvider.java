@@ -1,6 +1,6 @@
 package com.xbk.knowledge.application.provider;
 
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import com.xbk.knowledge.types.enums.ModelType;
 import org.springframework.ai.chat.model.ChatModel;
 
@@ -9,7 +9,7 @@ import org.springframework.ai.chat.model.ChatModel;
  * 定义了创建和管理 AI 模型的契约
  *
  * 职责：模型调用抽象契约，用于隔离厂商差异
- * @author xiexu
+ * @author sxie
  */
 public interface ModelProvider {
 

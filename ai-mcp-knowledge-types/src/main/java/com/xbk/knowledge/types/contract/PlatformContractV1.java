@@ -13,9 +13,9 @@ import java.util.List;
  * 平台标准输出结构（Platform Contract v1）。
  *
  * 约束：无论成功/失败，都必须返回可解析结构。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Data
 @Builder
 @NoArgsConstructor

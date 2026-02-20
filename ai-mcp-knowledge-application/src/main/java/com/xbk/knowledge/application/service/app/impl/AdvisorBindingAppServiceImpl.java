@@ -22,9 +22,9 @@ import java.util.Set;
 
 /**
  * Advisor 绑定控制面应用服务实现。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Service
 @RequiredArgsConstructor
 public class AdvisorBindingAppServiceImpl implements AdvisorBindingAppService {

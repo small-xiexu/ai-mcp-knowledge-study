@@ -3,7 +3,7 @@ package com.xbk.knowledge.infrastructure.dao;
 import com.xbk.knowledge.infrastructure.dao.po.WorkflowPO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.xbk.knowledge.domain.workflow.model.entity.Workflow;
-import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.workflow.model.valobj.WorkflowCodeQuery;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * IWorkflowDao。
  *
- * @author xiexu
+ * @author sxie
  */
 @Mapper
 public interface IWorkflowDao extends BaseMapper<WorkflowPO> {

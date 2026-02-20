@@ -3,7 +3,7 @@ package com.xbk.knowledge.infrastructure.audit;
 import com.xbk.knowledge.application.service.app.IdentityContextService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.xbk.knowledge.domain.model.entity.SysAuditEvent;
+import com.xbk.knowledge.domain.audit.model.entity.SysAuditEvent;
 import com.xbk.knowledge.types.common.Result;
 import com.xbk.knowledge.types.trace.TraceIdUtils;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +16,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -28,7 +29,7 @@ import java.util.Set;
  *
  * 职责：基础设施审计能力，用于自动记录身份域关键写操作。
  *
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Aspect
@@ -413,7 +414,7 @@ public class IdentityAuditAspect {
         Class<?> current = target.getClass();
         while (current != null && current != Object.class) {
             try {
-                java.lang.reflect.Field field = current.getDeclaredField(fieldName);
+                Field field = current.getDeclaredField(fieldName);
                 field.setAccessible(true);
                 return field.get(target);
             } catch (NoSuchFieldException ex) {

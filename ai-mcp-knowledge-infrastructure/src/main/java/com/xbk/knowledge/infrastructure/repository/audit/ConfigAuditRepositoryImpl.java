@@ -1,9 +1,9 @@
 package com.xbk.knowledge.infrastructure.repository.audit;
 
-import com.xbk.knowledge.domain.model.aggregate.audit.ConfigAuditAggregate;
-import com.xbk.knowledge.domain.model.entity.ConfigAudit;
-import com.xbk.knowledge.domain.model.vo.audit.AuditQuery;
-import com.xbk.knowledge.domain.model.adapter.repository.audit.ConfigAuditRepository;
+import com.xbk.knowledge.domain.audit.model.aggregate.ConfigAuditAggregate;
+import com.xbk.knowledge.domain.audit.model.entity.ConfigAudit;
+import com.xbk.knowledge.domain.audit.model.valobj.AuditQuery;
+import com.xbk.knowledge.domain.audit.adapter.repository.ConfigAuditRepository;
 import com.xbk.knowledge.infrastructure.dao.IConfigAuditDao;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -17,7 +17,7 @@ import java.util.List;
  * 通过 Mapper 执行 XML SQL，隔离持久化细节
  *
  * 职责：仓储实现，用于落地数据访问
- * @author xiexu
+ * @author sxie
  */
 @Repository
 @RequiredArgsConstructor
@@ -45,7 +45,7 @@ public class ConfigAuditRepositoryImpl implements ConfigAuditRepository {
         }
         /*
          * 目的：统一落库入口，避免重复插入逻辑
-         */
+ */
         configAuditMapper.insertConfigAudit(audit);
         aggregate.setConfigAudit(audit);
         return aggregate;

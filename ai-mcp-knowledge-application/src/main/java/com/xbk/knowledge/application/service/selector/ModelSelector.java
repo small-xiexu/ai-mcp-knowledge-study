@@ -1,7 +1,7 @@
 package com.xbk.knowledge.application.service.selector;
 
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
-import com.xbk.knowledge.domain.model.adapter.repository.model.ModelConfigRepository;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.adapter.repository.ModelConfigRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -14,7 +14,7 @@ import java.util.List;
  *
  * 职责：应用层用例接口，用于定义编排能力
  *
- * @author xiexu
+ * @author sxie
  */
 @Service
 @Slf4j

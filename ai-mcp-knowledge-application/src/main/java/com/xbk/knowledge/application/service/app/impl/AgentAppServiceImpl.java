@@ -12,9 +12,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Agent 控制面应用服务实现。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Service
 @RequiredArgsConstructor
 public class AgentAppServiceImpl implements AgentAppService {

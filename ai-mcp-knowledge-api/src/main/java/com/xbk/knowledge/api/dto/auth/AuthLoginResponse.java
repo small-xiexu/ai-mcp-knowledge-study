@@ -12,7 +12,7 @@ import java.io.Serializable;
  *
  * 职责：接口层 DTO，用于返回令牌与用户画像。
  *
- * @author xiexu
+ * @author sxie
  */
 @Data
 @Builder

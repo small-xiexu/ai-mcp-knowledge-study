@@ -3,7 +3,7 @@ package com.xbk.knowledge.infrastructure.dao;
 import com.xbk.knowledge.infrastructure.dao.po.McpToolBindingPO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.xbk.knowledge.domain.gateway.model.entity.McpToolBinding;
-import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.ToolBindingQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.ToolIdQuery;
 import org.apache.ibatis.annotations.Mapper;
@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * 工具绑定关系 Mapper
  *
- * @author xiexu
+ * @author sxie
  */
 @Mapper
 public interface IMcpToolBindingDao extends BaseMapper<McpToolBindingPO> {

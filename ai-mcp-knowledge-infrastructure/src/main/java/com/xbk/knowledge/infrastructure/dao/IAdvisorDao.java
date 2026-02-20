@@ -11,9 +11,9 @@ import java.util.List;
 
 /**
  * Advisor Mapper（通过 XML 承载 SQL）。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Mapper
 public interface IAdvisorDao extends BaseMapper<AdvisorPO> {
 

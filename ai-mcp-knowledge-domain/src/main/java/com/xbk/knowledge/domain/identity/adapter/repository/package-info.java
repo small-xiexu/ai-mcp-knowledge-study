@@ -3,6 +3,6 @@
  *
  * 职责：定义 identity 子域的持久化边界。
  *
- * @author xiexu
+ * @author sxie
  */
 package com.xbk.knowledge.domain.identity.adapter.repository;

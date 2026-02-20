@@ -10,7 +10,7 @@ import java.util.List;
  *
  * 职责：应用层用例接口，用于封装认证与授权查询能力。
  *
- * @author xiexu
+ * @author sxie
  */
 public interface AuthAppService {
 

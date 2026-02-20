@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * WorkflowRunContextRepositoryImpl。
  *
- * @author xiexu
+ * @author sxie
  */
 @Repository
 @RequiredArgsConstructor
@@ -25,21 +25,18 @@ public class WorkflowRunContextRepositoryImpl implements WorkflowRunContextRepos
      * upsert。
      *
      * @param ctx 参数
-     * @return 返回结果
      */
     @Override
-    public WorkflowRunContext upsert(WorkflowRunContext ctx) {
+    public void upsert(WorkflowRunContext ctx) {
         if (ctx == null) {
-            return null;
+            return;
         }
         mapper.upsert(ctx);
-        return ctx;
     }
 
     /**
      * findByRunId。
      *
-     * @param scopeId 参数
      * @param runId 参数
      * @return 返回结果
      */
@@ -54,7 +51,6 @@ public class WorkflowRunContextRepositoryImpl implements WorkflowRunContextRepos
     /**
      * updateStatus。
      *
-     * @param scopeId 参数
      * @param runId 参数
      * @param status 参数
      * @return 返回结果
@@ -70,7 +66,6 @@ public class WorkflowRunContextRepositoryImpl implements WorkflowRunContextRepos
     /**
      * deleteByRunIds。
      *
-     * @param scopeId 参数
      * @param runIds 参数
      * @return 返回结果
      */

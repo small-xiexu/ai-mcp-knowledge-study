@@ -9,12 +9,12 @@ import com.xbk.knowledge.api.dto.metrics.ModelUsageDTO;
 import com.xbk.knowledge.api.dto.metrics.ModelUsageQueryRequest;
 import com.xbk.knowledge.api.dto.metrics.ResponseTimeDTO;
 import com.xbk.knowledge.api.dto.metrics.SuccessRateDTO;
-import com.xbk.knowledge.domain.model.vo.metrics.CallMetrics;
-import com.xbk.knowledge.domain.model.vo.metrics.MetricsQuery;
-import com.xbk.knowledge.domain.model.vo.metrics.ModelUsage;
-import com.xbk.knowledge.domain.model.vo.metrics.ModelUsageQuery;
-import com.xbk.knowledge.domain.model.vo.metrics.ResponseTime;
-import com.xbk.knowledge.domain.model.vo.metrics.SuccessRate;
+import com.xbk.knowledge.domain.metrics.model.valobj.CallMetrics;
+import com.xbk.knowledge.domain.metrics.model.valobj.MetricsQuery;
+import com.xbk.knowledge.domain.metrics.model.valobj.ModelUsage;
+import com.xbk.knowledge.domain.metrics.model.valobj.ModelUsageQuery;
+import com.xbk.knowledge.domain.metrics.model.valobj.ResponseTime;
+import com.xbk.knowledge.domain.metrics.model.valobj.SuccessRate;
 import com.xbk.knowledge.application.service.app.MetricsAppService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,8 +37,8 @@ import java.util.function.ToLongFunction;
  * 负责接收 HTTP 请求，调用应用服务，转换响应
  *
  * 职责：HTTP 接口适配，用于转发应用层能力
- * 
- * @author xiexu
+ *
+ * @author sxie
  */
 @Slf4j
 @Validated

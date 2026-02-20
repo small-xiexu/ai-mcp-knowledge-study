@@ -5,7 +5,7 @@ import lombok.Data;
 /**
  * MCP 工具信息响应
  *
- * @author xiexu
+ * @author sxie
  */
 @Data
 public class McpToolResponse {

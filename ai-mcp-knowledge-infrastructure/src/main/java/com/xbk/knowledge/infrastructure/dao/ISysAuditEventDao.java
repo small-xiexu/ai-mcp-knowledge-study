@@ -2,7 +2,7 @@ package com.xbk.knowledge.infrastructure.dao;
 
 import com.xbk.knowledge.infrastructure.dao.po.SysAuditEventPO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.xbk.knowledge.domain.model.entity.SysAuditEvent;
+import com.xbk.knowledge.domain.audit.model.entity.SysAuditEvent;
 import com.xbk.knowledge.domain.identity.model.valobj.AuditEventPageQuery;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -13,7 +13,7 @@ import java.util.List;
  *
  * 职责：MyBatis Mapper 接口，用于写入 sys_audit_event。
  *
- * @author xiexu
+ * @author sxie
  */
 @Mapper
 public interface ISysAuditEventDao extends BaseMapper<SysAuditEventPO> {

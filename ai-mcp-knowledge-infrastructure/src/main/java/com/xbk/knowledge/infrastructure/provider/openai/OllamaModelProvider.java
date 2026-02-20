@@ -1,7 +1,7 @@
 package com.xbk.knowledge.infrastructure.provider.openai;
 
 import com.xbk.knowledge.application.provider.ModelProvider;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import com.xbk.knowledge.types.enums.ModelType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
  * 封装 Ollama 模型的创建和调用
  *
  * 职责：模型调用实现，用于适配具体厂商 SDK
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Component
@@ -38,7 +38,7 @@ public class OllamaModelProvider implements ModelProvider {
 
             /*
              * 目的：构建 Ollama API 与默认选项
-             */
+ */
             OllamaApi ollamaApi = OllamaApi.builder()
                     .baseUrl(baseUrl)
                     .build();

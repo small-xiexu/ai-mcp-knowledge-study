@@ -18,9 +18,9 @@ import java.util.Locale;
 
 /**
  * Advisor 控制面应用服务实现。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Service
 @RequiredArgsConstructor
 public class AdvisorAppServiceImpl implements AdvisorAppService {

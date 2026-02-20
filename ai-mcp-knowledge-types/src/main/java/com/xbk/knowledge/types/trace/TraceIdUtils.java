@@ -11,8 +11,8 @@ import java.util.UUID;
  * 统一生成与管理 traceId，避免重复实现并保证写回 MDC。
  *
  * 职责：链路追踪工具，用于统一 traceId 处理
- * @author xiexu
  * @since 2026-01-27
+ * @author sxie
  */
 public final class TraceIdUtils {
 

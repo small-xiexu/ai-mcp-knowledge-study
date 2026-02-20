@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
  * 对应数据库表：mcp_tool_registry
  *
  * 职责：领域实体，承载网关中注册的工具元数据与 HTTP 调用配置
- * @author xiexu
+ * @author sxie
  */
 @TableName("mcp_tool_registry")
 @Getter

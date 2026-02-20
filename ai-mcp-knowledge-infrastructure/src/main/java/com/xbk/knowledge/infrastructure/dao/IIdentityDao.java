@@ -19,7 +19,7 @@ import java.util.List;
  *
  * 职责：MyBatis Mapper 接口，用于执行身份域 SQL。
  *
- * @author xiexu
+ * @author sxie
  */
 @Mapper
 public interface IIdentityDao extends BaseMapper<SysUserPO> {

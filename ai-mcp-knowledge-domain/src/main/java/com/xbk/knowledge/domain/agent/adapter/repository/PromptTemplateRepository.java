@@ -9,9 +9,9 @@ import java.util.Optional;
 
 /**
  * PromptTemplate 仓储接口。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 public interface PromptTemplateRepository {
 
     /**

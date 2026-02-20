@@ -14,7 +14,7 @@ import java.util.Map;
  * 模型选择责任链工厂
  * 通过枚举固定顺序组装责任链，链路结构在此集中呈现
  *
- * @author xiexu
+ * @author sxie
  */
 @Component
 public class ModelSelectionChainFactory {

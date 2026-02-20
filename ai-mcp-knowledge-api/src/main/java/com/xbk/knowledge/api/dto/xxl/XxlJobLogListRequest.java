@@ -9,7 +9,7 @@ import lombok.EqualsAndHashCode;
  * 用于按任务与时间范围分页查询日志
  *
  * 职责：接口层 DTO，用于承载请求参数并保证传输边界稳定
- * @author xiexu
+ * @author sxie
  */
 @Data
 @EqualsAndHashCode(callSuper = true)

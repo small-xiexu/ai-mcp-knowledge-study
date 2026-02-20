@@ -6,8 +6,8 @@ import com.xbk.knowledge.types.common.PageResultConverter;
 import com.xbk.knowledge.types.common.Result;
 import com.xbk.knowledge.api.dto.audit.AuditQueryRequest;
 import com.xbk.knowledge.api.dto.audit.AuditResponse;
-import com.xbk.knowledge.domain.model.entity.ConfigAudit;
-import com.xbk.knowledge.domain.model.vo.audit.AuditQuery;
+import com.xbk.knowledge.domain.audit.model.entity.ConfigAudit;
+import com.xbk.knowledge.domain.audit.model.valobj.AuditQuery;
 import com.xbk.knowledge.application.service.app.AuditAppService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +25,7 @@ import java.util.List;
  * 负责接收 HTTP 请求，调用应用服务，转换响应
  *
  * 职责：HTTP 接口适配，用于转发应用层能力
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @RestController
@@ -47,7 +47,7 @@ public class AuditController {
     public Result<PageResult<AuditResponse>> listAudits(@Valid @RequestBody AuditQueryRequest request) {
         /*
          * 目的：将接口层请求转为领域查询对象，避免接口字段直接泄露到领域层
-         */
+ */
         String tableName = request.getTableName();
         int offset = request.getOffset();
         Integer pageSize = request.getPageSize();
@@ -64,7 +64,7 @@ public class AuditController {
 
         /*
          * 目的：统一分页转换逻辑，确保输出与前端协议一致
-         */
+ */
         PageResult<AuditResponse> result = PageResultConverter.convert(pageResult, this::convertToResponse);
 
         return Result.success(result);

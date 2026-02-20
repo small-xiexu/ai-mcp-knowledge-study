@@ -9,7 +9,7 @@ import jakarta.validation.constraints.NotNull;
  * 用于按行拉取执行日志内容
  *
  * 职责：接口层 DTO，用于承载请求参数并保证传输边界稳定
- * @author xiexu
+ * @author sxie
  */
 @Data
 public class XxlJobLogDetailRequest {

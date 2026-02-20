@@ -5,7 +5,7 @@ package com.xbk.knowledge.types.enums;
  * 定义支持的 AI 模型提供商类型
  *
  * 职责：通用枚举，用于统一业务语义
- * @author xiexu
+ * @author sxie
  */
 public enum ModelType {
 

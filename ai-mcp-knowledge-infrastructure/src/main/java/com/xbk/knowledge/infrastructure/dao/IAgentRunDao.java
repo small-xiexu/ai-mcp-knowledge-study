@@ -5,11 +5,13 @@ import com.xbk.knowledge.infrastructure.dao.po.AgentRunPO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.time.LocalDateTime;
+
 /**
  * AgentRun DAO（通过 XML 承载 SQL）。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Mapper
 public interface IAgentRunDao extends BaseMapper<AgentRunPO> {
 
@@ -20,7 +22,7 @@ public interface IAgentRunDao extends BaseMapper<AgentRunPO> {
     int updateStatus(@Param("runId") String runId,
                      @Param("status") String status,
                      @Param("errorMessage") String errorMessage,
-                     @Param("endedAt") java.time.LocalDateTime endedAt);
+                     @Param("endedAt") LocalDateTime endedAt);
 
     AgentRunPO findByRunId(@Param("runId") String runId);
 

@@ -8,13 +8,13 @@ import com.xbk.knowledge.application.service.app.ModelConfigAppService;
 import com.xbk.knowledge.application.context.GatewayToolBindingContextHolder;
 import com.xbk.knowledge.application.service.mcp.McpToolCatalogService;
 import com.xbk.knowledge.application.service.rag.RagVectorStoreService;
-import com.xbk.knowledge.domain.model.aggregate.call.CallLogAggregate;
-import com.xbk.knowledge.domain.model.entity.CallLog;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
-import com.xbk.knowledge.domain.model.entity.ChatSession;
-import com.xbk.knowledge.domain.model.adapter.repository.metrics.CallLogRepository;
-import com.xbk.knowledge.domain.model.adapter.repository.chat.ChatSessionRepository;
-import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.metrics.model.aggregate.CallLogAggregate;
+import com.xbk.knowledge.domain.metrics.model.entity.CallLog;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.chat.model.entity.ChatSession;
+import com.xbk.knowledge.domain.metrics.adapter.repository.CallLogRepository;
+import com.xbk.knowledge.domain.chat.adapter.repository.ChatSessionRepository;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.types.enums.CallStatus;
 import com.xbk.knowledge.types.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
@@ -46,7 +46,7 @@ import java.time.LocalDateTime;
  * 支持同步与流式对话，并兼容 RAG
  *
  * 职责：应用层用例实现，用于协调领域能力
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Service
@@ -79,7 +79,7 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         long startTime = System.currentTimeMillis();
         /*
          * 目的：统一模型、工具、提示词准备流程
-         */
+ */
         ModelConfig modelConfig = resolveChatModel(command);
         boolean toolEnabled = resolveToolEnabled(modelConfig);
         Prompt prompt = buildPrompt(command, toolEnabled);
@@ -98,7 +98,7 @@ public class AiChatAppServiceImpl implements AiChatAppService {
 
             /*
              * 目的：保存对话记忆，支持多轮上下文
-             */
+ */
             appendChatMemory(conversationId, command.getContent(), content);
             CallLogAggregate aggregate = CallLogAggregate.builder()
                     .callLog(fillSuccessLog(callLog, content, tokensUsed, responseTime))
@@ -138,7 +138,7 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         long startTime = System.currentTimeMillis();
         /*
          * 目的：统一模型、工具、提示词准备流程
-         */
+ */
         ModelConfig modelConfig = resolveChatModel(command);
         boolean toolEnabled = resolveToolEnabled(modelConfig);
         Prompt prompt = buildPrompt(command, toolEnabled);
@@ -168,7 +168,7 @@ public class AiChatAppServiceImpl implements AiChatAppService {
                         Integer tokensUsed = usageStats.getTotalTokens();
                         /*
                          * 目的：流式完成后统一落库与记忆追加
-                         */
+ */
                         appendChatMemory(conversationId, command.getContent(), assistantBuffer.toString());
                         CallLogAggregate aggregate = CallLogAggregate.builder()
                                 .callLog(fillSuccessLog(callLog, null, tokensUsed, responseTime))
@@ -220,7 +220,7 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         if (requestModelId == null) {
             /*
              * 目的：会话已绑定模型时，强制使用会话模型
-             */
+ */
             command.setModelId(sessionModelId);
         }
     }
@@ -297,7 +297,7 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         }
         /*
          * 目的：将检索到的文档注入系统提示，增强回答依据
-         */
+ */
         String documentText = documents.stream()
                 .map(Document::getText)
                 .collect(Collectors.joining("\n"));

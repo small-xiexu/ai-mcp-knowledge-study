@@ -16,7 +16,7 @@ import java.util.Map;
  * 职责：接收 JSON-RPC 消息，根据 method 字段分发到对应的 Handler 处理
  * 支持的消息类型：Request（需要响应）、Notification（仅记录）、Response（忽略）
  *
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Service

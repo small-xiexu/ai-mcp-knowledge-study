@@ -1,8 +1,8 @@
 package com.xbk.knowledge.application.service.app;
 
 import com.xbk.knowledge.domain.mcp.model.entity.McpServerConfig;
-import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
-import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.common.model.valobj.EnabledQuery;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.mcp.model.valobj.McpServerConfigPageQuery;
 import com.xbk.knowledge.types.common.PageResult;
 
@@ -13,7 +13,7 @@ import java.util.List;
  * 负责 MCP Server 配置相关用例编排
  *
  * 职责：应用层用例接口，用于封装调用入口
- * @author xiexu
+ * @author sxie
  */
 public interface McpServerConfigAppService {
 

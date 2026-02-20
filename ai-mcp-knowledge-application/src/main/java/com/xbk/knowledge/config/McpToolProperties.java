@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
  * MCP 工具配置
  * 控制工具清单缓存刷新策略
  *
- * @author xiexu
+ * @author sxie
  */
 @Data
 @Component

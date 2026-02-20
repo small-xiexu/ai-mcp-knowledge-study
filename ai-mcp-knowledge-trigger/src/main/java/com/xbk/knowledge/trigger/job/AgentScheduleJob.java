@@ -29,7 +29,7 @@ import java.util.Map;
  * - 执行时必须取当前发布版本（由 AgentRuntimeAppService.runJob 保证）
  * - 若触发审批（PENDING_APPROVAL），按口径视为“Job 成功”（2A），并打印 approvalRequestId 供人工处理
  *
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Component

@@ -1,6 +1,6 @@
 /**
  * 知识库/RAG 接口 DTO
  *
- * @author xiexu
+ * @author sxie
  */
 package com.xbk.knowledge.api.dto.rag;

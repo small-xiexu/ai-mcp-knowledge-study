@@ -3,6 +3,6 @@
  *
  * 职责：定义审计日志查询与聚合相关领域能力。
  *
- * @author xiexu
+ * @author sxie
  */
 package com.xbk.knowledge.domain.service.audit;

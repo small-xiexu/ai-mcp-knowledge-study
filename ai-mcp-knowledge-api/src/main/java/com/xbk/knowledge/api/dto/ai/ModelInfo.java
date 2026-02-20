@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
  * 用于返回模型的基本信息和能力
  *
  * 职责：接口层 DTO，用于承载请求/响应参数并保证传输边界稳定
- * @author xiexu
+ * @author sxie
  */
 @Data
 @Builder

@@ -3,6 +3,6 @@
  *
  * 职责：封装 tool 子域查询条件与返回结构。
  *
- * @author xiexu
+ * @author sxie
  */
 package com.xbk.knowledge.domain.tool.model.valobj;

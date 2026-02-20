@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
  * RAG 相关配置
  *
  * 职责：提供知识库处理所需的基础组件
- * @author xiexu
+ * @author sxie
  */
 @Configuration
 public class RagConfig {

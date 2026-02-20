@@ -7,9 +7,9 @@ import com.xbk.knowledge.types.common.PageResult;
 
 /**
  * AgentVersion 领域服务接口。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 public interface IAgentVersionService {
 
     PageResult<AgentVersion> queryPage(AgentVersionPageQuery query);

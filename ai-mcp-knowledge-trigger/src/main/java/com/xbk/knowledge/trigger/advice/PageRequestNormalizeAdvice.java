@@ -15,7 +15,7 @@ import java.lang.reflect.Type;
  * 在反序列化完成后自动修正分页参数
  *
  * 职责：接口适配增强，用于统一请求参数修正
- * @author xiexu
+ * @author sxie
  */
 @RestControllerAdvice
 public class PageRequestNormalizeAdvice implements RequestBodyAdvice {

@@ -5,7 +5,7 @@ package com.xbk.knowledge.types.enums;
  * 定义不同的模型选择策略
  *
  * 职责：通用枚举，用于统一业务语义
- * @author xiexu
+ * @author sxie
  */
 public enum ModelSelectionStrategy {
 

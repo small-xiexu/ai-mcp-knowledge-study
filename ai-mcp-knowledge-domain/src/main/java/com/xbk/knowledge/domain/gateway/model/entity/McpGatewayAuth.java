@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
  * 对应数据库表：mcp_gateway_auth
  *
  * 职责：领域实体，承载网关的 API 鉴权凭证与限流策略
- * @author xiexu
+ * @author sxie
  */
 @TableName("mcp_gateway_auth")
 @Getter

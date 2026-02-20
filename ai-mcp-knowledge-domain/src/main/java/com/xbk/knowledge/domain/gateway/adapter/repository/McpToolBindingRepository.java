@@ -9,7 +9,7 @@ import java.util.List;
  * 工具绑定关系仓储接口
  *
  * 职责：定义工具绑定关系的持久化操作契约
- * @author xiexu
+ * @author sxie
  */
 public interface McpToolBindingRepository {
 

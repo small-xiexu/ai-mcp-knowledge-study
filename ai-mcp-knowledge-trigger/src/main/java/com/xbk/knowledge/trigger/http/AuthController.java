@@ -24,7 +24,7 @@ import jakarta.validation.Valid;
  *
  * 职责：触发层接口适配，用于提供登录态相关能力。
  *
- * @author xiexu
+ * @author sxie
  */
 @RestController
 @RequestMapping("/api/auth")

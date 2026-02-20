@@ -1,6 +1,6 @@
 package com.xbk.knowledge.application.service.app;
 
-import com.xbk.knowledge.domain.model.entity.RagTask;
+import com.xbk.knowledge.domain.rag.model.entity.RagTask;
 import com.xbk.knowledge.types.common.PageResult;
 
 import org.springframework.web.multipart.MultipartFile;
@@ -12,7 +12,7 @@ import java.util.List;
  * 负责知识库管理与任务编排
  *
  * 职责：应用层用例接口，用于封装调用入口
- * @author xiexu
+ * @author sxie
  */
 public interface RagAppService {
 

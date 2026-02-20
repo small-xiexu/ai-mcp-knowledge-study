@@ -1,9 +1,9 @@
 package com.xbk.knowledge.application.service.app.impl;
 
 import com.xbk.knowledge.application.service.app.AuditEventAppService;
-import com.xbk.knowledge.domain.model.entity.SysAuditEvent;
+import com.xbk.knowledge.domain.audit.model.entity.SysAuditEvent;
 import com.xbk.knowledge.domain.identity.model.valobj.AuditEventPageQuery;
-import com.xbk.knowledge.domain.model.adapter.repository.audit.SysAuditEventRepository;
+import com.xbk.knowledge.domain.audit.adapter.repository.SysAuditEventRepository;
 import com.xbk.knowledge.types.common.PageResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,7 +15,7 @@ import java.util.List;
  *
  * 职责：应用层用例实现，用于编排审计查询流程。
  *
- * @author xiexu
+ * @author sxie
  */
 @Service
 @RequiredArgsConstructor

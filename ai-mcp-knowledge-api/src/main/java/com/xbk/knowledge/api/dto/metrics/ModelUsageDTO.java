@@ -12,7 +12,7 @@ import java.io.Serializable;
  * 用于按模型维度展示调用分布，便于资源规划
  *
  * 职责：接口层 DTO，用于承载请求/响应参数并保证传输边界稳定
- * @author xiexu
+ * @author sxie
  */
 @Data
 @Builder

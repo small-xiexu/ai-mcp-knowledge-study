@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 /**
  * AgentVersion 持久化对象。
  *
- * @author xiexu
+ * @author sxie
  */
 @TableName("agent_version")
 @Getter

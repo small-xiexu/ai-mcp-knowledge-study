@@ -1,6 +1,6 @@
 package com.xbk.knowledge.application.service.app;
 
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.api.CallAdvisor;
 
@@ -9,7 +9,7 @@ import org.springframework.ai.chat.client.advisor.api.CallAdvisor;
  * 统一模型选择与 ChatClient 构建
  *
  * 职责：应用服务接口，用于复用模型组装逻辑
- * @author xiexu
+ * @author sxie
  */
 public interface ChatClientAssemblyService {
 

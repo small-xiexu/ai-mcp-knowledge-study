@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
  * XXL-Job 执行器配置
  *
  * 职责：配置 XXL-Job 执行器，注册到调度中心
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Configuration

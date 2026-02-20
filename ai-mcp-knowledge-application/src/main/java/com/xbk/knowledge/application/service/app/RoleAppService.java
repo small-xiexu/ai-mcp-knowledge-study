@@ -11,7 +11,7 @@ import java.util.List;
  *
  * 职责：应用层用例接口，用于封装角色管理能力。
  *
- * @author xiexu
+ * @author sxie
  */
 public interface RoleAppService {
 

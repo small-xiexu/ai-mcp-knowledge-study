@@ -2,7 +2,7 @@ package com.xbk.knowledge.infrastructure.provider.openai;
 
 import com.xbk.knowledge.infrastructure.protocol.AbstractOpenAiProtocolAdapter;
 import com.xbk.knowledge.application.provider.ModelProvider;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import com.xbk.knowledge.types.enums.ModelType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
  * 使用 OpenAI 兼容协议调用 DeepSeek
  *
  * 职责：模型调用实现，用于适配具体厂商 SDK
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Component

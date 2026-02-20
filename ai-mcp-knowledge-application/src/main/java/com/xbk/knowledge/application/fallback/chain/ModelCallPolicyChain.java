@@ -8,7 +8,7 @@ import com.xbk.knowledge.application.fallback.policy.ModelCallPolicy;
  *
  * 设计模式：责任链调度器
  * 职责：应用层流程组件，用于串联调用策略
- * @author xiexu
+ * @author sxie
  */
 public interface ModelCallPolicyChain {
 

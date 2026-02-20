@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 /**
  * 审批单响应 DTO。
  *
- * @author xiexu
+ * @author sxie
  */
 @Data
 @Builder

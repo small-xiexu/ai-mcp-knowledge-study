@@ -3,6 +3,6 @@
  *
  * 职责：定义持久化访问接口，并与 XML namespace 绑定。
  *
- * @author xiexu
+ * @author sxie
  */
 package com.xbk.knowledge.infrastructure.dao;

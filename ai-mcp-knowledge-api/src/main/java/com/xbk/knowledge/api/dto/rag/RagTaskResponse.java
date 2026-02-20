@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
  * RAG 任务响应 DTO
  *
  * 职责：接口层 DTO，用于承载响应参数并保证传输边界稳定
- * @author xiexu
+ * @author sxie
  */
 @Getter
 @Setter

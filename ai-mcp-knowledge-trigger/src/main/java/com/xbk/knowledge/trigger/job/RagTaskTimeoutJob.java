@@ -1,7 +1,7 @@
 package com.xbk.knowledge.trigger.job;
 
-import com.xbk.knowledge.domain.model.entity.RagTask;
-import com.xbk.knowledge.domain.model.adapter.repository.rag.RagTaskRepository;
+import com.xbk.knowledge.domain.rag.model.entity.RagTask;
+import com.xbk.knowledge.domain.rag.adapter.repository.RagTaskRepository;
 import com.xbk.knowledge.types.enums.RagTaskStatus;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +16,7 @@ import java.util.List;
  * 每小时检查并标记超时任务
  *
  * 职责：定时任务入口，用于处理长时间处于 PROCESSING 状态的任务
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Component

@@ -2,7 +2,7 @@ package com.xbk.knowledge.application.fallback.executor;
 
 import com.xbk.knowledge.application.model.dto.AICallCommand;
 import com.xbk.knowledge.application.model.dto.AICallResult;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 
 import java.util.List;
 
@@ -12,7 +12,7 @@ import java.util.List;
  *
  * 设计模式：模板方法（Template Method）入口
  * 职责：应用层执行接口，用于隐藏流程细节
- * @author xiexu
+ * @author sxie
  */
 public interface FailoverExecutor {
 

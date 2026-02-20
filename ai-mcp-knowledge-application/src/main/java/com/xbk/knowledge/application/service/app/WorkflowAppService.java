@@ -10,9 +10,9 @@ import java.util.List;
 
 /**
  * Workflow 控制面应用服务。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 public interface WorkflowAppService {
 
     PageResult<Workflow> list(String keyword, int offset, int pageSize);

@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
  *
  * 职责：领域实体，用于承载角色信息。
  *
- * @author xiexu
+ * @author sxie
  */
 @TableName("sys_role")
 @Getter

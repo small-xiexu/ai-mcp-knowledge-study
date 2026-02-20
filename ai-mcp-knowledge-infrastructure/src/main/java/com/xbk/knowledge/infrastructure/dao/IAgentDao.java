@@ -10,9 +10,9 @@ import java.util.List;
 
 /**
  * Agent DAO（通过 XML 承载 SQL）。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Mapper
 public interface IAgentDao extends BaseMapper<AgentPO> {
 

@@ -1,6 +1,6 @@
 package com.xbk.knowledge.infrastructure.protocol;
 
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.openai.OpenAiChatModel;
@@ -13,7 +13,7 @@ import org.springframework.ai.openai.api.OpenAiApi;
  *
  * 职责：协议层构建 ChatModel，供具体协议实现复用
  *
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 public abstract class AbstractOpenAiProtocolAdapter {
@@ -28,7 +28,7 @@ public abstract class AbstractOpenAiProtocolAdapter {
     public ChatModel createChatModel(ModelConfig config) {
         /*
          * 目的：规范化 baseUrl，避免路径重复
-         */
+ */
         String baseUrl = config.getBaseUrl();
         String normalizedBaseUrl = normalizeBaseUrl(baseUrl);
 
@@ -78,7 +78,7 @@ public abstract class AbstractOpenAiProtocolAdapter {
 
         /*
          * 目的：兜底处理多余的 /v1 段，避免形成 /v1/v1/chat/completions
-         */
+ */
         while (normalized.contains("/v1/v1")) {
             normalized = normalized.replace("/v1/v1", "/v1");
         }

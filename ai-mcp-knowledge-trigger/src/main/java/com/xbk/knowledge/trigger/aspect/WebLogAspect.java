@@ -16,6 +16,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.Collector;
@@ -34,7 +35,7 @@ import java.util.function.Predicate;
  *
  * 职责：接口层横切逻辑，用于统一日志与追踪
  *
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Aspect
@@ -70,7 +71,7 @@ public class WebLogAspect {
         String traceId = TraceIdUtils.getOrCreateTraceId();
         /*
          * 目的：将 traceId 写入日志上下文，便于日志平台串联请求
-         */
+ */
         RequestContext requestContext = buildRequestContext(joinPoint, request, traceId);
 
         Object result = null;
@@ -175,7 +176,7 @@ public class WebLogAspect {
         String params = Arrays.stream(args)
                 .filter(Objects::nonNull)
                 .filter(arg -> !(arg instanceof HttpServletRequest))
-                .filter(arg -> !(arg instanceof jakarta.servlet.http.HttpServletResponse))
+                .filter(arg -> !(arg instanceof HttpServletResponse))
                 .map(jsonMapper)
                 .collect(Collectors.joining(","));
 
@@ -273,9 +274,9 @@ public class WebLogAspect {
      * 请求日志上下文
      * 仅保留日志必要字段，避免持有完整请求对象导致内存占用与序列化风险
      *
-     * @author xiexu
+     * @author sxie
      */
-    private static class RequestContext {
+      private static class RequestContext {
         
         private final String traceId;
         private final String controller;
@@ -299,9 +300,9 @@ public class WebLogAspect {
      * 截断响应包装
      * 通过结构化包装保持 JSON 合法性，便于日志平台稳定解析
      *
-     * @author xiexu
+     * @author sxie
      */
-    @Getter
+      @Getter
     private static class TruncatedPayload {
         
         private final boolean truncated;

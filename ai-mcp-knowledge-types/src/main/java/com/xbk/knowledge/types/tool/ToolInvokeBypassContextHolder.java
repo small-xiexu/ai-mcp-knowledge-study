@@ -8,7 +8,7 @@ package com.xbk.knowledge.types.tool;
  *
  * 约束：仅在极少数平台内部流程中使用，必须成对 set/clear，避免线程复用污染。
  *
- * @author xiexu
+ * @author sxie
  */
 public final class ToolInvokeBypassContextHolder {
 

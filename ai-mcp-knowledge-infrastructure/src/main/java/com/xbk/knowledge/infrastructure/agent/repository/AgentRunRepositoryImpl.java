@@ -12,9 +12,9 @@ import java.util.Optional;
 
 /**
  * AgentRun 仓储实现。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Repository
 @RequiredArgsConstructor
 public class AgentRunRepositoryImpl implements AgentRunRepository {
@@ -25,41 +25,37 @@ public class AgentRunRepositoryImpl implements AgentRunRepository {
      * insert。
      *
      * @param run 参数
-     * @return 返回结果
      */
     @Override
-    public AgentRun insert(AgentRun run) {
+    public void insert(AgentRun run) {
         if (run == null) {
-            return null;
+            return;
         }
         if (run.getStartedAt() == null) {
             run.setStartedAt(LocalDateTime.now());
         }
         agentRunDao.insertRun(toPO(run));
-        return run;
     }
 
     /**
      * updateStatusAndMetrics。
      *
      * @param run 参数
-     * @return 返回结果
      */
     @Override
-    public int updateStatusAndMetrics(AgentRun run) {
+    public void updateStatusAndMetrics(AgentRun run) {
         if (run == null || run.getRunId() == null) {
-            return 0;
+            return;
         }
         if (run.getEndedAt() == null) {
             run.setEndedAt(LocalDateTime.now());
         }
-        return agentRunDao.updateStatusAndMetrics(toPO(run));
+        agentRunDao.updateStatusAndMetrics(toPO(run));
     }
 
     /**
      * findByRunId。
      *
-     * @param scopeId 参数
      * @param runId 参数
      * @return 返回结果
      */
@@ -74,7 +70,6 @@ public class AgentRunRepositoryImpl implements AgentRunRepository {
     /**
      * updateStatus。
      *
-     * @param scopeId 参数
      * @param runId 参数
      * @param status 参数
      * @param errorMessage 参数
@@ -93,12 +88,11 @@ public class AgentRunRepositoryImpl implements AgentRunRepository {
      * incrementToolCallCount。
      *
      * @param runId 参数
-     * @param scopeId 参数
      * @param delta 参数
      * @return 返回结果
      */
     @Override
-    public int incrementToolCallCount(String runId,  int delta) {
+    public int incrementToolCallCount(String runId, int delta) {
         if (runId == null || delta == 0) {
             return 0;
         }
@@ -109,12 +103,11 @@ public class AgentRunRepositoryImpl implements AgentRunRepository {
      * incrementToolDeniedCount。
      *
      * @param runId 参数
-     * @param scopeId 参数
      * @param delta 参数
      * @return 返回结果
      */
     @Override
-    public int incrementToolDeniedCount(String runId,  int delta) {
+    public int incrementToolDeniedCount(String runId, int delta) {
         if (runId == null || delta == 0) {
             return 0;
         }

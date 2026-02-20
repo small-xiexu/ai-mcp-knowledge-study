@@ -6,9 +6,9 @@ import lombok.EqualsAndHashCode;
 
 /**
  * Agent 列表查询请求。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class AgentQueryRequest extends PageRequest {

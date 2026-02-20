@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * ApprovalRequest Mapper（通过 XML 承载 SQL）。
  *
- * @author xiexu
+ * @author sxie
  */
 @Mapper
 public interface IApprovalRequestDao extends BaseMapper<ApprovalRequestPO> {

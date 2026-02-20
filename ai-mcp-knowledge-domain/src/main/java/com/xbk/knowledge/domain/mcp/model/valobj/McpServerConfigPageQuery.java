@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 /**
  * MCP Server 配置分页查询条件值对象。
  *
- * @author xiexu
+ * @author sxie
  */
 @Data
 @NoArgsConstructor

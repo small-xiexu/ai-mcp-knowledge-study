@@ -8,7 +8,7 @@ import com.xbk.knowledge.trigger.gateway.model.McpSchemaVO;
  * 职责：定义 MCP 协议请求的统一处理契约，每种 method（initialize/tools/list/tools/call）
  * 对应一个实现类
  *
- * @author xiexu
+ * @author sxie
  */
 public interface IRequestHandler {
 

@@ -8,9 +8,9 @@ import com.xbk.knowledge.types.common.PageResult;
  * Advisor 控制面应用服务。
  *
  * 职责：提供 Advisor 资产管理（CRUD、启停、分页）。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 public interface AdvisorAppService {
 
     PageResult<Advisor> queryPage(AdvisorPageQuery query);

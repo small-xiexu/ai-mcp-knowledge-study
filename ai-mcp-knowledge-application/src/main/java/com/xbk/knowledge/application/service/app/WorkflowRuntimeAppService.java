@@ -9,9 +9,9 @@ import java.util.List;
 
 /**
  * Workflow 运行面应用服务。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 public interface WorkflowRuntimeAppService {
 
     PlatformContractV1 run(String workflowCode,
@@ -27,7 +27,7 @@ public interface WorkflowRuntimeAppService {
 
     WorkflowRun getRun(String runId);
 
-    PageResult<com.xbk.knowledge.domain.workflow.model.entity.WorkflowRun> listRuns(String status, int offset, int pageSize);
+    PageResult<WorkflowRun> listRuns(String status, int offset, int pageSize);
 
     List<WorkflowNodeRun> listNodeRuns(String runId);
 }

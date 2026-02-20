@@ -4,7 +4,7 @@ import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.xbk.knowledge.api.dto.audit.AuditEventQueryRequest;
 import com.xbk.knowledge.api.dto.audit.AuditEventResponse;
 import com.xbk.knowledge.application.service.app.AuditEventAppService;
-import com.xbk.knowledge.domain.model.entity.SysAuditEvent;
+import com.xbk.knowledge.domain.audit.model.entity.SysAuditEvent;
 import com.xbk.knowledge.domain.identity.model.valobj.AuditEventPageQuery;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.common.PageResultConverter;
@@ -22,7 +22,7 @@ import jakarta.validation.Valid;
  *
  * 职责：触发层接口适配，用于提供审计事件查询能力。
  *
- * @author xiexu
+ * @author sxie
  */
 @RestController
 @RequestMapping("/api/audit/events")

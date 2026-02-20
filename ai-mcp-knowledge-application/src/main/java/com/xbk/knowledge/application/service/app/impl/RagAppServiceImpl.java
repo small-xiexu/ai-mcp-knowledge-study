@@ -5,9 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xbk.knowledge.application.service.app.RagAppService;
 import com.xbk.knowledge.application.service.rag.RagTaskProcessor;
 import com.xbk.knowledge.application.service.rag.RagVectorStoreService;
-import com.xbk.knowledge.domain.model.entity.RagTask;
-import com.xbk.knowledge.domain.model.vo.rag.FileProcessError;
-import com.xbk.knowledge.domain.model.adapter.repository.rag.RagTaskRepository;
+import com.xbk.knowledge.domain.rag.model.entity.RagTask;
+import com.xbk.knowledge.domain.rag.model.valobj.FileProcessError;
+import com.xbk.knowledge.domain.rag.adapter.repository.RagTaskRepository;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.enums.RagTaskStatus;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
  * 负责知识库管理与任务编排
  *
  * 职责：应用层用例实现，用于协调领域能力
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Service
@@ -103,7 +103,7 @@ public class RagAppServiceImpl implements RagAppService {
         }
         /*
          * 目的：过滤空文件，避免后续处理异常
-         */
+ */
         List<MultipartFile> validFiles = files.stream()
                 .filter(file -> file != null && !file.isEmpty())
                 .collect(Collectors.toList());
@@ -113,7 +113,7 @@ public class RagAppServiceImpl implements RagAppService {
 
         /*
          * 目的：提前校验大小与格式，避免进入解析阶段后再失败
-         */
+ */
         for (MultipartFile file : validFiles) {
             String originalName = file.getOriginalFilename();
             if (file.getSize() > MAX_FILE_SIZE_BYTES) {
@@ -136,7 +136,7 @@ public class RagAppServiceImpl implements RagAppService {
                 }
                 /*
                  * 目的：切分文档并添加标签元数据，以便检索时聚合
-                 */
+ */
                 List<Document> splitDocuments = tokenTextSplitter.apply(documents);
                 documents.forEach(doc -> doc.getMetadata().put("knowledge", ragTag));
                 splitDocuments.forEach(doc -> doc.getMetadata().put("knowledge", ragTag));
@@ -173,7 +173,7 @@ public class RagAppServiceImpl implements RagAppService {
 
         /*
          * 目的：过滤空文件，避免后续处理异常
-         */
+ */
         List<MultipartFile> validFiles = files.stream()
                 .filter(file -> file != null && !file.isEmpty())
                 .collect(Collectors.toList());
@@ -184,7 +184,7 @@ public class RagAppServiceImpl implements RagAppService {
 
         /*
          * 目的：提前校验大小与格式，避免进入异步任务后失败
-         */
+ */
         for (MultipartFile file : validFiles) {
             String originalName = file.getOriginalFilename();
             if (file.getSize() > MAX_FILE_SIZE_BYTES) {
@@ -197,7 +197,7 @@ public class RagAppServiceImpl implements RagAppService {
 
         /*
          * 目的：落库任务用于进度跟踪与重试
-         */
+ */
         String taskId = UUID.randomUUID().toString();
         RagTask task = RagTask.builder()
                 .taskId(taskId)
@@ -211,7 +211,7 @@ public class RagAppServiceImpl implements RagAppService {
 
         /*
          * 目的：交由任务处理器异步执行，避免阻塞请求线程
-         */
+ */
         ragTaskProcessor.processFilesAsync(taskId, ragTag, validFiles);
 
         log.info("文件上传任务已创建，taskId: {}, 文件数: {}", taskId, validFiles.size());
@@ -233,7 +233,7 @@ public class RagAppServiceImpl implements RagAppService {
 
         /*
          * 目的：落库任务用于进度跟踪与状态展示
-         */
+ */
         RagTask task = RagTask.builder()
                 .taskId(taskId)
                 .type("GIT")
@@ -246,7 +246,7 @@ public class RagAppServiceImpl implements RagAppService {
 
         /*
          * 目的：交由任务处理器异步执行，避免阻塞请求线程
-         */
+ */
         ragTaskProcessor.processGitRepository(taskId, repoUrl, userName, token, resolvedTag);
         return taskId;
     }
@@ -279,7 +279,7 @@ public class RagAppServiceImpl implements RagAppService {
         }
         /*
          * 目的：更新任务状态并清理进度信息
-         */
+ */
         task.setStatus(RagTaskStatus.CANCELLED);
         task.setProgress(0);
         task.setMessage("任务已取消");
@@ -300,7 +300,7 @@ public class RagAppServiceImpl implements RagAppService {
         long total = ragTaskRepository.countAll();
         /*
          * 目的：修正分页参数，避免非法值导致异常
-         */
+ */
         int safePageSize = pageSize > 0 ? pageSize : 10;
         int safeOffset = Math.max(offset, 0);
         int pageNum = safeOffset / safePageSize + 1;
@@ -324,7 +324,7 @@ public class RagAppServiceImpl implements RagAppService {
 
         /*
          * 目的：限制可重试状态，避免错误重试
-         */
+ */
         if (task.getStatus() != RagTaskStatus.FAILED &&
                 task.getStatus() != RagTaskStatus.COMPLETED) {
             throw new IllegalStateException("只有失败或部分成功的任务才能重试");
@@ -332,7 +332,7 @@ public class RagAppServiceImpl implements RagAppService {
 
         /*
          * 目的：基于失败详情重试，避免盲目重复处理
-         */
+ */
         String errorDetails = task.getErrorDetails();
         if (!StringUtils.hasText(errorDetails)) {
             throw new IllegalStateException("任务没有失败详情，无法重试");
@@ -352,7 +352,7 @@ public class RagAppServiceImpl implements RagAppService {
 
         /*
          * 目的：创建新的任务记录，保留重试链路
-         */
+ */
         String newTaskId = UUID.randomUUID().toString();
         int newRetryCount = (task.getRetryCount() == null ? 0 : task.getRetryCount()) + 1;
 
@@ -373,7 +373,7 @@ public class RagAppServiceImpl implements RagAppService {
 
         /*
          * 约束：目前只创建任务记录，实际重试由外部机制触发
-         */
+ */
         return newTaskId;
     }
 

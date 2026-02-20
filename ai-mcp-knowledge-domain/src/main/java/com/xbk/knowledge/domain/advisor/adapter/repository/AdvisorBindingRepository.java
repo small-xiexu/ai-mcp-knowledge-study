@@ -12,9 +12,9 @@ import java.util.List;
  * 职责：
  * - 按 bindType/bindTargetId 管理 advisor 绑定与排序
  * - 提供运行时装配需要的 join 视图查询
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 public interface AdvisorBindingRepository {
 
     /**

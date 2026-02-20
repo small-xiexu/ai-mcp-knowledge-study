@@ -17,9 +17,9 @@ import java.time.LocalDateTime;
  * Workflow 运行上下文快照（用于审批后续跑）。
  *
  * 对应表：workflow_run_context
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @TableName("workflow_run_context")
 @Getter
 @Setter

@@ -1,6 +1,6 @@
 /**
  * 时间与耗时工具类型
  *
- * @author xiexu
+ * @author sxie
  */
 package com.xbk.knowledge.types.time;

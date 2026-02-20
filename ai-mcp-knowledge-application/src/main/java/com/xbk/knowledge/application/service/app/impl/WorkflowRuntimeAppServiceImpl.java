@@ -9,7 +9,7 @@ import com.xbk.knowledge.application.service.app.WorkflowRuntimeAppService;
 import com.xbk.knowledge.application.service.runtime.AdvisorRuntimeService;
 import com.xbk.knowledge.application.support.contract.PlatformContractV1OutputSupport;
 import com.xbk.knowledge.application.service.rag.RagVectorStoreService;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.approval.model.entity.ApprovalRequest;
 import com.xbk.knowledge.domain.workflow.model.entity.Workflow;
 import com.xbk.knowledge.domain.workflow.model.entity.WorkflowEdge;
@@ -18,8 +18,8 @@ import com.xbk.knowledge.domain.workflow.model.entity.WorkflowNodeRun;
 import com.xbk.knowledge.domain.workflow.model.entity.WorkflowRun;
 import com.xbk.knowledge.domain.workflow.model.entity.WorkflowRunContext;
 import com.xbk.knowledge.domain.workflow.model.entity.WorkflowVersion;
-import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
-import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.common.model.valobj.EnabledQuery;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.workflow.model.valobj.WorkflowCodeQuery;
 import com.xbk.knowledge.domain.workflow.model.valobj.WorkflowGraphQuery;
 import com.xbk.knowledge.domain.workflow.model.valobj.WorkflowVersionIdQuery;
@@ -36,15 +36,19 @@ import com.xbk.knowledge.types.contract.PlatformContractV1;
 import com.xbk.knowledge.types.exception.ApprovalRequiredException;
 import com.xbk.knowledge.types.exception.BusinessException;
 import com.xbk.knowledge.types.exception.NotFoundException;
+import com.xbk.knowledge.types.tool.ToolKeyAware;
 import com.xbk.knowledge.types.tool.ToolInvokeBypassContextHolder;
 import com.xbk.knowledge.types.trace.TraceIdUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.api.CallAdvisor;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.metadata.Usage;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.tool.ToolCallback;
@@ -56,9 +60,11 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -68,9 +74,9 @@ import java.util.Set;
 
 /**
  * Workflow 运行面应用服务实现（DAG：当前实现为“可达节点的拓扑就绪队列”，并支持条件边）。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -412,8 +418,8 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
                                                 List<WorkflowNodeRun> nodeRuns,
                                                 String startFromNodeKey,
                                                 String approvedToolResult) {
-        org.springframework.ai.chat.client.advisor.api.CallAdvisor[] workflowAdvisors = version == null || version.getId() == null
-                ? new org.springframework.ai.chat.client.advisor.api.CallAdvisor[0]
+        CallAdvisor[] workflowAdvisors = version == null || version.getId() == null
+                ? new CallAdvisor[0]
                 : advisorRuntimeService.resolveForWorkflowVersion(version.getId(), runId, sessionId);
 
         Map<String, WorkflowNode> nodeMap = new HashMap<>();
@@ -445,8 +451,8 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
         }
 
         // 可达就绪队列：通过“激活边”累计 expectedPred，避免 join 被未激活分支卡住
-        Set<String> completed = new java.util.HashSet<>();
-        Set<String> reached = new java.util.HashSet<>();
+        Set<String> completed = new HashSet<>();
+        Set<String> reached = new HashSet<>();
         Map<String, Integer> expectedPred = new HashMap<>();
         Map<String, Integer> completedPred = new HashMap<>();
         Deque<String> ready = new ArrayDeque<>();
@@ -588,7 +594,7 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
                                   String content,
                                   Map<String, Object> variables,
                                   Map<String, Object> stepOutputs,
-                                  org.springframework.ai.chat.client.advisor.api.CallAdvisor[] workflowAdvisors,
+                                  CallAdvisor[] workflowAdvisors,
                                   String approvedToolResult) {
         String type = node.getNodeType() == null ? "" : node.getNodeType().toUpperCase(Locale.ROOT);
         long start = System.currentTimeMillis();
@@ -691,7 +697,7 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
                 systemMessages.add(new SystemMessage("已执行并通过审批的工具调用结果如下（仅供继续推理，不再触发工具调用）:\n" + truncate(approvedToolResult, 8000)));
             }
 
-            List<org.springframework.ai.chat.messages.Message> messages = new ArrayList<>();
+            List<Message> messages = new ArrayList<>();
             messages.addAll(systemMessages);
             messages.add(new UserMessage(user));
             Prompt prompt = new Prompt(messages);
@@ -739,7 +745,7 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
             return;
         }
         try {
-            org.springframework.ai.chat.metadata.Usage u = resp.getMetadata().getUsage();
+            Usage u = resp.getMetadata().getUsage();
             if (u == null) {
                 return;
             }
@@ -843,13 +849,13 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
 
     private ChatClient buildChatClient(ModelConfig model,
                                        Map<String, Object> cfg,
-                                       org.springframework.ai.chat.client.advisor.api.CallAdvisor[] workflowAdvisors) {
+                                       CallAdvisor[] workflowAdvisors) {
         if (model == null) {
             throw new BusinessException("未找到可用模型");
         }
         Boolean toolEnabled = cfg.get("toolEnabled") == null ? null : Boolean.valueOf(String.valueOf(cfg.get("toolEnabled")));
         boolean enableTools = toolEnabled == null || toolEnabled;
-        return chatClientAssemblyService.buildChatClient(model, enableTools, workflowAdvisors == null ? new org.springframework.ai.chat.client.advisor.api.CallAdvisor[0] : workflowAdvisors);
+        return chatClientAssemblyService.buildChatClient(model, enableTools, workflowAdvisors == null ? new CallAdvisor[0] : workflowAdvisors);
     }
 
     private ModelConfig resolveModel(Map<String, Object> cfg) {
@@ -859,7 +865,7 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
         }
         return enabled.stream()
                 .filter(m -> m != null && m.getId() != null)
-                .sorted(java.util.Comparator.comparingLong(m -> m.getId() == null ? Long.MAX_VALUE : m.getId()))
+                .sorted(Comparator.comparingLong(m -> m.getId() == null ? Long.MAX_VALUE : m.getId()))
                 .findFirst()
                 .orElseThrow(() -> new BusinessException("未配置可用模型"));
     }
@@ -873,7 +879,7 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
             return Optional.empty();
         }
         for (ToolCallback cb : callbacks) {
-            if (cb instanceof com.xbk.knowledge.types.tool.ToolKeyAware aware) {
+            if (cb instanceof ToolKeyAware aware) {
                 if (toolKey.equals(aware.toolKey())) {
                     return Optional.of(cb);
                 }
@@ -1007,7 +1013,7 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
             return null;
         }
         if (jsonOrList instanceof List<?> list) {
-            java.util.Set<String> set = new java.util.HashSet<>();
+            Set<String> set = new HashSet<>();
             for (Object o : list) {
                 if (o == null) {
                     continue;
@@ -1028,7 +1034,7 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
             if (list == null) {
                 return null;
             }
-            return new java.util.HashSet<>(list);
+            return new HashSet<>(list);
         } catch (Exception e) {
             return null;
         }

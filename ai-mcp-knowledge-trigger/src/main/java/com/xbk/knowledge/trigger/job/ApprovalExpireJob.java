@@ -1,11 +1,11 @@
 package com.xbk.knowledge.trigger.job;
 
-import com.xbk.knowledge.domain.model.entity.SysAuditEvent;
+import com.xbk.knowledge.domain.audit.model.entity.SysAuditEvent;
 import com.xbk.knowledge.domain.approval.model.entity.ApprovalRequest;
 import com.xbk.knowledge.domain.agent.adapter.repository.AgentRunContextRepository;
 import com.xbk.knowledge.domain.agent.adapter.repository.AgentRunRepository;
 import com.xbk.knowledge.domain.approval.adapter.repository.ApprovalRequestRepository;
-import com.xbk.knowledge.domain.model.adapter.repository.audit.SysAuditEventRepository;
+import com.xbk.knowledge.domain.audit.adapter.repository.SysAuditEventRepository;
 import com.xbk.knowledge.types.trace.TraceIdUtils;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ import java.util.List;
  *
  * 职责：定时扫描过期的 PENDING 审批单，置为 EXPIRED，并同步更新关联 run/run_context 的终态。
  *
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Component

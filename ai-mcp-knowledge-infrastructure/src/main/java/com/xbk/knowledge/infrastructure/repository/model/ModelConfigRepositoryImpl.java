@@ -1,13 +1,13 @@
 package com.xbk.knowledge.infrastructure.repository.model;
 
-import com.xbk.knowledge.domain.model.aggregate.model.ModelConfigAggregate;
-import com.xbk.knowledge.domain.model.adapter.repository.model.ModelConfigRepository;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
-import com.xbk.knowledge.domain.model.vo.common.EnabledIdsQuery;
-import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
-import com.xbk.knowledge.domain.model.vo.common.IdQuery;
-import com.xbk.knowledge.domain.model.vo.model.ModelConfigPageQuery;
-import com.xbk.knowledge.domain.model.vo.model.ModelNameQuery;
+import com.xbk.knowledge.domain.llm.model.aggregate.ModelConfigAggregate;
+import com.xbk.knowledge.domain.llm.adapter.repository.ModelConfigRepository;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.common.model.valobj.EnabledIdsQuery;
+import com.xbk.knowledge.domain.common.model.valobj.EnabledQuery;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
+import com.xbk.knowledge.domain.llm.model.valobj.ModelConfigPageQuery;
+import com.xbk.knowledge.domain.llm.model.valobj.ModelNameQuery;
 import com.xbk.knowledge.infrastructure.dao.IModelConfigDao;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -23,7 +23,7 @@ import java.util.Optional;
  *
  * 职责：仓储实现，用于落地数据访问
  *
- * @author xiexu
+ * @author sxie
  */
 @Repository
 @RequiredArgsConstructor

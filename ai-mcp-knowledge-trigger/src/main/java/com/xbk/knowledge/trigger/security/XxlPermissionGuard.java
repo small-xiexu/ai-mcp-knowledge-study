@@ -12,7 +12,7 @@ import java.util.List;
  * XXL 权限守卫
  * 预留最小权限校验入口，便于后续接入认证与授权
  *
- * @author xiexu
+ * @author sxie
  */
 @Component
 @RequiredArgsConstructor

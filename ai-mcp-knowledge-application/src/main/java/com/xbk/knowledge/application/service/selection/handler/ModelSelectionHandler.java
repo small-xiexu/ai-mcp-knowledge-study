@@ -10,7 +10,7 @@ import com.xbk.knowledge.application.service.selection.chain.ModelSelectionChain
  *
  * 设计模式：责任链节点（Chain of Responsibility）
  * 职责：解耦选择逻辑，便于按优先级扩展
- * @author xiexu
+ * @author sxie
  */
 public interface ModelSelectionHandler extends ModelSelectionChainArmory {
 

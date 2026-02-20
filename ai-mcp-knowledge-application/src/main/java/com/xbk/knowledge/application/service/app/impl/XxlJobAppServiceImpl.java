@@ -1,22 +1,24 @@
 package com.xbk.knowledge.application.service.app.impl;
 
 import com.xbk.knowledge.application.service.app.XxlJobAppService;
-import com.xbk.knowledge.domain.model.entity.XxlJobInfo;
-import com.xbk.knowledge.domain.model.entity.XxlJobLogDetail;
-import com.xbk.knowledge.domain.model.entity.XxlJobLogInfo;
-import com.xbk.knowledge.domain.model.vo.xxl.XxlJobLogPageQuery;
-import com.xbk.knowledge.domain.model.vo.xxl.XxlJobPageQuery;
+import com.xbk.knowledge.domain.job.model.entity.XxlJobInfo;
+import com.xbk.knowledge.domain.job.model.entity.XxlJobLogDetail;
+import com.xbk.knowledge.domain.job.model.entity.XxlJobLogInfo;
+import com.xbk.knowledge.domain.job.model.valobj.XxlJobLogPageQuery;
+import com.xbk.knowledge.domain.job.model.valobj.XxlJobPageQuery;
 import com.xbk.knowledge.domain.service.xxl.IXxlJobService;
 import com.xbk.knowledge.types.common.PageResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * XXL 任务应用服务实现
  * 负责任务查询用例编排
  *
  * 职责：应用层用例实现，用于协调领域能力
- * @author xiexu
+ * @author sxie
  */
 @Service
 @RequiredArgsConstructor
@@ -44,7 +46,7 @@ public class XxlJobAppServiceImpl implements XxlJobAppService {
      * 出参：任务列表
      */
     @Override
-    public java.util.List<XxlJobInfo> queryAllJobs(String appName, boolean refresh) {
+    public List<XxlJobInfo> queryAllJobs(String appName, boolean refresh) {
         return xxlJobService.queryAllJobs(appName, refresh);
     }
 

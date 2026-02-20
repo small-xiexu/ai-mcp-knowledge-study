@@ -14,7 +14,7 @@ import java.util.Optional;
 /**
  * WorkflowRunRepositoryImpl。
  *
- * @author xiexu
+ * @author sxie
  */
 @Repository
 @RequiredArgsConstructor
@@ -26,21 +26,18 @@ public class WorkflowRunRepositoryImpl implements WorkflowRunRepository {
      * insert。
      *
      * @param run 参数
-     * @return 返回结果
      */
     @Override
-    public WorkflowRun insert(WorkflowRun run) {
+    public void insert(WorkflowRun run) {
         if (run == null) {
-            return null;
+            return;
         }
         mapper.insertRun(run);
-        return run;
     }
 
     /**
      * updateStatus。
      *
-     * @param scopeId 参数
      * @param runId 参数
      * @param status 参数
      * @param errorMessage 参数
@@ -59,20 +56,18 @@ public class WorkflowRunRepositoryImpl implements WorkflowRunRepository {
      * updateStatusAndMetrics。
      *
      * @param run 参数
-     * @return 返回结果
      */
     @Override
-    public int updateStatusAndMetrics(WorkflowRun run) {
+    public void updateStatusAndMetrics(WorkflowRun run) {
         if (run == null || run.getRunId() == null) {
-            return 0;
+            return;
         }
-        return mapper.updateStatusAndMetrics(run);
+        mapper.updateStatusAndMetrics(run);
     }
 
     /**
      * findByRunId。
      *
-     * @param scopeId 参数
      * @param runId 参数
      * @return 返回结果
      */
@@ -87,7 +82,6 @@ public class WorkflowRunRepositoryImpl implements WorkflowRunRepository {
     /**
      * list。
      *
-     * @param scopeId 参数
      * @param status 参数
      * @param offset 参数
      * @param pageSize 参数
@@ -103,7 +97,6 @@ public class WorkflowRunRepositoryImpl implements WorkflowRunRepository {
     /**
      * count。
      *
-     * @param scopeId 参数
      * @param status 参数
      * @return 返回结果
      */
@@ -115,7 +108,6 @@ public class WorkflowRunRepositoryImpl implements WorkflowRunRepository {
     /**
      * deleteBefore。
      *
-     * @param scopeId 参数
      * @param cutOff 参数
      * @param limit 参数
      * @return 返回结果
@@ -132,7 +124,6 @@ public class WorkflowRunRepositoryImpl implements WorkflowRunRepository {
     /**
      * listRunIdsBefore。
      *
-     * @param scopeId 参数
      * @param cutOff 参数
      * @param limit 参数
      * @return 返回结果
@@ -150,7 +141,6 @@ public class WorkflowRunRepositoryImpl implements WorkflowRunRepository {
     /**
      * deleteByRunIds。
      *
-     * @param scopeId 参数
      * @param runIds 参数
      * @return 返回结果
      */

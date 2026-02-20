@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
  *
  * 职责：领域实体，用于承载权限定义。
  *
- * @author xiexu
+ * @author sxie
  */
 @TableName("sys_permission")
 @Getter

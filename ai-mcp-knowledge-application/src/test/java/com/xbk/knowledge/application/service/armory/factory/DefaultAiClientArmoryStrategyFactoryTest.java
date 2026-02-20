@@ -8,7 +8,7 @@ import com.xbk.knowledge.application.service.armory.node.AiClientNode;
 import com.xbk.knowledge.application.service.armory.node.AiClientToolNode;
 import com.xbk.knowledge.application.service.armory.node.RootNode;
 import com.xbk.knowledge.config.ai.GlobalChatAdvisor;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import com.xbk.knowledge.types.enums.ModelType;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

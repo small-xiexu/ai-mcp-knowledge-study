@@ -6,9 +6,9 @@ import reactor.core.publisher.Flux;
 
 /**
  * Agent 运行入口应用服务（按 agentCode 路由）。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 public interface AgentRuntimeAppService {
 
     PlatformContractV1 chat(String agentCode, Long sessionId, String content, String ragTagsJson);

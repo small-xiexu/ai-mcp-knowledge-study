@@ -1,7 +1,7 @@
 package com.xbk.knowledge.application.fallback.strategy;
 
 import com.xbk.knowledge.application.model.dto.AICallCommand;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 
 import java.util.List;
 
@@ -11,7 +11,7 @@ import java.util.List;
  *
  * 设计模式：策略（Strategy）
  * 职责：应用层策略接口，用于扩展降级规则并隔离排序逻辑
- * @author xiexu
+ * @author sxie
  */
 public interface FailoverStrategy {
 

@@ -15,7 +15,7 @@ import java.util.Map;
  * 用于返回 MCP Server 配置信息
  *
  * 职责：接口层 DTO，用于承载响应数据并保证传输边界稳定
- * @author xiexu
+ * @author sxie
  */
 @Data
 @Builder

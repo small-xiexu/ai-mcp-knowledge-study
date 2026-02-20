@@ -4,7 +4,7 @@ package com.xbk.knowledge.infrastructure.redis.key;
  * 聊天相关 Redis Key 定义
  *
  * 职责：统一聊天领域 Redis Key 命名
- * @author xiexu
+ * @author sxie
  */
 public final class ChatRedisKeys {
 

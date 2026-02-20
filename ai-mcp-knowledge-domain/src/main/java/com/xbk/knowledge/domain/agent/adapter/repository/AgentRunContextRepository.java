@@ -9,14 +9,14 @@ import java.util.Optional;
  *
  * 职责：保存可恢复的运行上下文快照，用于“方式B”审批通过后自动续跑。
  *
- * @author xiexu
+ * @author sxie
  */
 public interface AgentRunContextRepository {
 
     /**
      * 方法：upsert。
      */
-    int upsert(AgentRunContext context);
+    void upsert(AgentRunContext context);
 
     /**
      * 方法：findByRunId。
@@ -28,4 +28,3 @@ public interface AgentRunContextRepository {
      */
     int updateStatus(String runId, String status);
 }
-

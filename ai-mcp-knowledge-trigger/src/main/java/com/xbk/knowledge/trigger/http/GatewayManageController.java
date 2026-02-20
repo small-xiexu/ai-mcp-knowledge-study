@@ -2,21 +2,21 @@ package com.xbk.knowledge.trigger.http;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.xbk.knowledge.application.service.app.GatewayObservabilityAppService;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.gateway.model.entity.McpGateway;
 import com.xbk.knowledge.domain.gateway.model.entity.McpGatewayAuth;
 import com.xbk.knowledge.domain.gateway.model.entity.McpToolBinding;
 import com.xbk.knowledge.domain.gateway.model.entity.McpToolMapping;
 import com.xbk.knowledge.domain.gateway.model.entity.McpToolRegistry;
-import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
-import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.common.model.valobj.EnabledQuery;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.GatewayIdQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.GatewayPageQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.ToolBindingQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.ToolMappingQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.ToolNameQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.ToolRegistryPageQuery;
-import com.xbk.knowledge.domain.model.adapter.repository.model.ModelConfigRepository;
+import com.xbk.knowledge.domain.llm.adapter.repository.ModelConfigRepository;
 import com.xbk.knowledge.domain.gateway.adapter.repository.McpGatewayAuthRepository;
 import com.xbk.knowledge.domain.gateway.adapter.repository.McpGatewayRepository;
 import com.xbk.knowledge.domain.gateway.adapter.repository.McpToolBindingRepository;
@@ -50,7 +50,7 @@ import java.util.UUID;
 /**
  * Gateway 管理接口
  *
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @RestController

@@ -16,9 +16,9 @@ import java.time.LocalDateTime;
  * WorkflowRun 实体。
  *
  * 对应表：workflow_run
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @TableName("workflow_run")
 @Getter
 @Setter

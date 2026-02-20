@@ -31,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * 职责：管理 MCP SSE 连接的完整生命周期，包括建立连接、API Key 鉴权、
  * 速率限制、心跳保活、消息回推、会话过期清理
  *
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Service

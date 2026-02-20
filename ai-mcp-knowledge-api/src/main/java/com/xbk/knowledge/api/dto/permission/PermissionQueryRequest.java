@@ -16,7 +16,7 @@ import jakarta.validation.constraints.NotNull;
  *
  * 职责：接口层 DTO，用于承载权限查询参数。
  *
- * @author xiexu
+ * @author sxie
  */
 @Data
 @Builder

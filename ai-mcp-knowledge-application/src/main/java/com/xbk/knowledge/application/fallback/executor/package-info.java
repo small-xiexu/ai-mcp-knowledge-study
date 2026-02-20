@@ -1,6 +1,6 @@
 /**
  * 降级执行器与模型调用执行器。
  *
- * @author xiexu
+ * @author sxie
  */
 package com.xbk.knowledge.application.fallback.executor;

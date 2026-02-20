@@ -1,7 +1,7 @@
 package com.xbk.knowledge.infrastructure.repository.rag;
 
-import com.xbk.knowledge.domain.model.entity.RagTask;
-import com.xbk.knowledge.domain.model.adapter.repository.rag.RagTaskRepository;
+import com.xbk.knowledge.domain.rag.model.entity.RagTask;
+import com.xbk.knowledge.domain.rag.adapter.repository.RagTaskRepository;
 import com.xbk.knowledge.infrastructure.dao.IRagTaskDao;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -13,7 +13,7 @@ import java.util.List;
  * RAG 任务仓储实现
  *
  * 职责：RAG 任务数据持久化访问
- * @author xiexu
+ * @author sxie
  */
 @Repository
 @RequiredArgsConstructor
@@ -32,7 +32,7 @@ public class RagTaskRepositoryImpl implements RagTaskRepository {
     public RagTask create(RagTask task) {
         /*
          * 目的：基础设施层统一维护时间戳，避免上层重复设置
-         */
+ */
         LocalDateTime now = LocalDateTime.now();
         task.setCreatedAt(now);
         task.setUpdatedAt(now);

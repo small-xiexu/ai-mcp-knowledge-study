@@ -1,21 +1,26 @@
 package com.xbk.knowledge.infrastructure.gateway;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xbk.knowledge.application.context.GatewayToolBindingContextHolder;
+import com.xbk.knowledge.application.context.GatewayToolBindingContextHolder.BindingContext;
 import com.xbk.knowledge.domain.agent.adapter.repository.AgentRunRepository;
 import com.xbk.knowledge.domain.agent.adapter.repository.AgentRunContextRepository;
+import com.xbk.knowledge.domain.agent.model.entity.AgentRun;
+import com.xbk.knowledge.domain.agent.model.entity.AgentRunContext;
 import com.xbk.knowledge.domain.approval.model.entity.ApprovalRequest;
 import com.xbk.knowledge.domain.approval.adapter.repository.ApprovalRequestRepository;
 import com.xbk.knowledge.domain.gateway.model.entity.McpGateway;
 import com.xbk.knowledge.domain.gateway.model.entity.McpToolBinding;
 import com.xbk.knowledge.domain.gateway.model.entity.McpToolRegistry;
+import com.xbk.knowledge.domain.gateway.model.valobj.GatewayIdQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.ToolBindingQuery;
 import com.xbk.knowledge.domain.gateway.adapter.repository.McpGatewayRepository;
 import com.xbk.knowledge.domain.gateway.adapter.repository.McpToolBindingRepository;
 import com.xbk.knowledge.domain.gateway.adapter.repository.McpToolRegistryRepository;
 import com.xbk.knowledge.domain.gateway.service.GatewayToolService;
 import com.xbk.knowledge.infrastructure.audit.IdentityAuditLogService;
-import com.xbk.knowledge.domain.model.entity.SysAuditEvent;
+import com.xbk.knowledge.domain.audit.model.entity.SysAuditEvent;
 import com.xbk.knowledge.types.exception.ApprovalRequiredException;
 import com.xbk.knowledge.types.exception.BusinessException;
 import com.xbk.knowledge.types.tool.ToolNameUtils;
@@ -28,8 +33,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.ToolCallbackProvider;
+import org.springframework.ai.tool.definition.ToolDefinition;
 import org.springframework.ai.tool.function.FunctionToolCallback;
 import org.springframework.ai.tool.metadata.ToolMetadata;
+import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -55,7 +62,7 @@ import java.util.LinkedHashMap;
  * 为什么需要：Gateway 工具以 HTTP 配置形式存储在数据库中，需要适配为 Spring AI
  * 的 FunctionToolCallback 才能被 ChatClient 识别和调用
  *
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Component("gatewayToolCallbackProvider")
@@ -97,7 +104,7 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
                 continue;
             }
             List<McpToolRegistry> toolRegistries = toolRegistryRepository.findEnabledByGatewayId(
-                    new com.xbk.knowledge.domain.gateway.model.valobj.GatewayIdQuery(gateway.getGatewayId())
+                    new GatewayIdQuery(gateway.getGatewayId())
             );
             if (toolRegistries == null || toolRegistries.isEmpty()) {
                 continue;
@@ -171,7 +178,7 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
      * 2) legacy 绑定过滤（MODEL/SESSION/AGENT_VERSION），当存在绑定记录时生效
      */
     private List<ToolCandidate> applyVisibilityFilter(List<ToolCandidate> candidates) {
-        GatewayToolBindingContextHolder.BindingContext context = GatewayToolBindingContextHolder.get();
+        BindingContext context = GatewayToolBindingContextHolder.get();
         if (context == null) {
             return candidates;
         }
@@ -231,7 +238,7 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
     }
 
     private List<ToolCandidate> applyAllowlistIfPresent(List<ToolCandidate> candidates,
-                                                       GatewayToolBindingContextHolder.BindingContext context) {
+                                                       BindingContext context) {
         if (context == null) {
             return candidates;
         }
@@ -304,7 +311,7 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
          * 重要：工具回调可能在异步/跨线程环境执行（例如流式/Reactive）。
          * 为保证治理门禁一致性（scopeId、runId、权限、审计归属），在构建回调时捕获上下文快照，
          * call() 期间禁止再依赖线程上下文（如 StpUtil/MDC）获取关键字段。
-         */
+ */
         final String boundRunId = TraceIdUtils.getOrCreateTraceId();
         final Long finalScopeId = 1L;
         final Long boundOperatorId = null;
@@ -471,14 +478,13 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
         String workflowNodeKey = null;
 
         // 优先识别 Workflow 归属（即使同时存在 agent_run，也按 workflow 审批续跑）
-        com.xbk.knowledge.application.context.GatewayToolBindingContextHolder.BindingContext ctx =
-                com.xbk.knowledge.application.context.GatewayToolBindingContextHolder.get();
+        BindingContext ctx = GatewayToolBindingContextHolder.get();
         workflowId = ctx == null ? null : ctx.getWorkflowId();
         workflowVersionId = ctx == null ? null : ctx.getWorkflowVersionId();
         workflowNodeKey = ctx == null ? null : ctx.getWorkflowNodeKey();
         if (workflowId == null || workflowVersionId == null || !StringUtils.hasText(workflowNodeKey)) {
             // fallback：按 agent_run 归属
-            com.xbk.knowledge.domain.agent.model.entity.AgentRun run = agentRunRepository
+            AgentRun run = agentRunRepository
                     .findByRunId(runId)
                     .orElse(null);
             if (run != null && run.getAgentId() != null && run.getAgentVersionId() != null) {
@@ -528,13 +534,13 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
             return;
         }
         try {
-            java.util.Map<String, Object> map = new LinkedHashMap<>();
+            Map<String, Object> map = new LinkedHashMap<>();
             agentRunContextRepository.findByRunId(runId).ifPresent(ctx -> {
                 if (ctx != null && StringUtils.hasText(ctx.getSnapshotJson())) {
                     try {
-                        java.util.Map<String, Object> existed = objectMapper.readValue(
+                        Map<String, Object> existed = objectMapper.readValue(
                                 ctx.getSnapshotJson(),
-                                new com.fasterxml.jackson.core.type.TypeReference<java.util.Map<String, Object>>() {}
+                                new TypeReference<Map<String, Object>>() {}
                         );
                         if (existed != null) {
                             map.putAll(existed);
@@ -551,7 +557,7 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
             map.put("pendingAt", now == null ? null : now.toString());
 
             String json = objectMapper.writeValueAsString(map);
-            com.xbk.knowledge.domain.agent.model.entity.AgentRunContext ctx = com.xbk.knowledge.domain.agent.model.entity.AgentRunContext.builder()
+            AgentRunContext ctx = AgentRunContext.builder()
                     .runId(runId)
                     .status("SAVED")
                     .snapshotJson(json)
@@ -730,7 +736,7 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
          * @return 返回结果
          */
         @Override
-        public org.springframework.ai.tool.definition.ToolDefinition getToolDefinition() {
+        public ToolDefinition getToolDefinition() {
             return delegate.getToolDefinition();
         }
 
@@ -740,7 +746,7 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
          * @return 返回结果
          */
         @Override
-        public org.springframework.ai.tool.metadata.ToolMetadata getToolMetadata() {
+        public ToolMetadata getToolMetadata() {
             return delegate.getToolMetadata();
         }
 
@@ -763,7 +769,7 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
          * @return 返回结果
          */
         @Override
-        public String call(String toolInput, org.springframework.ai.chat.model.ToolContext toolContext) {
+        public String call(String toolInput, ToolContext toolContext) {
             return delegate.call(toolInput, toolContext);
         }
 

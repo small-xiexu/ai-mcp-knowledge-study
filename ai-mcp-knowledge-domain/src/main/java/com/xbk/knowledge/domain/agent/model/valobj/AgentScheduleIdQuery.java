@@ -5,9 +5,9 @@ package com.xbk.knowledge.domain.agent.model.valobj;
  *
  * @param scopeId scopeId
  * @param id    调度ID
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 public record AgentScheduleIdQuery(Long id) {
 }
 

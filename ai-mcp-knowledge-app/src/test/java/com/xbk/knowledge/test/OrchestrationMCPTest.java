@@ -1,6 +1,6 @@
 package com.xbk.knowledge.test;
 
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import com.xbk.knowledge.application.provider.ModelProviderFactory;
 import com.xbk.knowledge.trigger.job.MCPServerCSDNJob;
 import com.xbk.knowledge.types.enums.ModelType;

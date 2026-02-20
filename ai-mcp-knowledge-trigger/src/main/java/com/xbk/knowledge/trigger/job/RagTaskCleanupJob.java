@@ -1,6 +1,6 @@
 package com.xbk.knowledge.trigger.job;
 
-import com.xbk.knowledge.domain.model.adapter.repository.rag.RagTaskRepository;
+import com.xbk.knowledge.domain.rag.adapter.repository.RagTaskRepository;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
  * 每天凌晨 3 点清理 30 天前的已完成任务
  *
  * 职责：定时任务入口，用于清理过期数据
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Component

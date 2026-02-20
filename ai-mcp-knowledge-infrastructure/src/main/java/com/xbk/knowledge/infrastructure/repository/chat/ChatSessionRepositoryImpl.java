@@ -1,8 +1,8 @@
 package com.xbk.knowledge.infrastructure.repository.chat;
 
-import com.xbk.knowledge.domain.model.entity.ChatSession;
-import com.xbk.knowledge.domain.model.vo.chat.ChatSessionPageQuery;
-import com.xbk.knowledge.domain.model.adapter.repository.chat.ChatSessionRepository;
+import com.xbk.knowledge.domain.chat.model.entity.ChatSession;
+import com.xbk.knowledge.domain.chat.model.valobj.ChatSessionPageQuery;
+import com.xbk.knowledge.domain.chat.adapter.repository.ChatSessionRepository;
 import com.xbk.knowledge.infrastructure.dao.IChatSessionDao;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -15,7 +15,7 @@ import java.util.List;
  *
  * 职责：会话数据持久化访问
  *
- * @author xiexu
+ * @author sxie
  */
 @Repository
 @RequiredArgsConstructor
@@ -34,7 +34,7 @@ public class ChatSessionRepositoryImpl implements ChatSessionRepository {
     public ChatSession create(ChatSession session) {
         /*
          * 目的：基础设施层统一维护时间戳，避免上层重复设置
-         */
+ */
         LocalDateTime now = LocalDateTime.now();
         session.setCreatedAt(now);
         session.setUpdatedAt(now);

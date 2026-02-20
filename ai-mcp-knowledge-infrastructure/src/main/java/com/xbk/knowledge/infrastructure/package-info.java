@@ -9,6 +9,6 @@
  * - gateway/provider/protocol：外部服务与模型协议适配
  * - redis/chatmemory/auth：运行时基础能力适配
  *
- * @author xiexu
+ * @author sxie
  */
 package com.xbk.knowledge.infrastructure;

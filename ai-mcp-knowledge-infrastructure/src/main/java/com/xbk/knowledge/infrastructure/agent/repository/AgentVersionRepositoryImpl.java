@@ -17,9 +17,9 @@ import java.util.stream.Collectors;
 
 /**
  * AgentVersion 仓储实现。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Repository
 @RequiredArgsConstructor
 public class AgentVersionRepositoryImpl implements AgentVersionRepository {

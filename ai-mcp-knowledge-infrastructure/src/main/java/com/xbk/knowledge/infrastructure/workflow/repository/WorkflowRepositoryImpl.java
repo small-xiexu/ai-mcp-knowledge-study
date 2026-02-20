@@ -1,7 +1,7 @@
 package com.xbk.knowledge.infrastructure.workflow.repository;
 
 import com.xbk.knowledge.domain.workflow.model.entity.Workflow;
-import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.workflow.model.valobj.WorkflowCodeQuery;
 import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowRepository;
 import com.xbk.knowledge.infrastructure.dao.IWorkflowDao;
@@ -16,7 +16,7 @@ import java.util.Optional;
 /**
  * WorkflowRepositoryImpl。
  *
- * @author xiexu
+ * @author sxie
  */
 @Repository
 @RequiredArgsConstructor

@@ -11,7 +11,7 @@ import com.xbk.knowledge.types.contract.PlatformContractV1;
  * 1) 提供审批单查询/审批/拒绝接口
  * 2) 支撑“方式B”：审批通过后自动继续运行产出 PlatformContractV1
  *
- * @author xiexu
+ * @author sxie
  */
 public interface ApprovalAppService {
 

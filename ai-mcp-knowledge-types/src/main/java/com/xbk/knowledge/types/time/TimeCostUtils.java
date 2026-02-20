@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit;
  * 耗时计算工具类
  * 统一使用单调时间源，避免系统时间回拨导致耗时异常
  *
- * @author xiexu
+ * @author sxie
  */
 public final class TimeCostUtils {
 

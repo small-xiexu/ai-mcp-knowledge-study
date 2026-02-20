@@ -6,8 +6,8 @@ import org.springframework.scheduling.annotation.EnableAsync;
 
 /**
  * 职责：应用启动入口，用于统一装配并引导运行
- * @author xiexu
  * @date 2026/1/17 08:27
+ * @author sxie
  */
 @EnableAsync
 @SpringBootApplication

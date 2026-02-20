@@ -9,10 +9,10 @@ import com.xbk.knowledge.types.common.Result;
 import com.xbk.knowledge.types.common.ResultCode;
 import com.xbk.knowledge.api.dto.model.ModelConfigRequest;
 import com.xbk.knowledge.api.dto.model.ModelConfigResponse;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
-import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.types.enums.ModelType;
-import com.xbk.knowledge.domain.model.vo.model.ModelConfigPageQuery;
+import com.xbk.knowledge.domain.llm.model.valobj.ModelConfigPageQuery;
 import com.xbk.knowledge.application.service.app.ModelConfigAppService;
 import com.xbk.knowledge.trigger.converter.DTOConverter;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,7 @@ import java.util.List;
  * 负责接收 HTTP 请求，调用应用服务，转换响应
  *
  * 职责：HTTP 接口适配，用于转发应用层能力
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @RestController
@@ -50,7 +50,7 @@ public class ModelConfigController {
     public Result<PageResult<ModelConfigResponse>> listModels(@Valid @RequestBody ModelConfigQueryRequest request) {
         /*
          * 目的：将分页参数转为领域查询对象，隔离接口层字段
-         */
+ */
         int offset = request.getOffset();
         Integer pageSize = request.getPageSize();
         ModelConfigPageQuery query = new ModelConfigPageQuery(
@@ -61,7 +61,7 @@ public class ModelConfigController {
 
         /*
          * 目的：补充激活状态，前端无需额外查询
-         */
+ */
         ModelConfig activeChatModel = modelConfigAppService.getActiveChatModel();
         ModelConfig activeEmbeddingModel = modelConfigAppService.getActiveEmbeddingModel();
         Long activeChatId = activeChatModel != null ? activeChatModel.getId() : null;
@@ -69,7 +69,7 @@ public class ModelConfigController {
 
         /*
          * 目的：统一分页转换逻辑，确保响应结构与前端协议一致
-         */
+ */
         PageResult<ModelConfigResponse> result = PageResultConverter.convert(
                 pageResult,
                 modelConfig -> convertToResponse(modelConfig, activeChatId, activeEmbeddingId)
@@ -90,7 +90,7 @@ public class ModelConfigController {
     public Result<ModelConfigResponse> getModel(@Valid @RequestBody IdRequest request) {
         /*
          * 目的：查询模型配置并补充激活状态
-         */
+ */
         Long id = request.getId();
         IdQuery idQuery = new IdQuery(id);
         ModelConfig modelConfig = modelConfigAppService.queryModelConfigById(idQuery);
@@ -101,7 +101,7 @@ public class ModelConfigController {
 
         /*
          * 目的：输出层只暴露必要字段
-         */
+ */
         ModelConfigResponse response = convertToResponse(modelConfig, activeChatId, activeEmbeddingId);
         return Result.success(response);
     }
@@ -118,17 +118,17 @@ public class ModelConfigController {
     public Result<ModelConfigResponse> createModel(@Valid @RequestBody ModelConfigRequest request) {
         /*
          * 目的：从接口请求构建领域实体，隔离 DTO 与领域模型
-         */
+ */
         ModelConfig modelConfig = buildModelConfigFromRequest(request);
 
         /*
          * 目的：交由应用层完成持久化与业务校验
-         */
+ */
         ModelConfig savedModel = modelConfigAppService.createModelConfig(modelConfig);
 
         /*
          * 目的：输出层只返回必要字段
-         */
+ */
         ModelConfigResponse response = convertToResponse(savedModel, null, null);
         return Result.success("模型配置创建成功", response);
     }
@@ -145,19 +145,19 @@ public class ModelConfigController {
     public Result<ModelConfigResponse> updateModel(@Valid @RequestBody ModelConfigRequest request) {
         /*
          * 目的：构建完整领域实体，确保字段映射一致
-         */
+ */
         ModelConfig modelConfig = buildModelConfigFromRequest(request);
         Long id = request.getId();
         modelConfig.setId(id);
 
         /*
          * 目的：交由应用层处理更新逻辑
-         */
+ */
         ModelConfig updatedModel = modelConfigAppService.updateModelConfig(modelConfig);
 
         /*
          * 目的：输出层只返回必要字段
-         */
+ */
         ModelConfigResponse response = convertToResponse(updatedModel, null, null);
         return Result.success("模型配置更新成功", response);
     }
@@ -174,7 +174,7 @@ public class ModelConfigController {
     public Result<Void> deleteModel(@Valid @RequestBody IdRequest request) {
         /*
          * 目的：由应用层完成删除与校验
-         */
+ */
         Long id = request.getId();
         IdQuery idQuery = new IdQuery(id);
         modelConfigAppService.deleteModelConfig(idQuery);
@@ -194,14 +194,14 @@ public class ModelConfigController {
     public Result<ModelConfigResponse> enableModel(@Valid @RequestBody IdRequest request) {
         /*
          * 目的：交由应用层处理启用逻辑与校验
-         */
+ */
         Long id = request.getId();
         IdQuery idQuery = new IdQuery(id);
         ModelConfig updatedModel = modelConfigAppService.enableModel(idQuery);
 
         /*
          * 目的：输出层只返回必要字段
-         */
+ */
         ModelConfigResponse response = convertToResponse(updatedModel, null, null);
         return Result.success("模型启用成功", response);
     }
@@ -218,14 +218,14 @@ public class ModelConfigController {
     public Result<ModelConfigResponse> disableModel(@Valid @RequestBody IdRequest request) {
         /*
          * 目的：交由应用层处理禁用逻辑与校验
-         */
+ */
         Long id = request.getId();
         IdQuery idQuery = new IdQuery(id);
         ModelConfig updatedModel = modelConfigAppService.disableModel(idQuery);
 
         /*
          * 目的：输出层只返回必要字段
-         */
+ */
         ModelConfigResponse response = convertToResponse(updatedModel, null, null);
         return Result.success("模型禁用成功", response);
     }

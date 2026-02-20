@@ -1,8 +1,8 @@
 package com.xbk.knowledge.domain.mcp.adapter.repository;
 
 import com.xbk.knowledge.domain.mcp.model.entity.McpServerConfig;
-import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
-import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.common.model.valobj.EnabledQuery;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.mcp.model.valobj.McpServerConfigPageQuery;
 import com.xbk.knowledge.domain.mcp.model.valobj.McpServerNameQuery;
 
@@ -14,7 +14,7 @@ import java.util.Optional;
  * 通过仓储抽象隔离数据访问实现
  *
  * 职责：领域仓储接口，用于屏蔽存储细节
- * @author xiexu
+ * @author sxie
  */
 public interface McpServerConfigRepository {
 

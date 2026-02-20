@@ -4,7 +4,7 @@ import com.xbk.knowledge.domain.gateway.model.entity.McpGateway;
 import com.xbk.knowledge.domain.gateway.model.entity.McpGatewayAuth;
 import com.xbk.knowledge.domain.gateway.model.entity.McpToolBinding;
 import com.xbk.knowledge.domain.gateway.model.entity.McpToolRegistry;
-import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.ToolBindingQuery;
 import com.xbk.knowledge.domain.gateway.adapter.repository.McpGatewayAuthRepository;
 import com.xbk.knowledge.domain.gateway.adapter.repository.McpGatewayRepository;
@@ -32,7 +32,7 @@ import java.util.Objects;
  * 为什么用 AOP：审计逻辑与业务逻辑正交，通过切面拦截 Controller 方法，
  * 在操作前后分别加载旧值/新值，交由 AuditService 持久化审计日志
  *
- * @author xiexu
+ * @author sxie
  */
 @Aspect
 @Component

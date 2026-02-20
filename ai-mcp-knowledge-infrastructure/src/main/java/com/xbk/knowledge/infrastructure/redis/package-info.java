@@ -3,6 +3,6 @@
  *
  * 职责：封装缓存键规范与 Redis 相关基础能力。
  *
- * @author xiexu
+ * @author sxie
  */
 package com.xbk.knowledge.infrastructure.redis;

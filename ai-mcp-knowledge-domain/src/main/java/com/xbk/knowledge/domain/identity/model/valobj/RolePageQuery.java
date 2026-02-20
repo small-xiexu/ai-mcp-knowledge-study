@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
  *
  * 职责：领域值对象，用于承载角色查询条件。
  *
- * @author xiexu
+ * @author sxie
  */
 @Data
 @NoArgsConstructor

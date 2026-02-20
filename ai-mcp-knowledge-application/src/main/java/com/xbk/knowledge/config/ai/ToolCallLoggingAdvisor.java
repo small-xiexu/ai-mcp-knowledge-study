@@ -26,9 +26,9 @@ import java.util.stream.Stream;
  * 工具调用日志 Advisor（可配置）。
  *
  * 说明：仅在模型产出工具调用时打印日志，避免普通对话误报为 MCP 调用。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Slf4j
 @Component
 public class ToolCallLoggingAdvisor implements CallAdvisor {

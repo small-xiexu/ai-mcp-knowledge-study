@@ -5,7 +5,7 @@ import com.xbk.knowledge.domain.workflow.model.entity.WorkflowRunContext;
 /**
  * WorkflowRunContext 持久化对象。
  *
- * @author xiexu
+ * @author sxie
  */
 public class WorkflowRunContextPO extends WorkflowRunContext {
 }

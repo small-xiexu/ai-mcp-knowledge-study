@@ -6,7 +6,7 @@ import lombok.Data;
 /**
  * 审批决策请求（通过/拒绝通用）。
  *
- * @author xiexu
+ * @author sxie
  */
 @Data
 public class ApprovalDecisionRequest {

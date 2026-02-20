@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
  * 启动时加载启用的 MCP Server 配置并注册运行时连接
  *
  * 职责：应用装配配置，用于初始化运行时状态
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Component

@@ -1,7 +1,7 @@
 package com.xbk.knowledge.domain.gateway.adapter.repository;
 
 import com.xbk.knowledge.domain.gateway.model.entity.McpGateway;
-import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.GatewayIdQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.GatewayPageQuery;
 
@@ -12,7 +12,7 @@ import java.util.Optional;
  * 网关实例仓储接口
  *
  * 职责：定义网关实例的持久化操作契约
- * @author xiexu
+ * @author sxie
  */
 public interface McpGatewayRepository {
 

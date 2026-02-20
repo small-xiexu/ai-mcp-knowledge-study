@@ -3,6 +3,6 @@
  *
  * 职责：对接 Sa-Token 等鉴权框架，向应用层提供统一身份上下文实现。
  *
- * @author xiexu
+ * @author sxie
  */
 package com.xbk.knowledge.infrastructure.auth;

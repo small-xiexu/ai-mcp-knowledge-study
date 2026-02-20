@@ -5,7 +5,7 @@ import com.xbk.knowledge.application.model.dto.AICallResult;
 import com.xbk.knowledge.application.fallback.core.ModelCallOutcome;
 import com.xbk.knowledge.application.fallback.plan.FailoverCandidate;
 import com.xbk.knowledge.application.fallback.plan.FailoverPlan;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -16,7 +16,7 @@ import java.util.List;
  *
  * 设计模式：模板方法（Template Method）
  * 职责：应用层模板方法，用于统一降级流程并降低阅读成本
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 public abstract class AbstractFailoverExecutor implements FailoverExecutor {

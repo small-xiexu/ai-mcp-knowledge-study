@@ -1,9 +1,9 @@
 package com.xbk.knowledge.domain.service.model;
 
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
-import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
-import com.xbk.knowledge.domain.model.vo.common.IdQuery;
-import com.xbk.knowledge.domain.model.vo.model.ModelConfigPageQuery;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.common.model.valobj.EnabledQuery;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
+import com.xbk.knowledge.domain.llm.model.valobj.ModelConfigPageQuery;
 import com.xbk.knowledge.types.common.PageResult;
 
 import java.util.List;
@@ -13,7 +13,7 @@ import java.util.List;
  * 负责模型配置的业务逻辑处理
  *
  * 职责：领域服务接口，用于定义业务能力
- * @author xiexu
+ * @author sxie
  */
 public interface IModelConfigService {
 

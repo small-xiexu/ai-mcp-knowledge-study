@@ -14,7 +14,7 @@ import java.util.Map;
  * 统一的 AI 模型调用请求参数
  *
  * 职责：应用层命令/结果模型，用于传递用例输入输出
- * @author xiexu
+ * @author sxie
  */
 @Data
 @Builder

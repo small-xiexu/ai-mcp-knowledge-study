@@ -1,8 +1,8 @@
 package com.xbk.knowledge.infrastructure.mcp.repository;
 
 import com.xbk.knowledge.domain.mcp.model.entity.McpServerConfig;
-import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
-import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.common.model.valobj.EnabledQuery;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.mcp.model.valobj.McpServerConfigPageQuery;
 import com.xbk.knowledge.domain.mcp.model.valobj.McpServerNameQuery;
 import com.xbk.knowledge.domain.mcp.adapter.repository.McpServerConfigRepository;
@@ -19,7 +19,7 @@ import java.util.Optional;
  * 通过 Mapper 执行 XML SQL，隔离持久化细节
  *
  * 职责：仓储实现，用于落地数据访问
- * @author xiexu
+ * @author sxie
  */
 @Repository
 @RequiredArgsConstructor

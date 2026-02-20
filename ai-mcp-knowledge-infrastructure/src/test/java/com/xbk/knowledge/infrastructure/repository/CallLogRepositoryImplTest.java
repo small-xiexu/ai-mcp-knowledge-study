@@ -1,8 +1,8 @@
 package com.xbk.knowledge.infrastructure.repository;
 
-import com.xbk.knowledge.domain.model.aggregate.call.CallLogAggregate;
-import com.xbk.knowledge.domain.model.entity.CallLog;
-import com.xbk.knowledge.domain.model.vo.model.ModelIdQuery;
+import com.xbk.knowledge.domain.metrics.model.aggregate.CallLogAggregate;
+import com.xbk.knowledge.domain.metrics.model.entity.CallLog;
+import com.xbk.knowledge.domain.llm.model.valobj.ModelIdQuery;
 import com.xbk.knowledge.infrastructure.dao.ICallLogDao;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

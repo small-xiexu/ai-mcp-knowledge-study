@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
  *
  * 设计模式：责任链（Chain of Responsibility）
  * 职责：统一选择入口，降低调用方复杂度
- * @author xiexu
+ * @author sxie
  */
 @RequiredArgsConstructor
 public class ModelSelectionChain {

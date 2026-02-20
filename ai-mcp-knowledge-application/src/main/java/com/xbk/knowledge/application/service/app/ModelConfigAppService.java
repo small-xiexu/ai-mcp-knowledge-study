@@ -1,9 +1,9 @@
 package com.xbk.knowledge.application.service.app;
 
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
-import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
-import com.xbk.knowledge.domain.model.vo.common.IdQuery;
-import com.xbk.knowledge.domain.model.vo.model.ModelConfigPageQuery;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.common.model.valobj.EnabledQuery;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
+import com.xbk.knowledge.domain.llm.model.valobj.ModelConfigPageQuery;
 import com.xbk.knowledge.types.common.PageResult;
 
 import java.util.List;
@@ -13,7 +13,7 @@ import java.util.List;
  * 负责模型配置相关用例编排
  *
  * 职责：应用层用例接口，用于封装调用入口
- * @author xiexu
+ * @author sxie
  */
 public interface ModelConfigAppService {
 

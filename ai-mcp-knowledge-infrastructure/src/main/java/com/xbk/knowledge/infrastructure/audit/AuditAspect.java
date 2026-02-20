@@ -5,11 +5,11 @@ import com.xbk.knowledge.api.dto.model.ModelConfigResponse;
 import com.xbk.knowledge.api.dto.mcp.McpServerConfigResponse;
 import com.xbk.knowledge.api.dto.mcp.McpServerConfigRequest;
 import com.xbk.knowledge.api.dto.common.IdRequest;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.mcp.model.entity.McpServerConfig;
 import com.xbk.knowledge.domain.mcp.adapter.repository.McpServerConfigRepository;
-import com.xbk.knowledge.domain.model.vo.common.IdQuery;
-import com.xbk.knowledge.domain.model.adapter.repository.model.ModelConfigRepository;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
+import com.xbk.knowledge.domain.llm.adapter.repository.ModelConfigRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -24,7 +24,7 @@ import java.util.Objects;
  * 通过统一拦截控制层变更操作，保证审计记录不遗漏
  *
  * 职责：基础设施审计能力，用于持久化变更记录
- * @author xiexu
+ * @author sxie
  */
 @Aspect
 @Component
@@ -61,7 +61,7 @@ public class AuditAspect {
                         .orElse(null);
                 /*
                  * 目的：记录新增前后差异，新增时旧值为空
-                 */
+ */
                 auditService.recordAudit(MODEL_CONFIG_TABLE, recordId, OPERATION_INSERT, null, newValue);
             } else {
                 log.warn("创建模型配置审计未记录，未解析到记录ID");
@@ -96,7 +96,7 @@ public class AuditAspect {
                             .orElse(null);
                     /*
                      * 目的：记录更新前后差异
-                     */
+ */
                     auditService.recordAudit(MODEL_CONFIG_TABLE, recordId, OPERATION_UPDATE, oldValue, newValue);
                 } else {
                     log.warn("更新模型配置审计未记录，未解析到记录ID");
@@ -132,7 +132,7 @@ public class AuditAspect {
                 if (recordId != null) {
                     /*
                      * 目的：删除时只记录旧值
-                     */
+ */
                     auditService.recordAudit(MODEL_CONFIG_TABLE, recordId, OPERATION_DELETE, oldValue, null);
                 } else {
                     log.warn("删除模型配置审计未记录，未解析到记录ID");
@@ -166,7 +166,7 @@ public class AuditAspect {
                         .orElse(null);
                 /*
                  * 目的：记录新增前后差异，新增时旧值为空
-                 */
+ */
                 auditService.recordAudit(MCP_SERVER_CONFIG_TABLE, recordId, OPERATION_INSERT, null, newValue);
             } else {
                 log.warn("创建 MCP Server 配置审计未记录，未解析到记录ID");
@@ -201,7 +201,7 @@ public class AuditAspect {
                             .orElse(null);
                     /*
                      * 目的：记录更新前后差异
-                     */
+ */
                     auditService.recordAudit(MCP_SERVER_CONFIG_TABLE, recordId, OPERATION_UPDATE, oldValue, newValue);
                 } else {
                     log.warn("更新 MCP Server 配置审计未记录，未解析到记录ID");
@@ -237,7 +237,7 @@ public class AuditAspect {
                 if (recordId != null) {
                     /*
                      * 目的：删除时只记录旧值
-                     */
+ */
                     auditService.recordAudit(MCP_SERVER_CONFIG_TABLE, recordId, OPERATION_DELETE, oldValue, null);
                 } else {
                     log.warn("删除 MCP Server 配置审计未记录，未解析到记录ID");

@@ -1,6 +1,6 @@
 package com.xbk.knowledge.infrastructure.dao;
 
-import com.xbk.knowledge.domain.model.entity.ModelActivation;
+import com.xbk.knowledge.domain.llm.model.entity.ModelActivation;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Param;
  * 模型激活配置 Mapper
  *
  * 职责：数据访问适配层
- * @author xiexu
+ * @author sxie
  */
 @Mapper
 public interface IModelActivationDao {

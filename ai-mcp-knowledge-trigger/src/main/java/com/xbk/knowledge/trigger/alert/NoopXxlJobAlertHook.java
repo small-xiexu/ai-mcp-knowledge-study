@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
  * 避免未接入告警系统时报错
  *
  * 职责：默认占位实现，确保告警链路可用
- * @author xiexu
+ * @author sxie
  */
 @Component
 public class NoopXxlJobAlertHook implements XxlJobAlertHook {

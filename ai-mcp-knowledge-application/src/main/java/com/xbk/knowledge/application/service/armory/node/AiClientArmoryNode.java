@@ -4,6 +4,7 @@ import com.xbk.knowledge.application.service.armory.factory.DefaultAiClientArmor
 
 /**
  * AI 客户端装配节点接口。
+ * @author sxie
  */
 public interface AiClientArmoryNode {
 

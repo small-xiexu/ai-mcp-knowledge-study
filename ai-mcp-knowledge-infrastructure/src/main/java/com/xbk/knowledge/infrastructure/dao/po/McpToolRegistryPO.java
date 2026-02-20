@@ -5,7 +5,7 @@ import com.xbk.knowledge.domain.gateway.model.entity.McpToolRegistry;
 /**
  * McpToolRegistry 持久化对象。
  *
- * @author xiexu
+ * @author sxie
  */
 public class McpToolRegistryPO extends McpToolRegistry {
 }

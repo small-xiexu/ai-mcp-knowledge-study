@@ -12,9 +12,9 @@ import java.util.List;
 
 /**
  * PromptTemplate Mapper（通过 XML 承载 SQL）。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Mapper
 public interface IPromptTemplateDao extends BaseMapper<PromptTemplatePO> {
 

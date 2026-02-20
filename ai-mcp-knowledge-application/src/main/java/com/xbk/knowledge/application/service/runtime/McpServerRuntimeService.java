@@ -9,7 +9,7 @@ import java.util.List;
  * 负责运行时注册、卸载与刷新
  *
  * 职责：应用层运行时接口，用于隔离具体实现
- * @author xiexu
+ * @author sxie
  */
 public interface McpServerRuntimeService {
 

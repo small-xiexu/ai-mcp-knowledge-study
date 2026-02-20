@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
  * 聊天历史配置
  * 用于控制上下文窗口大小与数据保留周期
  *
- * @author xiexu
+ * @author sxie
  */
 @Data
 @Component

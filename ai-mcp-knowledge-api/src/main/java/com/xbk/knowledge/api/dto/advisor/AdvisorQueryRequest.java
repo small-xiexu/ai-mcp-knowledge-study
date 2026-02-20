@@ -6,9 +6,9 @@ import lombok.EqualsAndHashCode;
 
 /**
  * Advisor 分页查询请求。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class AdvisorQueryRequest extends PageRequest {

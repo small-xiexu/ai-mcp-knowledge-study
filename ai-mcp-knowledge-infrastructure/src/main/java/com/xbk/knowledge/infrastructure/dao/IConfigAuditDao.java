@@ -2,8 +2,8 @@ package com.xbk.knowledge.infrastructure.dao;
 
 import com.xbk.knowledge.infrastructure.dao.po.ConfigAuditPO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.xbk.knowledge.domain.model.entity.ConfigAudit;
-import com.xbk.knowledge.domain.model.vo.audit.AuditQuery;
+import com.xbk.knowledge.domain.audit.model.entity.ConfigAudit;
+import com.xbk.knowledge.domain.audit.model.valobj.AuditQuery;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -13,7 +13,7 @@ import java.util.List;
  * 统一通过 XML 承载 SQL
  *
  * 职责：MyBatis Mapper 接口，用于映射数据库操作
- * @author xiexu
+ * @author sxie
  */
 @Mapper
 public interface IConfigAuditDao extends BaseMapper<ConfigAuditPO> {

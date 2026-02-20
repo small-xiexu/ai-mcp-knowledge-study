@@ -11,9 +11,9 @@ import java.util.List;
 
 /**
  * AgentSchedule DAO（通过 XML 承载 SQL）。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Mapper
 public interface IAgentScheduleDao extends BaseMapper<AgentSchedulePO> {
 

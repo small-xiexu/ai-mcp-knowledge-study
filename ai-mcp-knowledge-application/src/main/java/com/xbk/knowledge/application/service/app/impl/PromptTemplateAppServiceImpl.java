@@ -12,9 +12,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * PromptTemplate 控制面应用服务实现。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Service
 @RequiredArgsConstructor
 public class PromptTemplateAppServiceImpl implements PromptTemplateAppService {

@@ -32,7 +32,7 @@ import java.math.BigDecimal;
  *
  * 职责：HTTP 接口适配，用于转发应用层能力（草稿管理/发布/回滚/查询）。
  *
- * @author xiexu
+ * @author sxie
  */
 @RestController
 @RequestMapping("/api/agent-versions")

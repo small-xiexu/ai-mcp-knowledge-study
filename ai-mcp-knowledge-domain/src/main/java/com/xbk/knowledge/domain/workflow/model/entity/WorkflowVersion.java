@@ -17,9 +17,9 @@ import java.time.LocalDateTime;
  * WorkflowVersion 实体（草稿/发布/历史）。
  *
  * 对应表：workflow_version
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @TableName("workflow_version")
 @Getter
 @Setter

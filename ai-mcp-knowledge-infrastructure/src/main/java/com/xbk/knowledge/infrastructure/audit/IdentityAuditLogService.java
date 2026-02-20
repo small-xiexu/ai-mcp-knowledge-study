@@ -1,6 +1,6 @@
 package com.xbk.knowledge.infrastructure.audit;
 
-import com.xbk.knowledge.domain.model.entity.SysAuditEvent;
+import com.xbk.knowledge.domain.audit.model.entity.SysAuditEvent;
 import com.xbk.knowledge.infrastructure.dao.ISysAuditEventDao;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
  *
  * 职责：基础设施服务，用于写入 sys_audit_event 审计记录。
  *
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Service

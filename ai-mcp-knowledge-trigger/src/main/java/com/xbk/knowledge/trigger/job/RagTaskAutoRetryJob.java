@@ -1,8 +1,8 @@
 package com.xbk.knowledge.trigger.job;
 
 import com.xbk.knowledge.application.service.app.RagAppService;
-import com.xbk.knowledge.domain.model.entity.RagTask;
-import com.xbk.knowledge.domain.model.adapter.repository.rag.RagTaskRepository;
+import com.xbk.knowledge.domain.rag.model.entity.RagTask;
+import com.xbk.knowledge.domain.rag.adapter.repository.RagTaskRepository;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +17,7 @@ import java.util.List;
  * 每天凌晨 2 点自动重试昨天失败的任务
  *
  * 职责：定时任务入口，用于自动重试失败任务
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Component

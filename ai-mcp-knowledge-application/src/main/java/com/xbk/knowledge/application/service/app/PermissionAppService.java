@@ -9,7 +9,7 @@ import com.xbk.knowledge.types.common.PageResult;
  *
  * 职责：应用层用例接口，用于封装权限查询能力。
  *
- * @author xiexu
+ * @author sxie
  */
 public interface PermissionAppService {
 

@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
  * 模型选择责任链配置
  * 职责：对外暴露责任链实例，装配交由工厂统一负责
  *
- * @author xiexu
+ * @author sxie
  */
 @Configuration
 public class ModelSelectionChainConfig {

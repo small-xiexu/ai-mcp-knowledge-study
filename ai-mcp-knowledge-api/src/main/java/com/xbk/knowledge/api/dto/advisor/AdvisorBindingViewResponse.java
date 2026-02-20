@@ -6,9 +6,9 @@ import java.time.LocalDateTime;
 
 /**
  * Advisor 绑定视图响应。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Data
 public class AdvisorBindingViewResponse {
 

@@ -22,7 +22,7 @@ import jakarta.validation.Valid;
  *
  * 职责：触发层接口适配，用于提供权限读取能力。
  *
- * @author xiexu
+ * @author sxie
  */
 @RestController
 @RequestMapping("/api/permissions")

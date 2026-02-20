@@ -1,8 +1,8 @@
 package com.xbk.knowledge.application.service.app.impl;
 
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
-import com.xbk.knowledge.domain.model.vo.common.IdQuery;
-import com.xbk.knowledge.domain.model.adapter.repository.model.ModelActivationRepository;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
+import com.xbk.knowledge.domain.llm.adapter.repository.ModelActivationRepository;
 import com.xbk.knowledge.domain.service.model.IModelConfigService;
 import com.xbk.knowledge.application.provider.ModelProviderFactory;
 import com.xbk.knowledge.application.service.armory.factory.DefaultAiClientArmoryStrategyFactory;

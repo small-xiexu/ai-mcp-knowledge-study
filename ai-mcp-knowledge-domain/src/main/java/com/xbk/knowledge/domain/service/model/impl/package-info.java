@@ -3,6 +3,6 @@
  *
  * 职责：封装模型配置校验、激活及推荐策略规则。
  *
- * @author xiexu
+ * @author sxie
  */
 package com.xbk.knowledge.domain.service.model.impl;

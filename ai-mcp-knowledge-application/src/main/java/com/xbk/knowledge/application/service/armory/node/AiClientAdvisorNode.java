@@ -11,6 +11,8 @@ import java.util.List;
 
 /**
  * Advisor 节点，负责合并全局与运行时 Advisors。
+ *
+ * @author sxie
  */
 @Component
 public class AiClientAdvisorNode extends AbstractAiClientArmoryNode {
@@ -39,7 +41,7 @@ public class AiClientAdvisorNode extends AbstractAiClientArmoryNode {
             merged.addAll(globalAdvisors);
         }
         CallAdvisor[] extraAdvisors = context.getExtraAdvisors();
-        if (extraAdvisors != null && extraAdvisors.length > 0) {
+        if (extraAdvisors != null) {
             for (CallAdvisor extraAdvisor : extraAdvisors) {
                 if (extraAdvisor != null) {
                     merged.add(extraAdvisor);

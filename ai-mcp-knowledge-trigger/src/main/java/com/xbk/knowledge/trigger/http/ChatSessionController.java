@@ -7,8 +7,8 @@ import com.xbk.knowledge.api.dto.ai.ChatSessionCreateRequest;
 import com.xbk.knowledge.api.dto.ai.ChatSessionResponse;
 import com.xbk.knowledge.api.dto.ai.ChatSessionUpdateRequest;
 import com.xbk.knowledge.application.service.app.ChatSessionAppService;
-import com.xbk.knowledge.domain.model.entity.ChatMessage;
-import com.xbk.knowledge.domain.model.entity.ChatSession;
+import com.xbk.knowledge.domain.chat.model.entity.ChatMessage;
+import com.xbk.knowledge.domain.chat.model.entity.ChatSession;
 import com.xbk.knowledge.api.dto.common.IdRequest;
 import com.xbk.knowledge.types.common.PageRequest;
 import com.xbk.knowledge.types.common.PageResult;
@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
  * 聊天会话管理 Controller
  * 负责会话与消息的增删改查，作为 HTTP 适配层隔离前端协议与领域模型
  *
- * @author xiexu
+ * @author sxie
  */
 @RestController
 @RequestMapping("/api/ai/sessions")
@@ -49,7 +49,7 @@ public class ChatSessionController {
     public Result<ChatSessionResponse> createSession(@RequestBody ChatSessionCreateRequest request) {
         /*
          * 目的：将请求 DTO 转为领域实体，保持领域层不依赖接口层结构
-         */
+ */
         ChatSession session = ChatSession.builder()
                 .title(request.getTitle())
                 .modelId(request.getModelId())
@@ -146,7 +146,7 @@ public class ChatSessionController {
                                                      @RequestBody ChatMessageCreateRequest request) {
         /*
          * 目的：从请求构建领域消息，防止接口层字段直接流入持久层
-         */
+ */
         ChatMessage message = ChatMessage.builder()
                 .sessionId(id)
                 .role(request.getRole())
@@ -223,7 +223,7 @@ public class ChatSessionController {
         /*
          * 目的：将存储的 JSON 字符串还原为标签列表，前端无需自行解析
          * 约束：解析失败时回退为空列表，避免影响主流程
-         */
+ */
         try {
             return objectMapper.readValue(rawTags, new TypeReference<List<String>>() {});
         } catch (JsonProcessingException e) {
@@ -238,7 +238,7 @@ public class ChatSessionController {
         /*
          * 目的：存储时统一序列化为 JSON，便于数据库索引与查询
          * 约束：序列化失败时回退为空数组，保持字段结构稳定
-         */
+ */
         try {
             return objectMapper.writeValueAsString(tags);
         } catch (JsonProcessingException e) {

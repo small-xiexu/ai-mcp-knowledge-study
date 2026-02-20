@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
  * 用于返回模型配置信息
  *
  * 职责：接口层 DTO，用于承载请求/响应参数并保证传输边界稳定
- * @author xiexu
+ * @author sxie
  */
 @Getter
 @Setter

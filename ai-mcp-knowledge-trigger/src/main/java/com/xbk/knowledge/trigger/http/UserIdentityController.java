@@ -31,7 +31,7 @@ import java.util.List;
  *
  * 职责：触发层接口适配，用于提供用户管理能力。
  *
- * @author xiexu
+ * @author sxie
  */
 @RestController
 @RequestMapping("/api/users")

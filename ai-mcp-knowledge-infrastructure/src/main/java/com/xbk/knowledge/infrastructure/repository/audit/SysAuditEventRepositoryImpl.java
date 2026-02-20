@@ -1,8 +1,8 @@
 package com.xbk.knowledge.infrastructure.repository.audit;
 
-import com.xbk.knowledge.domain.model.entity.SysAuditEvent;
+import com.xbk.knowledge.domain.audit.model.entity.SysAuditEvent;
 import com.xbk.knowledge.domain.identity.model.valobj.AuditEventPageQuery;
-import com.xbk.knowledge.domain.model.adapter.repository.audit.SysAuditEventRepository;
+import com.xbk.knowledge.domain.audit.adapter.repository.SysAuditEventRepository;
 import com.xbk.knowledge.infrastructure.dao.ISysAuditEventDao;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -14,7 +14,7 @@ import java.util.List;
  *
  * 职责：基础设施层实现，用于落地审计事件查询。
  *
- * @author xiexu
+ * @author sxie
  */
 @Repository
 @RequiredArgsConstructor
@@ -26,18 +26,17 @@ public class SysAuditEventRepositoryImpl implements SysAuditEventRepository {
      * 写入审计事件。
      *
      * @param event 审计事件
-     * @return 影响行数
      */
     @Override
-    public int insert(SysAuditEvent event) {
+    public void insert(SysAuditEvent event) {
         if (event == null) {
-            return 0;
+            return;
         }
         // DB 约束：operator_scope_id NOT NULL。系统流程/边界情况下兜底，避免审计写入导致主流程失败。
         if (event.getOperatorScopeId() == null) {
             event.setOperatorScopeId(0L);
         }
-        return sysAuditEventMapper.insertEvent(event);
+        sysAuditEventMapper.insertEvent(event);
     }
 
     /**

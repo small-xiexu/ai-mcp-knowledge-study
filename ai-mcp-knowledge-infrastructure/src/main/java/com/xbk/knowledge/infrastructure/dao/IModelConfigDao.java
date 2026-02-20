@@ -1,12 +1,12 @@
 package com.xbk.knowledge.infrastructure.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
-import com.xbk.knowledge.domain.model.vo.common.EnabledIdsQuery;
-import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
-import com.xbk.knowledge.domain.model.vo.common.IdQuery;
-import com.xbk.knowledge.domain.model.vo.model.ModelConfigPageQuery;
-import com.xbk.knowledge.domain.model.vo.model.ModelNameQuery;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.common.model.valobj.EnabledIdsQuery;
+import com.xbk.knowledge.domain.common.model.valobj.EnabledQuery;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
+import com.xbk.knowledge.domain.llm.model.valobj.ModelConfigPageQuery;
+import com.xbk.knowledge.domain.llm.model.valobj.ModelNameQuery;
 import com.xbk.knowledge.infrastructure.dao.po.ModelConfigPO;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -18,7 +18,7 @@ import java.util.List;
  *
  * 职责：MyBatis Mapper 接口，用于映射数据库操作
  *
- * @author xiexu
+ * @author sxie
  */
 @Mapper
 public interface IModelConfigDao extends BaseMapper<ModelConfigPO> {

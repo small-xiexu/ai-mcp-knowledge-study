@@ -3,6 +3,6 @@
  *
  * 职责：封装指标计算与查询规则。
  *
- * @author xiexu
+ * @author sxie
  */
 package com.xbk.knowledge.domain.service.metrics.impl;

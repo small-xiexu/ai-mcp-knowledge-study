@@ -17,9 +17,9 @@ import java.time.LocalDateTime;
  * WorkflowEdge 实体。
  *
  * 对应表：workflow_edge
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @TableName("workflow_edge")
 @Getter
 @Setter

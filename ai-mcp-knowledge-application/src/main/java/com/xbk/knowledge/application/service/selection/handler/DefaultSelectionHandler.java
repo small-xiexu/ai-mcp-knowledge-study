@@ -4,7 +4,7 @@ import com.xbk.knowledge.application.model.dto.AICallCommand;
 import com.xbk.knowledge.application.model.dto.ModelSelectionDecision;
 import com.xbk.knowledge.application.service.selector.ModelSelector;
 import com.xbk.knowledge.application.service.selection.chain.AbstractModelSelectionHandler;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
  *
  * 设计模式：责任链节点（默认兜底）
  * 职责：作为最后节点兜底处理，确保责任链始终可用
- * @author xiexu
+ * @author sxie
  */
 @Component
 public class DefaultSelectionHandler extends AbstractModelSelectionHandler {

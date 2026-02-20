@@ -14,7 +14,7 @@ import java.util.List;
  * 用于封装分页查询的响应数据
  *
  * 职责：通用基础结构，用于统一分页与响应结构
- * @author xiexu
+ * @author sxie
  */
 @Getter
 @Setter

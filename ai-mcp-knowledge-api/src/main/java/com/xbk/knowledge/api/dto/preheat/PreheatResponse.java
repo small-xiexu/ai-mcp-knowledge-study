@@ -6,9 +6,9 @@ import java.util.List;
 
 /**
  * 预热响应。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Data
 public class PreheatResponse {
 

@@ -6,7 +6,7 @@ import lombok.Data;
 /**
  * 审批单 ID 请求。
  *
- * @author xiexu
+ * @author sxie
  */
 @Data
 public class ApprovalIdRequest {

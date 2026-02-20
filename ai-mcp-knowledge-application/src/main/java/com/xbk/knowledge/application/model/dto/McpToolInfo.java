@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
  * MCP 工具信息
  *
  * 职责：应用层 DTO，用于对外展示工具能力
- * @author xiexu
+ * @author sxie
  */
 @Data
 @Builder

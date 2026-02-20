@@ -10,9 +10,9 @@ import java.util.Optional;
  * Advisor 资产仓储接口。
  *
  * 职责：提供 Advisor 资产 CRUD 与分页查询能力（按 scope 隔离）。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 public interface AdvisorRepository {
 
     /**

@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
  * MCP 工具管理 Controller
  * 提供工具列表查询
  *
- * @author xiexu
+ * @author sxie
  */
 @RestController
 @RequestMapping("/api/mcp/tools")
@@ -39,7 +39,7 @@ public class McpToolController {
         List<McpToolInfo> tools = mcpToolCatalogService.listTools();
         /*
          * 目的：输出层只暴露必要字段，避免内部结构外泄
-         */
+ */
         List<McpToolResponse> responses = tools.stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
@@ -52,7 +52,7 @@ public class McpToolController {
         }
         /*
          * 目的：统一 DTO 映射入口，便于后续字段扩展
-         */
+ */
         McpToolResponse response = new McpToolResponse();
         response.setName(info.getName());
         response.setToolKey(info.getToolKey());

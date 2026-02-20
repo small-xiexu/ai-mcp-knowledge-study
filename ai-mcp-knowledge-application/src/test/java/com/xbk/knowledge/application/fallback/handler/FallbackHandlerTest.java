@@ -2,7 +2,7 @@ package com.xbk.knowledge.application.fallback.handler;
 
 import com.xbk.knowledge.application.model.dto.AICallCommand;
 import com.xbk.knowledge.application.fallback.executor.FailoverExecutor;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 

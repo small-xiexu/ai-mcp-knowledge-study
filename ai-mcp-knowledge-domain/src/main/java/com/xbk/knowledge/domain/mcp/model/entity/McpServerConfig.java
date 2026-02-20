@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
  * 对应数据库表：ai_mcp_server_config
  *
  * 职责：领域实体，用于承载 MCP Server 配置状态
- * @author xiexu
+ * @author sxie
  */
 @TableName("ai_mcp_server_config")
 @Getter

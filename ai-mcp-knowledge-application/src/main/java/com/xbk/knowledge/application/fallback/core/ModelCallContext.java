@@ -1,7 +1,7 @@
 package com.xbk.knowledge.application.fallback.core;
 
 import com.xbk.knowledge.application.model.dto.AICallCommand;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
  *
  * 设计模式：上下文对象（Context Object）
  * 职责：应用层调用上下文，用于隔离流程与数据
- * @author xiexu
+ * @author sxie
  */
 @Data
 @Builder

@@ -10,9 +10,9 @@ import lombok.NoArgsConstructor;
 
 /**
  * PromptTemplate 创建请求。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Data
 @Builder
 @NoArgsConstructor

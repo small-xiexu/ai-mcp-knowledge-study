@@ -19,7 +19,7 @@ import java.util.Map;
  * 职责：定义 JSON-RPC 2.0 消息结构，包括 Request、Notification、Response 三种消息类型，
  * 以及消息的序列化/反序列化工具方法
  *
- * @author xiexu
+ * @author sxie
  */
 public final class McpSchemaVO {
 

@@ -2,14 +2,14 @@ package com.xbk.knowledge.application.service.app.impl;
 
 import com.xbk.knowledge.application.service.app.ChatSessionAppService;
 import com.xbk.knowledge.application.service.app.ModelConfigAppService;
-import com.xbk.knowledge.domain.model.entity.ChatMessage;
-import com.xbk.knowledge.domain.model.entity.ChatSession;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
-import com.xbk.knowledge.domain.model.vo.chat.ChatMessagePageQuery;
-import com.xbk.knowledge.domain.model.vo.chat.ChatSessionPageQuery;
-import com.xbk.knowledge.domain.model.vo.common.IdQuery;
-import com.xbk.knowledge.domain.model.adapter.repository.chat.ChatMessageRepository;
-import com.xbk.knowledge.domain.model.adapter.repository.chat.ChatSessionRepository;
+import com.xbk.knowledge.domain.chat.model.entity.ChatMessage;
+import com.xbk.knowledge.domain.chat.model.entity.ChatSession;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.chat.model.valobj.ChatMessagePageQuery;
+import com.xbk.knowledge.domain.chat.model.valobj.ChatSessionPageQuery;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
+import com.xbk.knowledge.domain.chat.adapter.repository.ChatMessageRepository;
+import com.xbk.knowledge.domain.chat.adapter.repository.ChatSessionRepository;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +25,7 @@ import java.util.List;
  *
  * 职责：应用层用例实现，用于协调领域能力
  *
- * @author xiexu
+ * @author sxie
  */
 @Service
 @RequiredArgsConstructor
@@ -61,7 +61,7 @@ public class ChatSessionAppServiceImpl implements ChatSessionAppService {
     public ChatSession updateSession(ChatSession session) {
         /*
          * 目的：首次消息发送后锁定模型，避免会话中途切换模型
-         */
+ */
         if (session != null && session.getId() != null) {
             ChatSession existing = chatSessionRepository.findById(session.getId());
             if (existing != null && existing.getModelId() != null) {
@@ -90,7 +90,7 @@ public class ChatSessionAppServiceImpl implements ChatSessionAppService {
     public void deleteSession(Long sessionId) {
         /*
          * 目的：先删消息再删会话，避免外键或引用一致性问题
-         */
+ */
         chatMessageRepository.deleteBySessionId(sessionId);
         chatSessionRepository.deleteById(sessionId);
         if (sessionId != null) {
@@ -121,7 +121,7 @@ public class ChatSessionAppServiceImpl implements ChatSessionAppService {
     public PageResult<ChatSession> listSessions(int pageNum, int pageSize) {
         /*
          * 目的：将页码转换为偏移量以适配仓储分页
-         */
+ */
         int offset = Math.max(pageNum - 1, 0) * pageSize;
         ChatSessionPageQuery query = new ChatSessionPageQuery(offset, pageSize);
         List<ChatSession> sessions = chatSessionRepository.findPage(query);
@@ -153,7 +153,7 @@ public class ChatSessionAppServiceImpl implements ChatSessionAppService {
     public PageResult<ChatMessage> listMessages(Long sessionId, int pageNum, int pageSize) {
         /*
          * 目的：将页码转换为偏移量以适配仓储分页
-         */
+ */
         int offset = Math.max(pageNum - 1, 0) * pageSize;
         ChatMessagePageQuery query = new ChatMessagePageQuery(sessionId, offset, pageSize);
         List<ChatMessage> messages = chatMessageRepository.findPage(query);

@@ -7,9 +7,9 @@ import jakarta.validation.constraints.NotNull;
 
 /**
  * Advisor 绑定查询请求。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Data
 public class AdvisorBindingGetRequest {
 

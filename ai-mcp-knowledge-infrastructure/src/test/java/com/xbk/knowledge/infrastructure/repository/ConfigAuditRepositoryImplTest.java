@@ -1,8 +1,8 @@
 package com.xbk.knowledge.infrastructure.repository;
 
-import com.xbk.knowledge.domain.model.aggregate.audit.ConfigAuditAggregate;
-import com.xbk.knowledge.domain.model.entity.ConfigAudit;
-import com.xbk.knowledge.domain.model.vo.audit.AuditQuery;
+import com.xbk.knowledge.domain.audit.model.aggregate.ConfigAuditAggregate;
+import com.xbk.knowledge.domain.audit.model.entity.ConfigAudit;
+import com.xbk.knowledge.domain.audit.model.valobj.AuditQuery;
 import com.xbk.knowledge.infrastructure.dao.IConfigAuditDao;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

@@ -5,7 +5,7 @@ import com.xbk.knowledge.domain.workflow.model.entity.WorkflowNodeRun;
 /**
  * WorkflowNodeRun 持久化对象。
  *
- * @author xiexu
+ * @author sxie
  */
 public class WorkflowNodeRunPO extends WorkflowNodeRun {
 }

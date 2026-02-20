@@ -33,9 +33,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * 说明：
  * - advisor_binding 负责“对哪个目标生效 + 顺序 + 是否启用”
  * - advisor 负责“类型 + 配置 + 是否启用”
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor

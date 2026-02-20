@@ -15,9 +15,9 @@ import java.util.List;
 
 /**
  * Workflow 运行明细清理任务（默认保留 7 天）。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor

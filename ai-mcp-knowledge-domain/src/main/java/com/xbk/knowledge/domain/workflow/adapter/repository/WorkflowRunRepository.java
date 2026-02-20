@@ -8,15 +8,15 @@ import java.util.Optional;
 
 /**
  * WorkflowRun 仓储接口。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 public interface WorkflowRunRepository {
 
     /**
      * 方法：insert。
      */
-    WorkflowRun insert(WorkflowRun run);
+    void insert(WorkflowRun run);
 
     /**
      * 方法：updateStatus。
@@ -26,7 +26,7 @@ public interface WorkflowRunRepository {
     /**
      * 方法：updateStatusAndMetrics。
      */
-    int updateStatusAndMetrics(WorkflowRun run);
+    void updateStatusAndMetrics(WorkflowRun run);
 
     /**
      * 方法：findByRunId。

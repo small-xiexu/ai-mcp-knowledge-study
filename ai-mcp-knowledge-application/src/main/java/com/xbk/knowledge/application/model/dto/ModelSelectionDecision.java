@@ -1,6 +1,6 @@
 package com.xbk.knowledge.application.model.dto;
 
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
  *
  * 设计模式：结果对象（Result Object）
  * 职责：应用层选择结果，用于统一驱动后续调用流程
- * @author xiexu
+ * @author sxie
  */
 @Data
 @Builder

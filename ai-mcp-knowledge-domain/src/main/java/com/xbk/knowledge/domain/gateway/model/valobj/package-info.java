@@ -1,6 +1,6 @@
 /**
  * 网关值对象。
  *
- * @author xiexu
+ * @author sxie
  */
 package com.xbk.knowledge.domain.gateway.model.valobj;

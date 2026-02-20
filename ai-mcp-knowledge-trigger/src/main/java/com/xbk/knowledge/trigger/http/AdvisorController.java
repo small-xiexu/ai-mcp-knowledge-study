@@ -25,9 +25,9 @@ import java.util.List;
 
 /**
  * Advisor 资产与绑定管理接口。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @RestController
 @RequestMapping("/api/advisors")
 @RequiredArgsConstructor

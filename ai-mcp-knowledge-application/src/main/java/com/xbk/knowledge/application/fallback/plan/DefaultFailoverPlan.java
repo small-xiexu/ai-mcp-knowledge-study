@@ -1,6 +1,6 @@
 package com.xbk.knowledge.application.fallback.plan;
 
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 
 import java.util.List;
 
@@ -10,7 +10,7 @@ import java.util.List;
  *
  * 设计模式：迭代器实现（Iterator Implementation）
  * 职责：应用层默认迭代器，用于隐藏主/备判断逻辑
- * @author xiexu
+ * @author sxie
  */
 public class DefaultFailoverPlan implements FailoverPlan {
 

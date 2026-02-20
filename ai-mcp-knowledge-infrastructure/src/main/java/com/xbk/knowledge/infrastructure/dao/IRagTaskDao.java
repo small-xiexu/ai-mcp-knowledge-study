@@ -1,6 +1,6 @@
 package com.xbk.knowledge.infrastructure.dao;
 
-import com.xbk.knowledge.domain.model.entity.RagTask;
+import com.xbk.knowledge.domain.rag.model.entity.RagTask;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -11,7 +11,7 @@ import java.util.List;
  * RAG 任务 Mapper
  *
  * 职责：数据访问适配层
- * @author xiexu
+ * @author sxie
  */
 @Mapper
 public interface IRagTaskDao {

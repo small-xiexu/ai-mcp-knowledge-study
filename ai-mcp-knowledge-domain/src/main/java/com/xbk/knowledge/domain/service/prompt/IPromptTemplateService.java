@@ -7,9 +7,9 @@ import com.xbk.knowledge.types.common.PageResult;
 
 /**
  * PromptTemplate 领域服务接口。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 public interface IPromptTemplateService {
 
     PageResult<PromptTemplate> queryPage(PromptTemplatePageQuery query);

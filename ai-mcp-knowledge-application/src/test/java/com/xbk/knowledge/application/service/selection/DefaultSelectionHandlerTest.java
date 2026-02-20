@@ -3,7 +3,7 @@ package com.xbk.knowledge.application.service.selection;
 import com.xbk.knowledge.application.model.dto.AICallCommand;
 import com.xbk.knowledge.application.service.selector.ModelSelector;
 import com.xbk.knowledge.application.service.selection.handler.DefaultSelectionHandler;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.test.util.ReflectionTestUtils;

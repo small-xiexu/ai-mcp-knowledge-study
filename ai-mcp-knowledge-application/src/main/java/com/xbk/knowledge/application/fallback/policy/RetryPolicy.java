@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
  *
  * 设计模式：责任链节点（Retry Interceptor）
  * 职责：责任链中的容错节点，用于控制重试行为
- * @author xiexu
+ * @author sxie
  */
 @Component
 @Order(3)

@@ -17,9 +17,9 @@ import java.time.LocalDateTime;
  * Advisor 资产实体。
  *
  * 对应表：advisor
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @TableName("advisor")
 @Getter
 @Setter

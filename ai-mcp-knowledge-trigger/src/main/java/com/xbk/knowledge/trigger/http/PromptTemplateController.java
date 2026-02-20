@@ -28,7 +28,7 @@ import jakarta.validation.Valid;
  *
  * 职责：HTTP 接口适配，用于转发应用层能力（模板创建/编辑/发布/归档/查询）。
  *
- * @author xiexu
+ * @author sxie
  */
 @RestController
 @RequestMapping("/api/templates")

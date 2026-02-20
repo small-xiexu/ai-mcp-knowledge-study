@@ -27,7 +27,7 @@ import jakarta.validation.Valid;
  * 2) 审批通过/拒绝
  * 3) 支撑“方式B”：审批通过后自动继续运行产出 PlatformContractV1
  *
- * @author xiexu
+ * @author sxie
  */
 @RestController
 @RequestMapping("/api/approvals")

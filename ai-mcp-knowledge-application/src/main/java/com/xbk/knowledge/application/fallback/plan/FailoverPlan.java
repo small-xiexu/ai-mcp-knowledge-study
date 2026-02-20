@@ -6,7 +6,7 @@ package com.xbk.knowledge.application.fallback.plan;
  *
  * 设计模式：迭代器（Iterator）
  * 职责：应用层迭代器，用于隐藏降级顺序细节
- * @author xiexu
+ * @author sxie
  */
 public interface FailoverPlan {
 

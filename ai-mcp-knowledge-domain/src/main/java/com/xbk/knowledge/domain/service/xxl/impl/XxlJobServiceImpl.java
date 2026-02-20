@@ -1,22 +1,24 @@
 package com.xbk.knowledge.domain.service.xxl.impl;
 
-import com.xbk.knowledge.domain.model.entity.XxlJobInfo;
-import com.xbk.knowledge.domain.model.entity.XxlJobLogDetail;
-import com.xbk.knowledge.domain.model.entity.XxlJobLogInfo;
-import com.xbk.knowledge.domain.model.vo.xxl.XxlJobLogPageQuery;
-import com.xbk.knowledge.domain.model.vo.xxl.XxlJobPageQuery;
-import com.xbk.knowledge.domain.model.adapter.repository.xxl.XxlJobRepository;
+import com.xbk.knowledge.domain.job.model.entity.XxlJobInfo;
+import com.xbk.knowledge.domain.job.model.entity.XxlJobLogDetail;
+import com.xbk.knowledge.domain.job.model.entity.XxlJobLogInfo;
+import com.xbk.knowledge.domain.job.model.valobj.XxlJobLogPageQuery;
+import com.xbk.knowledge.domain.job.model.valobj.XxlJobPageQuery;
+import com.xbk.knowledge.domain.job.adapter.repository.XxlJobRepository;
 import com.xbk.knowledge.domain.service.xxl.IXxlJobService;
 import com.xbk.knowledge.types.common.PageResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * XXL 任务领域服务实现
  * 封装分页查询的校验与统一口径
  *
  * 职责：领域服务实现，用于封装业务规则
- * @author xiexu
+ * @author sxie
  */
 @Service
 @RequiredArgsConstructor
@@ -40,7 +42,7 @@ public class XxlJobServiceImpl implements IXxlJobService {
         Integer pageSize = query.getPageSize();
         /*
          * 目的：规范化分页参数，避免超大分页导致性能问题
-         */
+ */
         if (pageNum == null || pageNum < 1) {
             pageNum = 1;
         }
@@ -61,7 +63,7 @@ public class XxlJobServiceImpl implements IXxlJobService {
      * 出参：任务列表
      */
     @Override
-    public java.util.List<XxlJobInfo> queryAllJobs(String appName, boolean refresh) {
+    public List<XxlJobInfo> queryAllJobs(String appName, boolean refresh) {
         if (appName == null || appName.trim().isEmpty()) {
             throw new IllegalArgumentException("执行器 AppName 不能为空");
         }
@@ -189,7 +191,7 @@ public class XxlJobServiceImpl implements IXxlJobService {
         Integer pageSize = query.getPageSize();
         /*
          * 目的：规范化分页参数，避免超大分页影响性能
-         */
+ */
         if (pageNum == null || pageNum < 1) {
             pageNum = 1;
         }
@@ -223,7 +225,7 @@ public class XxlJobServiceImpl implements IXxlJobService {
         }
         /*
          * 目的：起始行兜底，避免负数导致接口异常
-         */
+ */
         Integer startLine = fromLineNum == null || fromLineNum < 0 ? 0 : fromLineNum;
         return xxlJobRepository.queryLogDetail(logId, startLine);
     }

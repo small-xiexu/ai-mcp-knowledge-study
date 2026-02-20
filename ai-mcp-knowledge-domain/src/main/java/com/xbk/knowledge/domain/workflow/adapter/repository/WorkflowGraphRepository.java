@@ -8,9 +8,9 @@ import java.util.List;
 
 /**
  * Workflow 图（节点+边）仓储接口。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 public interface WorkflowGraphRepository {
 
     /**

@@ -1,8 +1,8 @@
 package com.xbk.knowledge.domain.service.audit.impl;
 
-import com.xbk.knowledge.domain.model.entity.ConfigAudit;
-import com.xbk.knowledge.domain.model.vo.audit.AuditQuery;
-import com.xbk.knowledge.domain.model.adapter.repository.audit.ConfigAuditRepository;
+import com.xbk.knowledge.domain.audit.model.entity.ConfigAudit;
+import com.xbk.knowledge.domain.audit.model.valobj.AuditQuery;
+import com.xbk.knowledge.domain.audit.adapter.repository.ConfigAuditRepository;
 import com.xbk.knowledge.domain.service.audit.IAuditService;
 import com.xbk.knowledge.types.common.PageResult;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +18,7 @@ import java.util.List;
  * 封装审计日志的业务逻辑
  *
  * 职责：领域服务实现，用于封装业务规则
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Service
@@ -41,17 +41,17 @@ public class AuditServiceImpl implements IAuditService {
         }
         /*
          * 目的：通过白名单映射排序字段，避免注入风险
-         */
+ */
         String sortColumn = resolveSortColumn(query.getSortField());
         String resolvedSortOrder = resolveSortOrder(query.getSortOrder());
 
         /*
          * 目的：规范化输入，避免空白或非法值影响查询
-         */
+ */
         String normalizedTableName = normalizeText(query.getTableName());
         /*
          * 目的：构建标准化查询对象，统一仓储查询口径
-         */
+ */
         AuditQuery normalizedQuery = new AuditQuery(
                 normalizedTableName,
                 query.getOffset(),
@@ -63,12 +63,12 @@ public class AuditServiceImpl implements IAuditService {
 
         /*
          * 目的：查询总数用于分页展示
-         */
+ */
         long total = configAuditRepository.countByConditions(normalizedQuery);
 
         /*
          * 目的：将偏移量转换为页码以保持响应一致
-         */
+ */
         Integer offset = query.getOffset();
         Integer pageSize = query.getPageSize();
         int pageNum = (offset / pageSize) + 1;

@@ -8,6 +8,6 @@
  * - repository：仓储抽象（端口）
  * - service：领域服务与领域规则编排
  *
- * @author xiexu
+ * @author sxie
  */
 package com.xbk.knowledge.domain;

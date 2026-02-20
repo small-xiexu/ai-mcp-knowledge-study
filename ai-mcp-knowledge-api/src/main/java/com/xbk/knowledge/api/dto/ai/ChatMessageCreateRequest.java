@@ -5,7 +5,7 @@ import lombok.Data;
 /**
  * 消息创建请求
  *
- * @author xiexu
+ * @author sxie
  */
 @Data
 public class ChatMessageCreateRequest {

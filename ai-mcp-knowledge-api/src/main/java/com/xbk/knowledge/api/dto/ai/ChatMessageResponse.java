@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 /**
  * 消息响应
  *
- * @author xiexu
+ * @author sxie
  */
 @Data
 public class ChatMessageResponse {

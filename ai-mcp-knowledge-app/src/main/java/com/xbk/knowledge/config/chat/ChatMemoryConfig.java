@@ -16,7 +16,7 @@ import java.time.Duration;
  * 聊天记忆配置
  * 装配 ChatMemory 与 RedisChatMemoryRepository
  *
- * @author xiexu
+ * @author sxie
  */
 @Configuration
 public class ChatMemoryConfig {

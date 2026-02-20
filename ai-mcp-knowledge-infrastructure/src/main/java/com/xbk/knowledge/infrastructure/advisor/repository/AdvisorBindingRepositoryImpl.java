@@ -14,9 +14,9 @@ import java.util.List;
 
 /**
  * Advisor 绑定仓储实现。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Repository
 @RequiredArgsConstructor
 public class AdvisorBindingRepositoryImpl implements AdvisorBindingRepository {

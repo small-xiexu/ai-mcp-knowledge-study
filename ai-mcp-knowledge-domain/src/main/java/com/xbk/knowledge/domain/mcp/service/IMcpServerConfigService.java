@@ -1,8 +1,8 @@
 package com.xbk.knowledge.domain.mcp.service;
 
 import com.xbk.knowledge.domain.mcp.model.entity.McpServerConfig;
-import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
-import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.common.model.valobj.EnabledQuery;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.mcp.model.valobj.McpServerConfigPageQuery;
 import com.xbk.knowledge.types.common.PageResult;
 
@@ -13,7 +13,7 @@ import java.util.List;
  * 定义 MCP Server 配置相关领域能力
  *
  * 职责：领域服务接口，用于封装业务规则
- * @author xiexu
+ * @author sxie
  */
 public interface IMcpServerConfigService {
 

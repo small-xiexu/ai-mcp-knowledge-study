@@ -29,7 +29,7 @@ import java.util.Set;
  * - allowedRagTagsJson 为空：视为“不限”（允许任意 tag），避免误伤存量；若需要严格白名单，请显式配置 allowed
  * - REQUIRED 未命中：由上层短路返回（SUCCESS + uncertainty），避免模型“装懂”
  *
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Component

@@ -16,7 +16,7 @@ import jakarta.validation.Valid;
  * 定义监控统计的 API 契约
  *
  * 职责：接口契约，用于规范 Trigger 层对外服务
- * @author xiexu
+ * @author sxie
  */
 public interface IMetricsService {
 

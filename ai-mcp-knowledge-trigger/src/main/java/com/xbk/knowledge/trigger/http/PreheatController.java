@@ -20,9 +20,9 @@ import jakarta.validation.Valid;
  * 显式 Preheat 接口。
  *
  * 说明：用于提前装配工具/Advisor/Workflow 校验等，降低首次调用延迟。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @RestController
 @RequestMapping("/api/preheat")
 @RequiredArgsConstructor

@@ -15,7 +15,7 @@ import java.util.List;
  *
  * 职责：接口层 DTO，用于承载角色授权参数。
  *
- * @author xiexu
+ * @author sxie
  */
 @Data
 @Builder

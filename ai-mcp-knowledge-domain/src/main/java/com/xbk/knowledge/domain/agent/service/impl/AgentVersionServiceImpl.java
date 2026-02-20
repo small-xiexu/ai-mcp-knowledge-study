@@ -13,6 +13,7 @@ import com.xbk.knowledge.domain.agent.adapter.repository.AgentRepository;
 import com.xbk.knowledge.domain.agent.adapter.repository.AgentVersionRepository;
 import com.xbk.knowledge.domain.agent.adapter.repository.PromptTemplateRepository;
 import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowVersionRepository;
+import com.xbk.knowledge.domain.workflow.model.valobj.WorkflowVersionIdQuery;
 import com.xbk.knowledge.domain.agent.service.IAgentVersionService;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.exception.BusinessException;
@@ -35,9 +36,9 @@ import java.util.regex.Pattern;
  * AgentVersion 领域服务实现。
  *
  * 说明：P0 优先保证草稿/发布/回滚闭环与发布快照固化。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -212,7 +213,7 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
             // P0：仅要求 workflowVersionId 非空且属于同 scope；状态校验放宽（允许先发布 Agent，再逐步完善 Workflow 发布流程）
             // 若你希望更严格：可在这里要求 workflowVersion.state == PUBLISHED
             workflowVersionRepository.findById(
-                    com.xbk.knowledge.domain.workflow.model.valobj.WorkflowVersionIdQuery.builder()
+                    WorkflowVersionIdQuery.builder()
                             .id(version.getWorkflowVersionId())
                             .build()
             ).orElseThrow(() -> new BusinessException("发布前要求绑定的 workflowVersionId 存在，id=" + version.getWorkflowVersionId()));

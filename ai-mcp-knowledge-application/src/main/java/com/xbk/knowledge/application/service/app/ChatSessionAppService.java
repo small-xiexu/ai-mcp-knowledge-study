@@ -1,7 +1,7 @@
 package com.xbk.knowledge.application.service.app;
 
-import com.xbk.knowledge.domain.model.entity.ChatMessage;
-import com.xbk.knowledge.domain.model.entity.ChatSession;
+import com.xbk.knowledge.domain.chat.model.entity.ChatMessage;
+import com.xbk.knowledge.domain.chat.model.entity.ChatSession;
 import com.xbk.knowledge.types.common.PageResult;
 
 import java.util.List;
@@ -12,7 +12,7 @@ import java.util.List;
  *
  * 职责：应用层用例接口，用于封装调用入口
  *
- * @author xiexu
+ * @author sxie
  */
 public interface ChatSessionAppService {
 

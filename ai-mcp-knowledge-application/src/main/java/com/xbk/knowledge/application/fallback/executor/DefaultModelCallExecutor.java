@@ -4,7 +4,7 @@ import com.xbk.knowledge.application.model.dto.AICallCommand;
 import com.xbk.knowledge.application.model.dto.AICallResult;
 import com.xbk.knowledge.application.fallback.core.ModelCallContext;
 import com.xbk.knowledge.application.service.app.ChatClientAssemblyService;
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import com.xbk.knowledge.types.exception.ExceptionMessageUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
  *
  * 设计模式：策略实现（Strategy Implementation）
  * 职责：应用层调用实现，用于隔离模型调用细节
- * @author xiexu
+ * @author sxie
  */
 @Component
 @Slf4j

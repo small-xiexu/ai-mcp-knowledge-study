@@ -14,9 +14,9 @@ import org.springframework.stereotype.Component;
  * TraceId 链路追踪 Advisor（全局必备）。
  *
  * 说明：在 ChatClient 调用前自动注入 traceId（写入 MDC），便于端到端串联排障与审计。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Slf4j
 @Component
 @GlobalChatAdvisor

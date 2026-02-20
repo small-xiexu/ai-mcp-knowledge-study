@@ -1,7 +1,7 @@
 package com.xbk.knowledge.infrastructure.gateway.repository;
 
 import com.xbk.knowledge.domain.gateway.model.entity.McpToolRegistry;
-import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.GatewayIdQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.ToolNameQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.ToolRegistryPageQuery;
@@ -17,7 +17,7 @@ import java.util.Optional;
 /**
  * 工具注册仓储实现
  *
- * @author xiexu
+ * @author sxie
  */
 @Repository
 @RequiredArgsConstructor
@@ -109,7 +109,7 @@ public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository 
         /*
          * 目的：补齐 toolKey/riskLevel，保证治理字段稳定。
          * 约束：Gateway HTTP 工具默认使用 gateway:{gatewayId}:{toolName} 作为 toolKey。
-         */
+ */
         if (registry.getToolKey() == null || registry.getToolKey().isBlank()) {
             String gatewayId = registry.getGatewayId();
             String toolName = registry.getToolName();

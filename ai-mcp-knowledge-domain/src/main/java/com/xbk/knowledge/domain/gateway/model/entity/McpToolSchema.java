@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
  * 对应数据库表：mcp_tool_schema
  *
  * 职责：领域实体，承载工具的 JSON Schema 版本快照与激活状态
- * @author xiexu
+ * @author sxie
  */
 @TableName("mcp_tool_schema")
 @Getter

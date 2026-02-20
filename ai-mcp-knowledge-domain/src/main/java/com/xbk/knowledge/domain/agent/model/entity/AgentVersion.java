@@ -18,9 +18,9 @@ import java.time.LocalDateTime;
  * AgentVersion 实体（草稿/发布/历史）。
  *
  * 对应表：agent_version
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @TableName("agent_version")
 @Getter
 @Setter

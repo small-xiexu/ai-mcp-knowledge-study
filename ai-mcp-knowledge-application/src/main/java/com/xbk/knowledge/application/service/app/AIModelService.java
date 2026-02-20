@@ -8,7 +8,7 @@ import com.xbk.knowledge.application.model.dto.AICallResult;
  * 提供统一的 AI 模型调用入口
  *
  * 职责：应用层用例接口，用于定义编排能力
- * @author xiexu
+ * @author sxie
  */
 public interface AIModelService {
 

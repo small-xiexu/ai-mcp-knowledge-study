@@ -3,7 +3,7 @@ package com.xbk.knowledge.infrastructure.dao;
 import com.xbk.knowledge.infrastructure.dao.po.McpGatewayPO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.xbk.knowledge.domain.gateway.model.entity.McpGateway;
-import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.GatewayIdQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.GatewayPageQuery;
 import org.apache.ibatis.annotations.Mapper;
@@ -14,7 +14,7 @@ import java.util.List;
 /**
  * Gateway 实例 Mapper
  *
- * @author xiexu
+ * @author sxie
  */
 @Mapper
 public interface IMcpGatewayDao extends BaseMapper<McpGatewayPO> {

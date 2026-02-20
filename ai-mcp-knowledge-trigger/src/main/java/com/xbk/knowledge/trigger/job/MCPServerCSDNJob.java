@@ -18,22 +18,22 @@ import org.springframework.stereotype.Service;
  * <p>
  * 工作流程：
  * <ol>
- *   <li>生成 AI 文章并发布到 CSDN</li>
- *   <li>获取发布结果（文章 URL）</li>
- *   <li>发送微信公众号通知</li>
+ * <li>生成 AI 文章并发布到 CSDN</li>
+ * <li>获取发布结果（文章 URL）</li>
+ * <li>发送微信公众号通知</li>
  * </ol>
  * <p>
  * 技术要点：
  * <ul>
- *   <li>使用 ChatClient 与 Gemini 大模型交互</li>
- *   <li>通过 ToolCallbackProvider 注入 MCP 工具（CSDN 发布、微信通知）</li>
- *   <li>使用 PromptChatMemoryAdvisor 实现多轮对话记忆</li>
- *   <li>通过 System Prompt 传递 traceId 实现端到端链路追踪</li>
+ * <li>使用 ChatClient 与 Gemini 大模型交互</li>
+ * <li>通过 ToolCallbackProvider 注入 MCP 工具（CSDN 发布、微信通知）</li>
+ * <li>使用 PromptChatMemoryAdvisor 实现多轮对话记忆</li>
+ * <li>通过 System Prompt 传递 traceId 实现端到端链路追踪</li>
  * </ul>
  *
  * 职责：定时任务入口，用于承载自动化流程
- * @author xiexu
  * @since 2026-01-26
+ * @author sxie
  */
 @Slf4j
 @Service

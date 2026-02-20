@@ -11,9 +11,9 @@ import lombok.NoArgsConstructor;
 
 /**
  * AgentVersion 发布请求。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Data
 @Builder
 @NoArgsConstructor

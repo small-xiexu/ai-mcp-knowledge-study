@@ -10,6 +10,7 @@ import java.util.List;
 
 /**
  * 客户端节点，负责构建增强后的 ChatClient。
+ * @author sxie
  */
 @Component
 public class AiClientNode extends AbstractAiClientArmoryNode {

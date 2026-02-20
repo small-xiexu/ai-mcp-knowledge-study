@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
  *
  * 职责：承载高风险工具调用的审批流程信息。
  *
- * @author xiexu
+ * @author sxie
  */
 @TableName("approval_request")
 @Getter

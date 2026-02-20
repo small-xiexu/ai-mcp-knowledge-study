@@ -3,8 +3,8 @@ package com.xbk.knowledge.infrastructure.dao;
 import com.xbk.knowledge.infrastructure.dao.po.McpServerConfigPO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.xbk.knowledge.domain.mcp.model.entity.McpServerConfig;
-import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
-import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.common.model.valobj.EnabledQuery;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.mcp.model.valobj.McpServerConfigPageQuery;
 import com.xbk.knowledge.domain.mcp.model.valobj.McpServerNameQuery;
 import org.apache.ibatis.annotations.Mapper;
@@ -17,7 +17,7 @@ import java.util.List;
  * 使用 XML 执行 SQL，避免注解或默认方法绕过约束
  *
  * 职责：MyBatis Mapper 接口，用于映射数据库操作
- * @author xiexu
+ * @author sxie
  */
 @Mapper
 public interface IMcpServerConfigDao extends BaseMapper<McpServerConfigPO> {

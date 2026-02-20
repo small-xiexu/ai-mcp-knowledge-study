@@ -3,6 +3,6 @@
  *
  * 职责：提供 Agent 子域对应的持久化映射与仓储实现。
  *
- * @author xiexu
+ * @author sxie
  */
 package com.xbk.knowledge.infrastructure.agent;

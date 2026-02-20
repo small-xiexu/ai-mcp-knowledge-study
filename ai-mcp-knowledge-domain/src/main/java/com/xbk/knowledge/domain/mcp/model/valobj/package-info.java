@@ -1,6 +1,6 @@
 /**
  * MCP 相关 VO
  *
- * @author xiexu
+ * @author sxie
  */
 package com.xbk.knowledge.domain.mcp.model.valobj;

@@ -11,7 +11,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  * RAG 任务执行器配置
  * 用于并行处理文档解析任务
  *
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Configuration

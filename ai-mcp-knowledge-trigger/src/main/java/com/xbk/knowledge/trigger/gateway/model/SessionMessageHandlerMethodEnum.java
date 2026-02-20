@@ -12,7 +12,7 @@ import java.util.Map;
  *
  * 职责：定义 MCP 协议支持的 JSON-RPC 方法与对应 Handler Bean 名称的映射关系
  *
- * @author xiexu
+ * @author sxie
  */
 @Getter
 @AllArgsConstructor

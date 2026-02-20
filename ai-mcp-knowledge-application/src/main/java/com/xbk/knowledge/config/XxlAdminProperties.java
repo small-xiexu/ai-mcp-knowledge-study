@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
  * XXL-Job Admin 对接配置
  * 统一管理登录与执行器参数
  *
- * @author xiexu
+ * @author sxie
  */
 @Data
 @Component

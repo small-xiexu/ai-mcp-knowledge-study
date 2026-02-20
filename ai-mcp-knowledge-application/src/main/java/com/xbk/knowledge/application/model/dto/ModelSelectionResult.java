@@ -1,6 +1,6 @@
 package com.xbk.knowledge.application.model.dto;
 
-import com.xbk.knowledge.domain.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,7 +13,7 @@ import java.util.List;
  * 包含主模型和备用模型列表
  *
  * 职责：应用层命令/结果模型，用于传递用例输入输出
- * @author xiexu
+ * @author sxie
  */
 @Data
 @Builder

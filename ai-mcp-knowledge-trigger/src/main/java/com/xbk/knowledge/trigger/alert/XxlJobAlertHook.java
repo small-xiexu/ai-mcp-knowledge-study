@@ -5,7 +5,7 @@ package com.xbk.knowledge.trigger.alert;
  * 统一处理定时任务异常通知
  *
  * 职责：告警扩展点，用于后续接入通知系统
- * @author xiexu
+ * @author sxie
  */
 public interface XxlJobAlertHook {
 

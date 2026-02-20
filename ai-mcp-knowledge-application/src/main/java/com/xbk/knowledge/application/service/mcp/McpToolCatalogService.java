@@ -1,10 +1,14 @@
 package com.xbk.knowledge.application.service.mcp;
 
+import com.xbk.knowledge.application.model.dto.McpToolInfo;
+
+import java.util.List;
+
 /**
  * MCP 工具目录服务
  * 提供工具清单文本，用于注入到模型上下文
  *
- * @author xiexu
+ * @author sxie
  */
 public interface McpToolCatalogService {
 
@@ -20,5 +24,5 @@ public interface McpToolCatalogService {
      *
      * @return 工具列表
      */
-    java.util.List<com.xbk.knowledge.application.model.dto.McpToolInfo> listTools();
+    List<McpToolInfo> listTools();
 }

@@ -6,9 +6,9 @@ import lombok.NoArgsConstructor;
 
 /**
  * PromptTemplate 分页查询条件。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

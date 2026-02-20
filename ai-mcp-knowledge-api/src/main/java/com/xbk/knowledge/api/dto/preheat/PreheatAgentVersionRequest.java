@@ -6,9 +6,9 @@ import jakarta.validation.constraints.NotNull;
 
 /**
  * 预热 AgentVersion 请求。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 @Data
 public class PreheatAgentVersionRequest {
 

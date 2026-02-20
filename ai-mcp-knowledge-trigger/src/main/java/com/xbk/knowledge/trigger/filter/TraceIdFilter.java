@@ -18,7 +18,7 @@ import java.io.IOException;
  * 统一为每个请求注入 traceId 并回写响应头，保证日志可串联
  *
  * 职责：触发层基础设施，用于请求级链路追踪
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @Component
@@ -35,7 +35,7 @@ public class TraceIdFilter extends OncePerRequestFilter {
         String traceId = StringUtils.hasText(incoming) ? incoming : TraceIdUtils.getOrCreateTraceId();
         /*
          * 目的：优先使用上游传入的 traceId，保证跨服务链路一致
-         */
+ */
         MDC.put(TraceIdUtils.TRACE_ID_KEY, traceId);
         response.setHeader(TRACE_ID_HEADER, traceId);
         try {
@@ -43,7 +43,7 @@ public class TraceIdFilter extends OncePerRequestFilter {
         } finally {
             /*
              * 目的：恢复或清理 MDC，避免线程复用导致串号
-             */
+ */
             if (StringUtils.hasText(previous)) {
                 MDC.put(TraceIdUtils.TRACE_ID_KEY, previous);
             } else {

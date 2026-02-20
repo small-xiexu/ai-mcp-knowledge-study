@@ -9,9 +9,9 @@ import com.xbk.knowledge.types.common.PageResult;
  * AgentSchedule 应用服务。
  *
  * 职责：编排调度配置与 XXL-Job 联动用例。
- 
-  * @author xiexu
-  */
+ *
+ * @author sxie
+ */
 public interface AgentScheduleAppService {
 
     PageResult<AgentSchedule> queryPage(AgentSchedulePageQuery query);

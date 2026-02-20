@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
  *
  * 设计模式：结果对象（Result Object）
  * 职责：应用层流程结果，用于驱动降级策略
- * @author xiexu
+ * @author sxie
  */
 @Data
 @Builder

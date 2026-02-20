@@ -14,7 +14,7 @@ import jakarta.validation.constraints.NotBlank;
  *
  * 职责：接口层 DTO，用于承载认证入参。
  *
- * @author xiexu
+ * @author sxie
  */
 @Data
 @Builder

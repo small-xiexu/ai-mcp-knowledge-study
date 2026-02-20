@@ -2,8 +2,8 @@ package com.xbk.knowledge.application.service.app.impl;
 
 import com.xbk.knowledge.application.service.app.McpServerConfigAppService;
 import com.xbk.knowledge.domain.mcp.model.entity.McpServerConfig;
-import com.xbk.knowledge.domain.model.vo.common.EnabledQuery;
-import com.xbk.knowledge.domain.model.vo.common.IdQuery;
+import com.xbk.knowledge.domain.common.model.valobj.EnabledQuery;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.mcp.model.valobj.McpServerConfigPageQuery;
 import com.xbk.knowledge.domain.mcp.service.IMcpServerConfigService;
 import com.xbk.knowledge.application.service.runtime.McpServerRuntimeService;
@@ -19,7 +19,7 @@ import java.util.List;
  * 负责 MCP Server 配置相关用例编排
  *
  * 职责：应用层用例实现，用于协调领域能力与运行时注册
- * @author xiexu
+ * @author sxie
  */
 @Service
 @RequiredArgsConstructor
@@ -80,7 +80,7 @@ public class McpServerConfigAppServiceImpl implements McpServerConfigAppService 
             Long id = savedConfig.getId();
             /*
              * 目的：禁用后释放运行时资源
-             */
+ */
             mcpServerRuntimeService.unregister(id);
         }
         return savedConfig;
@@ -174,12 +174,12 @@ public class McpServerConfigAppServiceImpl implements McpServerConfigAppService 
         if (Boolean.TRUE.equals(config.getEnabled())) {
             /*
              * 目的：单条刷新重建运行时连接
-             */
+ */
             mcpServerRuntimeService.registerOrUpdate(config);
         } else {
             /*
              * 目的：禁用配置不应维持运行时连接
-             */
+ */
             mcpServerRuntimeService.unregister(config.getId());
         }
     }

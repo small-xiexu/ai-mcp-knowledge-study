@@ -16,7 +16,7 @@ import jakarta.validation.constraints.NotNull;
  * 用于创建和更新模型配置
  *
  * 职责：接口层 DTO，用于承载请求/响应参数并保证传输边界稳定
- * @author xiexu
+ * @author sxie
  */
 @Data
 @Builder

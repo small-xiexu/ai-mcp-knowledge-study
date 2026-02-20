@@ -6,7 +6,7 @@ import com.xbk.knowledge.api.dto.rag.RagTaskIdRequest;
 import com.xbk.knowledge.api.dto.rag.RagTaskQueryRequest;
 import com.xbk.knowledge.api.dto.rag.RagTaskResponse;
 import com.xbk.knowledge.application.service.app.RagAppService;
-import com.xbk.knowledge.domain.model.entity.RagTask;
+import com.xbk.knowledge.domain.rag.model.entity.RagTask;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.common.PageResultConverter;
 import com.xbk.knowledge.types.common.Result;
@@ -22,7 +22,7 @@ import java.util.List;
  * RAG 知识库管理 Controller
  *
  * 职责：HTTP 接口适配，用于转发应用层能力
- * @author xiexu
+ * @author sxie
  */
 @Slf4j
 @RestController
@@ -190,7 +190,7 @@ public class RagController {
     private RagTaskResponse toResponse(RagTask task) {
         /*
          * 目的：统一 DTO 映射入口，屏蔽领域实体细节
-         */
+ */
         return RagTaskResponse.builder()
                 .taskId(task.getTaskId())
                 .type(task.getType())

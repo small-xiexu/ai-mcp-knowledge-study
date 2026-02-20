@@ -30,7 +30,7 @@ import jakarta.validation.Valid;
  *
  * 职责：HTTP 接口适配，用于转发应用层能力（调度配置 CRUD/启停）。
  *
- * @author xiexu
+ * @author sxie
  */
 @RestController
 @RequestMapping("/api/schedules")

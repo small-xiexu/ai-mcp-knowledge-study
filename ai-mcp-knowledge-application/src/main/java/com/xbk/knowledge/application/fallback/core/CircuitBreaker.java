@@ -13,7 +13,7 @@ import java.util.function.Function;
  * 连续失败后暂停使用该模型，避免雪崩效应
  *
  * 职责：应用层容错组件，用于提升调用稳定性
- * @author xiexu
+ * @author sxie
  */
 @Component
 @Slf4j

@@ -5,7 +5,7 @@ package com.xbk.knowledge.application.service.app;
  *
  * 职责：应用层抽象，用于收口登录态读取与会话操作，隔离上层对 Sa-Token 的直接依赖。
  *
- * @author xiexu
+ * @author sxie
  */
 public interface IdentityContextService {
 
