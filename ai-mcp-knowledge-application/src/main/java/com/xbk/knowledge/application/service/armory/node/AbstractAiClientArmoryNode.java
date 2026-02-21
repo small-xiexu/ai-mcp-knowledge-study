@@ -1,6 +1,6 @@
 package com.xbk.knowledge.application.service.armory.node;
 
-import com.xbk.knowledge.application.service.armory.factory.DefaultAiClientArmoryStrategyFactory;
+import com.xbk.knowledge.application.service.armory.factory.AiClientArmoryContext;
 
 /**
  * AI 客户端装配节点抽象基类。
@@ -12,7 +12,7 @@ public abstract class AbstractAiClientArmoryNode implements AiClientArmoryNode {
     private AiClientArmoryNode next;
 
     @Override
-    public final void handle(DefaultAiClientArmoryStrategyFactory.DynamicContext context) {
+    public final void handle(AiClientArmoryContext context) {
         doHandle(context);
         if (next != null) {
             next.handle(context);
@@ -29,6 +29,5 @@ public abstract class AbstractAiClientArmoryNode implements AiClientArmoryNode {
      *
      * @param context 动态上下文
      */
-    protected abstract void doHandle(DefaultAiClientArmoryStrategyFactory.DynamicContext context);
+    protected abstract void doHandle(AiClientArmoryContext context);
 }
-

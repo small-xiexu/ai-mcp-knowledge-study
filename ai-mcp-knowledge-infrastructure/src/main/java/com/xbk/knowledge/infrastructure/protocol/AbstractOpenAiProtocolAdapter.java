@@ -6,6 +6,7 @@ import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.openai.api.OpenAiApi;
+import org.springframework.util.StringUtils;
 
 /**
  * OpenAI 兼容协议抽象适配器
@@ -31,13 +32,18 @@ public abstract class AbstractOpenAiProtocolAdapter {
  */
         String baseUrl = config.getBaseUrl();
         String normalizedBaseUrl = normalizeBaseUrl(baseUrl);
+        String completionsPath = normalizeApiPath(config.getCompletionsPath(), "/v1/chat/completions");
 
-        log.info("创建 OpenAI 协议模型 - 原始 baseUrl: {}, 规范化后: {}", baseUrl, normalizedBaseUrl);
+        log.info("创建 OpenAI 协议模型 - 原始 baseUrl: {}, 规范化后: {}, completionsPath: {}",
+                baseUrl,
+                normalizedBaseUrl,
+                completionsPath);
 
         String apiKey = config.getApiKey();
         OpenAiApi openAiApi = OpenAiApi.builder()
                 .baseUrl(normalizedBaseUrl)
                 .apiKey(apiKey)
+                .completionsPath(completionsPath)
                 .build();
 
         String modelName = config.getModelName();
@@ -96,5 +102,16 @@ public abstract class AbstractOpenAiProtocolAdapter {
         }
 
         return normalized;
+    }
+
+    /**
+     * 规范化 OpenAI 协议路径，保证以 '/' 开头并提供默认值。
+     */
+    protected String normalizeApiPath(String rawPath, String defaultPath) {
+        String path = StringUtils.hasText(rawPath) ? rawPath.trim() : defaultPath;
+        if (!StringUtils.hasText(path)) {
+            return defaultPath;
+        }
+        return path.startsWith("/") ? path : "/" + path;
     }
 }

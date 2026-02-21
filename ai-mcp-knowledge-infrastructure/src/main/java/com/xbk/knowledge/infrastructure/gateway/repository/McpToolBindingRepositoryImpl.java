@@ -98,4 +98,17 @@ public class McpToolBindingRepositoryImpl implements McpToolBindingRepository {
         }
         mapper.deleteToolBindingByToolId(new ToolIdQuery(toolId));
     }
+
+    /**
+     * deleteByBindTypeAndTargetId。
+     *
+     * @param query 参数
+     */
+    @Override
+    public void deleteByBindTypeAndTargetId(ToolBindingQuery query) {
+        if (query == null || query.getBindType() == null || query.getBindTargetId() == null) {
+            return;
+        }
+        mapper.deleteByBindTypeAndTargetId(query);
+    }
 }

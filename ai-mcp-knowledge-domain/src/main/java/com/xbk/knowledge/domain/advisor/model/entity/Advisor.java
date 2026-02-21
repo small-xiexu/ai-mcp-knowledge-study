@@ -23,7 +23,7 @@ public class Advisor {
     private Long id;
 
     /**
-     * 对外唯一编码（同 scope 内唯一）。
+     * 对外唯一编码。
      */
     private String advisorCode;
 
@@ -51,4 +51,3 @@ public class Advisor {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
-

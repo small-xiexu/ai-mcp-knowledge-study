@@ -1,23 +1,24 @@
 package com.xbk.knowledge.infrastructure.audit;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.xbk.knowledge.domain.audit.model.aggregate.ConfigAuditAggregate;
-import com.xbk.knowledge.domain.audit.model.entity.ConfigAudit;
-import com.xbk.knowledge.domain.audit.adapter.repository.ConfigAuditRepository;
+import com.xbk.knowledge.domain.audit.model.entity.SysAuditEvent;
+import com.xbk.knowledge.domain.audit.adapter.repository.SysAuditEventRepository;
+import com.xbk.knowledge.types.trace.TraceIdUtils;
+import cn.dev33.satoken.stp.StpUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import java.time.LocalDateTime;
+
 /**
  * 配置审计服务
- * 集中处理审计持久化与序列化，避免切面承担转换细节
+ * 将配置变更统一写入 sys_audit_event
  *
  * 职责：基础设施审计能力，用于持久化变更记录
  * @author sxie
@@ -27,10 +28,9 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @RequiredArgsConstructor
 public class AuditService {
 
-    private static final String OPERATOR_HEADER = "X-Operator";
-    private static final String DEFAULT_OPERATOR = "system";
+    private static final String EVENT_TYPE = "CONFIG_CHANGE";
 
-    private final ConfigAuditRepository configAuditRepository;
+    private final SysAuditEventRepository sysAuditEventRepository;
     private final ObjectMapper objectMapper;
 
     /**
@@ -51,41 +51,68 @@ public class AuditService {
         /*
          * 目的：统一解析操作者并序列化数据
  */
-        String operator = resolveOperator();
+        Long operatorId = resolveOperatorId();
+        String operatorType = operatorId == null ? "system" : "user";
         String oldValueJson = toJson(oldValue);
         String newValueJson = toJson(newValue);
-
-        ConfigAudit audit = ConfigAudit.builder()
-                .tableName(tableName)
-                .recordId(recordId)
-                .operation(operation)
+        SysAuditEvent event = SysAuditEvent.builder()
+                .operatorId(operatorId)
+                .operatorType(operatorType)
+                .eventType(EVENT_TYPE)
+                .resourceType(tableName)
+                .resourceId(String.valueOf(recordId))
+                .action(operation)
+                .requestId(TraceIdUtils.getOrCreateTraceId())
+                .sourceIp(resolveSourceIp())
+                .userAgent(resolveUserAgent())
                 .oldValue(oldValueJson)
                 .newValue(newValueJson)
-                .operator(operator)
+                .result(1)
+                .costMs(0L)
+                .occurredAt(LocalDateTime.now())
                 .build();
-
-        ConfigAuditAggregate aggregate = ConfigAuditAggregate.builder()
-                .configAudit(audit)
-                .build();
-        configAuditRepository.save(aggregate);
-        log.info("审计日志已记录，tableName: {}, recordId: {}, operation: {}, operator: {}", tableName, recordId, operation, operator);
+        sysAuditEventRepository.insert(event);
+        log.info("审计日志已记录，tableName: {}, recordId: {}, operation: {}, operatorId: {}", tableName, recordId, operation, operatorId);
     }
 
     /**
-     * 解析操作人
-     *
-     * 为什么：从请求头获取操作者，缺省为 system
+     * 解析当前登录用户ID。
      */
-    private String resolveOperator() {
-        RequestAttributes attributes = RequestContextHolder.getRequestAttributes();
-        if (attributes instanceof ServletRequestAttributes servletRequestAttributes) {
-            HttpServletRequest request = servletRequestAttributes.getRequest();
-            String headerValue = request.getHeader(OPERATOR_HEADER);
-            if (StringUtils.hasText(headerValue)) {
-                return headerValue;
+    private Long resolveOperatorId() {
+        try {
+            if (!StpUtil.isLogin()) {
+                return null;
             }
+            Object loginId = StpUtil.getLoginId();
+            return loginId == null ? null : Long.valueOf(String.valueOf(loginId));
+        } catch (Exception e) {
+            return null;
         }
-        return DEFAULT_OPERATOR;
+    }
+
+    private String resolveSourceIp() {
+        HttpServletRequest request = currentRequest();
+        if (request == null) {
+            return null;
+        }
+        String forwardedFor = request.getHeader("X-Forwarded-For");
+        if (!StringUtils.hasText(forwardedFor)) {
+            return request.getRemoteAddr();
+        }
+        String[] values = forwardedFor.split(",");
+        return values.length == 0 ? request.getRemoteAddr() : values[0].trim();
+    }
+
+    private String resolveUserAgent() {
+        HttpServletRequest request = currentRequest();
+        return request == null ? null : request.getHeader("User-Agent");
+    }
+
+    private HttpServletRequest currentRequest() {
+        if (RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes servletRequestAttributes) {
+            return servletRequestAttributes.getRequest();
+        }
+        return null;
     }
 
     /**
@@ -99,7 +126,7 @@ public class AuditService {
         }
         try {
             return objectMapper.writeValueAsString(value);
-        } catch (JsonProcessingException ex) {
+        } catch (Exception ex) {
             log.error("序列化审计对象失败", ex);
             return null;
         }

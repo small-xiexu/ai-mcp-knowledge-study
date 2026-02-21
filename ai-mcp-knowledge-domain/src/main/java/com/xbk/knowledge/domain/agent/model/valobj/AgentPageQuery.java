@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Agent 分页查询条件（含 scope 边界）。
+ * Agent 分页查询条件。
  *
  * @author sxie
  */
@@ -22,4 +22,3 @@ public class AgentPageQuery {
 
     private Integer pageSize;
 }
-

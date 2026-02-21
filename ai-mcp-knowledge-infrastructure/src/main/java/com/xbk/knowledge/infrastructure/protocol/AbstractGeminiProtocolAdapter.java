@@ -6,6 +6,7 @@ import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.openai.api.OpenAiApi;
+import org.springframework.util.StringUtils;
 
 /**
  * Gemini 协议抽象适配器
@@ -38,10 +39,18 @@ public abstract class AbstractGeminiProtocolAdapter {
          * 目的：规范化 baseUrl，避免路径重复导致 404
          */
         String normalizedBaseUrl = normalizeBaseUrl(baseUrl);
-        log.info("创建 Gemini 兼容协议模型 - 原始 baseUrl: {}, 规范化后: {}", baseUrl, normalizedBaseUrl);
+        String completionsPath = normalizeApiPath(config.getCompletionsPath(), "/v1/chat/completions");
+        log.info("创建 Gemini 兼容协议模型 - 原始 baseUrl: {}, 规范化后: {}, completionsPath: {}",
+                baseUrl,
+                normalizedBaseUrl,
+                completionsPath);
 
         String apiKey = config.getApiKey();
-        OpenAiApi openAiApi = OpenAiApi.builder().baseUrl(normalizedBaseUrl).apiKey(apiKey).build();
+        OpenAiApi openAiApi = OpenAiApi.builder()
+                .baseUrl(normalizedBaseUrl)
+                .apiKey(apiKey)
+                .completionsPath(completionsPath)
+                .build();
 
         OpenAiChatOptions options = OpenAiChatOptions.builder().model(modelName).build();
 
@@ -93,5 +102,16 @@ public abstract class AbstractGeminiProtocolAdapter {
         }
 
         return normalized;
+    }
+
+    /**
+     * 规范化 OpenAI 兼容协议路径，保证以 '/' 开头并提供默认值。
+     */
+    protected String normalizeApiPath(String rawPath, String defaultPath) {
+        String path = StringUtils.hasText(rawPath) ? rawPath.trim() : defaultPath;
+        if (!StringUtils.hasText(path)) {
+            return defaultPath;
+        }
+        return path.startsWith("/") ? path : "/" + path;
     }
 }

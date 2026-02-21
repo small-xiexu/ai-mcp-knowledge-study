@@ -28,12 +28,6 @@ public class MyBatisMetaObjectHandler implements MetaObjectHandler {
         LocalDateTime now = LocalDateTime.now();
         this.strictInsertFill(metaObject, "createdAt", LocalDateTime.class, now);
         this.strictInsertFill(metaObject, "updatedAt", LocalDateTime.class, now);
-        /*
-         * 单组织模式：统一为包含 scopeId 字段的实体回填默认值 1。
- */
-        if (metaObject != null && metaObject.hasSetter("scopeId")) {
-            this.strictInsertFill(metaObject, "scopeId", Long.class, 1L);
-        }
     }
 
     /**

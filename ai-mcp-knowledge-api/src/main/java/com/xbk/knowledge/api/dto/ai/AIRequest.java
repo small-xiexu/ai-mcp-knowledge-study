@@ -1,6 +1,5 @@
 package com.xbk.knowledge.api.dto.ai;
 
-import com.xbk.knowledge.types.enums.ModelSelectionStrategy;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -37,12 +36,6 @@ public class AIRequest {
      * 例如：temperature、maxTokens 等
      */
     private Map<String, Object> parameters;
-
-    /**
-     * 模型选择策略（可选）
-     * 如果不指定，将使用默认策略
-     */
-    private ModelSelectionStrategy strategy;
 
     /**
      * 是否启用流式输出（可选）

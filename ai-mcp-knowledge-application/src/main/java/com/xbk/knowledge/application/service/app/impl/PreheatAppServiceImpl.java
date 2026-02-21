@@ -59,7 +59,6 @@ public class PreheatAppServiceImpl implements PreheatAppService {
     /**
      * preheatAgentVersion。
      *
-     * @param scopeId 参数
      * @param agentVersionId 参数
      * @param refreshMcp 参数
      * @return 返回结果
@@ -110,7 +109,6 @@ public class PreheatAppServiceImpl implements PreheatAppService {
     /**
      * preheatWorkflowVersion。
      *
-     * @param scopeId 参数
      * @param workflowVersionId 参数
      * @param refreshMcp 参数
      * @return 返回结果
@@ -161,7 +159,7 @@ public class PreheatAppServiceImpl implements PreheatAppService {
             ToolCallback[] callbacks = toolCallbackProvider == null ? null : toolCallbackProvider.getToolCallbacks();
             int count = callbacks == null ? 0 : callbacks.length;
             if (count == 0) {
-                warnings.add("未发现可用工具回调（可能尚未 refresh MCP 或当前 scope 无启用 server）");
+                warnings.add("未发现可用工具回调（可能尚未 refresh MCP 或当前无启用 server）");
             }
             return true;
         } catch (Exception e) {

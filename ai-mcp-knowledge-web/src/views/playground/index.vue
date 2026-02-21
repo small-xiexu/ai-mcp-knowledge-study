@@ -9,27 +9,6 @@
           </template>
 
           <el-form label-width="80px">
-            <el-form-item label="策略">
-              <el-select
-                v-model="config.strategy"
-                placeholder="请选择策略"
-                style="width: 100%"
-              >
-                <el-option
-                  label="质量优先"
-                  value="QUALITY_PRIORITY"
-                />
-                <el-option
-                  label="速度优先"
-                  value="SPEED_PRIORITY"
-                />
-                <el-option
-                  label="成本优先"
-                  value="COST_PRIORITY"
-                />
-              </el-select>
-            </el-form-item>
-
             <el-button
               type="primary"
               style="width: 100%"
@@ -132,7 +111,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, nextTick } from 'vue'
+import { ref, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 import { chat } from '@/api/ai'
 
@@ -150,9 +129,6 @@ const loading = ref(false)
 const inputText = ref('')
 const messages = ref<Message[]>([])
 const messageListRef = ref<HTMLElement>()
-const config = reactive({
-  strategy: 'QUALITY_PRIORITY'
-})
 
 // 发送消息
 const handleSend = async () => {
@@ -176,14 +152,7 @@ const handleSend = async () => {
 
   loading.value = true
   try {
-    const requestData = {
-      content,
-      strategy: config.strategy
-    }
-
-    const res = await chat({
-      ...requestData
-    })
+    const res = await chat({ content })
 
     const data = res.data
 

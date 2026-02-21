@@ -1,6 +1,6 @@
 package com.xbk.knowledge.application.service.armory.node;
 
-import com.xbk.knowledge.application.service.armory.factory.DefaultAiClientArmoryStrategyFactory;
+import com.xbk.knowledge.application.service.armory.factory.AiClientArmoryContext;
 import com.xbk.knowledge.config.ai.GlobalChatAdvisor;
 import org.springframework.ai.chat.client.advisor.api.CallAdvisor;
 import org.springframework.stereotype.Component;
@@ -35,7 +35,7 @@ public class AiClientAdvisorNode extends AbstractAiClientArmoryNode {
     }
 
     @Override
-    protected void doHandle(DefaultAiClientArmoryStrategyFactory.DynamicContext context) {
+    protected void doHandle(AiClientArmoryContext context) {
         List<CallAdvisor> merged = new ArrayList<>();
         if (globalAdvisors != null && !globalAdvisors.isEmpty()) {
             merged.addAll(globalAdvisors);
@@ -58,4 +58,3 @@ public class AiClientAdvisorNode extends AbstractAiClientArmoryNode {
         context.setMergedAdvisors(merged);
     }
 }
-

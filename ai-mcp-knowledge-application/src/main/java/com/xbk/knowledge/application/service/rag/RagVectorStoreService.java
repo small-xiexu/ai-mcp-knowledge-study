@@ -177,6 +177,7 @@ public class RagVectorStoreService {
             OpenAiApi openAiApi = OpenAiApi.builder()
                     .baseUrl(baseUrl)
                     .apiKey(apiKey)
+                    .embeddingsPath(resolveEmbeddingsPath(modelConfig.getEmbeddingsPath()))
                     .build();
             OpenAiEmbeddingOptions options = OpenAiEmbeddingOptions.builder()
                     .model(modelName)
@@ -238,5 +239,13 @@ public class RagVectorStoreService {
             normalized = normalized.substring(0, normalized.length() - "/v1".length());
         }
         return normalized;
+    }
+
+    /**
+     * 规范化 embeddingsPath，保证以 '/' 开头并提供默认值。
+     */
+    private String resolveEmbeddingsPath(String embeddingsPath) {
+        String resolved = StringUtils.hasText(embeddingsPath) ? embeddingsPath.trim() : "/v1/embeddings";
+        return resolved.startsWith("/") ? resolved : "/" + resolved;
     }
 }

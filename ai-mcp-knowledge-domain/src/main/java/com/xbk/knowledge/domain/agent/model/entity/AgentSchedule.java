@@ -9,7 +9,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
- * Agent 调度配置（按 scope 隔离）。
+ * Agent 调度配置。
  *
  * 职责：表达调度配置的领域对象，用于与 XXL-Job 联动管理。
  *

@@ -41,7 +41,6 @@ public class WorkflowRunCleanupJob {
         LocalDateTime cutOff = LocalDateTime.now().minusDays(RETENTION_DAYS);
 
         int totalDeleted = 0;
-        Long scopeId = 1L;
         int batches = 0;
         while (batches++ < MAX_BATCHES) {
             List<String> runIds = workflowRunRepository.listRunIdsBefore(cutOff, BATCH_LIMIT);
@@ -52,7 +51,7 @@ public class WorkflowRunCleanupJob {
             int d2 = workflowRunContextRepository.deleteByRunIds(runIds);
             int d3 = workflowRunRepository.deleteByRunIds(runIds);
             totalDeleted += d3;
-            XxlJobHelper.log("cleanup scopeId={}, runIds={}, nodeRunsDeleted={}, ctxDeleted={}, runsDeleted={}",  runIds.size(), d1, d2, d3);
+            XxlJobHelper.log("cleanup runIds={}, nodeRunsDeleted={}, ctxDeleted={}, runsDeleted={}", runIds.size(), d1, d2, d3);
             if (d3 <= 0) {
                 break;
             }

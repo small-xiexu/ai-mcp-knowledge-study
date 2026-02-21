@@ -7,7 +7,6 @@ import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.mcp.model.valobj.McpServerConfigPageQuery;
 import com.xbk.knowledge.domain.mcp.model.valobj.McpServerNameQuery;
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -93,5 +92,4 @@ public interface IMcpServerConfigDao extends BaseMapper<McpServerConfigPO> {
      */
     long countAll();
 
-    long countAllByScopeId();
 }

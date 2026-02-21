@@ -7,6 +7,8 @@ export interface ModelConfig {
   modelType: string
   apiKey?: string
   baseUrl: string
+  completionsPath?: string
+  embeddingsPath?: string
   enabled: boolean
   toolEnabled?: boolean
   createdAt: string
@@ -24,6 +26,8 @@ export interface ModelConfigRequest {
   modelType: string
   apiKey: string
   baseUrl: string
+  completionsPath?: string
+  embeddingsPath?: string
   enabled?: boolean
   toolEnabled?: boolean
 }
@@ -46,7 +50,6 @@ export interface AIRequest {
   content: string
   systemPrompt?: string
   parameters?: Record<string, any>
-  strategy?: string
   streaming?: boolean
   modelId?: number
   sessionId?: number
@@ -283,20 +286,6 @@ export interface ModelUsageDTO {
 }
 
 /**
- * 审计记录
- */
-export interface ConfigAudit {
-  id: number
-  tableName: string
-  recordId: number
-  operation: string
-  oldValue?: string
-  newValue?: string
-  operator?: string
-  createdAt: string
-}
-
-/**
  * MCP Server 配置（响应）
  */
 export interface McpServerConfig {
@@ -362,7 +351,6 @@ export interface IdentityRole {
   id: number
   roleCode: string
   roleName: string
-  roleScope?: string
   status?: number
   remark?: string
   permissionIds?: number[]

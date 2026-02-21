@@ -1,6 +1,6 @@
 package com.xbk.knowledge.application.service.armory.node;
 
-import com.xbk.knowledge.application.service.armory.factory.DefaultAiClientArmoryStrategyFactory;
+import com.xbk.knowledge.application.service.armory.factory.AiClientArmoryContext;
 import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 public class RootNode extends AbstractAiClientArmoryNode {
 
     @Override
-    protected void doHandle(DefaultAiClientArmoryStrategyFactory.DynamicContext context) {
+    protected void doHandle(AiClientArmoryContext context) {
         if (context == null) {
             throw new IllegalArgumentException("AI 客户端装配上下文不能为空");
         }

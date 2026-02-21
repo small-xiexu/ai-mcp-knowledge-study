@@ -44,7 +44,6 @@
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="roleCode" label="角色编码" min-width="160" />
         <el-table-column prop="roleName" label="角色名称" min-width="140" />
-        <el-table-column prop="roleScope" label="范围" width="120" />
         <el-table-column label="状态" width="100">
           <template #default="{ row }">
             <el-tag :type="row.status === 1 ? 'success' : 'info'" effect="dark" style="border: none">
@@ -99,18 +98,6 @@
         </el-form-item>
         <el-form-item label="角色名称" prop="roleName">
           <el-input v-model="roleForm.roleName" class="gemini-input" placeholder="请输入角色名称" />
-        </el-form-item>
-        <el-form-item label="角色范围">
-          <el-select
-            v-model="roleForm.roleScope"
-            class="gemini-select"
-            placeholder="请选择范围"
-            style="width: 100%"
-            popper-class="gemini-select-dropdown"
-          >
-            <el-option label="业务" value="BUSINESS" />
-            <el-option label="平台" value="PLATFORM" />
-          </el-select>
         </el-form-item>
         <el-form-item label="状态">
           <el-select
@@ -220,7 +207,6 @@ const roleForm = reactive({
   id: undefined as number | undefined,
   roleCode: '',
   roleName: '',
-  roleScope: 'BUSINESS',
   status: 1,
   remark: ''
 })
@@ -276,7 +262,6 @@ const resetRoleForm = () => {
   roleForm.id = undefined
   roleForm.roleCode = ''
   roleForm.roleName = ''
-  roleForm.roleScope = 'BUSINESS'
   roleForm.status = 1
   roleForm.remark = ''
   roleFormRef.value?.clearValidate()
@@ -303,7 +288,6 @@ const handleEdit = (row: IdentityRole) => {
   roleForm.id = row.id
   roleForm.roleCode = row.roleCode
   roleForm.roleName = row.roleName
-  roleForm.roleScope = row.roleScope || 'BUSINESS'
   roleForm.status = row.status ?? 1
   roleForm.remark = row.remark || ''
   roleDialogVisible.value = true
@@ -323,7 +307,6 @@ const handleSubmitRole = async () => {
       await updateIdentityRole({
         id: roleForm.id,
         roleName: roleForm.roleName,
-        roleScope: roleForm.roleScope,
         status: roleForm.status,
         remark: roleForm.remark || undefined
       })
@@ -332,7 +315,6 @@ const handleSubmitRole = async () => {
       await createIdentityRole({
         roleCode: roleForm.roleCode,
         roleName: roleForm.roleName,
-        roleScope: roleForm.roleScope,
         status: roleForm.status,
         remark: roleForm.remark || undefined
       })

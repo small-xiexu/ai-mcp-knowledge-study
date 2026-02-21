@@ -42,11 +42,6 @@ public class RoleCreateRequest extends BaseRequest {
     private String roleName;
 
     /**
-     * 角色范围。
-     */
-    private String roleScope;
-
-    /**
      * 状态。
      */
     private Integer status;

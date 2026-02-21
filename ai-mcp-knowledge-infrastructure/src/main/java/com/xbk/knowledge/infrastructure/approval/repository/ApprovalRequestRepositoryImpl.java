@@ -49,7 +49,6 @@ public class ApprovalRequestRepositoryImpl implements ApprovalRequestRepository 
     /**
      * findById。
      *
-     * @param scopeId 参数
      * @param id 参数
      * @return 返回结果
      */
@@ -65,7 +64,6 @@ public class ApprovalRequestRepositoryImpl implements ApprovalRequestRepository 
     /**
      * findLatestApproved。
      *
-     * @param scopeId 参数
      * @param runId 参数
      * @param toolKey 参数
      * @param now 参数
@@ -83,7 +81,6 @@ public class ApprovalRequestRepositoryImpl implements ApprovalRequestRepository 
     /**
      * findLatestPending。
      *
-     * @param scopeId 参数
      * @param runId 参数
      * @param toolKey 参数
      * @param now 参数
@@ -101,7 +98,6 @@ public class ApprovalRequestRepositoryImpl implements ApprovalRequestRepository 
     /**
      * markApproved。
      *
-     * @param scopeId 参数
      * @param id 参数
      * @param approverId 参数
      * @param decisionComment 参数
@@ -119,7 +115,6 @@ public class ApprovalRequestRepositoryImpl implements ApprovalRequestRepository 
     /**
      * markRejected。
      *
-     * @param scopeId 参数
      * @param id 参数
      * @param approverId 参数
      * @param decisionComment 参数
@@ -137,7 +132,6 @@ public class ApprovalRequestRepositoryImpl implements ApprovalRequestRepository 
     /**
      * list。
      *
-     * @param scopeId 参数
      * @param status 参数
      * @param offset 参数
      * @param pageSize 参数
@@ -153,7 +147,6 @@ public class ApprovalRequestRepositoryImpl implements ApprovalRequestRepository 
     /**
      * count。
      *
-     * @param scopeId 参数
      * @param status 参数
      * @return 返回结果
      */
@@ -182,7 +175,6 @@ public class ApprovalRequestRepositoryImpl implements ApprovalRequestRepository 
     /**
      * markExpired。
      *
-     * @param scopeId 参数
      * @param id 参数
      * @param decisionComment 参数
      * @param decidedAt 参数

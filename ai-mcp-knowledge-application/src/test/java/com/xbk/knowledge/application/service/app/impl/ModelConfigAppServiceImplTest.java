@@ -2,8 +2,9 @@ package com.xbk.knowledge.application.service.app.impl;
 
 import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
+import com.xbk.knowledge.domain.gateway.adapter.repository.McpToolBindingRepository;
 import com.xbk.knowledge.domain.llm.adapter.repository.ModelActivationRepository;
-import com.xbk.knowledge.domain.service.model.IModelConfigService;
+import com.xbk.knowledge.domain.llm.service.IModelConfigService;
 import com.xbk.knowledge.application.provider.ModelProviderFactory;
 import com.xbk.knowledge.application.service.armory.factory.DefaultAiClientArmoryStrategyFactory;
 import org.junit.jupiter.api.Test;
@@ -25,10 +26,17 @@ public class ModelConfigAppServiceImplTest {
     public void shouldDelegateCreateAndDelete() {
         IModelConfigService domainService = Mockito.mock(IModelConfigService.class);
         ModelActivationRepository activationRepository = Mockito.mock(ModelActivationRepository.class);
+        McpToolBindingRepository toolBindingRepository = Mockito.mock(McpToolBindingRepository.class);
         ModelProviderFactory providerFactory = Mockito.mock(ModelProviderFactory.class);
         DefaultAiClientArmoryStrategyFactory armoryStrategyFactory = Mockito.mock(DefaultAiClientArmoryStrategyFactory.class);
         ModelConfigAppServiceImpl appService =
-                new ModelConfigAppServiceImpl(domainService, activationRepository, providerFactory, armoryStrategyFactory);
+                new ModelConfigAppServiceImpl(
+                        domainService,
+                        activationRepository,
+                        toolBindingRepository,
+                        providerFactory,
+                        armoryStrategyFactory
+                );
 
         ModelConfig modelConfig = ModelConfig.builder().modelName("m1").build();
         appService.createModelConfig(modelConfig);
@@ -36,5 +44,6 @@ public class ModelConfigAppServiceImplTest {
 
         verify(domainService).createModelConfig(modelConfig);
         verify(domainService).deleteModelConfig(Mockito.any(IdQuery.class));
+        verify(toolBindingRepository).deleteByBindTypeAndTargetId(Mockito.any());
     }
 }

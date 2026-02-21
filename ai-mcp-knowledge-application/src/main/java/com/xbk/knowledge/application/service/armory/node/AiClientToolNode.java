@@ -1,6 +1,6 @@
 package com.xbk.knowledge.application.service.armory.node;
 
-import com.xbk.knowledge.application.service.armory.factory.DefaultAiClientArmoryStrategyFactory;
+import com.xbk.knowledge.application.service.armory.factory.AiClientArmoryContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.beans.factory.ObjectProvider;
@@ -21,7 +21,7 @@ public class AiClientToolNode extends AbstractAiClientArmoryNode {
     }
 
     @Override
-    protected void doHandle(DefaultAiClientArmoryStrategyFactory.DynamicContext context) {
+    protected void doHandle(AiClientArmoryContext context) {
         if (!context.isRequestedEnableTools()) {
             context.setResolvedEnableTools(false);
             context.setToolCallbackProvider(null);
@@ -39,4 +39,3 @@ public class AiClientToolNode extends AbstractAiClientArmoryNode {
         log.debug("MCP 工具注入成功：{}", provider.getClass().getName());
     }
 }
-

@@ -163,7 +163,6 @@
         <id column="id" property="id"/>
         <result column="role_code" property="roleCode"/>
         <result column="role_name" property="roleName"/>
-        <result column="role_scope" property="roleScope"/>
         <result column="status" property="status"/>
         <result column="remark" property="remark"/>
         <result column="created_at" property="createdAt"/>
@@ -174,7 +173,6 @@
         id,
         role_code,
         role_name,
-        role_scope,
         status,
         remark,
         created_at,
@@ -213,7 +211,6 @@
         insert into sys_role (
             role_code,
             role_name,
-            role_scope,
             status,
             remark,
             created_at,
@@ -221,7 +218,6 @@
         ) values (
             #{roleCode},
             #{roleName},
-            #{roleScope},
             #{status},
             #{remark},
             #{createdAt},
@@ -232,7 +228,6 @@
     <update id="updateRole" parameterType="com.xbk.knowledge.infrastructure.dao.po.SysRolePO">
         update sys_role
         set role_name = #{roleName},
-            role_scope = #{roleScope},
             status = #{status},
             remark = #{remark},
             updated_at = #{updatedAt}

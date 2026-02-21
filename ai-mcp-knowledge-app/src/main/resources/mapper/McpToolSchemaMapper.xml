@@ -75,4 +75,9 @@
         limit 1
     </select>
 
+    <delete id="deleteByToolId">
+        delete from mcp_tool_schema
+        where tool_id = #{toolId}
+    </delete>
+
 </mapper>

@@ -39,11 +39,6 @@ public class SysRole {
     private String roleName;
 
     /**
-     * 角色范围。
-     */
-    private String roleScope;
-
-    /**
      * 状态：1启用、0禁用。
      */
     private Integer status;

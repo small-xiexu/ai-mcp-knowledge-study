@@ -109,6 +109,28 @@
         </div>
       </el-form-item>
 
+      <el-form-item
+        label="对话路径"
+        prop="completionsPath"
+      >
+        <el-input
+          v-model="formData.completionsPath"
+          placeholder="可选，默认 /v1/chat/completions"
+          class="gemini-input"
+        />
+      </el-form-item>
+
+      <el-form-item
+        label="嵌入路径"
+        prop="embeddingsPath"
+      >
+        <el-input
+          v-model="formData.embeddingsPath"
+          placeholder="可选，默认 /v1/embeddings"
+          class="gemini-input"
+        />
+      </el-form-item>
+
       <el-row :gutter="20">
         <el-col :span="12">
            <el-form-item label="工具调用">
@@ -177,6 +199,8 @@ const formData = reactive({
   modelType: '',
   apiKey: '',
   baseUrl: '',
+  completionsPath: '',
+  embeddingsPath: '',
   enabled: true,
   toolEnabled: true
 })
@@ -194,6 +218,8 @@ const resetForm = () => {
   formData.modelType = ''
   formData.apiKey = ''
   formData.baseUrl = ''
+  formData.completionsPath = ''
+  formData.embeddingsPath = ''
   formData.enabled = true
   formData.toolEnabled = true
   formRef.value?.clearValidate()
@@ -210,6 +236,8 @@ watch(
       formData.modelType = data.modelType
       formData.apiKey = data.apiKey || ''
       formData.baseUrl = data.baseUrl || ''
+      formData.completionsPath = data.completionsPath || ''
+      formData.embeddingsPath = data.embeddingsPath || ''
       formData.enabled = data.enabled
       formData.toolEnabled = data.toolEnabled !== false
     } else {
@@ -239,6 +267,8 @@ const handleSubmit = async () => {
         modelType: formData.modelType,
         apiKey: formData.apiKey,
         baseUrl: formData.baseUrl,
+        completionsPath: formData.completionsPath || undefined,
+        embeddingsPath: formData.embeddingsPath || undefined,
         enabled: formData.enabled,
         toolEnabled: formData.toolEnabled
       }

@@ -4,7 +4,7 @@ import com.xbk.knowledge.application.service.app.PromptTemplateAppService;
 import com.xbk.knowledge.domain.agent.model.entity.PromptTemplate;
 import com.xbk.knowledge.domain.agent.model.valobj.PromptTemplateIdQuery;
 import com.xbk.knowledge.domain.agent.model.valobj.PromptTemplatePageQuery;
-import com.xbk.knowledge.domain.service.prompt.IPromptTemplateService;
+import com.xbk.knowledge.domain.agent.service.IPromptTemplateService;
 import com.xbk.knowledge.types.common.PageResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

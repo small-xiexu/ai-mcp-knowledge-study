@@ -1,6 +1,7 @@
 package com.xbk.knowledge.trigger.http;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
+import com.xbk.knowledge.application.service.app.GatewayManageAppService;
 import com.xbk.knowledge.application.service.app.GatewayObservabilityAppService;
 import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.gateway.model.entity.McpGateway;
@@ -22,6 +23,7 @@ import com.xbk.knowledge.domain.gateway.adapter.repository.McpGatewayRepository;
 import com.xbk.knowledge.domain.gateway.adapter.repository.McpToolBindingRepository;
 import com.xbk.knowledge.domain.gateway.adapter.repository.McpToolMappingRepository;
 import com.xbk.knowledge.domain.gateway.adapter.repository.McpToolRegistryRepository;
+import com.xbk.knowledge.domain.gateway.adapter.repository.McpToolSchemaRepository;
 import com.xbk.knowledge.domain.gateway.service.GatewayToolService;
 import com.xbk.knowledge.types.common.PageRequest;
 import com.xbk.knowledge.types.common.PageResult;
@@ -66,9 +68,11 @@ public class GatewayManageController {
     private final McpToolRegistryRepository toolRegistryRepository;
     private final McpToolMappingRepository toolMappingRepository;
     private final McpToolBindingRepository toolBindingRepository;
+    private final McpToolSchemaRepository toolSchemaRepository;
     private final ModelConfigRepository modelConfigRepository;
     private final GatewayToolService gatewayToolService;
     private final GatewayObservabilityAppService gatewayObservabilityAppService;
+    private final GatewayManageAppService gatewayManageAppService;
 
     /**
      * listGatewayInstances。
@@ -154,7 +158,7 @@ public class GatewayManageController {
         if (query == null || query.getId() == null) {
             return Result.error("ID 不能为空");
         }
-        gatewayRepository.deleteById(query);
+        gatewayManageAppService.deleteGatewayInstance(query);
         return Result.success();
     }
 
@@ -400,6 +404,7 @@ public class GatewayManageController {
 
         McpToolRegistry saved = toolRegistryRepository.save(tool);
         toolMappingRepository.deleteByToolId(saved.getId());
+        toolSchemaRepository.deleteByToolId(saved.getId());
         saveMappings(saved.getId(), saved.getGatewayId(), request.getRequestMappings(), "request");
         saveMappings(saved.getId(), saved.getGatewayId(), request.getResponseMappings(), "response");
 
@@ -418,9 +423,7 @@ public class GatewayManageController {
         if (query == null || query.getId() == null) {
             return Result.error("ID 不能为空");
         }
-        toolMappingRepository.deleteByToolId(query.getId());
-        toolBindingRepository.deleteByToolId(query.getId());
-        toolRegistryRepository.deleteById(query);
+        gatewayManageAppService.deleteTool(query);
         return Result.success();
     }
 

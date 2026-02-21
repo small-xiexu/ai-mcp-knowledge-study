@@ -73,7 +73,6 @@ export const listIdentityRoles = (data: RoleListRequest) =>
 export const createIdentityRole = (data: {
   roleCode: string
   roleName: string
-  roleScope?: string
   status?: number
   remark?: string
 }) => request.post<IdentityRole>('/roles/create', data)
@@ -81,7 +80,6 @@ export const createIdentityRole = (data: {
 export const updateIdentityRole = (data: {
   id: number
   roleName: string
-  roleScope?: string
   status?: number
   remark?: string
 }) => request.post<IdentityRole>('/roles/update', data)

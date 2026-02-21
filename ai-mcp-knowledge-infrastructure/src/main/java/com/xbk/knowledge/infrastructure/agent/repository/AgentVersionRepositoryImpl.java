@@ -144,7 +144,6 @@ public class AgentVersionRepositoryImpl implements AgentVersionRepository {
     /**
      * publish。
      *
-     * @param scopeId 参数
      * @param id 参数
      * @param promptTemplateVersionNo 参数
      * @param templateParamsJson 参数
@@ -172,7 +171,6 @@ public class AgentVersionRepositoryImpl implements AgentVersionRepository {
     /**
      * updateState。
      *
-     * @param scopeId 参数
      * @param id 参数
      * @param fromState 参数
      * @param toState 参数

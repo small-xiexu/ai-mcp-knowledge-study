@@ -37,10 +37,6 @@ public class ModelActivationPO {
     private Long id;
 
     /**
-     * scopeId。
-     */
-
-    /**
      * 当前激活的对话模型ID
      *
      * 为什么：全局对话模型唯一激活

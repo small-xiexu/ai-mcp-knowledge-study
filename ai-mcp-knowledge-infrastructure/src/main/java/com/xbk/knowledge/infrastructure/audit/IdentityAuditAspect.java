@@ -110,16 +110,12 @@ public class IdentityAuditAspect {
             try {
                 long costMs = System.currentTimeMillis() - start;
                 String newValue = toJsonSafe(buildNewValue(extractResultData(result), eventType, executeResult));
-                Long operatorScopeId = safeScopeId(1L);
-                Long resourceScopeId = safeScopeId(1L);
                 SysAuditEvent event = SysAuditEvent.builder()
                         .operatorId(operatorId)
-                        .operatorScopeId(operatorScopeId)
                         .operatorType(operatorId == null ? "system" : "user")
                         .eventType(eventType)
                         .resourceType(resourceType)
                         .resourceId(resourceId)
-                        .resourceScopeId(resourceScopeId)
                         .action(action)
                         .requestId(requestId)
                         .sourceIp(sourceIp)
@@ -136,10 +132,6 @@ public class IdentityAuditAspect {
                 log.error("记录身份域审计失败，action: {}", action, ex);
             }
         }
-    }
-
-    private Long safeScopeId(Long candidate) {
-        return candidate != null ? candidate : 1L;
     }
 
     /**

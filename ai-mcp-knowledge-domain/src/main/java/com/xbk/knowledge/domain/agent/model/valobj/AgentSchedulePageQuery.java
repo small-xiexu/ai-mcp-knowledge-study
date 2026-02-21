@@ -3,7 +3,6 @@ package com.xbk.knowledge.domain.agent.model.valobj;
 /**
  * AgentSchedule 分页查询参数。
  *
- * @param scopeId     scopeId
  * @param agentId   Agent ID（可空）
  * @param enabled   启用状态（可空）
  * @param offset    偏移

@@ -86,7 +86,6 @@ public class WorkflowVersionRepositoryImpl implements WorkflowVersionRepository 
     /**
      * findPublishedVersion。
      *
-     * @param scopeId 参数
      * @param workflowId 参数
      * @return 返回结果
      */

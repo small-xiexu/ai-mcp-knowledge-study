@@ -21,4 +21,9 @@ public interface McpToolSchemaRepository {
      * 保存或更新 Schema 缓存
      */
     McpToolSchema save(McpToolSchema schema);
+
+    /**
+     * 删除指定工具的 Schema 缓存
+     */
+    void deleteByToolId(Long toolId);
 }

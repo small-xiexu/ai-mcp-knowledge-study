@@ -19,17 +19,20 @@
         <result column="error_message" property="errorMessage"/>
         <result column="started_at" property="startedAt"/>
         <result column="ended_at" property="endedAt"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
     </resultMap>
 
     <insert id="insertRun" parameterType="com.xbk.knowledge.infrastructure.dao.po.WorkflowRunPO">
         insert into workflow_run (
             run_id, workflow_id, workflow_code, workflow_version_id,
             trigger_source, operator_id, operator_type, session_id,
-            status, current_node_key, cost_ms, error_message, started_at, ended_at
+            status, current_node_key, cost_ms, error_message, started_at, ended_at, created_at, updated_at
         ) values (
             #{runId}, #{workflowId}, #{workflowCode}, #{workflowVersionId},
             #{triggerSource}, #{operatorId}, #{operatorType}, #{sessionId},
-            #{status}, #{currentNodeKey}, #{costMs}, #{errorMessage}, #{startedAt}, #{endedAt}
+            #{status}, #{currentNodeKey}, #{costMs}, #{errorMessage}, #{startedAt}, #{endedAt},
+            coalesce(#{createdAt}, now()), coalesce(#{updatedAt}, now())
         )
     </insert>
 
@@ -37,7 +40,7 @@
         select
             run_id, workflow_id, workflow_code, workflow_version_id,
             trigger_source, operator_id, operator_type, session_id,
-            status, current_node_key, cost_ms, error_message, started_at, ended_at
+            status, current_node_key, cost_ms, error_message, started_at, ended_at, created_at, updated_at
         from workflow_run
         where 1 = 1
           and run_id = #{runId}
@@ -48,7 +51,8 @@
         update workflow_run
         set status = #{status},
             error_message = #{errorMessage},
-            ended_at = #{endedAt}
+            ended_at = #{endedAt},
+            updated_at = now()
         where 1 = 1
           and run_id = #{runId}
     </update>
@@ -59,7 +63,8 @@
             current_node_key = #{currentNodeKey},
             cost_ms = #{costMs},
             error_message = #{errorMessage},
-            ended_at = #{endedAt}
+            ended_at = #{endedAt},
+            updated_at = now()
         where 1 = 1
           and run_id = #{runId}
     </update>
@@ -68,7 +73,7 @@
         select
             run_id, workflow_id, workflow_code, workflow_version_id,
             trigger_source, operator_id, operator_type, session_id,
-            status, current_node_key, cost_ms, error_message, started_at, ended_at
+            status, current_node_key, cost_ms, error_message, started_at, ended_at, created_at, updated_at
         from workflow_run
         where 1 = 1
         <if test="status != null and status != ''">

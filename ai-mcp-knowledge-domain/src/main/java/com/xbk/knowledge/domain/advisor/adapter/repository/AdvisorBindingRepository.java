@@ -36,5 +36,9 @@ public interface AdvisorBindingRepository {
      * 方法：insertBinding。
      */
     int insertBinding(AdvisorBinding binding);
-}
 
+    /**
+     * 方法：deleteByAdvisorId。
+     */
+    int deleteByAdvisorId(Long advisorId);
+}

@@ -7,7 +7,7 @@ import com.xbk.knowledge.domain.metrics.model.valobj.ModelUsage;
 import com.xbk.knowledge.domain.metrics.model.valobj.ModelUsageQuery;
 import com.xbk.knowledge.domain.metrics.model.valobj.ResponseTime;
 import com.xbk.knowledge.domain.metrics.model.valobj.SuccessRate;
-import com.xbk.knowledge.domain.service.metrics.IMetricsDomainService;
+import com.xbk.knowledge.domain.metrics.service.IMetricsDomainService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

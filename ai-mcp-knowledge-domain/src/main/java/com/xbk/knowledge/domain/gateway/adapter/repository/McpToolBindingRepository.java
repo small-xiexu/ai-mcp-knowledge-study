@@ -37,4 +37,9 @@ public interface McpToolBindingRepository {
      * 删除指定工具的所有绑定
      */
     void deleteByToolId(Long toolId);
+
+    /**
+     * 删除指定绑定目标下的所有绑定
+     */
+    void deleteByBindTypeAndTargetId(ToolBindingQuery query);
 }

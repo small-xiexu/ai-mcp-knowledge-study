@@ -31,10 +31,6 @@ public class ApprovalExpireJob {
 
     private static final int BATCH_SIZE = 200;
     private static final int MAX_LOOP = 50;
-    /**
-     * 系统内部流程的 operator_scope_id 占位值（数据库字段 NOT NULL）。
-     */
-    private static final long SYSTEM_OPERATOR_SCOPE_ID = 0L;
 
     private final ApprovalRequestRepository approvalRequestRepository;
     private final AgentRunRepository agentRunRepository;
@@ -107,12 +103,10 @@ public class ApprovalExpireJob {
         try {
             SysAuditEvent event = SysAuditEvent.builder()
                     .operatorId(null)
-                    .operatorScopeId(SYSTEM_OPERATOR_SCOPE_ID)
                     .operatorType("system")
                     .eventType("TOOL_APPROVAL")
                     .resourceType("approval_request")
                     .resourceId(String.valueOf(req.getId()))
-                    .resourceScopeId(1L)
                     .action("EXPIRED")
                     .requestId(runId)
                     .result(1)

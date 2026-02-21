@@ -4,7 +4,6 @@ import com.xbk.knowledge.api.dto.ai.AIRequest;
 import com.xbk.knowledge.api.dto.ai.AIResponse;
 import com.xbk.knowledge.application.model.dto.AICallCommand;
 import com.xbk.knowledge.application.model.dto.AICallResult;
-import com.xbk.knowledge.types.enums.ModelSelectionStrategy;
 
 import java.util.List;
 import java.util.Map;
@@ -31,7 +30,6 @@ public class DTOConverter {
         String content = api.getContent();
         String systemPrompt = api.getSystemPrompt();
         Map<String, Object> parameters = api.getParameters();
-        ModelSelectionStrategy strategy = api.getStrategy();
         Boolean streaming = api.getStreaming();
         Long modelId = api.getModelId();
         Long sessionId = api.getSessionId();
@@ -40,7 +38,6 @@ public class DTOConverter {
                 .content(content)
                 .systemPrompt(systemPrompt)
                 .parameters(parameters)
-                .strategy(strategy)
                 .streaming(streaming)
                 .modelId(modelId)
                 .sessionId(sessionId)

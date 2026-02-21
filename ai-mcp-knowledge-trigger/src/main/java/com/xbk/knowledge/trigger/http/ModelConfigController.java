@@ -341,6 +341,8 @@ public class ModelConfigController {
         String modelName = modelConfig.getModelName();
         ModelType modelType = modelConfig.getModelType();
         String baseUrl = modelConfig.getBaseUrl();
+        String completionsPath = modelConfig.getCompletionsPath();
+        String embeddingsPath = modelConfig.getEmbeddingsPath();
         String apiKey = modelConfig.getApiKey();
         Boolean enabled = modelConfig.getEnabled();
         Boolean toolEnabled = modelConfig.getToolEnabled();
@@ -353,6 +355,8 @@ public class ModelConfigController {
                 .modelName(modelName)
                 .modelType(modelType)
                 .baseUrl(baseUrl)
+                .completionsPath(completionsPath)
+                .embeddingsPath(embeddingsPath)
                 .apiKey(apiKey)
                 .enabled(enabled)
                 .toolEnabled(toolEnabled)
@@ -375,6 +379,8 @@ public class ModelConfigController {
         ModelType modelType = request.getModelType();
         String apiKey = request.getApiKey();
         String baseUrl = request.getBaseUrl();
+        String completionsPath = request.getCompletionsPath();
+        String embeddingsPath = request.getEmbeddingsPath();
         Boolean enabled = request.getEnabled();
         Boolean toolEnabled = request.getToolEnabled();
         if (toolEnabled == null) {
@@ -385,6 +391,8 @@ public class ModelConfigController {
                 .modelType(modelType)
                 .apiKey(apiKey)
                 .baseUrl(baseUrl)
+                .completionsPath(completionsPath)
+                .embeddingsPath(embeddingsPath)
                 .enabled(enabled)
                 .toolEnabled(toolEnabled)
                 .build();

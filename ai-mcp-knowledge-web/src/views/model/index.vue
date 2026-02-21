@@ -2,19 +2,7 @@
   <div class="model-management-container">
     <div class="page-header">
       <h2 class="page-title">LLM 模型配置</h2>
-      <el-button
-        type="primary"
-        class="add-btn"
-        @click="handleAdd"
-      >
-        <el-icon><Plus /></el-icon>
-        新增模型
-      </el-button>
-    </div>
-
-    <div class="gemini-card">
-      <!-- 搜索栏 -->
-      <div class="table-toolbar">
+      <div class="header-actions">
         <el-button
           class="refresh-btn"
           circle
@@ -22,8 +10,18 @@
         >
           <el-icon><Refresh /></el-icon>
         </el-button>
+        <el-button
+          type="primary"
+          class="add-btn"
+          @click="handleAdd"
+        >
+          <el-icon><Plus /></el-icon>
+          新增模型
+        </el-button>
       </div>
+    </div>
 
+    <div class="gemini-card">
       <!-- 表格 -->
       <el-table
         v-loading="loading"
@@ -390,6 +388,23 @@ onMounted(() => {
       transform: translateY(-1px);
     }
   }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .refresh-btn {
+    background: transparent;
+    border: 1px solid #5f6368;
+    color: #9aa0a6;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #e8eaed;
+    }
+  }
 }
 
 /* 卡片容器：Glassmorphism */
@@ -400,25 +415,6 @@ onMounted(() => {
   padding: 0;
   overflow: hidden;
   backdrop-filter: blur(10px);
-}
-
-/* 工具栏 */
-.table-toolbar {
-  padding: 16px 24px;
-  display: flex;
-  justify-content: flex-end;
-  border-bottom: 1px solid #3c4043;
-
-  .refresh-btn {
-    background: transparent;
-    border: 1px solid #5f6368;
-    color: #9aa0a6;
-    
-    &:hover {
-      background: rgba(255, 255, 255, 0.1);
-      color: #e8eaed;
-    }
-  }
 }
 
 /* 表格样式 */

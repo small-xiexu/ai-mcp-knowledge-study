@@ -201,7 +201,6 @@
             <el-button class="gemini-btn-secondary" @click="go('/users')">用户管理</el-button>
             <el-button class="gemini-btn-secondary" @click="go('/roles')">角色管理</el-button>
             <el-button class="gemini-btn-secondary" @click="go('/audit-events')">身份审计</el-button>
-            <el-button class="gemini-btn-secondary" @click="go('/audit')">审计日志</el-button>
           </div>
         </el-collapse-item>
       </el-collapse>

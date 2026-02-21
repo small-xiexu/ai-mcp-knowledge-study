@@ -6,8 +6,6 @@ import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.GatewayIdQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.GatewayPageQuery;
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-
 import java.util.List;
 
 /**
@@ -39,12 +37,6 @@ public interface IMcpGatewayDao extends BaseMapper<McpGatewayPO> {
     /** 查询所有已启用的网关实例 */
     List<McpGatewayPO> findAllEnabled();
 
-    /** 查询当前 scope 下已启用的网关实例（强 scope 隔离） */
-    List<McpGatewayPO> findAllEnabledByScopeId();
-
     /** 统计网关总数 */
     long countAll();
-
-    /** 统计当前 scope 下网关总数（强 scope 隔离） */
-    long countAllByScopeId();
 }

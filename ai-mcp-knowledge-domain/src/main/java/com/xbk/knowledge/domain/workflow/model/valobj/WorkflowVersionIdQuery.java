@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * WorkflowVersion 按 ID 查询条件（含 scope 边界）。
+ * WorkflowVersion 按 ID 查询条件。
  *
  * @author sxie
  */
@@ -18,4 +18,3 @@ public class WorkflowVersionIdQuery {
 
     private Long id;
 }
-

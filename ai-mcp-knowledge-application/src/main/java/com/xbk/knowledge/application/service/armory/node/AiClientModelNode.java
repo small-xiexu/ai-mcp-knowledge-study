@@ -1,7 +1,7 @@
 package com.xbk.knowledge.application.service.armory.node;
 
 import com.xbk.knowledge.application.provider.ModelProviderFactory;
-import com.xbk.knowledge.application.service.armory.factory.DefaultAiClientArmoryStrategyFactory;
+import com.xbk.knowledge.application.service.armory.factory.AiClientArmoryContext;
 import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.stereotype.Component;
@@ -20,7 +20,7 @@ public class AiClientModelNode extends AbstractAiClientArmoryNode {
     }
 
     @Override
-    protected void doHandle(DefaultAiClientArmoryStrategyFactory.DynamicContext context) {
+    protected void doHandle(AiClientArmoryContext context) {
         ModelConfig modelConfig = context.getModelConfig();
         ChatModel chatModel = modelProviderFactory
                 .getProvider(modelConfig.getModelType())
@@ -28,4 +28,3 @@ public class AiClientModelNode extends AbstractAiClientArmoryNode {
         context.setChatModel(chatModel);
     }
 }
-

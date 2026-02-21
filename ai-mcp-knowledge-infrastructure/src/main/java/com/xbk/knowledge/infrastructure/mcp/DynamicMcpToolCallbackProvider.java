@@ -59,7 +59,7 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
 
     private final ObjectMapper objectMapper;
     private final AtomicReference<List<McpClientDescriptor>> clients = new AtomicReference<>(Collections.emptyList());
-    private final ConcurrentHashMap<Long, ToolCallback[]> cachedByOrg = new ConcurrentHashMap<>();
+    private final AtomicReference<ToolCallback[]> cachedCallbacks = new AtomicReference<>(null);
 
     private final AgentRunRepository agentRunRepository;
     private final AgentRunContextRepository agentRunContextRepository;
@@ -72,12 +72,12 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
      * 更新 MCP 客户端列表
      *
      * 为什么：运行时连接变更后需要刷新工具回调
-     * @param mcpClients MCP 客户端列表（带 scopeId/serverName）
+     * @param mcpClients MCP 客户端列表（带 serverName）
      */
     public void updateClients(List<McpClientDescriptor> mcpClients) {
         List<McpClientDescriptor> safeClients = mcpClients == null ? Collections.emptyList() : mcpClients;
         clients.set(safeClients);
-        cachedByOrg.clear();
+        cachedCallbacks.set(null);
         int size = safeClients.size();
         log.info("MCP 工具回调更新完成，当前客户端数量: {}", size);
         /*
@@ -98,10 +98,11 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
      */
     @Override
     public ToolCallback[] getToolCallbacks() {
-        ToolCallback[] base = cachedByOrg.get(1L);
+        ToolCallback[] base = cachedCallbacks.get();
         if (base == null) {
-            base = buildOrgCallbacks();
-            cachedByOrg.put(1L, base);
+            base = buildCallbacks();
+            cachedCallbacks.compareAndSet(null, base);
+            base = cachedCallbacks.get();
         }
 
         // allowlist 过滤：当上下文显式携带 allowedToolKeys 时生效
@@ -125,7 +126,7 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
         return filtered.toArray(new ToolCallback[0]);
     }
 
-    private ToolCallback[] buildOrgCallbacks() {
+    private ToolCallback[] buildCallbacks() {
         List<McpClientDescriptor> snapshot = clients.get();
         int clientCount = snapshot == null ? 0 : snapshot.size();
         log.info("触发 MCP 工具回调获取，当前客户端数量: {}", clientCount);
@@ -186,9 +187,7 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
         private final String toolKey;
         private final ToolDefinition toolDefinition;
         private final String boundRunId;
-        private final Long boundScopeId;
         private final Long boundOperatorId;
-        private final Long boundOperatorScopeId;
         private final boolean bypassEnabled;
         private final boolean toolInvokePermitted;
 
@@ -204,13 +203,11 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
 
             /*
              * 重要：工具回调可能在异步/跨线程环境执行（例如流式/Reactive）。
-             * 为保证治理门禁一致性（scopeId、runId、权限、审计归属），在构建回调时捕获上下文快照，
+             * 为保证治理门禁一致性（runId、权限、审计归属），在构建回调时捕获上下文快照，
              * call() 期间禁止再依赖线程上下文（如 StpUtil/MDC）获取关键字段。
- */
+             */
             this.boundRunId = TraceIdUtils.getOrCreateTraceId();
-            this.boundScopeId = 1L;
             this.boundOperatorId = null;
-            this.boundOperatorScopeId = 1L;
             this.bypassEnabled = ToolInvokeBypassContextHolder.isEnabled();
             boolean login = StpUtil.isLogin();
             this.toolInvokePermitted = !login || StpUtil.hasPermission(PERMISSION_TOOL_INVOKE);
@@ -258,11 +255,11 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
         public String call(String arguments, ToolContext toolContext) {
             String runId = boundRunId;
             if (!bypassEnabled && !toolInvokePermitted) {
-                recordToolDeniedAndAudit(runId,  "PERMISSION_DENIED", boundOperatorId, boundOperatorScopeId);
+                recordToolDeniedAndAudit(runId, "PERMISSION_DENIED", boundOperatorId);
                 return "[PERMISSION_DENIED] 无权限调用工具（缺少权限: " + PERMISSION_TOOL_INVOKE + "），toolKey=" + toolKey;
             }
             String requesterType = boundOperatorId == null ? "system" : "user";
-            maybeRequireApproval(runId,  toolKey, arguments, boundOperatorId, requesterType, boundOperatorId, boundOperatorScopeId);
+            maybeRequireApproval(runId, toolKey, arguments, boundOperatorId, requesterType, boundOperatorId);
             long startAt = System.nanoTime();
             boolean success = false;
             String errorMessage = null;
@@ -275,11 +272,11 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
                 throw e;
             } finally {
                 long latencyMs = (System.nanoTime() - startAt) / 1_000_000;
-                recordToolMetricsAndAudit(runId,  success, latencyMs, errorMessage, boundOperatorId, boundOperatorScopeId);
+                recordToolMetricsAndAudit(runId, success, latencyMs, errorMessage, boundOperatorId);
             }
         }
 
-        private void recordToolDeniedAndAudit(String runId,  String reason, Long operatorId, Long operatorScopeId) {
+        private void recordToolDeniedAndAudit(String runId, String reason, Long operatorId) {
             try {
                 if (agentRunRepository != null && StringUtils.hasText(runId)) {
                     agentRunRepository.incrementToolDeniedCount(runId,  1);
@@ -299,12 +296,10 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
                 }
                 SysAuditEvent event = SysAuditEvent.builder()
                         .operatorId(operatorId)
-                        .operatorScopeId(operatorScopeId)
                         .operatorType(operatorId == null ? "system" : "user")
                         .eventType("TOOL_INVOKE")
                         .resourceType("mcp_tool")
                         .resourceId(toolKey)
-                        .resourceScopeId(boundScopeId)
                         .action("DENIED")
                         .requestId(runId)
                         .result(0)
@@ -321,8 +316,7 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
                                               boolean success,
                                               long latencyMs,
                                               String errorMessage,
-                                              Long operatorId,
-                                              Long operatorScopeId) {
+                                              Long operatorId) {
             try {
                 if (agentRunRepository != null && StringUtils.hasText(runId)) {
                     agentRunRepository.incrementToolCallCount(runId,  1);
@@ -342,12 +336,10 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
                 }
                 SysAuditEvent event = SysAuditEvent.builder()
                         .operatorId(operatorId)
-                        .operatorScopeId(operatorScopeId)
                         .operatorType(operatorId == null ? "system" : "user")
                         .eventType("TOOL_INVOKE")
                         .resourceType("mcp_tool")
                         .resourceId(toolKey)
-                        .resourceScopeId(boundScopeId)
                         .action(success ? "SUCCESS" : "FAILED")
                         .requestId(runId)
                         .result(success ? 1 : 0)
@@ -392,8 +384,7 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
                                           String argumentsSnapshotJson,
                                           Long requesterId,
                                           String requesterType,
-                                          Long operatorId,
-                                          Long operatorScopeId) {
+                                          Long operatorId) {
             if (!StringUtils.hasText(runId) || !StringUtils.hasText(toolKey) || approvalRequestRepository == null) {
                 return;
             }

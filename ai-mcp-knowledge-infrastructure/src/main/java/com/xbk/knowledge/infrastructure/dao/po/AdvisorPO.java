@@ -32,7 +32,7 @@ public class AdvisorPO {
     private Long id;
 
     /**
-     * 对外唯一编码（同 scope 内唯一）。
+     * 对外唯一编码。
      */
     private String advisorCode;
 
@@ -64,4 +64,3 @@ public class AdvisorPO {
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedAt;
 }
-

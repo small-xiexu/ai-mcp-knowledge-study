@@ -47,6 +47,16 @@ public class ModelConfigResponse implements Serializable {
     private String baseUrl;
 
     /**
+     * 对话补全路径
+     */
+    private String completionsPath;
+
+    /**
+     * 向量嵌入路径
+     */
+    private String embeddingsPath;
+
+    /**
      * API Key
      */
     private String apiKey;

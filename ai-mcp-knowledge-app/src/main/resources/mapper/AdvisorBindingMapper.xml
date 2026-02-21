@@ -100,4 +100,9 @@
         )
     </insert>
 
+    <delete id="deleteByAdvisorId">
+        delete from advisor_binding
+        where advisor_id = #{advisorId}
+    </delete>
+
 </mapper>

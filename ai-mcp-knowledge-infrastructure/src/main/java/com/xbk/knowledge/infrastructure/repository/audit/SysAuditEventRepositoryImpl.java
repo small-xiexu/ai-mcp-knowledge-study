@@ -34,10 +34,6 @@ public class SysAuditEventRepositoryImpl implements SysAuditEventRepository {
         if (event == null) {
             return;
         }
-        // DB 约束：operator_scope_id NOT NULL。系统流程/边界情况下兜底，避免审计写入导致主流程失败。
-        if (event.getOperatorScopeId() == null) {
-            event.setOperatorScopeId(0L);
-        }
         sysAuditEventMapper.insertEvent(BeanMappingUtils.map(event, SysAuditEventPO.class));
     }
 

@@ -210,7 +210,7 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
         // 1) 校验发布前置
         // 优先：Workflow 绑定模式（不要求 promptTemplate）
         if (version.getWorkflowVersionId() != null) {
-            // P0：仅要求 workflowVersionId 非空且属于同 scope；状态校验放宽（允许先发布 Agent，再逐步完善 Workflow 发布流程）
+            // P0：仅要求 workflowVersionId 非空；状态校验放宽（允许先发布 Agent，再逐步完善 Workflow 发布流程）
             // 若你希望更严格：可在这里要求 workflowVersion.state == PUBLISHED
             workflowVersionRepository.findById(
                     WorkflowVersionIdQuery.builder()

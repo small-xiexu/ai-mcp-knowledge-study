@@ -38,10 +38,6 @@ public class ChatMessagePO {
     private Long id;
 
     /**
-     * scopeId。
-     */
-
-    /**
      * 会话ID
      *
      * 为什么：标识消息所属会话

@@ -180,9 +180,4 @@
         from ai_mcp_server_config
     </select>
 
-    <select id="countAllByScopeId" resultType="long">
-        select count(1)
-        from ai_mcp_server_config
-        where 1 = 1
-    </select>
 </mapper>

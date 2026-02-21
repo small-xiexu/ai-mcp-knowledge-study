@@ -7,9 +7,11 @@ import com.xbk.knowledge.domain.llm.model.entity.ModelActivation;
 import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.common.model.valobj.EnabledQuery;
 import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
+import com.xbk.knowledge.domain.gateway.model.valobj.ToolBindingQuery;
 import com.xbk.knowledge.domain.llm.model.valobj.ModelConfigPageQuery;
+import com.xbk.knowledge.domain.gateway.adapter.repository.McpToolBindingRepository;
 import com.xbk.knowledge.domain.llm.adapter.repository.ModelActivationRepository;
-import com.xbk.knowledge.domain.service.model.IModelConfigService;
+import com.xbk.knowledge.domain.llm.service.IModelConfigService;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.enums.ModelType;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +33,7 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
 
     private final IModelConfigService modelConfigService;
     private final ModelActivationRepository modelActivationRepository;
+    private final McpToolBindingRepository toolBindingRepository;
     private final ModelProviderFactory modelProviderFactory;
     private final DefaultAiClientArmoryStrategyFactory armoryStrategyFactory;
 
@@ -102,10 +105,13 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteModelConfig(IdQuery query) {
-        modelConfigService.deleteModelConfig(query);
-        if (query != null) {
-            armoryStrategyFactory.evictModel(query.getId());
+        if (query == null || query.getId() == null) {
+            return;
         }
+        Long modelId = query.getId();
+        clearModelReferences(modelId);
+        modelConfigService.deleteModelConfig(query);
+        armoryStrategyFactory.evictModel(modelId);
     }
 
     /**
@@ -266,5 +272,27 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
         }
         return modelProviderFactory.getProvider(modelConfig.getModelType())
                 .isHealthy(modelConfig);
+    }
+
+    /**
+     * 清理模型删除前的业务引用，避免残留脏数据。
+     */
+    private void clearModelReferences(Long modelId) {
+        ModelActivation activation = modelActivationRepository.queryActivation();
+        if (activation != null) {
+            boolean changed = false;
+            if (modelId.equals(activation.getChatModelId())) {
+                activation.setChatModelId(null);
+                changed = true;
+            }
+            if (modelId.equals(activation.getEmbeddingModelId())) {
+                activation.setEmbeddingModelId(null);
+                changed = true;
+            }
+            if (changed) {
+                modelActivationRepository.saveOrUpdate(activation);
+            }
+        }
+        toolBindingRepository.deleteByBindTypeAndTargetId(new ToolBindingQuery("MODEL", modelId));
     }
 }

@@ -28,7 +28,6 @@ public class AdvisorRepositoryImpl implements AdvisorRepository {
     /**
      * findById。
      *
-     * @param scopeId 参数
      * @param id 参数
      * @return 返回结果
      */
@@ -44,7 +43,6 @@ public class AdvisorRepositoryImpl implements AdvisorRepository {
     /**
      * findByCode。
      *
-     * @param scopeId 参数
      * @param advisorCode 参数
      * @return 返回结果
      */
@@ -117,7 +115,6 @@ public class AdvisorRepositoryImpl implements AdvisorRepository {
     /**
      * updateEnabled。
      *
-     * @param scopeId 参数
      * @param id 参数
      * @param enabled 参数
      * @return 返回结果
@@ -133,7 +130,6 @@ public class AdvisorRepositoryImpl implements AdvisorRepository {
     /**
      * deleteById。
      *
-     * @param scopeId 参数
      * @param id 参数
      * @return 返回结果
      */

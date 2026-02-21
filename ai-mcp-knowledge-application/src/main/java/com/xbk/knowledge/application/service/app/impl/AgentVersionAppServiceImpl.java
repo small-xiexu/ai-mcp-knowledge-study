@@ -70,7 +70,6 @@ public class AgentVersionAppServiceImpl implements AgentVersionAppService {
     /**
      * publish。
      *
-     * @param scopeId 参数
      * @param agentCode 参数
      * @param versionId 参数
      * @param operatorId 参数
@@ -85,7 +84,6 @@ public class AgentVersionAppServiceImpl implements AgentVersionAppService {
     /**
      * rollback。
      *
-     * @param scopeId 参数
      * @param agentCode 参数
      * @param targetVersionId 参数
      * @param operatorId 参数

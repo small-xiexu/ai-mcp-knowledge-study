@@ -73,7 +73,6 @@ public class RoleController {
         SysRole role = SysRole.builder()
                 .roleCode(request.getRoleCode())
                 .roleName(request.getRoleName())
-                .roleScope(request.getRoleScope())
                 .status(request.getStatus())
                 .remark(request.getRemark())
                 .build();
@@ -93,7 +92,6 @@ public class RoleController {
         SysRole role = SysRole.builder()
                 .id(request.getId())
                 .roleName(request.getRoleName())
-                .roleScope(request.getRoleScope())
                 .status(request.getStatus())
                 .remark(request.getRemark())
                 .build();
@@ -140,7 +138,6 @@ public class RoleController {
                 .id(role.getId())
                 .roleCode(role.getRoleCode())
                 .roleName(role.getRoleName())
-                .roleScope(role.getRoleScope())
                 .status(role.getStatus())
                 .remark(role.getRemark())
                 .createdAt(role.getCreatedAt())

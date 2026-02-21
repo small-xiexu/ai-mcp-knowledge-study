@@ -4,11 +4,9 @@ import com.xbk.knowledge.api.dto.ai.AIRequest;
 import com.xbk.knowledge.api.dto.ai.AIResponse;
 import com.xbk.knowledge.application.model.dto.AICallCommand;
 import com.xbk.knowledge.application.model.dto.AICallResult;
-import com.xbk.knowledge.types.enums.ModelSelectionStrategy;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -28,7 +26,6 @@ public class DTOConverterTest {
                 .content("hi")
                 .systemPrompt("sys")
                 .parameters(Collections.<String, Object>singletonMap("temperature", 0.5))
-                .strategy(ModelSelectionStrategy.QUALITY_PRIORITY)
                 .streaming(true)
                 .build();
 
@@ -36,7 +33,6 @@ public class DTOConverterTest {
 
         assertEquals("hi", command.getContent());
         assertEquals("sys", command.getSystemPrompt());
-        assertEquals(ModelSelectionStrategy.QUALITY_PRIORITY, command.getStrategy());
         assertEquals(Boolean.TRUE, command.getStreaming());
     }
 

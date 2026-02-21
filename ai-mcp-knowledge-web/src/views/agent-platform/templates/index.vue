@@ -3,7 +3,7 @@
     <div class="page-header">
       <div>
         <h2 class="page-title">Prompt 模板</h2>
-        <p class="subtitle">统一模板资产管理（统一作用域）</p>
+        <p class="subtitle">统一模板资产管理</p>
       </div>
       <div class="header-actions">
         <el-button class="gemini-btn-secondary" @click="fetchData">

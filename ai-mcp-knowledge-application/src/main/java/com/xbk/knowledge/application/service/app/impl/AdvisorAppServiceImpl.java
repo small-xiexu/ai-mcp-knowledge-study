@@ -4,6 +4,7 @@ import com.xbk.knowledge.application.service.app.AdvisorAppService;
 import com.xbk.knowledge.application.service.runtime.AdvisorRuntimeService;
 import com.xbk.knowledge.domain.advisor.model.entity.Advisor;
 import com.xbk.knowledge.domain.advisor.model.valobj.AdvisorPageQuery;
+import com.xbk.knowledge.domain.advisor.adapter.repository.AdvisorBindingRepository;
 import com.xbk.knowledge.domain.advisor.adapter.repository.AdvisorRepository;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.exception.BusinessException;
@@ -26,6 +27,7 @@ import java.util.Locale;
 public class AdvisorAppServiceImpl implements AdvisorAppService {
 
     private final AdvisorRepository advisorRepository;
+    private final AdvisorBindingRepository advisorBindingRepository;
     private final AdvisorRuntimeService advisorRuntimeService;
 
     /**
@@ -57,7 +59,6 @@ public class AdvisorAppServiceImpl implements AdvisorAppService {
     /**
      * get。
      *
-     * @param scopeId 参数
      * @param id 参数
      * @return 返回结果
      */
@@ -129,7 +130,6 @@ public class AdvisorAppServiceImpl implements AdvisorAppService {
     /**
      * enable。
      *
-     * @param scopeId 参数
      * @param id 参数
      * @return 返回结果
      */
@@ -148,7 +148,6 @@ public class AdvisorAppServiceImpl implements AdvisorAppService {
     /**
      * disable。
      *
-     * @param scopeId 参数
      * @param id 参数
      * @return 返回结果
      */
@@ -167,13 +166,13 @@ public class AdvisorAppServiceImpl implements AdvisorAppService {
     /**
      * remove。
      *
-     * @param scopeId 参数
      * @param id 参数
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void remove(Long id) {
-        get(id);
+        Advisor existed = get(id);
+        advisorBindingRepository.deleteByAdvisorId(existed.getId());
         int affected = advisorRepository.deleteById(id);
         if (affected <= 0) {
             throw new BusinessException("删除失败，id=" + id);

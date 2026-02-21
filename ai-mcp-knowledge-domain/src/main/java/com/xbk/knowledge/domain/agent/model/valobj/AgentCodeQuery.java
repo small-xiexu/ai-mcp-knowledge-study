@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Agent 按 code 查询条件（含 scope 边界）。
+ * Agent 按 code 查询条件。
  *
  * @author sxie
  */
@@ -16,4 +16,3 @@ public class AgentCodeQuery {
 
     private String agentCode;
 }
-

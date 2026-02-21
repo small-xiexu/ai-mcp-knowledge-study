@@ -134,7 +134,6 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
     /**
      * enable。
      *
-     * @param scopeId 参数
      * @param id 参数
      * @return 返回结果
      */
@@ -157,7 +156,6 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
     /**
      * disable。
      *
-     * @param scopeId 参数
      * @param id 参数
      * @return 返回结果
      */
@@ -175,7 +173,6 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
     /**
      * remove。
      *
-     * @param scopeId 参数
      * @param id 参数
      */
     @Override

@@ -34,11 +34,6 @@ public class SysAuditEvent {
     private Long operatorId;
 
     /**
-     * 操作人所属scopeId（责任归属）。
-     */
-    private Long operatorScopeId;
-
-    /**
      * 操作人用户名（查询展示字段）。
      */
     private String operatorName;
@@ -62,11 +57,6 @@ public class SysAuditEvent {
      * 资源ID。
      */
     private String resourceId;
-
-    /**
-     * 资源归属scopeId（影响范围）。
-     */
-    private Long resourceScopeId;
 
     /**
      * 动作。

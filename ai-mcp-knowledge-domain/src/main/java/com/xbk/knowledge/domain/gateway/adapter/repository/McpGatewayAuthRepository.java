@@ -38,4 +38,9 @@ public interface McpGatewayAuthRepository {
      * 方法：deleteById。
      */
     void deleteById(Long id);
+
+    /**
+     * 方法：deleteByGatewayId。
+     */
+    void deleteByGatewayId(GatewayIdQuery query);
 }

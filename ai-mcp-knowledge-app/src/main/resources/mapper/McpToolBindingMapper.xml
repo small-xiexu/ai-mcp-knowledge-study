@@ -56,6 +56,12 @@
         where tool_id = #{toolId}
     </delete>
 
+    <delete id="deleteByBindTypeAndTargetId">
+        delete from mcp_tool_binding
+        where bind_type = #{bindType}
+          and bind_target_id = #{bindTargetId}
+    </delete>
+
     <select id="findByBindTypeAndTargetId" resultMap="McpToolBindingMap">
         select
             id,

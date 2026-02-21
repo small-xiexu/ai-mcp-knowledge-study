@@ -1,6 +1,6 @@
 package com.xbk.knowledge.application.service.armory.node;
 
-import com.xbk.knowledge.application.service.armory.factory.DefaultAiClientArmoryStrategyFactory;
+import com.xbk.knowledge.application.service.armory.factory.AiClientArmoryContext;
 
 /**
  * AI 客户端装配节点接口。
@@ -13,7 +13,7 @@ public interface AiClientArmoryNode {
      *
      * @param context 动态上下文
      */
-    void handle(DefaultAiClientArmoryStrategyFactory.DynamicContext context);
+    void handle(AiClientArmoryContext context);
 
     /**
      * 设置下一个节点。
@@ -22,4 +22,3 @@ public interface AiClientArmoryNode {
      */
     void setNext(AiClientArmoryNode next);
 }
-

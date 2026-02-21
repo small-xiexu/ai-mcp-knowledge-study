@@ -30,10 +30,6 @@ public class McpToolRegistry {
     private Long id;
 
     /**
-     * scopeId。
-     */
-
-    /**
      * 网关唯一标识
      *
      * 为什么：关联所属网关，支持多网关工具隔离

@@ -2,6 +2,7 @@ package com.xbk.knowledge.infrastructure.dao;
 
 import com.xbk.knowledge.infrastructure.dao.po.McpToolSchemaPO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.xbk.knowledge.domain.gateway.model.valobj.ToolIdQuery;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -22,4 +23,7 @@ public interface IMcpToolSchemaDao extends BaseMapper<McpToolSchemaPO> {
     /** 按 gatewayId + toolId 查询当前生效的 Schema 快照 */
     McpToolSchemaPO findActiveByGatewayIdAndToolId(@Param("gatewayId") String gatewayId,
                                                  @Param("toolId") Long toolId);
+
+    /** 按工具 ID 删除所有 Schema 快照 */
+    int deleteByToolId(ToolIdQuery query);
 }

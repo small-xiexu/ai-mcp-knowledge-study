@@ -31,10 +31,6 @@ public class ChatSession {
     private Long id;
 
     /**
-     * scopeId。
-     */
-
-    /**
      * 会话归属用户ID。
      *
      * 为什么：部门内仍需要区分用户归属，便于权限与清理策略。

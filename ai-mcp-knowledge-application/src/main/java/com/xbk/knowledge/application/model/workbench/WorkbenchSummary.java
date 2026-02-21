@@ -135,7 +135,7 @@ public class WorkbenchSummary {
          */
         private String actionLabel;
         /**
-         * 是否写操作步骤（用于超管未选 scope 时标红）。
+         * 是否写操作步骤。
          */
         private boolean writeAction;
     }

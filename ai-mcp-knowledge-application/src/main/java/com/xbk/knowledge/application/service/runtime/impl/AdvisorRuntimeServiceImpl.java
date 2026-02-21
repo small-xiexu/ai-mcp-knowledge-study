@@ -54,7 +54,6 @@ public class AdvisorRuntimeServiceImpl implements AdvisorRuntimeService {
     /**
      * resolveForAgentVersion。
      *
-     * @param scopeId 参数
      * @param agentVersionId 参数
      * @param runId 参数
      * @param sessionId 参数
@@ -68,7 +67,6 @@ public class AdvisorRuntimeServiceImpl implements AdvisorRuntimeService {
     /**
      * resolveForWorkflowVersion。
      *
-     * @param scopeId 参数
      * @param workflowVersionId 参数
      * @param runId 参数
      * @param sessionId 参数
@@ -82,7 +80,6 @@ public class AdvisorRuntimeServiceImpl implements AdvisorRuntimeService {
     /**
      * evictBindingCache。
      *
-     * @param scopeId 参数
      * @param bindType 参数
      * @param bindTargetId 参数
      */
@@ -98,7 +95,6 @@ public class AdvisorRuntimeServiceImpl implements AdvisorRuntimeService {
     /**
      * evictAll。
      *
-     * @param scopeId 参数
      */
     @Override
     public void evictAll() {

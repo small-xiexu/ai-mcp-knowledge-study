@@ -23,10 +23,6 @@ public class Agent {
     private Long id;
 
     /**
-     * scopeId。
-     */
-
-    /**
      * Agent 对外编码（路由主键）。
      */
     private String agentCode;

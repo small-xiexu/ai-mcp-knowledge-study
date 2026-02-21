@@ -24,5 +24,6 @@ public interface IAdvisorBindingDao extends BaseMapper<AdvisorBindingPO> {
     int deleteByTarget(@Param("q") AdvisorBindingQuery query);
 
     int insertBinding(AdvisorBindingPO binding);
-}
 
+    int deleteByAdvisorId(@Param("advisorId") Long advisorId);
+}

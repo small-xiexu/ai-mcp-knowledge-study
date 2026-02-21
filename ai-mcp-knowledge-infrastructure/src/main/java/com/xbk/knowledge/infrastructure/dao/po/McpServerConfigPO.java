@@ -38,10 +38,6 @@ public class McpServerConfigPO {
     private Long id;
 
     /**
-     * scopeId。
-     */
-
-    /**
      * MCP Server 名称
      *
      * 为什么：配置唯一标识，用于选择与展示

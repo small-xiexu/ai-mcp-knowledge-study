@@ -37,10 +37,6 @@ public class McpGatewayPO {
     private Long id;
 
     /**
-     * scopeId。
-     */
-
-    /**
      * 网关唯一标识
      *
      * 为什么：业务层全局唯一键，解耦物理主键与业务引用

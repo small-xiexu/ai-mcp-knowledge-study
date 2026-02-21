@@ -81,4 +81,18 @@ public class AdvisorBindingRepositoryImpl implements AdvisorBindingRepository {
         }
         return mapper.insertBinding(BeanMappingUtils.map(binding, AdvisorBindingPO.class));
     }
+
+    /**
+     * deleteByAdvisorId。
+     *
+     * @param advisorId 参数
+     * @return 返回结果
+     */
+    @Override
+    public int deleteByAdvisorId(Long advisorId) {
+        if (advisorId == null) {
+            return 0;
+        }
+        return mapper.deleteByAdvisorId(advisorId);
+    }
 }

@@ -50,12 +50,6 @@
         delete from mcp_gateway_auth where id = #{id}
     </delete>
 
-    <delete id="deleteGatewayAuthByIdAndScopeId">
-        delete from mcp_gateway_auth
-        where 1 = 1
-          and id = #{id}
-    </delete>
-
     <select id="findByApiKey" resultMap="McpGatewayAuthMap">
         select
             id,
@@ -68,21 +62,6 @@
             updated_at
         from mcp_gateway_auth
         where api_key = #{apiKey}
-    </select>
-
-    <select id="findByApiKeyAndScopeId" resultMap="McpGatewayAuthMap">
-        select
-            id,
-            gateway_id,
-            api_key,
-            rate_limit,
-            expire_time,
-            status,
-            created_at,
-            updated_at
-        from mcp_gateway_auth
-        where 1 = 1
-          and api_key = #{apiKey}
     </select>
 
     <select id="findById" resultMap="McpGatewayAuthMap">
@@ -99,21 +78,6 @@
         where id = #{id}
     </select>
 
-    <select id="findByIdAndScopeId" resultMap="McpGatewayAuthMap">
-        select
-            id,
-            gateway_id,
-            api_key,
-            rate_limit,
-            expire_time,
-            status,
-            created_at,
-            updated_at
-        from mcp_gateway_auth
-        where 1 = 1
-          and id = #{id}
-    </select>
-
     <select id="findByGatewayId" resultMap="McpGatewayAuthMap">
         select
             id,
@@ -128,5 +92,10 @@
         where gateway_id = #{gatewayId}
         order by id desc
     </select>
+
+    <delete id="deleteByGatewayId">
+        delete from mcp_gateway_auth
+        where gateway_id = #{gatewayId}
+    </delete>
 
 </mapper>

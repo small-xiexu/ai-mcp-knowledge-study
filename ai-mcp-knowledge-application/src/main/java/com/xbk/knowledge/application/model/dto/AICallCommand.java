@@ -1,6 +1,5 @@
 package com.xbk.knowledge.application.model.dto;
 
-import com.xbk.knowledge.types.enums.ModelSelectionStrategy;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -43,14 +42,6 @@ public class AICallCommand {
      * 为什么：支持动态控制模型行为
      */
     private Map<String, Object> parameters;
-
-    /**
-     * 模型选择策略（可选）
-     * 如果不指定，将使用默认策略
-     *
-     * 为什么：支持显式指定选择策略
-     */
-    private ModelSelectionStrategy strategy;
 
     /**
      * 是否启用流式输出（可选）

@@ -6,7 +6,7 @@ import com.xbk.knowledge.domain.job.model.entity.XxlJobLogDetail;
 import com.xbk.knowledge.domain.job.model.entity.XxlJobLogInfo;
 import com.xbk.knowledge.domain.job.model.valobj.XxlJobLogPageQuery;
 import com.xbk.knowledge.domain.job.model.valobj.XxlJobPageQuery;
-import com.xbk.knowledge.domain.service.xxl.IXxlJobService;
+import com.xbk.knowledge.domain.job.service.IXxlJobService;
 import com.xbk.knowledge.types.common.PageResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

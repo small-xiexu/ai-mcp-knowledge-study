@@ -1,6 +1,7 @@
 package com.xbk.knowledge.infrastructure.gateway.repository;
 
 import com.xbk.knowledge.domain.gateway.model.entity.McpToolSchema;
+import com.xbk.knowledge.domain.gateway.model.valobj.ToolIdQuery;
 import com.xbk.knowledge.domain.gateway.adapter.repository.McpToolSchemaRepository;
 import com.xbk.knowledge.infrastructure.common.BeanMappingUtils;
 import com.xbk.knowledge.infrastructure.dao.IMcpToolSchemaDao;
@@ -54,5 +55,18 @@ public class McpToolSchemaRepositoryImpl implements McpToolSchemaRepository {
         }
         mapper.updateToolSchema(BeanMappingUtils.map(schema, McpToolSchemaPO.class));
         return schema;
+    }
+
+    /**
+     * deleteByToolId。
+     *
+     * @param toolId 参数
+     */
+    @Override
+    public void deleteByToolId(Long toolId) {
+        if (toolId == null) {
+            return;
+        }
+        mapper.deleteByToolId(new ToolIdQuery(toolId));
     }
 }

@@ -309,13 +309,11 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
 
         /*
          * 重要：工具回调可能在异步/跨线程环境执行（例如流式/Reactive）。
-         * 为保证治理门禁一致性（scopeId、runId、权限、审计归属），在构建回调时捕获上下文快照，
+         * 为保证治理门禁一致性（runId、权限、审计归属），在构建回调时捕获上下文快照，
          * call() 期间禁止再依赖线程上下文（如 StpUtil/MDC）获取关键字段。
- */
+         */
         final String boundRunId = TraceIdUtils.getOrCreateTraceId();
-        final Long finalScopeId = 1L;
         final Long boundOperatorId = null;
-        final Long boundOperatorScopeId = 1L;
         final boolean bypassEnabled = ToolInvokeBypassContextHolder.isEnabled();
         final boolean login = StpUtil.isLogin();
         final boolean toolInvokePermitted = !login || StpUtil.hasPermission(PERMISSION_TOOL_INVOKE);
@@ -332,13 +330,12 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
                     String previousCallId = MDC.get(CALL_ID_MDC_KEY);
                     MDC.put(CALL_ID_MDC_KEY, callId);
                     String runId = boundRunId;
-                    Long scopeId = finalScopeId;
                     if (!bypassEnabled && !toolInvokePermitted) {
-                        recordToolDeniedAndAudit(runId,  candidate, "PERMISSION_DENIED", boundOperatorId, boundOperatorScopeId);
+                        recordToolDeniedAndAudit(runId, candidate, "PERMISSION_DENIED", boundOperatorId);
                         return "[PERMISSION_DENIED] 无权限调用工具（缺少权限: " + PERMISSION_TOOL_INVOKE + "），toolKey=" + candidate.toolKey;
                     }
                     String requesterType = boundOperatorId == null ? "system" : "user";
-                    maybeRequireApproval(runId,  candidate, safeArgs, boundOperatorId, requesterType, boundOperatorId, boundOperatorScopeId);
+                    maybeRequireApproval(runId, candidate, safeArgs, boundOperatorId, requesterType, boundOperatorId);
                     log.info("gateway_tool_call source=AI stage=start runId={} callId={} gatewayId={} toolName={} functionName={} toolKey={} argsKeys={}",
                             runId,
                             callId,
@@ -367,7 +364,7 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
                                 callResult.errorCode(),
                                 latencyMs);
 
-                        recordToolMetricsAndAudit(runId,  candidate, safeArgs, callResult.success(), callResult.errorCode(), latencyMs, null, boundOperatorId, boundOperatorScopeId);
+                        recordToolMetricsAndAudit(runId, candidate, safeArgs, callResult.success(), callResult.errorCode(), latencyMs, null, boundOperatorId);
 
                         if (callResult.success()) {
                             return callResult.content();
@@ -388,7 +385,7 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
                                 latencyMs,
                                 e.getMessage(),
                                 e);
-                        recordToolMetricsAndAudit(runId,  candidate, safeArgs, false, "TOOL_EXEC_FAILED", latencyMs, e.getMessage(), boundOperatorId, boundOperatorScopeId);
+                        recordToolMetricsAndAudit(runId, candidate, safeArgs, false, "TOOL_EXEC_FAILED", latencyMs, e.getMessage(), boundOperatorId);
                         throw e;
                     } finally {
                         if (StringUtils.hasText(previousCallId)) {
@@ -420,8 +417,7 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
                                       Map<String, Object> safeArgs,
                                       Long requesterId,
                                       String requesterType,
-                                      Long operatorId,
-                                      Long operatorScopeId) {
+                                      Long operatorId) {
         if (!StringUtils.hasText(runId) || candidate == null || !StringUtils.hasText(candidate.toolKey)) {
             return;
         }
@@ -520,7 +516,7 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
         if (agentId != null && agentVersionId != null) {
             upsertPendingToolSnapshot(runId, candidate.toolKey, riskLevel, digest, req.getId(), now);
         }
-        recordApprovalCreatedAudit(runId,  req, operatorId, operatorScopeId);
+        recordApprovalCreatedAudit(runId, req, operatorId);
         throw new ApprovalRequiredException(req.getId(), candidate.toolKey, riskLevel, "工具调用需要审批（已生成审批单）");
     }
 
@@ -575,19 +571,17 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
         return "argsKeys=" + safeArgs.keySet();
     }
 
-    private void recordApprovalCreatedAudit(String runId,  ApprovalRequest req, Long operatorId, Long operatorScopeId) {
+    private void recordApprovalCreatedAudit(String runId, ApprovalRequest req, Long operatorId) {
         try {
             if (auditLogService == null || req == null || req.getId() == null) {
                 return;
             }
             SysAuditEvent event = SysAuditEvent.builder()
                     .operatorId(operatorId)
-                    .operatorScopeId(operatorScopeId)
                     .operatorType(operatorId == null ? "system" : "user")
                     .eventType("TOOL_APPROVAL")
                     .resourceType("approval_request")
                     .resourceId(String.valueOf(req.getId()))
-                    .resourceScopeId(1L)
                     .action("CREATED")
                     .requestId(runId)
                     .result(1)
@@ -605,8 +599,7 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
     private void recordToolDeniedAndAudit(String runId, 
                                           ToolCandidate candidate,
                                           String reason,
-                                          Long operatorId,
-                                          Long operatorScopeId) {
+                                          Long operatorId) {
         try {
             if (agentRunRepository != null && StringUtils.hasText(runId)) {
                 agentRunRepository.incrementToolDeniedCount(runId,  1);
@@ -621,12 +614,10 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
             }
             SysAuditEvent event = SysAuditEvent.builder()
                     .operatorId(operatorId)
-                    .operatorScopeId(operatorScopeId)
                     .operatorType(operatorId == null ? "system" : "user")
                     .eventType("TOOL_INVOKE")
                     .resourceType("gateway_tool")
                     .resourceId(candidate.toolKey)
-                    .resourceScopeId(1L)
                     .action("DENIED")
                     .requestId(runId)
                     .result(0)
@@ -646,8 +637,7 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
                                            String errorCode,
                                            long latencyMs,
                                            String errorMessage,
-                                           Long operatorId,
-                                           Long operatorScopeId) {
+                                           Long operatorId) {
         try {
             if (agentRunRepository != null && StringUtils.hasText(runId)) {
                 agentRunRepository.incrementToolCallCount(runId,  1);
@@ -662,12 +652,10 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
             }
             SysAuditEvent event = SysAuditEvent.builder()
                     .operatorId(operatorId)
-                    .operatorScopeId(operatorScopeId)
                     .operatorType(operatorId == null ? "system" : "user")
                     .eventType("TOOL_INVOKE")
                     .resourceType("gateway_tool")
                     .resourceId(candidate.toolKey)
-                    .resourceScopeId(1L)
                     .action(success ? "SUCCESS" : "FAILED")
                     .requestId(runId)
                     .result(success ? 1 : 0)

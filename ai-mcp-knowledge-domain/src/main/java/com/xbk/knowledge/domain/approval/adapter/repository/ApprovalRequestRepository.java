@@ -52,7 +52,7 @@ public interface ApprovalRequestRepository {
                      LocalDateTime decidedAt);
 
     /**
-     * 分页查询审批单列表（最小实现：按 scope + status 可选过滤）。
+     * 分页查询审批单列表（最小实现：按 status 可选过滤）。
      */
     List<ApprovalRequest> list(String status, int offset, int pageSize);
 

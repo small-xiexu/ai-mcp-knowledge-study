@@ -1,6 +1,6 @@
 package com.xbk.knowledge.application.service.armory.node;
 
-import com.xbk.knowledge.application.service.armory.factory.DefaultAiClientArmoryStrategyFactory;
+import com.xbk.knowledge.application.service.armory.factory.AiClientArmoryContext;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.api.CallAdvisor;
 import org.springframework.ai.chat.model.ChatModel;
@@ -16,7 +16,7 @@ import java.util.List;
 public class AiClientNode extends AbstractAiClientArmoryNode {
 
     @Override
-    protected void doHandle(DefaultAiClientArmoryStrategyFactory.DynamicContext context) {
+    protected void doHandle(AiClientArmoryContext context) {
         ChatModel chatModel = context.getChatModel();
         if (chatModel == null) {
             throw new IllegalStateException("ChatModel 尚未构建，无法生成 ChatClient");

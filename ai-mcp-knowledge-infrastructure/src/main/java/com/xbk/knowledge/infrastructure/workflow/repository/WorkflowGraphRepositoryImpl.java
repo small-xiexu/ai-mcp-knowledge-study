@@ -58,7 +58,6 @@ public class WorkflowGraphRepositoryImpl implements WorkflowGraphRepository {
     /**
      * replaceGraph。
      *
-     * @param scopeId 参数
      * @param workflowVersionId 参数
      * @param nodes 参数
      * @param edges 参数

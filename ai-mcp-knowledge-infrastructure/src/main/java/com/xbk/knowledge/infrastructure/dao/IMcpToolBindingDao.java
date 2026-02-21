@@ -29,6 +29,9 @@ public interface IMcpToolBindingDao extends BaseMapper<McpToolBindingPO> {
     /** 按工具 ID 批量删除绑定关系（级联删除场景） */
     int deleteToolBindingByToolId(ToolIdQuery query);
 
+    /** 按绑定类型 + 目标 ID 批量删除绑定关系 */
+    int deleteByBindTypeAndTargetId(ToolBindingQuery query);
+
     /** 按绑定类型（MODEL/SESSION）+ 目标 ID 查询绑定列表 */
     List<McpToolBindingPO> findByBindTypeAndTargetId(ToolBindingQuery query);
 

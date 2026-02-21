@@ -42,7 +42,6 @@ DROP TABLE IF EXISTS ai_chat_message;
 DROP TABLE IF EXISTS ai_chat_session;
 DROP TABLE IF EXISTS ai_model_activation;
 DROP TABLE IF EXISTS ai_mcp_server_config;
-DROP TABLE IF EXISTS ai_config_audit;
 DROP TABLE IF EXISTS ai_call_log;
 DROP TABLE IF EXISTS ai_model_config;
 DROP TABLE IF EXISTS sys_audit_event;
@@ -80,7 +79,6 @@ CREATE TABLE sys_role (
     id               BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     role_code        VARCHAR(64)  NOT NULL COMMENT '角色编码（唯一）',
     role_name        VARCHAR(100) NOT NULL COMMENT '角色名称',
-    role_scope       VARCHAR(20)  NOT NULL COMMENT '角色范围：PLATFORM/BUSINESS',
     status           TINYINT NOT NULL DEFAULT 1 COMMENT '状态：1启用 0禁用',
     remark           VARCHAR(500) DEFAULT NULL COMMENT '备注',
     created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -182,16 +180,15 @@ action = VALUES(action),
 status = VALUES(status),
 updated_at = VALUES(updated_at);
 
-INSERT INTO sys_role (role_code, role_name, role_scope, status, remark, created_at, updated_at)
+INSERT INTO sys_role (role_code, role_name, status, remark, created_at, updated_at)
 VALUES
-('PLATFORM_ADMIN', '平台管理员', 'PLATFORM', 1, '平台级全权限', @now, @now),
-('BUSINESS_ADMIN', '业务管理员', 'BUSINESS', 1, '业务管理权限', @now, @now),
-('AGENT_OWNER', 'Agent负责人', 'BUSINESS', 1, 'Agent 配置与发布权限', @now, @now),
-('AUDITOR', '审计员', 'BUSINESS', 1, '审计只读', @now, @now),
-('VIEWER', '观察者', 'BUSINESS', 1, '平台只读访问', @now, @now)
+('PLATFORM_ADMIN', '平台管理员', 1, '平台级全权限', @now, @now),
+('BUSINESS_ADMIN', '业务管理员', 1, '业务管理权限', @now, @now),
+('AGENT_OWNER', 'Agent负责人', 1, 'Agent 配置与发布权限', @now, @now),
+('AUDITOR', '审计员', 1, '审计只读', @now, @now),
+('VIEWER', '观察者', 1, '平台只读访问', @now, @now)
 ON DUPLICATE KEY UPDATE
 role_name = VALUES(role_name),
-role_scope = VALUES(role_scope),
 status = VALUES(status),
 remark = VALUES(remark),
 updated_at = VALUES(updated_at);
@@ -301,6 +298,8 @@ CREATE TABLE ai_model_config (
     model_type VARCHAR(50) NOT NULL COMMENT '模型类型(OPENAI/ANTHROPIC/GEMINI)',
     api_key VARCHAR(500) NOT NULL COMMENT 'API密钥',
     base_url VARCHAR(500) NOT NULL COMMENT 'API地址',
+    completions_path VARCHAR(255) DEFAULT NULL COMMENT '对话补全路径（OpenAI兼容协议）',
+    embeddings_path VARCHAR(255) DEFAULT NULL COMMENT '向量嵌入路径（OpenAI兼容协议）',
     enabled TINYINT(1) DEFAULT 1 COMMENT '是否启用(0:禁用 1:启用)',
     tool_enabled TINYINT(1) DEFAULT 1 COMMENT '是否启用工具调用(0:禁用 1:启用)',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -314,33 +313,18 @@ CREATE TABLE ai_model_config (
 CREATE TABLE ai_call_log (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     model_id BIGINT NOT NULL COMMENT '模型ID',
-    request_content TEXT COMMENT '请求内容',
-    response_content TEXT COMMENT '响应内容',
+    request_content MEDIUMTEXT COMMENT '请求内容',
+    response_content MEDIUMTEXT COMMENT '响应内容',
     response_time BIGINT DEFAULT 0 COMMENT '响应时间(ms)',
     status VARCHAR(20) NOT NULL COMMENT '状态(SUCCESS/FAILED/FALLBACK)',
-    error_message TEXT COMMENT '错误信息',
+    error_message MEDIUMTEXT COMMENT '错误信息',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     INDEX idx_created_at (created_at),
     INDEX idx_model (model_id),
     INDEX idx_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AI调用日志表';
 
--- 3) 配置审计表
-CREATE TABLE ai_config_audit (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
-    table_name VARCHAR(100) NOT NULL COMMENT '表名',
-    record_id BIGINT NOT NULL COMMENT '记录ID',
-    operation VARCHAR(20) NOT NULL COMMENT '操作(INSERT/UPDATE/DELETE)',
-    old_value TEXT COMMENT '旧值(JSON)',
-    new_value TEXT COMMENT '新值(JSON)',
-    operator VARCHAR(100) COMMENT '操作人',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    INDEX idx_table (table_name),
-    INDEX idx_record (record_id),
-    INDEX idx_created_at (created_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='配置审计日志表';
-
--- 4) MCP Server 配置表
+-- 3) MCP Server 配置表
 CREATE TABLE ai_mcp_server_config (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     server_name VARCHAR(100) NOT NULL COMMENT 'MCP Server 名称',
@@ -362,7 +346,7 @@ CREATE TABLE ai_mcp_server_config (
     INDEX idx_mcp_enabled (enabled)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='MCP Server 配置表';
 
--- 7) 模型激活配置表
+-- 4) 模型激活配置表
 CREATE TABLE ai_model_activation (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     chat_model_id BIGINT COMMENT '当前激活的对话模型ID',
@@ -373,7 +357,7 @@ CREATE TABLE ai_model_activation (
     UNIQUE KEY uk_model_activation_singleton (singleton_key)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='模型激活配置表';
 
--- 8) 聊天会话表（预留 agent 绑定）
+-- 5) 聊天会话表（预留 agent 绑定）
 CREATE TABLE ai_chat_session (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     owner_user_id BIGINT DEFAULT NULL COMMENT '会话归属用户ID',
@@ -390,12 +374,12 @@ CREATE TABLE ai_chat_session (
     INDEX idx_agent_version (agent_version_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='聊天会话表';
 
--- 9) 聊天消息表
+-- 6) 聊天消息表
 CREATE TABLE ai_chat_message (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     session_id BIGINT NOT NULL COMMENT '会话ID',
     role VARCHAR(20) NOT NULL COMMENT '角色(user/assistant)',
-    content TEXT COMMENT '消息内容',
+    content MEDIUMTEXT COMMENT '消息内容',
     model_id BIGINT COMMENT '实际使用的模型ID',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     INDEX idx_session_id (session_id),
@@ -403,7 +387,7 @@ CREATE TABLE ai_chat_message (
     INDEX idx_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='聊天消息表';
 
--- 10) RAG 任务表
+-- 7) RAG 任务表
 CREATE TABLE ai_rag_task (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     task_id VARCHAR(64) NOT NULL COMMENT '任务ID',
@@ -424,7 +408,7 @@ CREATE TABLE ai_rag_task (
     INDEX idx_status_created_retry (status, created_at, retry_count)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='RAG 任务表';
 
--- 11) MCP 网关实例表
+-- 8) MCP 网关实例表
 CREATE TABLE mcp_gateway (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     gateway_id      VARCHAR(64)  NOT NULL COMMENT '网关唯一标识（业务ID）',
@@ -439,11 +423,11 @@ CREATE TABLE mcp_gateway (
     INDEX idx_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='MCP 网关实例表';
 
--- 12) MCP 网关认证表
+-- 9) MCP 网关认证表
 CREATE TABLE mcp_gateway_auth (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     gateway_id      VARCHAR(64)  NOT NULL COMMENT '网关唯一标识',
-    api_key         VARCHAR(128) NOT NULL COMMENT 'API Key',
+    api_key         VARCHAR(255) NOT NULL COMMENT 'API Key',
     rate_limit      INT DEFAULT 100       COMMENT '速率限制（次/分钟）',
     expire_time     DATETIME              COMMENT '过期时间，NULL 表示永不过期',
     status          TINYINT(1) DEFAULT 1  COMMENT '状态：1-启用 0-禁用',
@@ -453,7 +437,7 @@ CREATE TABLE mcp_gateway_auth (
     INDEX idx_api_key (api_key)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='MCP 网关认证表';
 
--- 13) MCP 工具注册表（补充 tool_key/risk_level）
+-- 10) MCP 工具注册表（补充 tool_key/risk_level）
 CREATE TABLE mcp_tool_registry (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     gateway_id      VARCHAR(64)  NOT NULL COMMENT '所属网关ID',
@@ -475,7 +459,7 @@ CREATE TABLE mcp_tool_registry (
     INDEX idx_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='MCP 工具注册表';
 
--- 14) MCP 工具参数映射表
+-- 11) MCP 工具参数映射表
 CREATE TABLE mcp_tool_mapping (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     gateway_id      VARCHAR(64)  NOT NULL COMMENT '所属网关ID',
@@ -499,7 +483,7 @@ CREATE TABLE mcp_tool_mapping (
     INDEX idx_parent_id (parent_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='MCP 工具参数映射表';
 
--- 15) MCP 工具 Schema 缓存表
+-- 12) MCP 工具 Schema 缓存表
 CREATE TABLE mcp_tool_schema (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     gateway_id      VARCHAR(64)  NOT NULL COMMENT '所属网关ID',
@@ -515,7 +499,7 @@ CREATE TABLE mcp_tool_schema (
     INDEX idx_tool_active (tool_id, is_active)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='MCP 工具 Schema 缓存表';
 
--- 16) MCP 工具绑定关系表
+-- 13) MCP 工具绑定关系表
 CREATE TABLE mcp_tool_binding (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     gateway_id      VARCHAR(64)  NOT NULL COMMENT '所属网关ID',
@@ -530,7 +514,7 @@ CREATE TABLE mcp_tool_binding (
     INDEX idx_gateway_id (gateway_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='MCP 工具绑定关系表';
 
--- 17) Advisor 资产表
+-- 14) Advisor 资产表
 CREATE TABLE advisor (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     advisor_code VARCHAR(64) NOT NULL COMMENT 'Advisor 唯一编码（单组织内唯一）',
@@ -545,7 +529,7 @@ CREATE TABLE advisor (
     INDEX idx_advisor_enabled (enabled)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Advisor 资产表';
 
--- 18) Advisor 绑定关系表
+-- 15) Advisor 绑定关系表
 CREATE TABLE advisor_binding (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     bind_type VARCHAR(20) NOT NULL COMMENT '绑定类型：AGENT_VERSION/WORKFLOW_VERSION',
@@ -752,6 +736,8 @@ CREATE TABLE workflow_run (
     error_message VARCHAR(1000) DEFAULT NULL COMMENT '错误信息',
     started_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '开始时间',
     ended_at DATETIME DEFAULT NULL COMMENT '结束时间',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     INDEX idx_time (started_at),
     INDEX idx_workflow_version (workflow_id, workflow_version_id),
     INDEX idx_workflow_version_id (workflow_version_id),
@@ -852,15 +838,19 @@ CREATE TABLE agent_run_context (
 -- =====================================================
 
 -- 初始化数据：模型配置（示例）
-INSERT INTO ai_model_config (model_name, model_type, api_key, base_url, enabled, tool_enabled)
+INSERT INTO ai_model_config (
+    model_name, model_type, api_key, base_url, completions_path, embeddings_path, enabled, tool_enabled
+)
 VALUES
-('GPT-4', 'OPENAI', 'sk-placeholder', 'http://127.0.0.1:8045', 1, 1),
-('Claude-3.5-Sonnet', 'ANTHROPIC', 'sk-ant-placeholder', 'https://api.anthropic.com', 1, 1),
-('Gemini-3-Flash', 'GEMINI', 'sk-placeholder', 'http://127.0.0.1:8045', 1, 1)
+('GPT-4', 'OPENAI', 'sk-placeholder', 'http://127.0.0.1:8045', '/v1/chat/completions', '/v1/embeddings', 1, 1),
+('Claude-3.5-Sonnet', 'ANTHROPIC', 'sk-ant-placeholder', 'https://api.anthropic.com', '/v1/chat/completions', '/v1/embeddings', 1, 1),
+('Gemini-3-Flash', 'GEMINI', 'sk-placeholder', 'http://127.0.0.1:8045', '/v1/chat/completions', '/v1/embeddings', 1, 1)
 ON DUPLICATE KEY UPDATE
 model_type = VALUES(model_type),
 api_key = VALUES(api_key),
 base_url = VALUES(base_url),
+completions_path = VALUES(completions_path),
+embeddings_path = VALUES(embeddings_path),
 enabled = VALUES(enabled),
 tool_enabled = VALUES(tool_enabled),
 updated_at = VALUES(updated_at);

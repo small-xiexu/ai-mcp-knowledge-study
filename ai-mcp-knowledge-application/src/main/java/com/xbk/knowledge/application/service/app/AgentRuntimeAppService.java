@@ -20,7 +20,6 @@ public interface AgentRuntimeAppService {
     /**
      * XXL 调度执行入口（run_type=XXL_JOB, trigger_source=XXL）。
      *
-     * @param scopeId       scopeId
      * @param agentCode   Agent 对外编码
      * @param content     输入内容（必填）
      * @param ragTagsJson RAG tags JSON（可选）

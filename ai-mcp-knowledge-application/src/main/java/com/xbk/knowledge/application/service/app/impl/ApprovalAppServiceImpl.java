@@ -23,7 +23,7 @@ import com.xbk.knowledge.domain.audit.adapter.repository.SysAuditEventRepository
 import com.xbk.knowledge.domain.common.model.valobj.EnabledQuery;
 import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowRunContextRepository;
 import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowRunRepository;
-import com.xbk.knowledge.domain.service.model.IModelConfigService;
+import com.xbk.knowledge.domain.llm.service.IModelConfigService;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.contract.PlatformContractV1;
 import com.xbk.knowledge.types.exception.BusinessException;
@@ -89,7 +89,6 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
     /**
      * list。
      *
-     * @param scopeId 参数
      * @param status 参数
      * @param offset 参数
      * @param pageSize 参数
@@ -108,7 +107,6 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
     /**
      * get。
      *
-     * @param scopeId 参数
      * @param id 参数
      * @return 返回结果
      */
@@ -121,7 +119,6 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
     /**
      * approve。
      *
-     * @param scopeId 参数
      * @param id 参数
      * @param decisionComment 参数
      * @return 返回结果
@@ -223,7 +220,6 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
     /**
      * reject。
      *
-     * @param scopeId 参数
      * @param id 参数
      * @param decisionComment 参数
      * @return 返回结果
@@ -277,17 +273,14 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
         }
         try {
             Long operatorId = identityContextService.getCurrentUserId();
-            Long operatorScopeId = 1L;
             String operatorType = operatorId == null ? "system" : "user";
 
             SysAuditEvent event = SysAuditEvent.builder()
                     .operatorId(operatorId)
-                    .operatorScopeId(operatorScopeId)
                     .operatorType(operatorType)
                     .eventType("TOOL_APPROVAL")
                     .resourceType("approval_request")
                     .resourceId(String.valueOf(approvalId))
-                    .resourceScopeId(operatorScopeId)
                     .action(action)
                     .requestId(runId)
                     .sourceIp(resolveSourceIp())

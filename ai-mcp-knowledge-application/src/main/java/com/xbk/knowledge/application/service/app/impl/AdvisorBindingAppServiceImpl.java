@@ -54,7 +54,6 @@ public class AdvisorBindingAppServiceImpl implements AdvisorBindingAppService {
     /**
      * saveBindings。
      *
-     * @param scopeId 参数
      * @param bindType 参数
      * @param bindTargetId 参数
      * @param items 参数

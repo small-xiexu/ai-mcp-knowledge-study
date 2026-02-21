@@ -30,7 +30,7 @@ import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowRepository;
 import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowRunContextRepository;
 import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowRunRepository;
 import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowVersionRepository;
-import com.xbk.knowledge.domain.service.model.IModelConfigService;
+import com.xbk.knowledge.domain.llm.service.IModelConfigService;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.contract.PlatformContractV1;
 import com.xbk.knowledge.types.exception.ApprovalRequiredException;
@@ -206,7 +206,6 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
     /**
      * resumeFromApproval。
      *
-     * @param scopeId 参数
      * @param approvalRequestId 参数
      * @return 返回结果
      */
@@ -292,7 +291,6 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
     /**
      * listRuns。
      *
-     * @param scopeId 参数
      * @param status 参数
      * @param offset 参数
      * @param pageSize 参数
@@ -311,7 +309,6 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
     /**
      * getRun。
      *
-     * @param scopeId 参数
      * @param runId 参数
      * @return 返回结果
      */
@@ -327,7 +324,6 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
     /**
      * listNodeRuns。
      *
-     * @param scopeId 参数
      * @param runId 参数
      * @return 返回结果
      */

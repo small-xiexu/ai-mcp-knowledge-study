@@ -57,6 +57,16 @@ public class ModelConfigRequest extends BaseRequest {
     private String baseUrl;
 
     /**
+     * 对话补全路径
+     */
+    private String completionsPath;
+
+    /**
+     * 向量嵌入路径
+     */
+    private String embeddingsPath;
+
+    /**
      * 是否启用
      */
     @Builder.Default

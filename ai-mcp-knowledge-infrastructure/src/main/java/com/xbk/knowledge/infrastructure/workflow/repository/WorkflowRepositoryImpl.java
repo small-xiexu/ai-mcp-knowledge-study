@@ -88,7 +88,6 @@ public class WorkflowRepositoryImpl implements WorkflowRepository {
     /**
      * list。
      *
-     * @param scopeId 参数
      * @param keyword 参数
      * @param offset 参数
      * @param pageSize 参数
@@ -104,7 +103,6 @@ public class WorkflowRepositoryImpl implements WorkflowRepository {
     /**
      * count。
      *
-     * @param scopeId 参数
      * @param keyword 参数
      * @return 返回结果
      */

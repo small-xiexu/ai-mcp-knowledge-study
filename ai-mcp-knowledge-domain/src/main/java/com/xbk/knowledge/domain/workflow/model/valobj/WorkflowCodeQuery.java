@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Workflow 按 code 查询条件（含 scope 边界）。
+ * Workflow 按 code 查询条件。
  *
  * @author sxie
  */
@@ -18,4 +18,3 @@ public class WorkflowCodeQuery {
 
     private String workflowCode;
 }
-

@@ -38,10 +38,6 @@ public class RagTaskPO {
     private Long id;
 
     /**
-     * scopeId。
-     */
-
-    /**
      * 任务ID（业务标识）
      *
      * 为什么：用于业务侧追踪任务

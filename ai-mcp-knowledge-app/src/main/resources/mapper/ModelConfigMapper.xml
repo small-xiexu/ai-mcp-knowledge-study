@@ -10,6 +10,8 @@
         <result column="model_type" property="modelType"/>
         <result column="api_key" property="apiKey"/>
         <result column="base_url" property="baseUrl"/>
+        <result column="completions_path" property="completionsPath"/>
+        <result column="embeddings_path" property="embeddingsPath"/>
         <result column="enabled" property="enabled"/>
         <result column="tool_enabled" property="toolEnabled"/>
         <result column="created_at" property="createdAt"/>
@@ -23,6 +25,8 @@
             model_type,
             api_key,
             base_url,
+            completions_path,
+            embeddings_path,
             enabled,
             tool_enabled,
             created_at,
@@ -32,6 +36,8 @@
             #{modelType},
             #{apiKey},
             #{baseUrl},
+            #{completionsPath},
+            #{embeddingsPath},
             #{enabled},
             #{toolEnabled},
             #{createdAt},
@@ -45,6 +51,8 @@
             model_type = #{modelType},
             api_key = #{apiKey},
             base_url = #{baseUrl},
+            completions_path = #{completionsPath},
+            embeddings_path = #{embeddingsPath},
             enabled = #{enabled},
             tool_enabled = #{toolEnabled},
             updated_at = #{updatedAt}
@@ -63,6 +71,8 @@
             model_type,
             api_key,
             base_url,
+            completions_path,
+            embeddings_path,
             enabled,
             tool_enabled,
             created_at,
@@ -78,6 +88,8 @@
             model_type,
             api_key,
             base_url,
+            completions_path,
+            embeddings_path,
             enabled,
             tool_enabled,
             created_at,
@@ -93,6 +105,8 @@
             model_type,
             api_key,
             base_url,
+            completions_path,
+            embeddings_path,
             enabled,
             tool_enabled,
             created_at,
@@ -108,6 +122,8 @@
             model_type,
             api_key,
             base_url,
+            completions_path,
+            embeddings_path,
             enabled,
             tool_enabled,
             created_at,
@@ -123,6 +139,8 @@
             model_type,
             api_key,
             base_url,
+            completions_path,
+            embeddings_path,
             enabled,
             tool_enabled,
             created_at,
@@ -151,6 +169,8 @@
             model_type,
             api_key,
             base_url,
+            completions_path,
+            embeddings_path,
             enabled,
             tool_enabled,
             created_at,

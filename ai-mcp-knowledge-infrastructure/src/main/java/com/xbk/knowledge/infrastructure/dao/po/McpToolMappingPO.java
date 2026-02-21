@@ -37,10 +37,6 @@ public class McpToolMappingPO {
     private Long id;
 
     /**
-     * scopeId。
-     */
-
-    /**
      * 网关唯一标识
      *
      * 为什么：关联所属网关，支持多网关映射隔离

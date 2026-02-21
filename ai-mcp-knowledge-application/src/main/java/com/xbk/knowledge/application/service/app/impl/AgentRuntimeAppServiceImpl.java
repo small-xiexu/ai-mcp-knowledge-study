@@ -28,7 +28,7 @@ import com.xbk.knowledge.domain.agent.adapter.repository.AgentRunContextReposito
 import com.xbk.knowledge.domain.agent.adapter.repository.AgentVersionRepository;
 import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowRepository;
 import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowVersionRepository;
-import com.xbk.knowledge.domain.service.model.IModelConfigService;
+import com.xbk.knowledge.domain.llm.service.IModelConfigService;
 import com.xbk.knowledge.types.contract.PlatformContractV1;
 import com.xbk.knowledge.types.contract.PlatformStreamEvent;
 import com.xbk.knowledge.types.exception.ApprovalRequiredException;
@@ -64,7 +64,7 @@ import org.slf4j.MDC;
  * Agent 运行入口应用服务实现。
  *
  * P0 策略：
- * - 必须按 scope+agentCode 找到 Agent
+ * - 必须按 agentCode 找到 Agent
  * - 必须使用当前发布版本（Agent.current_published_version_id）
  * - 输出 Platform Contract v1（先不做结构化解析修复；P1 再加）
  * - 工具调用暂不启用（先保证主链路稳定；Iteration 3 再做 allowlist + toolKey）
@@ -93,7 +93,6 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
     /**
      * chat。
      *
-     * @param scopeId 参数
      * @param agentCode 参数
      * @param sessionId 参数
      * @param content 参数
@@ -303,7 +302,6 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
     /**
      * stream。
      *
-     * @param scopeId 参数
      * @param agentCode 参数
      * @param sessionId 参数
      * @param content 参数
@@ -487,7 +485,6 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
     /**
      * invoke。
      *
-     * @param scopeId 参数
      * @param agentCode 参数
      * @param sessionId 参数
      * @param content 参数
@@ -503,7 +500,6 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
     /**
      * runJob。
      *
-     * @param scopeId 参数
      * @param agentCode 参数
      * @param content 参数
      * @param ragTagsJson 参数

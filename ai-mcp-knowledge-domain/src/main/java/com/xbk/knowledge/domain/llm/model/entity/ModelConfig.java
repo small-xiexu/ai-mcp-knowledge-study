@@ -31,12 +31,6 @@ public class ModelConfig {
     private Long id;
 
     /**
-     * scopeId。
-     *
-     * 为什么：用于模型配置的组织归属标识；单组织模式下默认归属为 1。
-     */
-
-    /**
      * 模型名称
      *
      * 为什么：用于唯一性校验与展示
@@ -63,6 +57,20 @@ public class ModelConfig {
      * 为什么：模型服务的访问入口
      */
     private String baseUrl;
+
+    /**
+     * 对话补全路径
+     *
+     * 为什么：兼容不同 OpenAI 协议供应商的对话接口路径差异
+     */
+    private String completionsPath;
+
+    /**
+     * 向量嵌入路径
+     *
+     * 为什么：兼容不同 OpenAI 协议供应商的向量接口路径差异
+     */
+    private String embeddingsPath;
 
     /**
      * 是否启用（0:禁用 1:启用）

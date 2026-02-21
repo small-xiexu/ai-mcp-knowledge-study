@@ -99,4 +99,17 @@ public class McpGatewayAuthRepositoryImpl implements McpGatewayAuthRepository {
         }
         mapper.deleteGatewayAuthById(id);
     }
+
+    /**
+     * deleteByGatewayId。
+     *
+     * @param query 参数
+     */
+    @Override
+    public void deleteByGatewayId(GatewayIdQuery query) {
+        if (query == null || query.getGatewayId() == null) {
+            return;
+        }
+        mapper.deleteByGatewayId(query);
+    }
 }

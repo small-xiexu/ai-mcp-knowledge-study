@@ -118,31 +118,8 @@
         order by id desc
     </select>
 
-    <select id="findAllEnabledByScopeId" resultMap="McpGatewayMap">
-        select
-            id,
-            gateway_id,
-            gateway_name,
-            gateway_desc,
-            gateway_version,
-            gateway_instructions,
-            status,
-            created_at,
-            updated_at
-        from mcp_gateway
-        where 1 = 1
-          and status = 1
-        order by id desc
-    </select>
-
     <select id="countAll" resultType="long">
         select count(1) from mcp_gateway
-    </select>
-
-    <select id="countAllByScopeId" resultType="long">
-        select count(1)
-        from mcp_gateway
-        where 1 = 1
     </select>
 
 </mapper>

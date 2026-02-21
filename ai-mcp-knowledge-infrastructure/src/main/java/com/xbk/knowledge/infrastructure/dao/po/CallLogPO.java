@@ -38,10 +38,6 @@ public class CallLogPO {
     private Long id;
 
     /**
-     * scopeId。
-     */
-
-    /**
      * 模型ID
      *
      * 为什么：定位调用使用的模型配置

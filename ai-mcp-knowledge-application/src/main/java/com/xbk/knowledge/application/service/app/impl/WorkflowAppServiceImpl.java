@@ -42,7 +42,6 @@ public class WorkflowAppServiceImpl implements WorkflowAppService {
     /**
      * list。
      *
-     * @param scopeId 参数
      * @param keyword 参数
      * @param offset 参数
      * @param pageSize 参数
@@ -61,7 +60,6 @@ public class WorkflowAppServiceImpl implements WorkflowAppService {
     /**
      * get。
      *
-     * @param scopeId 参数
      * @param id 参数
      * @return 返回结果
      */
@@ -74,7 +72,6 @@ public class WorkflowAppServiceImpl implements WorkflowAppService {
     /**
      * create。
      *
-     * @param scopeId 参数
      * @param workflow 参数
      * @return 返回结果
      */
@@ -104,7 +101,6 @@ public class WorkflowAppServiceImpl implements WorkflowAppService {
     /**
      * update。
      *
-     * @param scopeId 参数
      * @param workflow 参数
      * @return 返回结果
      */
@@ -131,7 +127,6 @@ public class WorkflowAppServiceImpl implements WorkflowAppService {
     /**
      * createVersion。
      *
-     * @param scopeId 参数
      * @param workflowId 参数
      * @param changeSummary 参数
      * @return 返回结果
@@ -176,7 +171,6 @@ public class WorkflowAppServiceImpl implements WorkflowAppService {
     /**
      * listVersions。
      *
-     * @param scopeId 参数
      * @param workflowId 参数
      * @return 返回结果
      */
@@ -190,7 +184,6 @@ public class WorkflowAppServiceImpl implements WorkflowAppService {
     /**
      * getVersion。
      *
-     * @param scopeId 参数
      * @param workflowVersionId 参数
      * @return 返回结果
      */
@@ -206,7 +199,6 @@ public class WorkflowAppServiceImpl implements WorkflowAppService {
     /**
      * publishVersion。
      *
-     * @param scopeId 参数
      * @param workflowVersionId 参数
      * @return 返回结果
      */
