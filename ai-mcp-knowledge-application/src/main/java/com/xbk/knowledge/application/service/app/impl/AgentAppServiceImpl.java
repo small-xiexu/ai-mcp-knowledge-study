@@ -66,5 +66,15 @@ public class AgentAppServiceImpl implements AgentAppService {
     public Agent update(Agent agent) {
         return agentService.update(agent);
     }
-}
 
+    /**
+     * remove。
+     *
+     * @param query 参数
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void remove(AgentCodeQuery query) {
+        agentService.remove(query);
+    }
+}

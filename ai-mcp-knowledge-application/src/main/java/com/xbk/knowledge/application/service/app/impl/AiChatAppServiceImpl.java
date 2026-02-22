@@ -17,6 +17,7 @@ import com.xbk.knowledge.domain.chat.adapter.repository.ChatSessionRepository;
 import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.types.enums.CallStatus;
 import com.xbk.knowledge.types.exception.BusinessException;
+import com.xbk.knowledge.types.trace.TraceIdUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.memory.ChatMemory;
@@ -85,7 +86,8 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         Prompt prompt = buildPrompt(command, toolEnabled);
         CallLog callLog = buildCallLog(modelConfig, command);
         String conversationId = resolveConversationId(command);
-        GatewayToolBindingContextHolder.set(modelConfig.getId(), command.getSessionId());
+        String runId = TraceIdUtils.getOrCreateTraceId();
+        GatewayToolBindingContextHolder.set(modelConfig.getId(), command.getSessionId(), null, runId, null);
         try {
             ChatClient chatClient = resolveChatClient(modelConfig, toolEnabled);
             ChatResponse response = chatClient.prompt(prompt).call().chatResponse();
@@ -147,7 +149,8 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         String conversationId = resolveConversationId(command);
         StringBuilder assistantBuffer = new StringBuilder();
         return Flux.defer(() -> {
-            GatewayToolBindingContextHolder.set(modelConfig.getId(), command.getSessionId());
+            String runId = TraceIdUtils.getOrCreateTraceId();
+            GatewayToolBindingContextHolder.set(modelConfig.getId(), command.getSessionId(), null, runId, null);
             ChatClient chatClient = resolveChatClient(modelConfig, toolEnabled);
             return chatClient.prompt(prompt)
                     .stream()

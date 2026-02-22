@@ -47,4 +47,9 @@ public interface AgentRunRepository {
      * 工具拒绝计数 +N（按 runId 原子递增）。
      */
     int incrementToolDeniedCount(String runId, int delta);
+
+    /**
+     * 方法：deleteByAgentId。
+     */
+    int deleteByAgentId(Long agentId);
 }

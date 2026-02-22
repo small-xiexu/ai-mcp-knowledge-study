@@ -17,6 +17,8 @@ import com.xbk.knowledge.domain.gateway.adapter.repository.McpToolRegistryReposi
 import com.xbk.knowledge.domain.gateway.adapter.repository.McpToolSchemaRepository;
 import com.xbk.knowledge.domain.gateway.service.GatewayToolService;
 import com.xbk.knowledge.types.exception.BusinessException;
+import com.xbk.knowledge.types.trace.TraceIdUtils;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
@@ -79,8 +81,13 @@ public class GatewayToolServiceImpl implements GatewayToolService {
     private final McpToolSchemaRepository toolSchemaRepository;
     private final GatewayObservabilityAppService gatewayObservabilityAppService;
     private final ObjectMapper objectMapper;
+    private final WebClient.Builder webClientBuilder;
+    private WebClient webClient;
 
-    private final WebClient webClient = WebClient.builder().build();
+    @PostConstruct
+    public void initWebClient() {
+        this.webClient = webClientBuilder.build();
+    }
 
     /**
      * 查询网关下所有已启用工具的定义列表
@@ -460,6 +467,7 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         WebClient.RequestBodySpec request = webClient
                 .method(payload.method)
                 .uri(finalUrl)
+                .header("X-Trace-Id", TraceIdUtils.getOrCreateTraceId())
                 .headers(headers -> applyHeaders(headers, payload.headers));
 
         WebClient.RequestHeadersSpec<?> requestHeadersSpec;

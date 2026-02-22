@@ -1,9 +1,17 @@
 package com.xbk.knowledge.domain.agent.service.impl;
 
 import com.xbk.knowledge.domain.agent.model.entity.Agent;
+import com.xbk.knowledge.domain.agent.model.entity.AgentVersion;
 import com.xbk.knowledge.domain.agent.model.valobj.AgentCodeQuery;
 import com.xbk.knowledge.domain.agent.model.valobj.AgentPageQuery;
 import com.xbk.knowledge.domain.agent.adapter.repository.AgentRepository;
+import com.xbk.knowledge.domain.agent.adapter.repository.AgentRunContextRepository;
+import com.xbk.knowledge.domain.agent.adapter.repository.AgentRunRepository;
+import com.xbk.knowledge.domain.agent.adapter.repository.AgentScheduleRepository;
+import com.xbk.knowledge.domain.agent.adapter.repository.AgentVersionRepository;
+import com.xbk.knowledge.domain.advisor.adapter.repository.AdvisorBindingRepository;
+import com.xbk.knowledge.domain.advisor.model.valobj.AdvisorBindingQuery;
+import com.xbk.knowledge.domain.approval.adapter.repository.ApprovalRequestRepository;
 import com.xbk.knowledge.domain.agent.service.IAgentService;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.exception.BusinessException;
@@ -24,6 +32,12 @@ import java.util.List;
 public class AgentServiceImpl implements IAgentService {
 
     private final AgentRepository agentRepository;
+    private final AgentVersionRepository agentVersionRepository;
+    private final AgentScheduleRepository agentScheduleRepository;
+    private final AgentRunContextRepository agentRunContextRepository;
+    private final AgentRunRepository agentRunRepository;
+    private final ApprovalRequestRepository approvalRequestRepository;
+    private final AdvisorBindingRepository advisorBindingRepository;
 
     /**
      * queryPage。
@@ -91,6 +105,9 @@ public class AgentServiceImpl implements IAgentService {
         if (agent.getStatus() == null || agent.getStatus().isBlank()) {
             agent.setStatus("ENABLED");
         }
+        if (agent.getChannel() == null || agent.getChannel().isBlank()) {
+            agent.setChannel("agent");
+        }
         agent.setCreatedAt(now);
         agent.setUpdatedAt(now);
         return agentRepository.insert(agent);
@@ -113,6 +130,9 @@ public class AgentServiceImpl implements IAgentService {
         Agent existed = queryByCode(new AgentCodeQuery(agent.getAgentCode()));
         existed.setAgentName(agent.getAgentName());
         existed.setDescription(agent.getDescription());
+        if (agent.getChannel() != null && !agent.getChannel().isBlank()) {
+            existed.setChannel(agent.getChannel());
+        }
         if (agent.getStatus() != null && !agent.getStatus().isBlank()) {
             existed.setStatus(agent.getStatus());
         }
@@ -126,5 +146,45 @@ public class AgentServiceImpl implements IAgentService {
             throw new BusinessException("Agent 更新失败，agentCode: " + agent.getAgentCode());
         }
         return queryByCode(new AgentCodeQuery(agent.getAgentCode()));
+    }
+
+    /**
+     * remove。
+     *
+     * @param query 参数
+     */
+    @Override
+    public void remove(AgentCodeQuery query) {
+        Agent existed = queryByCode(query);
+        Long agentId = existed.getId();
+        if (agentId == null) {
+            throw new BusinessException("Agent 缺少有效 ID，无法删除");
+        }
+
+        // 1) 删除调度配置
+        agentScheduleRepository.deleteByAgentId(agentId);
+
+        // 2) 删除版本级 Advisor 绑定
+        List<AgentVersion> versions = agentVersionRepository.listByAgentId(agentId);
+        if (versions != null && !versions.isEmpty()) {
+            for (AgentVersion version : versions) {
+                if (version == null || version.getId() == null) {
+                    continue;
+                }
+                advisorBindingRepository.deleteByTarget(new AdvisorBindingQuery("AGENT_VERSION", version.getId()));
+            }
+        }
+
+        // 3) 删除审批单 / 运行上下文 / 运行记录 / 版本
+        approvalRequestRepository.deleteByAgentId(agentId);
+        agentRunContextRepository.deleteByAgentId(agentId);
+        agentRunRepository.deleteByAgentId(agentId);
+        agentVersionRepository.removeByAgentId(agentId);
+
+        // 4) 删除 Agent 主记录
+        int affected = agentRepository.deleteByCode(query);
+        if (affected <= 0) {
+            throw new BusinessException("Agent 删除失败，agentCode: " + query.getAgentCode());
+        }
     }
 }

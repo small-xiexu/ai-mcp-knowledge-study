@@ -26,6 +26,8 @@ public class AgentResponse {
 
     private String description;
 
+    private String channel;
+
     private String status;
 
     private Long currentPublishedVersionId;

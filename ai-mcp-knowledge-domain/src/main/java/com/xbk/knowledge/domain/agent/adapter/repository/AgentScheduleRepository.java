@@ -52,6 +52,11 @@ public interface AgentScheduleRepository {
     int deleteById(Long id);
 
     /**
+     * 方法：deleteByAgentId。
+     */
+    int deleteByAgentId(Long agentId);
+
+    /**
      * 方法：count。
      */
     long count(AgentSchedulePageQuery query);

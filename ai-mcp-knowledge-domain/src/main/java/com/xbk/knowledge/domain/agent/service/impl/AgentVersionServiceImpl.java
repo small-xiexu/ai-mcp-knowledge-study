@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xbk.knowledge.domain.agent.model.entity.Agent;
 import com.xbk.knowledge.domain.agent.model.entity.AgentVersion;
 import com.xbk.knowledge.domain.agent.model.entity.PromptTemplate;
+import com.xbk.knowledge.domain.agent.model.valobj.AgentClientProfileStep;
 import com.xbk.knowledge.domain.agent.model.valobj.AgentCodeQuery;
 import com.xbk.knowledge.domain.agent.model.valobj.AgentVersionIdQuery;
 import com.xbk.knowledge.domain.agent.model.valobj.AgentVersionPageQuery;
@@ -12,6 +13,12 @@ import com.xbk.knowledge.domain.agent.model.valobj.PromptTemplateIdQuery;
 import com.xbk.knowledge.domain.agent.adapter.repository.AgentRepository;
 import com.xbk.knowledge.domain.agent.adapter.repository.AgentVersionRepository;
 import com.xbk.knowledge.domain.agent.adapter.repository.PromptTemplateRepository;
+import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
+import com.xbk.knowledge.domain.client.adapter.repository.ClientProfileRepository;
+import com.xbk.knowledge.domain.client.model.entity.ClientProfile;
+import com.xbk.knowledge.domain.client.model.entity.ClientProfileStep;
+import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
+import com.xbk.knowledge.domain.llm.service.IModelConfigService;
 import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowVersionRepository;
 import com.xbk.knowledge.domain.workflow.model.valobj.WorkflowVersionIdQuery;
 import com.xbk.knowledge.domain.agent.service.IAgentVersionService;
@@ -25,6 +32,8 @@ import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -50,6 +59,8 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
     private final AgentVersionRepository agentVersionRepository;
     private final PromptTemplateRepository promptTemplateRepository;
     private final WorkflowVersionRepository workflowVersionRepository;
+    private final ClientProfileRepository clientProfileRepository;
+    private final IModelConfigService modelConfigService;
     private final ObjectMapper objectMapper;
 
     /**
@@ -164,6 +175,8 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
         existed.setDefaultRagTagsJson(draft.getDefaultRagTagsJson());
         existed.setAllowedRagTagsJson(draft.getAllowedRagTagsJson());
         existed.setAllowedToolKeysJson(draft.getAllowedToolKeysJson());
+        existed.setClientProfileId(draft.getClientProfileId());
+        existed.setClientChainJson(draft.getClientChainJson());
         existed.setTimeoutMs(draft.getTimeoutMs());
         existed.setMaxTurns(draft.getMaxTurns());
         existed.setTemperature(draft.getTemperature());
@@ -219,11 +232,19 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
             ).orElseThrow(() -> new BusinessException("发布前要求绑定的 workflowVersionId 存在，id=" + version.getWorkflowVersionId()));
             version.setPromptTemplateVersionNo(null);
             version.setSystemPromptSnapshot(null);
+        } else if (version.getClientProfileId() != null) {
+            validateClientProfile(version.getClientProfileId());
+            version.setPromptTemplateVersionNo(null);
+            version.setSystemPromptSnapshot(null);
+        } else if (StringUtils.hasText(version.getClientChainJson())) {
+            validateClientChain(version.getClientChainJson());
+            version.setPromptTemplateVersionNo(null);
+            version.setSystemPromptSnapshot(null);
         } else {
             // Prompt 模板模式：校验模板并生成发布快照
             Long templateId = version.getPromptTemplateId();
             if (templateId == null) {
-                throw new BusinessException("发布前必须选择 promptTemplateId 或 workflowVersionId");
+                throw new BusinessException("发布前必须配置 promptTemplateId / workflowVersionId / clientProfileId / clientChainJson 之一");
             }
             PromptTemplate template = resolveTemplateForPublish(templateId);
             String rendered = renderTemplate(template.getContent(), version.getTemplateParamsJson());
@@ -352,5 +373,80 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
 
     private String defaultIfBlank(String value, String fallback) {
         return StringUtils.hasText(value) ? value : fallback;
+    }
+
+    private void validateClientChain(String clientChainJson) {
+        List<AgentClientProfileStep> steps = parseClientChain(clientChainJson);
+        if (steps.isEmpty()) {
+            throw new BusinessException("clientChainJson 至少需要配置一个步骤");
+        }
+
+        for (AgentClientProfileStep step : steps) {
+            if (step.getModelId() == null) {
+                throw new BusinessException("clientChainJson 存在未配置 modelId 的步骤");
+            }
+            ModelConfig model = modelConfigService.queryModelConfigById(new IdQuery(step.getModelId()));
+            if (model == null) {
+                throw new BusinessException("clientChainJson 绑定模型不存在，modelId=" + step.getModelId());
+            }
+            if (!Boolean.TRUE.equals(model.getEnabled())) {
+                throw new BusinessException("clientChainJson 绑定模型未启用，modelId=" + step.getModelId());
+            }
+        }
+    }
+
+    private void validateClientProfile(Long clientProfileId) {
+        ClientProfile profile = clientProfileRepository.findById(clientProfileId)
+                .orElseThrow(() -> new BusinessException("clientProfileId 不存在，id=" + clientProfileId));
+        if (!"ENABLED".equalsIgnoreCase(profile.getStatus())) {
+            throw new BusinessException("clientProfileId 未启用，id=" + clientProfileId);
+        }
+        List<ClientProfileStep> steps = clientProfileRepository.listSteps(clientProfileId);
+        if (steps == null || steps.isEmpty()) {
+            throw new BusinessException("clientProfileId 未配置步骤，id=" + clientProfileId);
+        }
+        for (ClientProfileStep step : steps) {
+            if (step == null || step.getModelId() == null) {
+                throw new BusinessException("clientProfileId 存在未配置 modelId 的步骤，id=" + clientProfileId);
+            }
+            ModelConfig model = modelConfigService.queryModelConfigById(new IdQuery(step.getModelId()));
+            if (model == null) {
+                throw new BusinessException("clientProfileId 绑定模型不存在，modelId=" + step.getModelId());
+            }
+            if (!Boolean.TRUE.equals(model.getEnabled())) {
+                throw new BusinessException("clientProfileId 绑定模型未启用，modelId=" + step.getModelId());
+            }
+        }
+    }
+
+    private List<AgentClientProfileStep> parseClientChain(String clientChainJson) {
+        if (!StringUtils.hasText(clientChainJson)) {
+            return List.of();
+        }
+        try {
+            List<AgentClientProfileStep> raw = objectMapper.readValue(clientChainJson, new TypeReference<List<AgentClientProfileStep>>() {});
+            if (raw == null || raw.isEmpty()) {
+                return List.of();
+            }
+            List<AgentClientProfileStep> normalized = new ArrayList<>();
+            int seq = 0;
+            for (AgentClientProfileStep step : raw) {
+                if (step == null) {
+                    continue;
+                }
+                seq++;
+                if (step.getSequence() == null) {
+                    step.setSequence(seq);
+                }
+                if (!StringUtils.hasText(step.getStepName())) {
+                    step.setStepName("步骤-" + step.getSequence());
+                }
+                normalized.add(step);
+            }
+            normalized.sort(Comparator.comparingInt(s -> s.getSequence() == null ? Integer.MAX_VALUE : s.getSequence()));
+            return normalized;
+        } catch (Exception e) {
+            throw new BusinessException("clientChainJson 解析失败，请检查 JSON 结构");
+        }
     }
 }

@@ -43,6 +43,12 @@
         </el-table-column>
         <el-table-column prop="changeSummary" label="变更摘要" min-width="220" />
         <el-table-column prop="promptTemplateId" label="模板ID" width="110" />
+        <el-table-column prop="clientProfileId" label="ClientProfile" width="130">
+          <template #default="{ row }">
+            <span v-if="row.clientProfileId" class="mono">#{{ row.clientProfileId }}</span>
+            <span v-else class="muted">-</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="workflowVersionId" label="WorkflowVersion" width="140">
           <template #default="{ row }">
             <span v-if="row.workflowVersionId" class="mono">#{{ row.workflowVersionId }}</span>
@@ -122,10 +128,11 @@
         <el-form-item label="运行模式">
           <el-radio-group v-model="runMode">
             <el-radio-button label="PROMPT">Prompt 模板</el-radio-button>
+            <el-radio-button label="CHAIN">Client 链</el-radio-button>
             <el-radio-button label="WORKFLOW">Workflow</el-radio-button>
           </el-radio-group>
           <div class="form-hint">
-            选择 <span class="mono">Workflow</span> 后，Agent 调用会转发到绑定的 WorkflowVersion 执行，并返回每步 steps 明细。
+            <span class="mono">CHAIN</span> 支持串联多个模型步骤；<span class="mono">Workflow</span> 则转发到可视化 DAG 编排执行。
           </div>
         </el-form-item>
 
@@ -142,6 +149,27 @@
           </el-form-item>
           <el-form-item label="模板参数(JSON)">
             <el-input v-model="form.templateParamsJson" type="textarea" :rows="3" placeholder='例如：{"name":"xxx"}' />
+          </el-form-item>
+        </template>
+        <template v-else-if="runMode === 'CHAIN'">
+          <el-form-item label="Client Profile">
+            <el-select v-model="form.clientProfileId" filterable clearable placeholder="优先选择已配置的 Profile" style="width: 100%">
+              <el-option
+                v-for="p in clientProfileOptions"
+                :key="p.id"
+                :label="`${p.clientName} (${p.clientCode})`"
+                :value="p.id"
+              />
+            </el-select>
+            <div class="form-hint">选择后将按 Profile 的步骤链执行，优先级高于下方 clientChainJson。</div>
+          </el-form-item>
+          <el-form-item label="clientChainJson">
+            <el-input
+              v-model="form.clientChainJson"
+              type="textarea"
+              :rows="6"
+              placeholder='可选：直接填写步骤 JSON；例如 [{"sequence":1,"stepName":"重写","modelId":1}]'
+            />
           </el-form-item>
         </template>
         <template v-else>
@@ -275,6 +303,7 @@ import { preheatAgentVersion } from '@/api/preheat'
 import { listMcpTools } from '@/api/mcp'
 import { listRagTags } from '@/api/rag'
 import { getWorkflowVersion, listWorkflows, listWorkflowVersions, type Workflow, type WorkflowVersion } from '@/api/workflow'
+import { listClientProfiles, type ClientProfile } from '@/api/client-profile'
 import { formatDateTime } from '@/utils/time'
 
 const route = useRoute()
@@ -292,6 +321,7 @@ const ragTagOptions = ref<string[]>([])
 const toolOptions = ref<Array<{ name: string; toolKey: string }>>([])
 const workflowOptions = ref<Workflow[]>([])
 const workflowVersionOptions = ref<WorkflowVersion[]>([])
+const clientProfileOptions = ref<ClientProfile[]>([])
 const selectedWorkflowId = ref<number | undefined>(undefined)
 const advisorOptions = ref<Advisor[]>([])
 const advisorPickerId = ref<number | undefined>(undefined)
@@ -308,13 +338,15 @@ const currentSnapshot = ref('')
 const defaultRagTags = ref<string[]>([])
 const allowedRagTags = ref<string[]>([])
 const allowedToolKeys = ref<string[]>([])
-const runMode = ref<'PROMPT' | 'WORKFLOW'>('PROMPT')
+const runMode = ref<'PROMPT' | 'CHAIN' | 'WORKFLOW'>('PROMPT')
 
 const form = reactive<any>({
   id: undefined,
   changeSummary: '',
   promptTemplateId: undefined,
   templateParamsJson: '{}',
+  clientProfileId: undefined,
+  clientChainJson: '',
   workflowVersionId: undefined,
   ragMode: 'OPTIONAL',
   repairRetryTimes: 2,
@@ -354,6 +386,12 @@ const loadOptions = async () => {
     workflowOptions.value = []
   }
   try {
+    const profiles = await listClientProfiles({ pageNum: 1, pageSize: 200, status: 'ENABLED' })
+    clientProfileOptions.value = profiles.data.records || []
+  } catch {
+    clientProfileOptions.value = []
+  }
+  try {
     const res = await listAdvisors({ pageNum: 1, pageSize: 200, enabled: true })
     advisorOptions.value = res.data?.records || []
   } catch {
@@ -367,6 +405,8 @@ const openCreateDraft = async () => {
   form.changeSummary = ''
   form.promptTemplateId = undefined
   form.templateParamsJson = '{}'
+  form.clientProfileId = undefined
+  form.clientChainJson = ''
   form.workflowVersionId = undefined
   runMode.value = 'PROMPT'
   selectedWorkflowId.value = undefined
@@ -395,8 +435,10 @@ const openEditDraft = async (row: AgentVersion) => {
     form.changeSummary = v.changeSummary || ''
     form.promptTemplateId = v.promptTemplateId
     form.templateParamsJson = v.templateParamsJson || '{}'
+    form.clientProfileId = v.clientProfileId
+    form.clientChainJson = v.clientChainJson || ''
     form.workflowVersionId = v.workflowVersionId
-    runMode.value = v.workflowVersionId ? 'WORKFLOW' : 'PROMPT'
+    runMode.value = v.workflowVersionId ? 'WORKFLOW' : ((v.clientProfileId || v.clientChainJson) ? 'CHAIN' : 'PROMPT')
     form.ragMode = v.ragMode || 'OPTIONAL'
     form.repairRetryTimes = v.repairRetryTimes ?? 2
     form.timeoutMs = v.timeoutMs ?? 60000
@@ -419,7 +461,7 @@ const openEditDraft = async (row: AgentVersion) => {
       } catch {}
     }
     advisorPickerId.value = undefined
-    if (runMode.value === 'PROMPT' && form.id) {
+    if (runMode.value !== 'WORKFLOW' && form.id) {
       await loadBindings(Number(form.id))
     } else {
       boundAdvisors.value = []
@@ -515,10 +557,20 @@ const saveDraft = async () => {
       ElMessage.error('请选择 workflowVersionId')
       return
     }
-    // 绑定 workflow 时，promptTemplate 允许为空；这里避免误配：主动清空
+    form.clientProfileId = undefined
+    form.clientChainJson = ''
+    form.promptTemplateId = undefined
+  } else if (runMode.value === 'CHAIN') {
+    if (!form.clientProfileId && !String(form.clientChainJson || '').trim()) {
+      ElMessage.error('请选择 Client Profile 或填写 clientChainJson')
+      return
+    }
+    form.workflowVersionId = undefined
     form.promptTemplateId = undefined
   } else {
     form.workflowVersionId = undefined
+    form.clientProfileId = undefined
+    form.clientChainJson = ''
   }
 
   saving.value = true
@@ -529,6 +581,8 @@ const saveDraft = async () => {
       changeSummary: form.changeSummary || undefined,
       promptTemplateId: form.promptTemplateId || undefined,
       templateParamsJson: form.templateParamsJson || undefined,
+      clientProfileId: form.clientProfileId || undefined,
+      clientChainJson: form.clientChainJson || undefined,
       workflowVersionId: form.workflowVersionId || undefined,
       ragMode: form.ragMode,
       defaultRagTagsJson: JSON.stringify(defaultRagTags.value || []),
@@ -541,7 +595,7 @@ const saveDraft = async () => {
       repairRetryTimes: form.repairRetryTimes
     })
     const savedId = saved.data?.id
-    if (runMode.value === 'PROMPT' && savedId) {
+    if (runMode.value !== 'WORKFLOW' && savedId) {
       await saveAdvisorBindings({
         bindType: 'AGENT_VERSION',
         bindTargetId: Number(savedId),

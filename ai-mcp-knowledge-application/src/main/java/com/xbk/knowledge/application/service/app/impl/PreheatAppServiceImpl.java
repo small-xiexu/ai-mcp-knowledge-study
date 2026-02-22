@@ -1,5 +1,6 @@
 package com.xbk.knowledge.application.service.app.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xbk.knowledge.application.model.preheat.PreheatResult;
 import com.xbk.knowledge.application.service.app.ModelConfigAppService;
@@ -9,6 +10,8 @@ import com.xbk.knowledge.application.service.armory.factory.DefaultAiClientArmor
 import com.xbk.knowledge.application.service.runtime.AdvisorRuntimeService;
 import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.agent.model.entity.AgentVersion;
+import com.xbk.knowledge.domain.agent.model.valobj.AgentClientProfileStep;
+import com.xbk.knowledge.domain.client.model.entity.ClientProfileStep;
 import com.xbk.knowledge.domain.workflow.model.entity.WorkflowNode;
 import com.xbk.knowledge.domain.workflow.model.entity.WorkflowVersion;
 import com.xbk.knowledge.domain.agent.model.valobj.AgentVersionIdQuery;
@@ -16,6 +19,7 @@ import com.xbk.knowledge.domain.common.model.valobj.EnabledQuery;
 import com.xbk.knowledge.domain.workflow.model.valobj.WorkflowGraphQuery;
 import com.xbk.knowledge.domain.workflow.model.valobj.WorkflowVersionIdQuery;
 import com.xbk.knowledge.domain.agent.adapter.repository.AgentVersionRepository;
+import com.xbk.knowledge.domain.client.adapter.repository.ClientProfileRepository;
 import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowGraphRepository;
 import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowVersionRepository;
 import com.xbk.knowledge.types.exception.BusinessException;
@@ -29,11 +33,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.Comparator;
 
 /**
  * 预热应用服务实现。
@@ -55,6 +60,7 @@ public class PreheatAppServiceImpl implements PreheatAppService {
     private final AgentVersionRepository agentVersionRepository;
     private final WorkflowVersionRepository workflowVersionRepository;
     private final WorkflowGraphRepository workflowGraphRepository;
+    private final ClientProfileRepository clientProfileRepository;
 
     /**
      * preheatAgentVersion。
@@ -80,7 +86,7 @@ public class PreheatAppServiceImpl implements PreheatAppService {
         }
 
         boolean toolsWarmed = warmToolCallbacks(warnings);
-        warmChatClient(warnings);
+        warmChatClient(resolveAgentVersionModelIds(v), warnings);
 
         boolean advisorsWarmed;
         try {
@@ -169,28 +175,80 @@ public class PreheatAppServiceImpl implements PreheatAppService {
     }
 
     private boolean warmChatClient(List<String> warnings) {
+        return warmChatClient(List.of(), warnings);
+    }
+
+    private boolean warmChatClient(List<Long> targetModelIds, List<String> warnings) {
         try {
             List<ModelConfig> models = modelConfigAppService.queryEnabledModels(new EnabledQuery(true));
             if (models == null || models.isEmpty()) {
                 warnings.add("未发现可用模型，跳过 ChatClient 预热");
                 return false;
             }
-            ModelConfig selected = models.stream()
-                    .filter(m -> m != null && m.getId() != null)
-                    .sorted(Comparator.comparingLong(ModelConfig::getId))
-                    .findFirst()
-                    .orElse(null);
-            if (selected == null) {
+            List<ModelConfig> candidates = new ArrayList<>();
+            if (targetModelIds != null && !targetModelIds.isEmpty()) {
+                Set<Long> target = new LinkedHashSet<>(targetModelIds);
+                for (ModelConfig model : models) {
+                    if (model != null && model.getId() != null && target.contains(model.getId())) {
+                        candidates.add(model);
+                    }
+                }
+            }
+            if (candidates.isEmpty()) {
+                ModelConfig fallback = models.stream()
+                        .filter(m -> m != null && m.getId() != null)
+                        .sorted(Comparator.comparingLong(ModelConfig::getId))
+                        .findFirst()
+                        .orElse(null);
+                if (fallback != null) {
+                    candidates.add(fallback);
+                }
+            }
+            if (candidates.isEmpty()) {
                 warnings.add("可用模型列表为空，跳过 ChatClient 预热");
                 return false;
             }
-            boolean enableTools = selected.getToolEnabled() == null || Boolean.TRUE.equals(selected.getToolEnabled());
-            armoryStrategyFactory.preheat(selected, enableTools);
+            for (ModelConfig selected : candidates) {
+                boolean enableTools = selected.getToolEnabled() == null || Boolean.TRUE.equals(selected.getToolEnabled());
+                armoryStrategyFactory.preheat(selected, enableTools);
+            }
             return true;
         } catch (Exception e) {
             warnings.add("ChatClient 预热失败: " + safeMsg(e));
             return false;
         }
+    }
+
+    private List<Long> resolveAgentVersionModelIds(AgentVersion version) {
+        if (version == null) {
+            return List.of();
+        }
+        Set<Long> modelIds = new LinkedHashSet<>();
+        if (version.getClientProfileId() != null) {
+            List<ClientProfileStep> steps = clientProfileRepository.listSteps(version.getClientProfileId());
+            if (steps != null) {
+                for (ClientProfileStep step : steps) {
+                    if (step != null && step.getModelId() != null) {
+                        modelIds.add(step.getModelId());
+                    }
+                }
+            }
+        }
+        if (StringUtils.hasText(version.getClientChainJson())) {
+            try {
+                List<AgentClientProfileStep> steps = objectMapper.readValue(version.getClientChainJson(), new TypeReference<List<AgentClientProfileStep>>() {});
+                if (steps != null) {
+                    for (AgentClientProfileStep step : steps) {
+                        if (step != null && step.getModelId() != null) {
+                            modelIds.add(step.getModelId());
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("解析 clientChainJson 失败，preheat 将忽略链路模型提取，agentVersionId={}", version.getId(), e);
+            }
+        }
+        return new ArrayList<>(modelIds);
     }
 
     private boolean validateWorkflow(Long workflowVersionId, boolean toolsReady, List<String> warnings) {

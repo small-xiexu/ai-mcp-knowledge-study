@@ -29,6 +29,8 @@ DROP TABLE IF EXISTS agent_schedule;
 DROP TABLE IF EXISTS prompt_template;
 DROP TABLE IF EXISTS agent_version;
 DROP TABLE IF EXISTS agent;
+DROP TABLE IF EXISTS ai_client_profile_step;
+DROP TABLE IF EXISTS ai_client_profile;
 DROP TABLE IF EXISTS advisor_binding;
 DROP TABLE IF EXISTS advisor;
 DROP TABLE IF EXISTS mcp_tool_binding;
@@ -548,12 +550,44 @@ CREATE TABLE advisor_binding (
 -- C. 多 Agent 平台（控制面 + 运行面 + 审批）
 -- =====================================================
 
+-- 0) Client Profile（对齐 ai-agent-station 的客户端资产形态）
+CREATE TABLE ai_client_profile (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+    client_code VARCHAR(64) NOT NULL COMMENT 'Client 编码（唯一）',
+    client_name VARCHAR(100) NOT NULL COMMENT 'Client 名称',
+    description VARCHAR(500) DEFAULT NULL COMMENT '描述',
+    status VARCHAR(20) NOT NULL DEFAULT 'ENABLED' COMMENT '状态：ENABLED/DISABLED',
+    created_by BIGINT DEFAULT NULL COMMENT '创建人用户ID',
+    updated_by BIGINT DEFAULT NULL COMMENT '更新人用户ID',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    UNIQUE KEY uk_client_code (client_code),
+    INDEX idx_client_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Client Profile 资产表';
+
+CREATE TABLE ai_client_profile_step (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+    client_profile_id BIGINT NOT NULL COMMENT 'Client Profile ID',
+    sequence_no INT NOT NULL COMMENT '步骤顺序（越小越先执行）',
+    step_name VARCHAR(100) DEFAULT NULL COMMENT '步骤名称',
+    model_id BIGINT NOT NULL COMMENT '模型ID',
+    system_prompt MEDIUMTEXT DEFAULT NULL COMMENT '步骤系统提示词覆盖',
+    enable_tools TINYINT(1) NOT NULL DEFAULT 1 COMMENT '是否启用工具',
+    allowed_tool_keys_json JSON DEFAULT NULL COMMENT '步骤允许工具集合（toolKey JSON数组）',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    UNIQUE KEY uk_client_profile_step_seq (client_profile_id, sequence_no),
+    INDEX idx_client_profile_id (client_profile_id),
+    INDEX idx_model_id (model_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Client Profile 步骤表';
+
 -- 1) Agent
 CREATE TABLE agent (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     agent_code VARCHAR(64) NOT NULL COMMENT 'Agent 对外唯一编码',
     agent_name VARCHAR(100) NOT NULL COMMENT 'Agent 名称',
     description VARCHAR(500) DEFAULT NULL COMMENT '描述',
+    channel VARCHAR(32) NOT NULL DEFAULT 'agent' COMMENT '调用通道：agent/chat_stream',
     status VARCHAR(20) NOT NULL DEFAULT 'ENABLED' COMMENT '状态：ENABLED/DISABLED',
     current_published_version_id BIGINT DEFAULT NULL COMMENT '当前发布版本ID',
     created_by BIGINT DEFAULT NULL COMMENT '创建人用户ID',
@@ -583,6 +617,8 @@ CREATE TABLE agent_version (
     default_rag_tags_json JSON DEFAULT NULL COMMENT '默认RAG标签（JSON数组）',
     allowed_rag_tags_json JSON DEFAULT NULL COMMENT '允许覆盖RAG标签（JSON数组）',
     allowed_tool_keys_json JSON DEFAULT NULL COMMENT '允许工具集合（toolKey JSON数组）',
+    client_profile_id BIGINT DEFAULT NULL COMMENT 'Client Profile ID（优先于 client_chain_json）',
+    client_chain_json JSON DEFAULT NULL COMMENT '客户端串联步骤配置（JSON数组，按 sequence 顺序执行）',
     timeout_ms INT DEFAULT 60000 COMMENT '超时毫秒',
     max_turns INT DEFAULT 20 COMMENT '最大轮次',
     temperature DECIMAL(4,2) DEFAULT 0.70 COMMENT '温度',
@@ -594,6 +630,7 @@ CREATE TABLE agent_version (
     UNIQUE KEY uk_agent_version_no (agent_id, version_no),
     INDEX idx_agent_state (agent_id, state),
     INDEX idx_workflow_version (workflow_version_id),
+    INDEX idx_client_profile (client_profile_id),
     INDEX idx_prompt_template (prompt_template_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Agent 版本表';
 

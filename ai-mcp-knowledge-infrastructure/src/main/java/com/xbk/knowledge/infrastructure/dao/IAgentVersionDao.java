@@ -25,6 +25,8 @@ public interface IAgentVersionDao extends BaseMapper<AgentVersionPO> {
 
     List<AgentVersionPO> findPage(AgentVersionPageQuery query);
 
+    List<AgentVersionPO> listByAgentId(@Param("agentId") Long agentId);
+
     long count(AgentVersionPageQuery query);
 
     Integer findMaxVersionNo(@Param("agentId") Long agentId);
@@ -40,4 +42,6 @@ public interface IAgentVersionDao extends BaseMapper<AgentVersionPO> {
     int updateState(@Param("id") Long id,
                     @Param("fromState") String fromState,
                     @Param("toState") String toState);
+
+    int deleteByAgentId(@Param("agentId") Long agentId);
 }

@@ -93,6 +93,20 @@ public class AgentRepositoryImpl implements AgentRepository {
     }
 
     /**
+     * deleteByCode。
+     *
+     * @param query 参数
+     * @return 返回结果
+     */
+    @Override
+    public int deleteByCode(AgentCodeQuery query) {
+        if (query == null || query.getAgentCode() == null) {
+            return 0;
+        }
+        return agentDao.deleteByCode(query);
+    }
+
+    /**
      * findPage。
      *
      * @param query 参数
@@ -145,6 +159,7 @@ public class AgentRepositoryImpl implements AgentRepository {
                 .agentCode(agent.getAgentCode())
                 .agentName(agent.getAgentName())
                 .description(agent.getDescription())
+                .channel(agent.getChannel())
                 .status(agent.getStatus())
                 .currentPublishedVersionId(agent.getCurrentPublishedVersionId())
                 .createdBy(agent.getCreatedBy())
@@ -166,6 +181,7 @@ public class AgentRepositoryImpl implements AgentRepository {
                 .agentCode(po.getAgentCode())
                 .agentName(po.getAgentName())
                 .description(po.getDescription())
+                .channel(po.getChannel())
                 .status(po.getStatus())
                 .currentPublishedVersionId(po.getCurrentPublishedVersionId())
                 .createdBy(po.getCreatedBy())

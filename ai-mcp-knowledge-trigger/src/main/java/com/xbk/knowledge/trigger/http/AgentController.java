@@ -83,6 +83,7 @@ public class AgentController {
                 .agentCode(request.getAgentCode())
                 .agentName(request.getAgentName())
                 .description(request.getDescription())
+                .channel(request.getChannel())
                 .status(request.getStatus())
                 .createdBy(userId)
                 .updatedBy(userId)
@@ -105,11 +106,25 @@ public class AgentController {
                 .agentCode(request.getAgentCode())
                 .agentName(request.getAgentName())
                 .description(request.getDescription())
+                .channel(request.getChannel())
                 .status(request.getStatus())
                 .updatedBy(userId)
                 .build();
         Agent updated = agentAppService.update(agent);
         return Result.success("Agent 更新成功", toResponse(updated));
+    }
+
+    /**
+     * 删除 Agent 及其关联数据。
+     *
+     * @param request 删除请求
+     * @return 空结果
+     */
+    @PostMapping("/remove")
+    @SaCheckPermission("agent:write")
+    public Result<Void> remove(@Valid @RequestBody AgentCodeRequest request) {
+        agentAppService.remove(new AgentCodeQuery(request.getAgentCode()));
+        return Result.success();
     }
 
     /**
@@ -124,6 +139,7 @@ public class AgentController {
                 .agentCode(agent.getAgentCode())
                 .agentName(agent.getAgentName())
                 .description(agent.getDescription())
+                .channel(agent.getChannel())
                 .status(agent.getStatus())
                 .currentPublishedVersionId(agent.getCurrentPublishedVersionId())
                 .createdAt(agent.getCreatedAt())

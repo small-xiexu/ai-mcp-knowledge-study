@@ -22,7 +22,7 @@ public final class GatewayToolBindingContextHolder {
 
     /** 设置当前线程的绑定上下文 */
     public static void set(Long modelId, Long sessionId) {
-        CONTEXT.set(new BindingContext(modelId, sessionId, null, null, null, null, null));
+        CONTEXT.set(new BindingContext(modelId, sessionId, null, null, null, null, null, null));
     }
 
     /**
@@ -33,8 +33,22 @@ public final class GatewayToolBindingContextHolder {
      * - allowedToolKeys = 空集合 表示“明确无可用工具”。
      */
     public static void set(Long modelId, Long sessionId, Long agentVersionId, Set<String> allowedToolKeys) {
+        set(modelId, sessionId, agentVersionId, null, allowedToolKeys);
+    }
+
+    /**
+     * 设置当前线程的绑定上下文（支持 AgentVersion allowlist + runId）。
+     *
+     * 说明：
+     * - runId 通常与 traceId 对齐，用于工具调用审计与链路串联。
+     */
+    public static void set(Long modelId,
+                           Long sessionId,
+                           Long agentVersionId,
+                           String runId,
+                           Set<String> allowedToolKeys) {
         Set<String> safeKeys = allowedToolKeys == null ? null : Collections.unmodifiableSet(allowedToolKeys);
-        CONTEXT.set(new BindingContext(modelId, sessionId, agentVersionId, null, null, null, safeKeys));
+        CONTEXT.set(new BindingContext(modelId, sessionId, agentVersionId, null, null, null, runId, safeKeys));
     }
 
     /**
@@ -46,8 +60,21 @@ public final class GatewayToolBindingContextHolder {
                                    Long workflowVersionId,
                                    String nodeKey,
                                    Set<String> allowedToolKeys) {
+        setWorkflow(modelId, sessionId, workflowId, workflowVersionId, nodeKey, null, allowedToolKeys);
+    }
+
+    /**
+     * Workflow 场景绑定上下文（支持节点级 allowlist、审批定位与 runId）。
+     */
+    public static void setWorkflow(Long modelId,
+                                   Long sessionId,
+                                   Long workflowId,
+                                   Long workflowVersionId,
+                                   String nodeKey,
+                                   String runId,
+                                   Set<String> allowedToolKeys) {
         Set<String> safeKeys = allowedToolKeys == null ? null : Collections.unmodifiableSet(allowedToolKeys);
-        CONTEXT.set(new BindingContext(modelId, sessionId, null, workflowId, workflowVersionId, nodeKey, safeKeys));
+        CONTEXT.set(new BindingContext(modelId, sessionId, null, workflowId, workflowVersionId, nodeKey, runId, safeKeys));
     }
 
     /** 获取当前线程的绑定上下文 */
@@ -69,6 +96,7 @@ public final class GatewayToolBindingContextHolder {
         private final Long workflowId;
         private final Long workflowVersionId;
         private final String workflowNodeKey;
+        private final String runId;
         private final Set<String> allowedToolKeys;
 
         private BindingContext(Long modelId,
@@ -77,6 +105,7 @@ public final class GatewayToolBindingContextHolder {
                                Long workflowId,
                                Long workflowVersionId,
                                String workflowNodeKey,
+                               String runId,
                                Set<String> allowedToolKeys) {
             this.modelId = modelId;
             this.sessionId = sessionId;
@@ -84,6 +113,7 @@ public final class GatewayToolBindingContextHolder {
             this.workflowId = workflowId;
             this.workflowVersionId = workflowVersionId;
             this.workflowNodeKey = workflowNodeKey;
+            this.runId = runId;
             this.allowedToolKeys = allowedToolKeys;
         }
 
@@ -139,6 +169,15 @@ public final class GatewayToolBindingContextHolder {
          */
         public String getWorkflowNodeKey() {
             return workflowNodeKey;
+        }
+
+        /**
+         * getRunId。
+         *
+         * @return 返回结果
+         */
+        public String getRunId() {
+            return runId;
         }
 
         /**

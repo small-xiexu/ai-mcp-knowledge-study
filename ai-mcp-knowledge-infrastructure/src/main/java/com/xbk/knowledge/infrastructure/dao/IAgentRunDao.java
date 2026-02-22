@@ -29,4 +29,6 @@ public interface IAgentRunDao extends BaseMapper<AgentRunPO> {
     int incrementToolCallCount(@Param("runId") String runId, @Param("delta") int delta);
 
     int incrementToolDeniedCount(@Param("runId") String runId, @Param("delta") int delta);
+
+    int deleteByAgentId(@Param("agentId") Long agentId);
 }

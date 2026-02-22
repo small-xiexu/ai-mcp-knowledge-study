@@ -7,6 +7,7 @@ export interface Agent {
   agentCode: string
   agentName: string
   description?: string
+  channel?: string
   status: string
   currentPublishedVersionId?: number
   createdAt?: string
@@ -30,6 +31,8 @@ export interface AgentVersion {
   defaultRagTagsJson?: string
   allowedRagTagsJson?: string
   allowedToolKeysJson?: string
+  clientProfileId?: number
+  clientChainJson?: string
   timeoutMs?: number
   maxTurns?: number
   temperature?: number
@@ -84,11 +87,14 @@ export const listAgents = (data: PageRequest & { keyword?: string; status?: stri
 export const getAgent = (agentCode: string) =>
   request.post<Agent>('/agents/get', { agentCode })
 
-export const createAgent = (data: { agentCode: string; agentName: string; description?: string; status?: string }) =>
+export const createAgent = (data: { agentCode: string; agentName: string; description?: string; channel?: string; status?: string }) =>
   request.post<Agent>('/agents/create', data)
 
-export const updateAgent = (data: { agentCode: string; agentName: string; description?: string; status?: string }) =>
+export const updateAgent = (data: { agentCode: string; agentName: string; description?: string; channel?: string; status?: string }) =>
   request.post<Agent>('/agents/update', data)
+
+export const removeAgent = (agentCode: string) =>
+  request.post<void>('/agents/remove', { agentCode })
 
 export const listAgentVersions = (data: { agentCode: string; pageNum: number; pageSize: number }) =>
   request.post<PageResult<AgentVersion>>('/agent-versions/list', data)

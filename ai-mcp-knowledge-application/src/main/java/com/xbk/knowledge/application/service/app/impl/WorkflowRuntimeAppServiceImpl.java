@@ -649,7 +649,7 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
             if (allowedToolKeys == null) {
                 allowedToolKeys = Set.of(toolKey);
             }
-            GatewayToolBindingContextHolder.setWorkflow(null, sessionId, wf.getId(), version.getId(), node.getNodeKey(), allowedToolKeys);
+            GatewayToolBindingContextHolder.setWorkflow(null, sessionId, wf.getId(), version.getId(), node.getNodeKey(), runId, allowedToolKeys);
             try {
                 String result = tool.call(args);
                 stepOutputs.put(node.getNodeKey() + ".toolKey", toolKey);
@@ -700,7 +700,7 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
 
             Set<String> allowedToolKeys = parseAllowedToolKeys(cfg.get("allowedToolKeysJson"));
             Long modelId = model == null ? null : model.getId();
-            GatewayToolBindingContextHolder.setWorkflow(modelId, sessionId, wf.getId(), version.getId(), node.getNodeKey(), allowedToolKeys);
+            GatewayToolBindingContextHolder.setWorkflow(modelId, sessionId, wf.getId(), version.getId(), node.getNodeKey(), runId, allowedToolKeys);
             try {
                 ChatResponse resp = chatClient.prompt(prompt).call().chatResponse();
                 String raw = extractText(resp);

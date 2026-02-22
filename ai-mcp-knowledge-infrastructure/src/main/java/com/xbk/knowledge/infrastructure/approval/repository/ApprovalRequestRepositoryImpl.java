@@ -187,4 +187,18 @@ public class ApprovalRequestRepositoryImpl implements ApprovalRequestRepository 
         }
         return mapper.markExpired(id, decisionComment, decidedAt);
     }
+
+    /**
+     * deleteByAgentId。
+     *
+     * @param agentId 参数
+     * @return 返回结果
+     */
+    @Override
+    public int deleteByAgentId(Long agentId) {
+        if (agentId == null) {
+            return 0;
+        }
+        return mapper.deleteByAgentId(agentId);
+    }
 }

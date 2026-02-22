@@ -142,6 +142,20 @@ public class AgentScheduleRepositoryImpl implements AgentScheduleRepository {
     }
 
     /**
+     * deleteByAgentId。
+     *
+     * @param agentId 参数
+     * @return 返回结果
+     */
+    @Override
+    public int deleteByAgentId(Long agentId) {
+        if (agentId == null) {
+            return 0;
+        }
+        return agentScheduleDao.deleteByAgentId(agentId);
+    }
+
+    /**
      * count。
      *
      * @param query 参数

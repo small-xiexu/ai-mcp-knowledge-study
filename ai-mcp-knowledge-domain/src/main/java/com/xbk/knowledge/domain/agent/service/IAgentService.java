@@ -19,5 +19,6 @@ public interface IAgentService {
     Agent create(Agent agent);
 
     Agent update(Agent agent);
-}
 
+    void remove(AgentCodeQuery query);
+}

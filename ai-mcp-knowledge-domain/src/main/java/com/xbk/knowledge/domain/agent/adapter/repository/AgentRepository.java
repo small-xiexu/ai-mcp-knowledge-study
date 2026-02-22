@@ -35,6 +35,11 @@ public interface AgentRepository {
     int updateByCode(Agent agent);
 
     /**
+     * 方法：deleteByCode。
+     */
+    int deleteByCode(AgentCodeQuery query);
+
+    /**
      * 方法：findPage。
      */
     List<Agent> findPage(AgentPageQuery query);

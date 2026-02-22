@@ -49,4 +49,6 @@ public interface IApprovalRequestDao extends BaseMapper<ApprovalRequestPO> {
     int markExpired(@Param("id") Long id,
                     @Param("decisionComment") String decisionComment,
                     @Param("decidedAt") LocalDateTime decidedAt);
+
+    int deleteByAgentId(@Param("agentId") Long agentId);
 }

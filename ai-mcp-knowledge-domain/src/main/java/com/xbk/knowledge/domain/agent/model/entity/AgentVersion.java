@@ -63,6 +63,20 @@ public class AgentVersion {
 
     private String allowedToolKeysJson;
 
+    /**
+     * Client Profile ID（优先于 clientChainJson）。
+     */
+    private Long clientProfileId;
+
+    /**
+     * Client 串联配置（JSON 数组）。
+     *
+     * 说明：
+     * - 非空时，按 sequence 顺序执行多个“客户端步骤”
+     * - 用于对齐 ai-agent-station 的 Agent->Client 组装与串联形态
+     */
+    private String clientChainJson;
+
     private Integer timeoutMs;
 
     private Integer maxTurns;

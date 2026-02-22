@@ -55,5 +55,13 @@
           and run_id = #{runId}
     </update>
 
-</mapper>
+    <delete id="deleteByAgentId">
+        delete from agent_run_context
+        where run_id in (
+            select run_id
+            from agent_run
+            where agent_id = #{agentId}
+        )
+    </delete>
 
+</mapper>

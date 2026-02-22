@@ -32,6 +32,11 @@ public class Agent {
     private String description;
 
     /**
+     * 调用通道：agent/chat_stream。
+     */
+    private String channel;
+
+    /**
      * ENABLED/DISABLED。
      */
     private String status;
@@ -47,4 +52,3 @@ public class Agent {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
-

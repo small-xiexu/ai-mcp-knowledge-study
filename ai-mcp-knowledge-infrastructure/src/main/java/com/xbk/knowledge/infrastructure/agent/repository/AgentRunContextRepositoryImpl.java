@@ -71,6 +71,20 @@ public class AgentRunContextRepositoryImpl implements AgentRunContextRepository 
     }
 
     /**
+     * deleteByAgentId。
+     *
+     * @param agentId 参数
+     * @return 返回结果
+     */
+    @Override
+    public int deleteByAgentId(Long agentId) {
+        if (agentId == null) {
+            return 0;
+        }
+        return dao.deleteByAgentId(agentId);
+    }
+
+    /**
      * 实体转持久化对象。
      */
     private AgentRunContextPO toPO(AgentRunContext context) {

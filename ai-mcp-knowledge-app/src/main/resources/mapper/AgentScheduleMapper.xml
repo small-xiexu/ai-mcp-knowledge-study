@@ -62,6 +62,10 @@
         delete from agent_schedule where id = #{id}
     </delete>
 
+    <delete id="deleteByAgentId">
+        delete from agent_schedule where agent_id = #{agentId}
+    </delete>
+
     <select id="findById" resultMap="AgentScheduleResultMap" parameterType="com.xbk.knowledge.domain.agent.model.valobj.AgentScheduleIdQuery">
         select <include refid="BaseColumns"/>
         from agent_schedule s

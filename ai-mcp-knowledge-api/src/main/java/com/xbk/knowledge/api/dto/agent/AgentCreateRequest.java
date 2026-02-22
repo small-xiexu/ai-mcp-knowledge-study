@@ -31,9 +31,14 @@ public class AgentCreateRequest extends BaseRequest {
     private String description;
 
     /**
+     * 调用通道：agent/chat_stream，默认 agent。
+     */
+    @Builder.Default
+    private String channel = "agent";
+
+    /**
      * ENABLED/DISABLED，默认 ENABLED。
      */
     @Builder.Default
     private String status = "ENABLED";
 }
-

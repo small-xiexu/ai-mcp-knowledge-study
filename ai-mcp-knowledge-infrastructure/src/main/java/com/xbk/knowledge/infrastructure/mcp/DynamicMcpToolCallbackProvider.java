@@ -186,10 +186,6 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
         private final ToolCallback delegate;
         private final String toolKey;
         private final ToolDefinition toolDefinition;
-        private final String boundRunId;
-        private final Long boundOperatorId;
-        private final boolean bypassEnabled;
-        private final boolean toolInvokePermitted;
 
         private GovernedToolCallback(ToolCallback delegate, String toolKey, String functionName) {
             this.delegate = delegate;
@@ -200,17 +196,6 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
                     .description(def == null ? "" : def.description())
                     .inputSchema(def == null ? "{\"type\":\"object\",\"properties\":{}}" : def.inputSchema())
                     .build();
-
-            /*
-             * 重要：工具回调可能在异步/跨线程环境执行（例如流式/Reactive）。
-             * 为保证治理门禁一致性（runId、权限、审计归属），在构建回调时捕获上下文快照，
-             * call() 期间禁止再依赖线程上下文（如 StpUtil/MDC）获取关键字段。
-             */
-            this.boundRunId = TraceIdUtils.getOrCreateTraceId();
-            this.boundOperatorId = null;
-            this.bypassEnabled = ToolInvokeBypassContextHolder.isEnabled();
-            boolean login = StpUtil.isLogin();
-            this.toolInvokePermitted = !login || StpUtil.hasPermission(PERMISSION_TOOL_INVOKE);
         }
 
         /**
@@ -253,13 +238,16 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
          */
         @Override
         public String call(String arguments, ToolContext toolContext) {
-            String runId = boundRunId;
+            String runId = resolveRunId();
+            Long operatorId = resolveOperatorId();
+            boolean bypassEnabled = ToolInvokeBypassContextHolder.isEnabled();
+            boolean toolInvokePermitted = isToolInvokePermitted();
             if (!bypassEnabled && !toolInvokePermitted) {
-                recordToolDeniedAndAudit(runId, "PERMISSION_DENIED", boundOperatorId);
+                recordToolDeniedAndAudit(runId, "PERMISSION_DENIED", operatorId);
                 return "[PERMISSION_DENIED] 无权限调用工具（缺少权限: " + PERMISSION_TOOL_INVOKE + "），toolKey=" + toolKey;
             }
-            String requesterType = boundOperatorId == null ? "system" : "user";
-            maybeRequireApproval(runId, toolKey, arguments, boundOperatorId, requesterType, boundOperatorId);
+            String requesterType = operatorId == null ? "system" : "user";
+            maybeRequireApproval(runId, toolKey, arguments, operatorId, requesterType, operatorId);
             long startAt = System.nanoTime();
             boolean success = false;
             String errorMessage = null;
@@ -272,7 +260,38 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
                 throw e;
             } finally {
                 long latencyMs = (System.nanoTime() - startAt) / 1_000_000;
-                recordToolMetricsAndAudit(runId, success, latencyMs, errorMessage, boundOperatorId);
+                recordToolMetricsAndAudit(runId, success, latencyMs, errorMessage, operatorId);
+            }
+        }
+
+        private String resolveRunId() {
+            BindingContext context = GatewayToolBindingContextHolder.get();
+            if (context != null && StringUtils.hasText(context.getRunId())) {
+                return context.getRunId();
+            }
+            return TraceIdUtils.getOrCreateTraceId();
+        }
+
+        private Long resolveOperatorId() {
+            try {
+                if (!StpUtil.isLogin()) {
+                    return null;
+                }
+                String loginId = StpUtil.getLoginIdAsString();
+                if (!StringUtils.hasText(loginId)) {
+                    return null;
+                }
+                return Long.parseLong(loginId);
+            } catch (Exception ignore) {
+                return null;
+            }
+        }
+
+        private boolean isToolInvokePermitted() {
+            try {
+                return !StpUtil.isLogin() || StpUtil.hasPermission(PERMISSION_TOOL_INVOKE);
+            } catch (Exception ignore) {
+                return false;
             }
         }
 

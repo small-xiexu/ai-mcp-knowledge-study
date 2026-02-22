@@ -60,6 +60,10 @@ public class AgentVersionPO {
 
     private String allowedToolKeysJson;
 
+    private Long clientProfileId;
+
+    private String clientChainJson;
+
     private Integer timeoutMs;
 
     private Integer maxTurns;

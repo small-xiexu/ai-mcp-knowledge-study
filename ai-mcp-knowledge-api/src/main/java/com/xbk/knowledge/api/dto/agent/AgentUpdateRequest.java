@@ -31,8 +31,12 @@ public class AgentUpdateRequest extends BaseRequest {
     private String description;
 
     /**
+     * 调用通道：agent/chat_stream（可选）。
+     */
+    private String channel;
+
+    /**
      * ENABLED/DISABLED（可选）。
      */
     private String status;
 }
-

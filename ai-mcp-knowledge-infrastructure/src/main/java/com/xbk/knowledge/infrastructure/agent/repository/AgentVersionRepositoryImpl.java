@@ -58,6 +58,23 @@ public class AgentVersionRepositoryImpl implements AgentVersionRepository {
     }
 
     /**
+     * listByAgentId。
+     *
+     * @param agentId 参数
+     * @return 返回结果
+     */
+    @Override
+    public List<AgentVersion> listByAgentId(Long agentId) {
+        if (agentId == null) {
+            return Collections.emptyList();
+        }
+        return agentVersionDao.listByAgentId(agentId)
+                .stream()
+                .map(this::toEntity)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * count。
      *
      * @param query 参数
@@ -185,6 +202,20 @@ public class AgentVersionRepositoryImpl implements AgentVersionRepository {
     }
 
     /**
+     * removeByAgentId。
+     *
+     * @param agentId 参数
+     * @return 返回结果
+     */
+    @Override
+    public int removeByAgentId(Long agentId) {
+        if (agentId == null) {
+            return 0;
+        }
+        return agentVersionDao.deleteByAgentId(agentId);
+    }
+
+    /**
      * 实体转持久化对象。
      */
     private AgentVersionPO toPO(AgentVersion version) {
@@ -208,6 +239,8 @@ public class AgentVersionRepositoryImpl implements AgentVersionRepository {
                 .defaultRagTagsJson(version.getDefaultRagTagsJson())
                 .allowedRagTagsJson(version.getAllowedRagTagsJson())
                 .allowedToolKeysJson(version.getAllowedToolKeysJson())
+                .clientProfileId(version.getClientProfileId())
+                .clientChainJson(version.getClientChainJson())
                 .timeoutMs(version.getTimeoutMs())
                 .maxTurns(version.getMaxTurns())
                 .temperature(version.getTemperature())
@@ -243,6 +276,8 @@ public class AgentVersionRepositoryImpl implements AgentVersionRepository {
                 .defaultRagTagsJson(po.getDefaultRagTagsJson())
                 .allowedRagTagsJson(po.getAllowedRagTagsJson())
                 .allowedToolKeysJson(po.getAllowedToolKeysJson())
+                .clientProfileId(po.getClientProfileId())
+                .clientChainJson(po.getClientChainJson())
                 .timeoutMs(po.getTimeoutMs())
                 .maxTurns(po.getMaxTurns())
                 .temperature(po.getTemperature())

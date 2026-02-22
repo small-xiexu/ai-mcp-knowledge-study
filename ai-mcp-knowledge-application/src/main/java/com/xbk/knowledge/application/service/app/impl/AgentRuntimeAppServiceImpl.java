@@ -15,9 +15,11 @@ import com.xbk.knowledge.domain.agent.model.entity.Agent;
 import com.xbk.knowledge.domain.agent.model.entity.AgentRun;
 import com.xbk.knowledge.domain.agent.model.entity.AgentRunContext;
 import com.xbk.knowledge.domain.agent.model.entity.AgentVersion;
+import com.xbk.knowledge.domain.client.model.entity.ClientProfileStep;
 import com.xbk.knowledge.domain.workflow.model.entity.Workflow;
 import com.xbk.knowledge.domain.workflow.model.entity.WorkflowVersion;
 import com.xbk.knowledge.domain.agent.model.valobj.AgentCodeQuery;
+import com.xbk.knowledge.domain.agent.model.valobj.AgentClientProfileStep;
 import com.xbk.knowledge.domain.agent.model.valobj.AgentVersionIdQuery;
 import com.xbk.knowledge.domain.common.model.valobj.EnabledQuery;
 import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
@@ -26,6 +28,7 @@ import com.xbk.knowledge.domain.agent.adapter.repository.AgentRepository;
 import com.xbk.knowledge.domain.agent.adapter.repository.AgentRunRepository;
 import com.xbk.knowledge.domain.agent.adapter.repository.AgentRunContextRepository;
 import com.xbk.knowledge.domain.agent.adapter.repository.AgentVersionRepository;
+import com.xbk.knowledge.domain.client.adapter.repository.ClientProfileRepository;
 import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowRepository;
 import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowVersionRepository;
 import com.xbk.knowledge.domain.llm.service.IModelConfigService;
@@ -89,6 +92,7 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
     private final WorkflowRuntimeAppService workflowRuntimeAppService;
     private final WorkflowVersionRepository workflowVersionRepository;
     private final WorkflowRepository workflowRepository;
+    private final ClientProfileRepository clientProfileRepository;
 
     /**
      * chat。
@@ -106,10 +110,28 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
 
         Agent agent = loadAgent(agentCode);
         AgentVersion version = loadPublishedVersion(agent);
+        List<AgentClientProfileStep> chainSteps = parseClientChainSteps(version);
 
         // Agent 绑定 Workflow：直接走 WorkflowRuntime（并返回 steps 明细）
         if (version != null && version.getWorkflowVersionId() != null) {
             return chatByWorkflow(agentCode, agent, version, sessionId, content, start, runId);
+        }
+        if (!chainSteps.isEmpty()) {
+            return chatByClientChain(
+                    agentCode,
+                    agent,
+                    version,
+                    chainSteps,
+                    sessionId,
+                    content,
+                    ragTagsJson,
+                    start,
+                    runId,
+                    "CHAT_SYNC",
+                    "HTTP",
+                    null,
+                    "system"
+            );
         }
 
         ModelConfig model = resolveModelForVersion(version);
@@ -299,6 +321,212 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         }
     }
 
+    private PlatformContractV1 chatByClientChain(String agentCode,
+                                                 Agent agent,
+                                                 AgentVersion version,
+                                                 List<AgentClientProfileStep> chainSteps,
+                                                 Long sessionId,
+                                                 String content,
+                                                 String ragTagsJson,
+                                                 long start,
+                                                 String runId,
+                                                 String runType,
+                                                 String triggerSource,
+                                                 Long operatorId,
+                                                 String operatorType) {
+        AgentRun run = AgentRun.builder()
+                .runId(runId)
+                .agentId(agent == null ? null : agent.getId())
+                .agentCode(agentCode)
+                .agentVersionId(version == null ? null : version.getId())
+                .runType(runType)
+                .triggerSource(triggerSource)
+                .operatorId(operatorId)
+                .operatorType(operatorType)
+                .sessionId(sessionId)
+                .status("RUNNING")
+                .modelIdUsed(null)
+                .modelNameUsed(null)
+                .promptTokens(0)
+                .completionTokens(0)
+                .totalTokens(0)
+                .toolCallCount(0)
+                .toolDeniedCount(0)
+                .repairAttempts(0)
+                .startedAt(LocalDateTime.now())
+                .build();
+        agentRunRepository.insert(run);
+        saveRunContextSnapshot(runId, agentCode, agent == null ? null : agent.getId(), version, null, sessionId, content, ragTagsJson);
+
+        List<PlatformContractV1.StepTrace> stepTraces = new ArrayList<>();
+        int totalRepairAttempts = 0;
+        ModelConfig lastModel = null;
+        ParsedOutput lastParsed = null;
+        String stepInput = content == null ? "" : content;
+        ResolvedRag rag = null;
+        try {
+            rag = ragGovernanceSupport.resolve(version, ragTagsJson, content);
+            if (rag != null && rag.requiredMiss()) {
+                long costMs = System.currentTimeMillis() - start;
+                agentRunRepository.updateStatusAndMetrics(AgentRun.builder()
+                        .runId(runId)
+                        .status("SUCCESS")
+                        .modelIdUsed(null)
+                        .modelNameUsed(null)
+                        .totalTokens(0)
+                        .toolCallCount(null)
+                        .toolDeniedCount(null)
+                        .repairAttempts(0)
+                        .costMs(costMs)
+                        .endedAt(LocalDateTime.now())
+                        .build());
+                return buildRagRequiredNoHitContract(runId, agentCode, version, costMs, rag);
+            }
+
+            for (int i = 0; i < chainSteps.size(); i++) {
+                AgentClientProfileStep step = chainSteps.get(i);
+                long stepStart = System.currentTimeMillis();
+                String stepName = normalizeChainStepName(step, i + 1);
+                ModelConfig stepModel = resolveEnabledModelById(step.getModelId(), stepName);
+                boolean enableTools = resolveStepEnableTools(step, stepModel);
+                Set<String> allowedToolKeys = resolveAllowedToolKeys(step, version);
+                String systemPromptOverride = StringUtils.hasText(step.getSystemPrompt()) ? step.getSystemPrompt() : null;
+                ResolvedRag stepRag = i == 0 ? rag : null;
+                try {
+                    ParsedOutput parsed = callOnce(
+                            runId,
+                            stepModel,
+                            version,
+                            sessionId,
+                            stepInput,
+                            stepRag,
+                            systemPromptOverride,
+                            allowedToolKeys,
+                            enableTools
+                    );
+                    long stepCost = System.currentTimeMillis() - stepStart;
+                    totalRepairAttempts += parsed == null ? 0 : parsed.repairAttempts;
+                    stepTraces.add(buildChainStepTrace(step, i + 1, "SUCCESS", stepCost, parsed == null ? null : parsed.contract, null, null));
+                    lastModel = stepModel;
+                    lastParsed = parsed;
+                    if (parsed != null && parsed.contract != null && parsed.contract.getAnswer() != null) {
+                        stepInput = parsed.contract.getAnswer();
+                    } else {
+                        stepInput = "";
+                    }
+                } catch (ApprovalRequiredException approval) {
+                    long stepCost = System.currentTimeMillis() - stepStart;
+                    stepTraces.add(buildChainStepTrace(step, i + 1, "PENDING_APPROVAL", stepCost, null, approval.getApprovalRequestId(), approval.getMessage()));
+                    agentRunRepository.updateStatus(runId, "PENDING_APPROVAL", null, null);
+                    long costMs = System.currentTimeMillis() - start;
+                    return buildPendingApprovalContractWithSteps(
+                            runId,
+                            agentCode,
+                            version,
+                            stepModel,
+                            costMs,
+                            approval,
+                            stepTraces
+                    );
+                } catch (OutputParseFailedException parseFailed) {
+                    long stepCost = System.currentTimeMillis() - stepStart;
+                    int currentRepair = totalRepairAttempts + parseFailed.repairAttempts;
+                    stepTraces.add(buildChainStepTrace(step, i + 1, "FAILED", stepCost, null, null, parseFailed.getMessage()));
+                    long costMs = System.currentTimeMillis() - start;
+                    agentRunRepository.updateStatusAndMetrics(AgentRun.builder()
+                            .runId(runId)
+                            .status("FAILED")
+                            .errorMessage(truncate(parseFailed.getMessage(), 1000))
+                            .repairAttempts(currentRepair)
+                            .costMs(costMs)
+                            .endedAt(LocalDateTime.now())
+                            .build());
+                    return buildFailedContractWithSteps(
+                            runId,
+                            agentCode,
+                            version,
+                            stepModel,
+                            costMs,
+                            parseFailed.getMessage(),
+                            currentRepair,
+                            stepTraces
+                    );
+                } catch (Exception e) {
+                    long stepCost = System.currentTimeMillis() - stepStart;
+                    String message = e.getMessage();
+                    stepTraces.add(buildChainStepTrace(step, i + 1, "FAILED", stepCost, null, null, message));
+                    long costMs = System.currentTimeMillis() - start;
+                    agentRunRepository.updateStatusAndMetrics(AgentRun.builder()
+                            .runId(runId)
+                            .status("FAILED")
+                            .errorMessage(truncate(message, 1000))
+                            .repairAttempts(totalRepairAttempts)
+                            .costMs(costMs)
+                            .endedAt(LocalDateTime.now())
+                            .build());
+                    return buildFailedContractWithSteps(
+                            runId,
+                            agentCode,
+                            version,
+                            stepModel,
+                            costMs,
+                            message,
+                            totalRepairAttempts,
+                            stepTraces
+                    );
+                }
+            }
+
+            if (lastParsed == null) {
+                throw new BusinessException("Agent clientChain 执行失败：未产出有效结果");
+            }
+            long costMs = System.currentTimeMillis() - start;
+            agentRunRepository.updateStatusAndMetrics(AgentRun.builder()
+                    .runId(runId)
+                    .status("SUCCESS")
+                    .modelIdUsed(lastModel == null ? null : lastModel.getId())
+                    .modelNameUsed(lastModel == null ? null : lastModel.getModelName())
+                    .totalTokens(null)
+                    .toolCallCount(null)
+                    .toolDeniedCount(null)
+                    .repairAttempts(totalRepairAttempts)
+                    .costMs(costMs)
+                    .endedAt(LocalDateTime.now())
+                    .build());
+            return buildSuccessContractWithSteps(
+                    runId,
+                    agentCode,
+                    version,
+                    lastModel,
+                    lastParsed,
+                    costMs,
+                    totalRepairAttempts,
+                    stepTraces
+            );
+        } catch (Exception e) {
+            long costMs = System.currentTimeMillis() - start;
+            String message = e.getMessage();
+            agentRunRepository.updateStatusAndMetrics(AgentRun.builder()
+                    .runId(runId)
+                    .status("FAILED")
+                    .errorMessage(truncate(message, 1000))
+                    .repairAttempts(totalRepairAttempts)
+                    .costMs(costMs)
+                    .endedAt(LocalDateTime.now())
+                    .build());
+            return buildFailedContractWithSteps(
+                    runId,
+                    agentCode,
+                    version,
+                    lastModel,
+                    costMs,
+                    message,
+                    totalRepairAttempts,
+                    stepTraces
+            );
+        }
+    }
+
     /**
      * stream。
      *
@@ -315,6 +543,15 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
 
         Agent agent = loadAgent(agentCode);
         AgentVersion version = loadPublishedVersion(agent);
+        if (version != null && (version.getWorkflowVersionId() != null || hasClientChain(version))) {
+            PlatformContractV1 contract = chat(agentCode, sessionId, content, ragTagsJson);
+            if (contract == null || contract.getSteps() == null || contract.getSteps().isEmpty()) {
+                return Flux.just(PlatformStreamEvent.builder().name("final").data(contract).build());
+            }
+            return Flux.fromIterable(contract.getSteps())
+                    .map(step -> PlatformStreamEvent.builder().name("step").data(step).build())
+                    .concatWith(Flux.just(PlatformStreamEvent.builder().name("final").data(contract).build()));
+        }
         ModelConfig model = resolveModelForVersion(version);
 
         Long operatorId = null;
@@ -377,7 +614,7 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         return Flux.using(
                         () -> {
                             if (modelId != null) {
-                                GatewayToolBindingContextHolder.set(modelId, sessionId, agentVersionId, allowedToolKeys);
+                                GatewayToolBindingContextHolder.set(modelId, sessionId, agentVersionId, runId, allowedToolKeys);
                             }
                             return Boolean.TRUE;
                         },
@@ -513,6 +750,24 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
 
         Agent agent = loadAgent(agentCode);
         AgentVersion version = loadPublishedVersion(agent);
+        List<AgentClientProfileStep> chainSteps = parseClientChainSteps(version);
+        if (!chainSteps.isEmpty()) {
+            return chatByClientChain(
+                    agentCode,
+                    agent,
+                    version,
+                    chainSteps,
+                    null,
+                    content,
+                    ragTagsJson,
+                    start,
+                    runId,
+                    "XXL_JOB",
+                    "XXL",
+                    null,
+                    "system"
+            );
+        }
         ModelConfig model = resolveModelForVersion(version);
 
         AgentRun run = AgentRun.builder()
@@ -652,13 +907,26 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
 
     private ParsedOutput callOnce(String runId, ModelConfig model, AgentVersion version, Long sessionId, String userContent, ResolvedRag rag) {
         Set<String> allowedToolKeys = parseAllowedToolKeys(version == null ? null : version.getAllowedToolKeysJson());
-        ChatClient chatClient = buildChatClient(runId, model, version, sessionId);
-        Prompt prompt = buildPromptWithContract(version, userContent, rag);
+        return callOnce(runId, model, version, sessionId, userContent, rag, null, allowedToolKeys, true);
+    }
+
+    private ParsedOutput callOnce(String runId,
+                                  ModelConfig model,
+                                  AgentVersion version,
+                                  Long sessionId,
+                                  String userContent,
+                                  ResolvedRag rag,
+                                  String systemPromptOverride,
+                                  Set<String> allowedToolKeys,
+                                  boolean enableTools) {
+        Set<String> normalizedAllowedToolKeys = allowedToolKeys == null ? Set.of() : allowedToolKeys;
+        ChatClient chatClient = buildChatClient(runId, model, version, sessionId, enableTools);
+        Prompt prompt = buildPromptWithContract(version, systemPromptOverride, userContent, rag);
         Long modelId = model == null ? null : model.getId();
         Long agentVersionId = version == null ? null : version.getId();
         try {
             if (modelId != null) {
-                GatewayToolBindingContextHolder.set(modelId, sessionId, agentVersionId, allowedToolKeys);
+                GatewayToolBindingContextHolder.set(modelId, sessionId, agentVersionId, runId, normalizedAllowedToolKeys);
             }
             ChatResponse resp = chatClient.prompt(prompt).call().chatResponse();
             String raw = extractText(resp);
@@ -671,15 +939,24 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
     }
 
     private ChatClient buildChatClient(String runId, ModelConfig modelConfig, AgentVersion version, Long sessionId) {
+        return buildChatClient(runId, modelConfig, version, sessionId, true);
+    }
+
+    private ChatClient buildChatClient(String runId,
+                                       ModelConfig modelConfig,
+                                       AgentVersion version,
+                                       Long sessionId,
+                                       boolean enableTools) {
         if (modelConfig == null) {
             throw new BusinessException("未找到可用模型");
         }
         boolean modelToolEnabled = modelConfig.getToolEnabled() == null || Boolean.TRUE.equals(modelConfig.getToolEnabled());
+        boolean resolvedEnableTools = enableTools && modelToolEnabled;
         Long agentVersionId = version == null ? null : version.getId();
         CallAdvisor[] extra = agentVersionId == null
                 ? new CallAdvisor[0]
                 : advisorRuntimeService.resolveForAgentVersion(agentVersionId, runId, sessionId);
-        return chatClientAssemblyService.buildChatClient(modelConfig, modelToolEnabled, extra);
+        return chatClientAssemblyService.buildChatClient(modelConfig, resolvedEnableTools, extra);
     }
 
     private ChatClient buildChatClientNoTools(ModelConfig modelConfig) {
@@ -690,11 +967,15 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
     }
 
     private Prompt buildPromptWithContract(AgentVersion version, String userContent) {
-        return buildPromptWithContract(version, userContent, null);
+        return buildPromptWithContract(version, null, userContent, null);
     }
 
     private Prompt buildPromptWithContract(AgentVersion version, String userContent, ResolvedRag rag) {
-        String system = version.getSystemPromptSnapshot();
+        return buildPromptWithContract(version, null, userContent, rag);
+    }
+
+    private Prompt buildPromptWithContract(AgentVersion version, String systemPromptOverride, String userContent, ResolvedRag rag) {
+        String system = StringUtils.hasText(systemPromptOverride) ? systemPromptOverride : version.getSystemPromptSnapshot();
         if (!StringUtils.hasText(system)) {
             system = "";
         }
@@ -839,6 +1120,37 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                 .build();
     }
 
+    private PlatformContractV1 buildSuccessContractWithSteps(String runId,
+                                                             String agentCode,
+                                                             AgentVersion version,
+                                                             ModelConfig model,
+                                                             ParsedOutput parsed,
+                                                             long costMs,
+                                                             int repairAttempts,
+                                                             List<PlatformContractV1.StepTrace> stepTraces) {
+        List<PlatformContractV1.StepTrace> traces = stepTraces == null || stepTraces.isEmpty()
+                ? List.of(buildAgentSingleStep("SUCCESS", costMs, parsed == null ? null : parsed.contract))
+                : stepTraces;
+        return PlatformContractV1.builder()
+                .meta(PlatformContractV1.Meta.builder()
+                        .runId(runId)
+                        .agentCode(agentCode)
+                        .agentVersionId(version == null ? null : version.getId())
+                        .agentVersionNo(version == null ? null : version.getVersionNo())
+                        .modelUsed(model == null ? null : model.getModelName())
+                        .costMs(costMs)
+                        .repairAttempts(repairAttempts)
+                        .build())
+                .status("SUCCESS")
+                .answer(parsed == null || parsed.contract == null ? "" : parsed.contract.getAnswer())
+                .uncertainty(parsed == null || parsed.contract == null ? "" : parsed.contract.getUncertainty())
+                .citations(parsed == null || parsed.contract == null ? List.of() : parsed.contract.getCitations())
+                .toolCalls(parsed == null || parsed.contract == null ? List.of() : parsed.contract.getToolCalls())
+                .actionsNext(parsed == null || parsed.contract == null ? List.of() : parsed.contract.getActionsNext())
+                .steps(traces)
+                .build();
+    }
+
     private PlatformContractV1 buildFailedContract(String runId, 
                                                    String agentCode,
                                                    AgentVersion version,
@@ -872,6 +1184,46 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                         .costMs(costMs)
                         .errorMessage(truncate(message, 1000))
                         .build()))
+                .build();
+    }
+
+    private PlatformContractV1 buildFailedContractWithSteps(String runId,
+                                                            String agentCode,
+                                                            AgentVersion version,
+                                                            ModelConfig model,
+                                                            long costMs,
+                                                            String message,
+                                                            int repairAttempts,
+                                                            List<PlatformContractV1.StepTrace> stepTraces) {
+        List<PlatformContractV1.StepTrace> traces = stepTraces == null || stepTraces.isEmpty()
+                ? List.of(PlatformContractV1.StepTrace.builder()
+                .nodeKey("agent.llm")
+                .nodeType("LLM")
+                .nodeName("Agent LLM")
+                .status("FAILED")
+                .costMs(costMs)
+                .errorMessage(truncate(message, 1000))
+                .build())
+                : stepTraces;
+        return PlatformContractV1.builder()
+                .meta(PlatformContractV1.Meta.builder()
+                        .runId(runId)
+                        .agentCode(agentCode)
+                        .agentVersionId(version == null ? null : version.getId())
+                        .agentVersionNo(version == null ? null : version.getVersionNo())
+                        .modelUsed(model == null ? null : model.getModelName())
+                        .costMs(costMs)
+                        .repairAttempts(repairAttempts)
+                        .build())
+                .status("FAILED")
+                .answer("")
+                .uncertainty("")
+                .error(PlatformContractV1.Error.builder()
+                        .code("AGENT_RUNTIME_FAILED")
+                        .message("Agent 运行失败")
+                        .detail(message)
+                        .build())
+                .steps(traces)
                 .build();
     }
 
@@ -909,6 +1261,44 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                 .build();
     }
 
+    private PlatformContractV1 buildPendingApprovalContractWithSteps(String runId,
+                                                                     String agentCode,
+                                                                     AgentVersion version,
+                                                                     ModelConfig model,
+                                                                     long costMs,
+                                                                     ApprovalRequiredException approval,
+                                                                     List<PlatformContractV1.StepTrace> stepTraces) {
+        List<PlatformContractV1.StepTrace> traces = stepTraces == null || stepTraces.isEmpty()
+                ? List.of(PlatformContractV1.StepTrace.builder()
+                .nodeKey("agent.llm")
+                .nodeType("LLM")
+                .nodeName("Agent LLM")
+                .status("PENDING_APPROVAL")
+                .costMs(costMs)
+                .approvalRequestId(approval == null ? null : approval.getApprovalRequestId())
+                .errorMessage(approval == null ? null : truncate(approval.getMessage(), 1000))
+                .build())
+                : stepTraces;
+        return PlatformContractV1.builder()
+                .meta(PlatformContractV1.Meta.builder()
+                        .runId(runId)
+                        .agentCode(agentCode)
+                        .agentVersionId(version == null ? null : version.getId())
+                        .agentVersionNo(version == null ? null : version.getVersionNo())
+                        .modelUsed(model == null ? null : model.getModelName())
+                        .costMs(costMs)
+                        .repairAttempts(0)
+                        .approvalRequestId(approval == null ? null : approval.getApprovalRequestId())
+                        .pendingToolKey(approval == null ? null : approval.getToolKey())
+                        .riskLevel(approval == null ? null : approval.getRiskLevel())
+                        .build())
+                .status("PENDING_APPROVAL")
+                .answer("")
+                .uncertainty("")
+                .steps(traces)
+                .build();
+    }
+
     private PlatformContractV1.StepTrace buildAgentSingleStep(String status, long costMs, PlatformContractV1 contract) {
         String out = contract == null ? "" : (contract.getAnswer() == null ? "" : contract.getAnswer());
         boolean truncated = out != null && out.length() > 16000;
@@ -924,6 +1314,135 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                 .outputText(out)
                 .outputTruncated(truncated)
                 .build();
+    }
+
+    private PlatformContractV1.StepTrace buildChainStepTrace(AgentClientProfileStep step,
+                                                             int index,
+                                                             String status,
+                                                             long costMs,
+                                                             PlatformContractV1 contract,
+                                                             Long approvalRequestId,
+                                                             String errorMessage) {
+        String output = contract == null ? "" : (contract.getAnswer() == null ? "" : contract.getAnswer());
+        boolean truncated = output != null && output.length() > 16000;
+        if (truncated) {
+            output = output.substring(0, 16000);
+        }
+        return PlatformContractV1.StepTrace.builder()
+                .nodeKey("agent.chain." + index)
+                .nodeType("LLM")
+                .nodeName(normalizeChainStepName(step, index))
+                .status(status)
+                .costMs(costMs)
+                .approvalRequestId(approvalRequestId)
+                .errorMessage(errorMessage == null ? null : truncate(errorMessage, 1000))
+                .outputText(output)
+                .outputTruncated(truncated)
+                .build();
+    }
+
+    private String normalizeChainStepName(AgentClientProfileStep step, int fallbackIndex) {
+        if (step == null || !StringUtils.hasText(step.getStepName())) {
+            return "步骤-" + fallbackIndex;
+        }
+        return step.getStepName().trim();
+    }
+
+    private List<AgentClientProfileStep> parseClientChainSteps(AgentVersion version) {
+        if (version == null) {
+            return List.of();
+        }
+        if (version.getClientProfileId() != null) {
+            List<ClientProfileStep> profileSteps = clientProfileRepository.listSteps(version.getClientProfileId());
+            if (profileSteps == null || profileSteps.isEmpty()) {
+                throw new BusinessException("ClientProfile 未配置步骤，clientProfileId=" + version.getClientProfileId());
+            }
+            List<AgentClientProfileStep> normalized = new ArrayList<>();
+            for (ClientProfileStep step : profileSteps) {
+                if (step == null) {
+                    continue;
+                }
+                AgentClientProfileStep mapped = AgentClientProfileStep.builder()
+                        .sequence(step.getSequenceNo())
+                        .stepName(step.getStepName())
+                        .modelId(step.getModelId())
+                        .systemPrompt(step.getSystemPrompt())
+                        .enableTools(step.getEnableTools())
+                        .allowedToolKeys(parseAllowedToolKeysList(step.getAllowedToolKeysJson()))
+                        .build();
+                normalized.add(mapped);
+            }
+            normalized.sort(Comparator.comparingInt(s -> s.getSequence() == null ? Integer.MAX_VALUE : s.getSequence()));
+            return normalized;
+        }
+        return parseClientChainSteps(version.getClientChainJson());
+    }
+
+    private boolean hasClientChain(AgentVersion version) {
+        return !parseClientChainSteps(version).isEmpty();
+    }
+
+    private List<AgentClientProfileStep> parseClientChainSteps(String clientChainJson) {
+        if (!StringUtils.hasText(clientChainJson)) {
+            return List.of();
+        }
+        try {
+            List<AgentClientProfileStep> raw = objectMapper.readValue(clientChainJson, new TypeReference<List<AgentClientProfileStep>>() {});
+            if (raw == null || raw.isEmpty()) {
+                return List.of();
+            }
+            List<AgentClientProfileStep> normalized = new ArrayList<>();
+            int sequence = 0;
+            for (AgentClientProfileStep step : raw) {
+                if (step == null) {
+                    continue;
+                }
+                sequence++;
+                if (step.getSequence() == null || step.getSequence() <= 0) {
+                    step.setSequence(sequence);
+                }
+                if (!StringUtils.hasText(step.getStepName())) {
+                    step.setStepName("步骤-" + step.getSequence());
+                }
+                if (step.getModelId() == null) {
+                    throw new BusinessException("clientChainJson 存在未配置 modelId 的步骤，step=" + step.getStepName());
+                }
+                normalized.add(step);
+            }
+            normalized.sort(Comparator.comparingInt(s -> s.getSequence() == null ? Integer.MAX_VALUE : s.getSequence()));
+            return normalized;
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new BusinessException("clientChainJson 解析失败，请检查 JSON");
+        }
+    }
+
+    private ModelConfig resolveEnabledModelById(Long modelId, String stepName) {
+        if (modelId == null) {
+            throw new BusinessException("步骤模型未配置，step=" + stepName);
+        }
+        ModelConfig model = modelConfigService.queryModelConfigById(new IdQuery(modelId));
+        if (model == null) {
+            throw new BusinessException("步骤模型不存在，step=" + stepName + ", modelId=" + modelId);
+        }
+        if (!Boolean.TRUE.equals(model.getEnabled())) {
+            throw new BusinessException("步骤模型未启用，step=" + stepName + ", modelId=" + modelId);
+        }
+        return model;
+    }
+
+    private boolean resolveStepEnableTools(AgentClientProfileStep step, ModelConfig modelConfig) {
+        boolean requestedEnableTools = step == null || step.getEnableTools() == null || Boolean.TRUE.equals(step.getEnableTools());
+        boolean modelToolEnabled = modelConfig == null || modelConfig.getToolEnabled() == null || Boolean.TRUE.equals(modelConfig.getToolEnabled());
+        return requestedEnableTools && modelToolEnabled;
+    }
+
+    private Set<String> resolveAllowedToolKeys(AgentClientProfileStep step, AgentVersion version) {
+        if (step != null && step.getAllowedToolKeys() != null && !step.getAllowedToolKeys().isEmpty()) {
+            return parseAllowedToolKeys(step.getAllowedToolKeys());
+        }
+        return parseAllowedToolKeys(version == null ? null : version.getAllowedToolKeysJson());
     }
 
     private void saveRunContextSnapshot(String runId,
@@ -1027,6 +1546,41 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
             log.warn("解析 allowedToolKeysJson 失败，json: {}", json, e);
             return Set.of();
         }
+    }
+
+    private List<String> parseAllowedToolKeysList(String json) {
+        if (!StringUtils.hasText(json)) {
+            return List.of();
+        }
+        try {
+            List<String> list = objectMapper.readValue(json, new TypeReference<List<String>>() {});
+            if (list == null || list.isEmpty()) {
+                return List.of();
+            }
+            List<String> result = new ArrayList<>();
+            for (String item : list) {
+                if (StringUtils.hasText(item)) {
+                    result.add(item.trim());
+                }
+            }
+            return result;
+        } catch (Exception e) {
+            log.warn("解析 step.allowedToolKeysJson 失败，json: {}", json, e);
+            return List.of();
+        }
+    }
+
+    private Set<String> parseAllowedToolKeys(List<String> toolKeys) {
+        if (toolKeys == null || toolKeys.isEmpty()) {
+            return Set.of();
+        }
+        Set<String> set = new HashSet<>();
+        for (String key : toolKeys) {
+            if (StringUtils.hasText(key)) {
+                set.add(key.trim());
+            }
+        }
+        return set;
     }
 
     private static final class ParsedOutput {

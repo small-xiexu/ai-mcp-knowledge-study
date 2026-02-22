@@ -27,4 +27,9 @@ public interface AgentRunContextRepository {
      * 方法：updateStatus。
      */
     int updateStatus(String runId, String status);
+
+    /**
+     * 方法：deleteByAgentId。
+     */
+    int deleteByAgentId(Long agentId);
 }

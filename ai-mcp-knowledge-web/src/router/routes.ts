@@ -30,6 +30,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: 'LLM 配置', icon: 'Setting', permission: 'agent:read', group: 'integration', order: 10 }
       },
       {
+        path: 'client-profiles',
+        name: 'ClientProfiles',
+        component: () => import('@/views/client-profile/index.vue'),
+        meta: { title: 'Client 配置', icon: 'SetUp', permission: 'agent:read', group: 'integration', order: 20 }
+      },
+      {
         path: 'ai-chat',
         name: 'AiChat',
         component: () => import('@/views/chat/index.vue'),

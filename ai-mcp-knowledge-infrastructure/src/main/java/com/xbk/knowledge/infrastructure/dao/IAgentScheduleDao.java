@@ -31,6 +31,8 @@ public interface IAgentScheduleDao extends BaseMapper<AgentSchedulePO> {
 
     int deleteById(@Param("id") Long id);
 
+    int deleteByAgentId(@Param("agentId") Long agentId);
+
     AgentSchedulePO findById(AgentScheduleIdQuery query);
 
     AgentSchedulePO findByAgentId(@Param("agentId") Long agentId);

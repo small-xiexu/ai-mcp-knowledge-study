@@ -282,4 +282,9 @@
           and status = 'PENDING'
     </update>
 
+    <delete id="deleteByAgentId">
+        delete from approval_request
+        where agent_id = #{agentId}
+    </delete>
+
 </mapper>

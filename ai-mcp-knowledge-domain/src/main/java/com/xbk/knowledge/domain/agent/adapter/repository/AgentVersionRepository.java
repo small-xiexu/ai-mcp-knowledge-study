@@ -25,6 +25,11 @@ public interface AgentVersionRepository {
     List<AgentVersion> findPage(AgentVersionPageQuery query);
 
     /**
+     * 方法：listByAgentId。
+     */
+    List<AgentVersion> listByAgentId(Long agentId);
+
+    /**
      * 方法：count。
      */
     long count(AgentVersionPageQuery query);
@@ -62,4 +67,9 @@ public interface AgentVersionRepository {
      * 方法：updateState。
      */
     int updateState(Long id, String fromState, String toState);
+
+    /**
+     * 方法：removeByAgentId。
+     */
+    int removeByAgentId(Long agentId);
 }

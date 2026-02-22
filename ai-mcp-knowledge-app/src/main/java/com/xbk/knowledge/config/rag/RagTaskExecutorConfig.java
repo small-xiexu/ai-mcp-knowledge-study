@@ -3,6 +3,7 @@ package com.xbk.knowledge.config.rag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.TaskDecorator;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.concurrent.ThreadPoolExecutor;
@@ -16,6 +17,12 @@ import java.util.concurrent.ThreadPoolExecutor;
 @Slf4j
 @Configuration
 public class RagTaskExecutorConfig {
+
+    private final TaskDecorator traceMdcTaskDecorator;
+
+    public RagTaskExecutorConfig(TaskDecorator traceMdcTaskDecorator) {
+        this.traceMdcTaskDecorator = traceMdcTaskDecorator;
+    }
 
     /**
      * RAG 任务线程池
@@ -53,6 +60,7 @@ public class RagTaskExecutorConfig {
 
         // 等待时间：30 秒
         executor.setAwaitTerminationSeconds(30);
+        executor.setTaskDecorator(traceMdcTaskDecorator);
 
         executor.initialize();
 

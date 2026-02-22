@@ -134,4 +134,9 @@
           and run_id = #{runId}
     </update>
 
+    <delete id="deleteByAgentId">
+        delete from agent_run
+        where agent_id = #{agentId}
+    </delete>
+
 </mapper>

@@ -74,4 +74,9 @@ public interface ApprovalRequestRepository {
      * 标记审批单为 EXPIRED。
      */
     int markExpired(Long id, String decisionComment, LocalDateTime decidedAt);
+
+    /**
+     * 方法：deleteByAgentId。
+     */
+    int deleteByAgentId(Long agentId);
 }

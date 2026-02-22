@@ -35,6 +35,8 @@ public class AgentPO {
 
     private String description;
 
+    private String channel;
+
     private String status;
 
     private Long currentPublishedVersionId;

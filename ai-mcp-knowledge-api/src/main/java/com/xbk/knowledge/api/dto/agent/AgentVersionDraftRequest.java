@@ -68,6 +68,19 @@ public class AgentVersionDraftRequest extends BaseRequest {
      */
     private String allowedToolKeysJson;
 
+    /**
+     * Client Profile ID（优先于 clientChainJson）。
+     */
+    private Long clientProfileId;
+
+    /**
+     * Client 串联配置 JSON（数组）。
+     *
+     * 每个元素结构示例：
+     * {"sequence":1,"stepName":"提示词优化","modelId":1,"systemPrompt":"...","enableTools":true,"allowedToolKeys":["mcp.publish"]}
+     */
+    private String clientChainJson;
+
     @Builder.Default
     private String outputContractVersion = "v1";
 

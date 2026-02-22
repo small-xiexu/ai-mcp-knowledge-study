@@ -18,5 +18,6 @@ public interface IAgentRunContextDao extends BaseMapper<AgentRunContextPO> {
     AgentRunContextPO findByRunId(@Param("runId") String runId);
 
     int updateStatus(@Param("runId") String runId, @Param("status") String status);
-}
 
+    int deleteByAgentId(@Param("agentId") Long agentId);
+}

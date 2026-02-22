@@ -11,6 +11,7 @@ import com.xbk.knowledge.domain.job.model.valobj.XxlJobPageQuery;
 import com.xbk.knowledge.domain.job.adapter.repository.XxlJobRepository;
 import com.xbk.knowledge.infrastructure.redis.key.XxlJobRedisKeys;
 import com.xbk.knowledge.types.common.PageResult;
+import com.xbk.knowledge.types.trace.TraceIdUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -505,6 +506,7 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
         return client.post()
                 .uri(path)
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .header("X-Trace-Id", TraceIdUtils.getOrCreateTraceId())
                 .header(HttpHeaders.COOKIE, cookie)
                 .body(BodyInserters.fromFormData(form))
                 .exchangeToMono(this::toResponse)

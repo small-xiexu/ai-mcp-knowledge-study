@@ -20,6 +20,8 @@ public interface IAgentDao extends BaseMapper<AgentPO> {
 
     int updateAgentByCode(AgentPO agent);
 
+    int deleteByCode(AgentCodeQuery query);
+
     AgentPO findByCode(AgentCodeQuery query);
 
     long count(AgentPageQuery query);

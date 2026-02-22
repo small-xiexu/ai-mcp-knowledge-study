@@ -307,17 +307,6 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
             inputSchema = "{\"type\":\"object\",\"properties\":{}}";
         }
 
-        /*
-         * 重要：工具回调可能在异步/跨线程环境执行（例如流式/Reactive）。
-         * 为保证治理门禁一致性（runId、权限、审计归属），在构建回调时捕获上下文快照，
-         * call() 期间禁止再依赖线程上下文（如 StpUtil/MDC）获取关键字段。
-         */
-        final String boundRunId = TraceIdUtils.getOrCreateTraceId();
-        final Long boundOperatorId = null;
-        final boolean bypassEnabled = ToolInvokeBypassContextHolder.isEnabled();
-        final boolean login = StpUtil.isLogin();
-        final boolean toolInvokePermitted = !login || StpUtil.hasPermission(PERMISSION_TOOL_INVOKE);
-
         ToolMetadata metadata = ToolMetadata.builder()
                 .returnDirect(false)
                 .build();
@@ -329,13 +318,16 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
                     long startAt = System.nanoTime();
                     String previousCallId = MDC.get(CALL_ID_MDC_KEY);
                     MDC.put(CALL_ID_MDC_KEY, callId);
-                    String runId = boundRunId;
+                    String runId = resolveRunId();
+                    Long operatorId = resolveOperatorId();
+                    boolean bypassEnabled = ToolInvokeBypassContextHolder.isEnabled();
+                    boolean toolInvokePermitted = isToolInvokePermitted();
                     if (!bypassEnabled && !toolInvokePermitted) {
-                        recordToolDeniedAndAudit(runId, candidate, "PERMISSION_DENIED", boundOperatorId);
+                        recordToolDeniedAndAudit(runId, candidate, "PERMISSION_DENIED", operatorId);
                         return "[PERMISSION_DENIED] 无权限调用工具（缺少权限: " + PERMISSION_TOOL_INVOKE + "），toolKey=" + candidate.toolKey;
                     }
-                    String requesterType = boundOperatorId == null ? "system" : "user";
-                    maybeRequireApproval(runId, candidate, safeArgs, boundOperatorId, requesterType, boundOperatorId);
+                    String requesterType = operatorId == null ? "system" : "user";
+                    maybeRequireApproval(runId, candidate, safeArgs, operatorId, requesterType, operatorId);
                     log.info("gateway_tool_call source=AI stage=start runId={} callId={} gatewayId={} toolName={} functionName={} toolKey={} argsKeys={}",
                             runId,
                             callId,
@@ -364,7 +356,7 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
                                 callResult.errorCode(),
                                 latencyMs);
 
-                        recordToolMetricsAndAudit(runId, candidate, safeArgs, callResult.success(), callResult.errorCode(), latencyMs, null, boundOperatorId);
+                        recordToolMetricsAndAudit(runId, candidate, safeArgs, callResult.success(), callResult.errorCode(), latencyMs, null, operatorId);
 
                         if (callResult.success()) {
                             return callResult.content();
@@ -385,7 +377,7 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
                                 latencyMs,
                                 e.getMessage(),
                                 e);
-                        recordToolMetricsAndAudit(runId, candidate, safeArgs, false, "TOOL_EXEC_FAILED", latencyMs, e.getMessage(), boundOperatorId);
+                        recordToolMetricsAndAudit(runId, candidate, safeArgs, false, "TOOL_EXEC_FAILED", latencyMs, e.getMessage(), operatorId);
                         throw e;
                     } finally {
                         if (StringUtils.hasText(previousCallId)) {
@@ -402,6 +394,37 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
                 .toolMetadata(metadata)
                 .build();
         return new GovernedToolCallback(delegate, candidate.toolKey, "GATEWAY");
+    }
+
+    private String resolveRunId() {
+        BindingContext context = GatewayToolBindingContextHolder.get();
+        if (context != null && StringUtils.hasText(context.getRunId())) {
+            return context.getRunId();
+        }
+        return TraceIdUtils.getOrCreateTraceId();
+    }
+
+    private Long resolveOperatorId() {
+        try {
+            if (!StpUtil.isLogin()) {
+                return null;
+            }
+            String loginId = StpUtil.getLoginIdAsString();
+            if (!StringUtils.hasText(loginId)) {
+                return null;
+            }
+            return Long.parseLong(loginId);
+        } catch (Exception ignore) {
+            return null;
+        }
+    }
+
+    private boolean isToolInvokePermitted() {
+        try {
+            return !StpUtil.isLogin() || StpUtil.hasPermission(PERMISSION_TOOL_INVOKE);
+        } catch (Exception ignore) {
+            return false;
+        }
     }
 
     /**

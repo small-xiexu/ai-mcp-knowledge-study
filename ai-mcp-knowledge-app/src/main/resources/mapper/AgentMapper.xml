@@ -9,6 +9,7 @@
         <result column="agent_code" property="agentCode"/>
         <result column="agent_name" property="agentName"/>
         <result column="description" property="description"/>
+        <result column="channel" property="channel"/>
         <result column="status" property="status"/>
         <result column="current_published_version_id" property="currentPublishedVersionId"/>
         <result column="created_by" property="createdBy"/>
@@ -23,6 +24,7 @@
             agent_code,
             agent_name,
             description,
+            channel,
             status,
             current_published_version_id,
             created_by,
@@ -33,6 +35,7 @@
             #{agentCode},
             #{agentName},
             #{description},
+            #{channel},
             #{status},
             #{currentPublishedVersionId},
             #{createdBy},
@@ -46,6 +49,7 @@
         update agent
         set agent_name = #{agentName},
             description = #{description},
+            channel = #{channel},
             status = #{status},
             current_published_version_id = #{currentPublishedVersionId},
             updated_by = #{updatedBy},
@@ -54,12 +58,19 @@
           and agent_code = #{agentCode}
     </update>
 
+    <delete id="deleteByCode">
+        delete from agent
+        where 1 = 1
+          and agent_code = #{agentCode}
+    </delete>
+
     <select id="findByCode" resultMap="AgentMap">
         select
             id,
             agent_code,
             agent_name,
             description,
+            channel,
             status,
             current_published_version_id,
             created_by,
@@ -93,6 +104,7 @@
             agent_code,
             agent_name,
             description,
+            channel,
             status,
             current_published_version_id,
             created_by,

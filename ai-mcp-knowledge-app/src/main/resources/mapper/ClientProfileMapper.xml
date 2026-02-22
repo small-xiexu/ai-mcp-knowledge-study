@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbk.knowledge.infrastructure.dao.IClientProfileDao">
+
+    <resultMap id="ClientProfileMap" type="com.xbk.knowledge.infrastructure.dao.po.ClientProfilePO">
+        <id column="id" property="id"/>
+        <result column="client_code" property="clientCode"/>
+        <result column="client_name" property="clientName"/>
+        <result column="description" property="description"/>
+        <result column="status" property="status"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="updated_by" property="updatedBy"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <select id="findById" resultMap="ClientProfileMap">
+        select
+            id,
+            client_code,
+            client_name,
+            description,
+            status,
+            created_by,
+            updated_by,
+            created_at,
+            updated_at
+        from ai_client_profile
+        where id = #{id}
+        limit 1
+    </select>
+
+    <select id="findByCode" resultMap="ClientProfileMap">
+        select
+            id,
+            client_code,
+            client_name,
+            description,
+            status,
+            created_by,
+            updated_by,
+            created_at,
+            updated_at
+        from ai_client_profile
+        where client_code = #{clientCode}
+        limit 1
+    </select>
+
+    <select id="findPage" resultMap="ClientProfileMap">
+        select
+            id,
+            client_code,
+            client_name,
+            description,
+            status,
+            created_by,
+            updated_by,
+            created_at,
+            updated_at
+        from ai_client_profile
+        where 1 = 1
+        <if test="status != null and status != ''">
+            and status = #{status}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            and (
+                client_code like concat('%', #{keyword}, '%')
+                or client_name like concat('%', #{keyword}, '%')
+            )
+        </if>
+        order by updated_at desc, id asc
+        limit #{pageSize} offset #{offset}
+    </select>
+
+    <select id="count" resultType="long">
+        select count(1)
+        from ai_client_profile
+        where 1 = 1
+        <if test="status != null and status != ''">
+            and status = #{status}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            and (
+                client_code like concat('%', #{keyword}, '%')
+                or client_name like concat('%', #{keyword}, '%')
+            )
+        </if>
+    </select>
+
+    <insert id="insertClientProfile" parameterType="com.xbk.knowledge.infrastructure.dao.po.ClientProfilePO" useGeneratedKeys="true"
+            keyProperty="id">
+        insert into ai_client_profile (
+            client_code,
+            client_name,
+            description,
+            status,
+            created_by,
+            updated_by,
+            created_at,
+            updated_at
+        ) values (
+            #{clientCode},
+            #{clientName},
+            #{description},
+            #{status},
+            #{createdBy},
+            #{updatedBy},
+            #{createdAt},
+            #{updatedAt}
+        )
+    </insert>
+
+    <update id="updateClientProfile" parameterType="com.xbk.knowledge.infrastructure.dao.po.ClientProfilePO">
+        update ai_client_profile
+        set client_code = #{clientCode},
+            client_name = #{clientName},
+            description = #{description},
+            status = #{status},
+            updated_by = #{updatedBy},
+            updated_at = #{updatedAt}
+        where id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        delete from ai_client_profile where id = #{id}
+    </delete>
+
+</mapper>
