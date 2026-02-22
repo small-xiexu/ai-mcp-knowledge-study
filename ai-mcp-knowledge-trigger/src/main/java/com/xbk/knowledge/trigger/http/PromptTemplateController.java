@@ -1,5 +1,6 @@
 package com.xbk.knowledge.trigger.http;
 
+import com.xbk.knowledge.api.IPromptTemplateService;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.xbk.knowledge.api.dto.agent.PromptTemplateCreateRequest;
 import com.xbk.knowledge.api.dto.agent.PromptTemplatePublishRequest;
@@ -33,7 +34,7 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/templates")
 @RequiredArgsConstructor
-public class PromptTemplateController {
+public class PromptTemplateController implements IPromptTemplateService {
 
     private final PromptTemplateAppService promptTemplateAppService;
     private final IdentityContextService identityContextService;
@@ -46,6 +47,7 @@ public class PromptTemplateController {
      */
     @PostMapping("/list")
     @SaCheckPermission("agent:read")
+    @Override
     public Result<PageResult<PromptTemplateResponse>> list(@Valid @RequestBody PromptTemplateQueryRequest request) {
         PromptTemplatePageQuery query = new PromptTemplatePageQuery(request.getKeyword(),
                 request.getState(),
@@ -65,6 +67,7 @@ public class PromptTemplateController {
      */
     @PostMapping("/get")
     @SaCheckPermission("agent:read")
+    @Override
     public Result<PromptTemplateResponse> get(@Valid @RequestBody IdRequest request) {
         PromptTemplate template = promptTemplateAppService.queryById(new PromptTemplateIdQuery(request.getId()));
         return Result.success(toResponse(template));
@@ -78,6 +81,7 @@ public class PromptTemplateController {
      */
     @PostMapping("/create")
     @SaCheckPermission("agent:write")
+    @Override
     public Result<PromptTemplateResponse> create(@Valid @RequestBody PromptTemplateCreateRequest request) {
         Long userId = identityContextService.getCurrentUserId();
         PromptTemplate template = PromptTemplate.builder()
@@ -100,6 +104,7 @@ public class PromptTemplateController {
      */
     @PostMapping("/update")
     @SaCheckPermission("agent:write")
+    @Override
     public Result<PromptTemplateResponse> update(@Valid @RequestBody PromptTemplateUpdateRequest request) {
         Long userId = identityContextService.getCurrentUserId();
         PromptTemplate template = PromptTemplate.builder()
@@ -121,6 +126,7 @@ public class PromptTemplateController {
      */
     @PostMapping("/publish")
     @SaCheckPermission("agent:publish")
+    @Override
     public Result<PromptTemplateResponse> publish(@Valid @RequestBody PromptTemplatePublishRequest request) {
         Long userId = identityContextService.getCurrentUserId();
         PromptTemplate published = promptTemplateAppService.publish(new PromptTemplateIdQuery(request.getId()), userId);
@@ -135,6 +141,7 @@ public class PromptTemplateController {
      */
     @PostMapping("/archive")
     @SaCheckPermission("agent:publish")
+    @Override
     public Result<PromptTemplateResponse> archive(@Valid @RequestBody PromptTemplatePublishRequest request) {
         Long userId = identityContextService.getCurrentUserId();
         PromptTemplate archived = promptTemplateAppService.archive(new PromptTemplateIdQuery(request.getId()), userId);

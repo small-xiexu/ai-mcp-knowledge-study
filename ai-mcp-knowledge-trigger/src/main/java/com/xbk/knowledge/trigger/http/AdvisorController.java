@@ -1,5 +1,6 @@
 package com.xbk.knowledge.trigger.http;
 
+import com.xbk.knowledge.api.IAdvisorService;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.xbk.knowledge.api.dto.advisor.*;
 import com.xbk.knowledge.api.dto.common.IdRequest;
@@ -31,7 +32,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/advisors")
 @RequiredArgsConstructor
-public class AdvisorController {
+public class AdvisorController implements IAdvisorService {
 
     private final AdvisorAppService advisorAppService;
     private final AdvisorBindingAppService advisorBindingAppService;
@@ -44,6 +45,7 @@ public class AdvisorController {
      */
     @PostMapping("/list")
     @SaCheckPermission("advisor:read")
+    @Override
     public Result<PageResult<AdvisorResponse>> list(@Valid @RequestBody AdvisorQueryRequest request) {
         Integer enabled = request.getEnabled() == null ? null : (request.getEnabled() ? 1 : 0);
         AdvisorPageQuery query = new AdvisorPageQuery(request.getKeyword(),
@@ -65,6 +67,7 @@ public class AdvisorController {
      */
     @PostMapping("/get")
     @SaCheckPermission("advisor:read")
+    @Override
     public Result<AdvisorResponse> get(@Valid @RequestBody IdRequest request) {
         Advisor advisor = advisorAppService.get(request.getId());
         return Result.success(toResponse(advisor));
@@ -78,6 +81,7 @@ public class AdvisorController {
      */
     @PostMapping("/save")
     @SaCheckPermission("advisor:write")
+    @Override
     public Result<AdvisorResponse> save(@Valid @RequestBody AdvisorSaveRequest request) {
         Advisor advisor = Advisor.builder()
                 .id(request.getId())
@@ -99,6 +103,7 @@ public class AdvisorController {
      */
     @PostMapping("/enable")
     @SaCheckPermission("advisor:write")
+    @Override
     public Result<AdvisorResponse> enable(@Valid @RequestBody IdRequest request) {
         Advisor enabled = advisorAppService.enable(request.getId());
         return Result.success(toResponse(enabled));
@@ -112,6 +117,7 @@ public class AdvisorController {
      */
     @PostMapping("/disable")
     @SaCheckPermission("advisor:write")
+    @Override
     public Result<AdvisorResponse> disable(@Valid @RequestBody IdRequest request) {
         Advisor disabled = advisorAppService.disable(request.getId());
         return Result.success(toResponse(disabled));
@@ -125,6 +131,7 @@ public class AdvisorController {
      */
     @PostMapping("/remove")
     @SaCheckPermission("advisor:write")
+    @Override
     public Result<Void> remove(@Valid @RequestBody IdRequest request) {
         advisorAppService.remove(request.getId());
         return Result.success();
@@ -138,6 +145,7 @@ public class AdvisorController {
      */
     @PostMapping("/bindings/list")
     @SaCheckPermission("advisor:read")
+    @Override
     public Result<List<AdvisorBindingViewResponse>> listBindings(@Valid @RequestBody AdvisorBindingGetRequest request) {
         AdvisorBindingQuery query = new AdvisorBindingQuery(request.getBindType(), request.getBindTargetId());
         List<AdvisorBindingView> list = advisorBindingAppService.listBindings(query);
@@ -159,6 +167,7 @@ public class AdvisorController {
      */
     @PostMapping("/bindings/save")
     @SaCheckPermission("advisor:write")
+    @Override
     public Result<Void> saveBindings(@Valid @RequestBody AdvisorBindingSaveRequest request) {
         List<AdvisorBindingAppService.AdvisorBindingSaveItem> items = new ArrayList<>();
         if (request.getItems() != null) {

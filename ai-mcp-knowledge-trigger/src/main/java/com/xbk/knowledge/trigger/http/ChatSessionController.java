@@ -1,7 +1,9 @@
 package com.xbk.knowledge.trigger.http;
 
+import com.xbk.knowledge.api.IChatSessionService;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.xbk.knowledge.api.dto.ai.ChatMessageCreateRequest;
+import com.xbk.knowledge.api.dto.ai.ChatMessagePageRequest;
 import com.xbk.knowledge.api.dto.ai.ChatMessageResponse;
 import com.xbk.knowledge.api.dto.ai.ChatSessionCreateRequest;
 import com.xbk.knowledge.api.dto.ai.ChatSessionResponse;
@@ -32,7 +34,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/ai/sessions")
 @RequiredArgsConstructor
-public class ChatSessionController {
+public class ChatSessionController implements IChatSessionService {
 
     private final ChatSessionAppService chatSessionAppService;
     private final ObjectMapper objectMapper;
@@ -46,6 +48,7 @@ public class ChatSessionController {
      */
     @PostMapping
     @SaCheckPermission("agent:write")
+    @Override
     public Result<ChatSessionResponse> createSession(@RequestBody ChatSessionCreateRequest request) {
         /*
          * 目的：将请求 DTO 转为领域实体，保持领域层不依赖接口层结构
@@ -68,6 +71,7 @@ public class ChatSessionController {
      */
     @PostMapping("/update")
     @SaCheckPermission("agent:write")
+    @Override
     public Result<ChatSessionResponse> updateSession(@RequestBody ChatSessionUpdateRequest request) {
         Long id = request.getId();
         ChatSession existing = chatSessionAppService.getSession(id);
@@ -90,6 +94,7 @@ public class ChatSessionController {
      */
     @PostMapping("/delete")
     @SaCheckPermission("agent:write")
+    @Override
     public Result<Void> deleteSession(@RequestBody IdRequest request) {
         Long id = request.getId();
         chatSessionAppService.deleteSession(id);
@@ -105,6 +110,7 @@ public class ChatSessionController {
      */
     @PostMapping("/detail")
     @SaCheckPermission("agent:read")
+    @Override
     public Result<ChatSessionResponse> getSession(@RequestBody IdRequest request) {
         Long id = request.getId();
         ChatSession session = chatSessionAppService.getSession(id);
@@ -123,6 +129,7 @@ public class ChatSessionController {
      */
     @PostMapping("/list")
     @SaCheckPermission("agent:read")
+    @Override
     public Result<PageResult<ChatSessionResponse>> listSessions(@RequestBody PageRequest request) {
         PageResult<ChatSession> page = chatSessionAppService.listSessions(request.getPageNum(), request.getPageSize());
         List<ChatSessionResponse> records = page.getRecords()
@@ -142,6 +149,7 @@ public class ChatSessionController {
      */
     @PostMapping("/{id}/messages")
     @SaCheckPermission("agent:write")
+    @Override
     public Result<ChatMessageResponse> appendMessage(@PathVariable("id") Long id,
                                                      @RequestBody ChatMessageCreateRequest request) {
         /*
@@ -166,6 +174,7 @@ public class ChatSessionController {
      */
     @PostMapping("/messages/list")
     @SaCheckPermission("agent:read")
+    @Override
     public Result<PageResult<ChatMessageResponse>> listMessages(@RequestBody ChatMessagePageRequest request) {
         PageResult<ChatMessage> page = chatSessionAppService.listMessages(
                 request.getSessionId(),
@@ -188,6 +197,7 @@ public class ChatSessionController {
      */
     @PostMapping("/messages/delete")
     @SaCheckPermission("agent:write")
+    @Override
     public Result<Void> deleteMessages(@RequestBody IdRequest request) {
         Long id = request.getId();
         chatSessionAppService.deleteMessages(id);
@@ -246,33 +256,4 @@ public class ChatSessionController {
         }
     }
 
-    /**
-     * 会话消息分页查询请求
-     *
-     * 为什么：列表查询统一走 POST 以便扩展过滤字段且避免 URL 过长
-     * 入参：会话 ID + 分页参数
-     * 出参：用于应用层分页查询
-     */
-    private static class ChatMessagePageRequest extends PageRequest {
-        
-        private Long sessionId;
-
-        /**
-         * getSessionId。
-         *
-         * @return 返回结果
-         */
-        public Long getSessionId() {
-            return sessionId;
-        }
-
-        /**
-         * setSessionId。
-         *
-         * @param sessionId 参数
-         */
-        public void setSessionId(Long sessionId) {
-            this.sessionId = sessionId;
-        }
-    }
 }

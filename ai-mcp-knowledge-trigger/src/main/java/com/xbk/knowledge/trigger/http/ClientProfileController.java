@@ -1,5 +1,6 @@
 package com.xbk.knowledge.trigger.http;
 
+import com.xbk.knowledge.api.IClientProfileService;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.xbk.knowledge.api.dto.client.ClientProfileQueryRequest;
 import com.xbk.knowledge.api.dto.client.ClientProfileResponse;
@@ -31,7 +32,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/client-profiles")
 @RequiredArgsConstructor
-public class ClientProfileController {
+public class ClientProfileController implements IClientProfileService {
 
     private final ClientProfileAppService clientProfileAppService;
     private final IdentityContextService identityContextService;
@@ -44,6 +45,7 @@ public class ClientProfileController {
      */
     @PostMapping("/list")
     @SaCheckPermission("agent:read")
+    @Override
     public Result<PageResult<ClientProfileResponse>> list(@Valid @RequestBody ClientProfileQueryRequest request) {
         ClientProfilePageQuery query = ClientProfilePageQuery.builder()
                 .keyword(request.getKeyword())
@@ -64,6 +66,7 @@ public class ClientProfileController {
      */
     @PostMapping("/get")
     @SaCheckPermission("agent:read")
+    @Override
     public Result<ClientProfileResponse> get(@Valid @RequestBody IdRequest request) {
         ClientProfile profile = clientProfileAppService.get(request.getId());
         List<ClientProfileStep> steps = clientProfileAppService.listSteps(request.getId());
@@ -78,6 +81,7 @@ public class ClientProfileController {
      */
     @PostMapping("/save")
     @SaCheckPermission("agent:write")
+    @Override
     public Result<ClientProfileResponse> save(@Valid @RequestBody ClientProfileSaveRequest request) {
         Long userId = identityContextService.getCurrentUserId();
         ClientProfile profile = ClientProfile.builder()
@@ -103,6 +107,7 @@ public class ClientProfileController {
      */
     @PostMapping("/enable")
     @SaCheckPermission("agent:write")
+    @Override
     public Result<ClientProfileResponse> enable(@Valid @RequestBody IdRequest request) {
         Long userId = identityContextService.getCurrentUserId();
         ClientProfile enabled = clientProfileAppService.enable(request.getId(), userId);
@@ -118,6 +123,7 @@ public class ClientProfileController {
      */
     @PostMapping("/disable")
     @SaCheckPermission("agent:write")
+    @Override
     public Result<ClientProfileResponse> disable(@Valid @RequestBody IdRequest request) {
         Long userId = identityContextService.getCurrentUserId();
         ClientProfile disabled = clientProfileAppService.disable(request.getId(), userId);
@@ -133,6 +139,7 @@ public class ClientProfileController {
      */
     @PostMapping("/remove")
     @SaCheckPermission("agent:write")
+    @Override
     public Result<Void> remove(@Valid @RequestBody IdRequest request) {
         clientProfileAppService.remove(request.getId());
         return Result.success();

@@ -1,6 +1,18 @@
 package com.xbk.knowledge.trigger.http;
 
+import com.xbk.knowledge.api.IGatewayManageService;
 import cn.dev33.satoken.annotation.SaCheckPermission;
+import com.xbk.knowledge.api.dto.common.IdRequest;
+import com.xbk.knowledge.api.dto.gateway.GatewayAuthListRequest;
+import com.xbk.knowledge.api.dto.gateway.GatewayInstanceRequest;
+import com.xbk.knowledge.api.dto.gateway.GatewayMetricsQueryRequest;
+import com.xbk.knowledge.api.dto.gateway.MappingNodeRequest;
+import com.xbk.knowledge.api.dto.gateway.ModelBindingQueryRequest;
+import com.xbk.knowledge.api.dto.gateway.SaveGatewayAuthRequest;
+import com.xbk.knowledge.api.dto.gateway.SaveModelBindingRequest;
+import com.xbk.knowledge.api.dto.gateway.SaveToolRequest;
+import com.xbk.knowledge.api.dto.gateway.ToolDebugRequest;
+import com.xbk.knowledge.api.dto.gateway.ToolListRequest;
 import com.xbk.knowledge.application.service.app.GatewayManageAppService;
 import com.xbk.knowledge.application.service.app.GatewayObservabilityAppService;
 import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
@@ -30,7 +42,6 @@ import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.common.Result;
 import com.xbk.knowledge.types.enums.ToolBindType;
 import jakarta.validation.Valid;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
@@ -58,7 +69,7 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/gateway/manage")
-public class GatewayManageController {
+public class GatewayManageController implements IGatewayManageService {
 
     private static final String DEFAULT_GATEWAY_ID = "default_gateway";
     private static final String CALL_ID_MDC_KEY = "gatewayToolCallId";
@@ -82,6 +93,7 @@ public class GatewayManageController {
      */
     @PostMapping("/instances/list")
     @SaCheckPermission("tool:read")
+    @Override
     public Result<PageResult<Map<String, Object>>> listGatewayInstances(@Valid @RequestBody PageRequest request) {
         int offset = request.getOffset();
         int pageSize = request.getPageSize();
@@ -114,7 +126,8 @@ public class GatewayManageController {
      */
     @PostMapping("/instances/save")
     @SaCheckPermission("tool:write")
-    public Result<McpGateway> saveGatewayInstance(@RequestBody GatewayInstanceRequest request) {
+    @Override
+    public Result<Map<String, Object>> saveGatewayInstance(@RequestBody GatewayInstanceRequest request) {
         if (!StringUtils.hasText(request.getGatewayName())) {
             return Result.error("gatewayName 不能为空");
         }
@@ -143,7 +156,7 @@ public class GatewayManageController {
         gateway.setUpdatedAt(LocalDateTime.now());
 
         McpGateway saved = gatewayRepository.save(gateway);
-        return Result.success(saved);
+        return Result.success(toGatewayMap(saved));
     }
 
     /**
@@ -154,11 +167,12 @@ public class GatewayManageController {
      */
     @PostMapping("/instances/delete")
     @SaCheckPermission("tool:write")
-    public Result<Void> deleteGatewayInstance(@RequestBody IdQuery query) {
-        if (query == null || query.getId() == null) {
+    @Override
+    public Result<Void> deleteGatewayInstance(@RequestBody IdRequest request) {
+        if (request == null || request.getId() == null) {
             return Result.error("ID 不能为空");
         }
-        gatewayManageAppService.deleteGatewayInstance(query);
+        gatewayManageAppService.deleteGatewayInstance(new IdQuery(request.getId()));
         return Result.success();
     }
 
@@ -170,6 +184,7 @@ public class GatewayManageController {
      */
     @PostMapping("/auth/list")
     @SaCheckPermission("tool:read")
+    @Override
     public Result<PageResult<Map<String, Object>>> listGatewayAuth(@RequestBody GatewayAuthListRequest request) {
         String gatewayId = resolveGatewayId(request == null ? null : request.getGatewayId());
         ensureGatewayExists(gatewayId);
@@ -227,7 +242,8 @@ public class GatewayManageController {
      */
     @PostMapping("/auth/save")
     @SaCheckPermission("tool:write")
-    public Result<McpGatewayAuth> saveGatewayAuth(@RequestBody SaveGatewayAuthRequest request) {
+    @Override
+    public Result<Map<String, Object>> saveGatewayAuth(@RequestBody SaveGatewayAuthRequest request) {
         if (request == null) {
             return Result.error("请求参数不能为空");
         }
@@ -273,7 +289,7 @@ public class GatewayManageController {
         auth.setUpdatedAt(LocalDateTime.now());
 
         McpGatewayAuth saved = gatewayAuthRepository.save(auth);
-        return Result.success(saved);
+        return Result.success(toGatewayAuthMap(saved));
     }
 
     /**
@@ -284,8 +300,9 @@ public class GatewayManageController {
      */
     @PostMapping("/auth/enable")
     @SaCheckPermission("tool:write")
-    public Result<Void> enableGatewayAuth(@RequestBody IdQuery query) {
-        return updateGatewayAuthStatus(query, 1);
+    @Override
+    public Result<Void> enableGatewayAuth(@RequestBody IdRequest request) {
+        return updateGatewayAuthStatus(request == null ? null : request.getId(), 1);
     }
 
     /**
@@ -296,8 +313,9 @@ public class GatewayManageController {
      */
     @PostMapping("/auth/disable")
     @SaCheckPermission("tool:write")
-    public Result<Void> disableGatewayAuth(@RequestBody IdQuery query) {
-        return updateGatewayAuthStatus(query, 0);
+    @Override
+    public Result<Void> disableGatewayAuth(@RequestBody IdRequest request) {
+        return updateGatewayAuthStatus(request == null ? null : request.getId(), 0);
     }
 
     /**
@@ -308,6 +326,7 @@ public class GatewayManageController {
      */
     @PostMapping("/tools/list")
     @SaCheckPermission("tool:read")
+    @Override
     public Result<PageResult<Map<String, Object>>> listTools(@RequestBody ToolListRequest request) {
         String gatewayId = resolveGatewayId(request == null ? null : request.getGatewayId());
         ensureGatewayExists(gatewayId);
@@ -347,8 +366,12 @@ public class GatewayManageController {
      */
     @PostMapping("/tools/get")
     @SaCheckPermission("tool:read")
-    public Result<Map<String, Object>> getTool(@RequestBody IdQuery query) {
-        McpToolRegistry tool = toolRegistryRepository.findById(query).orElse(null);
+    @Override
+    public Result<Map<String, Object>> getTool(@RequestBody IdRequest request) {
+        if (request == null || request.getId() == null) {
+            return Result.error("ID 不能为空");
+        }
+        McpToolRegistry tool = toolRegistryRepository.findById(new IdQuery(request.getId())).orElse(null);
         if (tool == null) {
             return Result.error("工具不存在");
         }
@@ -375,7 +398,8 @@ public class GatewayManageController {
      */
     @PostMapping("/tools/save")
     @SaCheckPermission("tool:write")
-    public Result<McpToolRegistry> saveTool(@RequestBody SaveToolRequest request) {
+    @Override
+    public Result<Map<String, Object>> saveTool(@RequestBody SaveToolRequest request) {
         if (!StringUtils.hasText(request.getToolName())) {
             return Result.error("toolName 不能为空");
         }
@@ -408,7 +432,7 @@ public class GatewayManageController {
         saveMappings(saved.getId(), saved.getGatewayId(), request.getRequestMappings(), "request");
         saveMappings(saved.getId(), saved.getGatewayId(), request.getResponseMappings(), "response");
 
-        return Result.success(saved);
+        return Result.success(toToolMap(saved));
     }
 
     /**
@@ -419,11 +443,12 @@ public class GatewayManageController {
      */
     @PostMapping("/tools/delete")
     @SaCheckPermission("tool:write")
-    public Result<Void> deleteTool(@RequestBody IdQuery query) {
-        if (query == null || query.getId() == null) {
+    @Override
+    public Result<Void> deleteTool(@RequestBody IdRequest request) {
+        if (request == null || request.getId() == null) {
             return Result.error("ID 不能为空");
         }
-        gatewayManageAppService.deleteTool(query);
+        gatewayManageAppService.deleteTool(new IdQuery(request.getId()));
         return Result.success();
     }
 
@@ -435,8 +460,12 @@ public class GatewayManageController {
      */
     @PostMapping("/tools/enable")
     @SaCheckPermission("tool:write")
-    public Result<Void> enableTool(@RequestBody IdQuery query) {
-        McpToolRegistry tool = toolRegistryRepository.findById(query).orElse(null);
+    @Override
+    public Result<Void> enableTool(@RequestBody IdRequest request) {
+        if (request == null || request.getId() == null) {
+            return Result.error("ID 不能为空");
+        }
+        McpToolRegistry tool = toolRegistryRepository.findById(new IdQuery(request.getId())).orElse(null);
         if (tool == null) {
             return Result.error("工具不存在");
         }
@@ -454,8 +483,12 @@ public class GatewayManageController {
      */
     @PostMapping("/tools/disable")
     @SaCheckPermission("tool:write")
-    public Result<Void> disableTool(@RequestBody IdQuery query) {
-        McpToolRegistry tool = toolRegistryRepository.findById(query).orElse(null);
+    @Override
+    public Result<Void> disableTool(@RequestBody IdRequest request) {
+        if (request == null || request.getId() == null) {
+            return Result.error("ID 不能为空");
+        }
+        McpToolRegistry tool = toolRegistryRepository.findById(new IdQuery(request.getId())).orElse(null);
         if (tool == null) {
             return Result.error("工具不存在");
         }
@@ -473,6 +506,7 @@ public class GatewayManageController {
      */
     @PostMapping("/tools/debug")
     @SaCheckPermission("tool:invoke")
+    @Override
     public Result<Map<String, Object>> debugTool(@RequestBody ToolDebugRequest request) {
         if (!StringUtils.hasText(request.getToolName())) {
             return Result.error("toolName 不能为空");
@@ -525,6 +559,7 @@ public class GatewayManageController {
      */
     @PostMapping("/bindings/model/get")
     @SaCheckPermission("tool:read")
+    @Override
     public Result<Map<String, Object>> getModelBindings(@RequestBody ModelBindingQueryRequest request) {
         if (request == null || request.getModelId() == null) {
             return Result.error("modelId 不能为空");
@@ -557,6 +592,7 @@ public class GatewayManageController {
      */
     @PostMapping("/bindings/model/save")
     @SaCheckPermission("tool:write")
+    @Override
     public Result<Void> saveModelBindings(@RequestBody SaveModelBindingRequest request) {
         if (request == null || request.getModelId() == null) {
             return Result.error("modelId 不能为空");
@@ -605,6 +641,7 @@ public class GatewayManageController {
      */
     @PostMapping("/tools/all-enabled")
     @SaCheckPermission("tool:read")
+    @Override
     public Result<List<Map<String, Object>>> allEnabledTools() {
         List<McpGateway> gateways = gatewayRepository.findAllEnabled();
         List<Map<String, Object>> tools = new ArrayList<>();
@@ -631,6 +668,7 @@ public class GatewayManageController {
      */
     @PostMapping("/models/enabled")
     @SaCheckPermission("tool:read")
+    @Override
     public Result<List<Map<String, Object>>> enabledModels() {
         List<ModelConfig> models = modelConfigRepository.findByEnabled(new EnabledQuery(true));
         List<Map<String, Object>> result = new ArrayList<>();
@@ -652,6 +690,7 @@ public class GatewayManageController {
      */
     @PostMapping("/metrics/overview")
     @SaCheckPermission("tool:read")
+    @Override
     public Result<Map<String, Object>> queryGatewayMetrics(@RequestBody GatewayMetricsQueryRequest request) {
         GatewayObservabilityAppService.GatewayMetricsReport report = gatewayObservabilityAppService.queryMetrics(
                 new GatewayObservabilityAppService.MetricsQuery(
@@ -666,6 +705,59 @@ public class GatewayManageController {
         data.put("toolMetrics", report.toolMetrics());
         data.put("alerts", report.alerts());
         return Result.success(data);
+    }
+
+    private Map<String, Object> toGatewayMap(McpGateway gateway) {
+        Map<String, Object> row = new LinkedHashMap<>();
+        if (gateway == null) {
+            return row;
+        }
+        row.put("id", gateway.getId());
+        row.put("gatewayId", gateway.getGatewayId());
+        row.put("gatewayName", gateway.getGatewayName());
+        row.put("gatewayDesc", gateway.getGatewayDesc());
+        row.put("gatewayVersion", gateway.getGatewayVersion());
+        row.put("gatewayInstructions", gateway.getGatewayInstructions());
+        row.put("status", gateway.getStatus());
+        row.put("createdAt", gateway.getCreatedAt());
+        row.put("updatedAt", gateway.getUpdatedAt());
+        return row;
+    }
+
+    private Map<String, Object> toGatewayAuthMap(McpGatewayAuth auth) {
+        Map<String, Object> row = new LinkedHashMap<>();
+        if (auth == null) {
+            return row;
+        }
+        row.put("id", auth.getId());
+        row.put("gatewayId", auth.getGatewayId());
+        row.put("apiKey", auth.getApiKey());
+        row.put("rateLimit", auth.getRateLimit());
+        row.put("expireTime", auth.getExpireTime());
+        row.put("status", auth.getStatus());
+        row.put("createdAt", auth.getCreatedAt());
+        row.put("updatedAt", auth.getUpdatedAt());
+        return row;
+    }
+
+    private Map<String, Object> toToolMap(McpToolRegistry tool) {
+        Map<String, Object> row = new LinkedHashMap<>();
+        if (tool == null) {
+            return row;
+        }
+        row.put("id", tool.getId());
+        row.put("gatewayId", tool.getGatewayId());
+        row.put("toolName", tool.getToolName());
+        row.put("toolDescription", tool.getToolDescription());
+        row.put("httpMethod", tool.getHttpMethod());
+        row.put("httpUrl", tool.getHttpUrl());
+        row.put("httpHeaders", tool.getHttpHeaders());
+        row.put("timeout", tool.getTimeout());
+        row.put("retryTimes", tool.getRetryTimes());
+        row.put("status", tool.getStatus());
+        row.put("createdAt", tool.getCreatedAt());
+        row.put("updatedAt", tool.getUpdatedAt());
+        return row;
     }
 
     private void saveMappings(Long toolId,
@@ -748,11 +840,11 @@ public class GatewayManageController {
         }
     }
 
-    private Result<Void> updateGatewayAuthStatus(IdQuery query, int status) {
-        if (query == null || query.getId() == null) {
+    private Result<Void> updateGatewayAuthStatus(Long id, int status) {
+        if (id == null) {
             return Result.error("ID 不能为空");
         }
-        McpGatewayAuth auth = gatewayAuthRepository.findById(query.getId()).orElse(null);
+        McpGatewayAuth auth = gatewayAuthRepository.findById(id).orElse(null);
         if (auth == null) {
             return Result.error("凭证不存在");
         }
@@ -789,106 +881,4 @@ public class GatewayManageController {
         return "gk_" + UUID.randomUUID().toString().replace("-", "");
     }
 
-    @Data
-    public static class GatewayInstanceRequest {
-
-        private Long id;
-        private String gatewayId;
-        private String gatewayName;
-        private String gatewayDesc;
-        private String gatewayVersion;
-        private String gatewayInstructions;
-        private Integer status;
-    }
-
-    @Data
-    public static class ToolListRequest {
-
-        private String gatewayId;
-        private Integer pageNum;
-        private Integer pageSize;
-    }
-
-    @Data
-    public static class GatewayAuthListRequest {
-
-        private String gatewayId;
-        private String apiKeyKeyword;
-        private Integer status;
-        private Integer pageNum;
-        private Integer pageSize;
-    }
-
-    @Data
-    public static class SaveGatewayAuthRequest {
-
-        private Long id;
-        private String gatewayId;
-        private String apiKey;
-        private Integer rateLimit;
-        private LocalDateTime expireTime;
-        private Integer status;
-    }
-
-    @Data
-    public static class SaveToolRequest {
-
-        private Long id;
-        private String gatewayId;
-        private String toolName;
-        private String toolDescription;
-        private String httpUrl;
-        private String httpMethod;
-        private String httpHeaders;
-        private Integer timeout;
-        private Integer retryTimes;
-        private Integer status;
-        private List<MappingNodeRequest> requestMappings;
-        private List<MappingNodeRequest> responseMappings;
-    }
-
-    @Data
-    public static class MappingNodeRequest {
-
-        private Long parentId;
-        private String fieldName;
-        private String mcpType;
-        private String mcpDesc;
-        private Boolean isRequired;
-        private String itemType;
-        private Long itemRefId;
-        private String httpPath;
-        private String httpLocation;
-        private Integer sortOrder;
-        private List<MappingNodeRequest> children;
-    }
-
-    @Data
-    public static class ToolDebugRequest {
-
-        private String gatewayId;
-        private String toolName;
-        private Map<String, Object> arguments;
-    }
-
-    @Data
-    public static class ModelBindingQueryRequest {
-
-        private Long modelId;
-    }
-
-    @Data
-    public static class SaveModelBindingRequest {
-
-        private Long modelId;
-        private List<Long> toolIds;
-    }
-
-    @Data
-    public static class GatewayMetricsQueryRequest {
-
-        private String gatewayId;
-        private String toolName;
-        private Integer recentMinutes;
-    }
 }

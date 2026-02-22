@@ -35,7 +35,11 @@ public interface IAgentScheduleDao extends BaseMapper<AgentSchedulePO> {
 
     AgentSchedulePO findById(AgentScheduleIdQuery query);
 
-    AgentSchedulePO findByAgentId(@Param("agentId") Long agentId);
+    List<AgentSchedulePO> listByAgentId(@Param("agentId") Long agentId);
+
+    long countByAgentIdAndScheduleName(@Param("agentId") Long agentId,
+                                       @Param("scheduleName") String scheduleName,
+                                       @Param("excludeId") Long excludeId);
 
     long count(AgentSchedulePageQuery query);
 

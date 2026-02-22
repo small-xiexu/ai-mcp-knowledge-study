@@ -1,5 +1,6 @@
 package com.xbk.knowledge.trigger.http;
 
+import com.xbk.knowledge.api.IXxlAdminService;
 import com.xbk.knowledge.api.dto.xxl.XxlJobCreateRequest;
 import com.xbk.knowledge.api.dto.xxl.XxlJobDetailRequest;
 import com.xbk.knowledge.api.dto.xxl.XxlJobDetailResponse;
@@ -47,7 +48,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/xxl")
 @RequiredArgsConstructor
-public class XxlAdminController {
+public class XxlAdminController implements IXxlAdminService {
 
     private final XxlJobAppService xxlJobAppService;
     private final XxlAdminProperties xxlAdminProperties;
@@ -62,6 +63,7 @@ public class XxlAdminController {
      * @return 分页结果
      */
     @PostMapping("/jobs/list")
+    @Override
     public Result<PageResult<XxlJobResponse>> listJobs(@Valid @RequestBody XxlJobListRequest request) {
         xxlPermissionGuard.assertCanView();
         String appName = resolveAppName(request.getAppName());
@@ -83,6 +85,7 @@ public class XxlAdminController {
      * @return 任务列表
      */
     @PostMapping("/jobs/options")
+    @Override
     public Result<List<XxlJobResponse>> listJobOptions(@RequestBody(required = false) XxlJobOptionRequest request) {
         xxlPermissionGuard.assertCanView();
         String appName = resolveAppName(null);
@@ -104,6 +107,7 @@ public class XxlAdminController {
      * @return 任务详情
      */
     @PostMapping("/jobs/detail")
+    @Override
     public Result<XxlJobDetailResponse> getJobDetail(@Valid @RequestBody XxlJobDetailRequest request) {
         xxlPermissionGuard.assertCanView();
         String appName = resolveAppName(null);
@@ -120,6 +124,7 @@ public class XxlAdminController {
      * @return 创建结果
      */
     @PostMapping("/jobs/create")
+    @Override
     public Result<String> createJob(@Valid @RequestBody XxlJobCreateRequest request) {
         xxlPermissionGuard.assertCanEdit();
         XxlJobInfo jobInfo = buildJobInfo(request);
@@ -136,6 +141,7 @@ public class XxlAdminController {
      * @return 更新结果
      */
     @PostMapping("/jobs/update")
+    @Override
     public Result<Void> updateJob(@Valid @RequestBody XxlJobUpdateRequest request) {
         xxlPermissionGuard.assertCanEdit();
         XxlJobInfo jobInfo = buildJobInfo(request);
@@ -153,6 +159,7 @@ public class XxlAdminController {
      * @return 删除结果
      */
     @PostMapping("/jobs/remove")
+    @Override
     public Result<Void> removeJob(@Valid @RequestBody XxlJobOperateRequest request) {
         xxlPermissionGuard.assertCanEdit();
         xxlJobAppService.removeJob(request.getId());
@@ -168,6 +175,7 @@ public class XxlAdminController {
      * @return 启动结果
      */
     @PostMapping("/jobs/start")
+    @Override
     public Result<Void> startJob(@Valid @RequestBody XxlJobOperateRequest request) {
         xxlPermissionGuard.assertCanEdit();
         xxlJobAppService.startJob(request.getId());
@@ -183,6 +191,7 @@ public class XxlAdminController {
      * @return 停止结果
      */
     @PostMapping("/jobs/stop")
+    @Override
     public Result<Void> stopJob(@Valid @RequestBody XxlJobOperateRequest request) {
         xxlPermissionGuard.assertCanEdit();
         xxlJobAppService.stopJob(request.getId());
@@ -198,6 +207,7 @@ public class XxlAdminController {
      * @return 触发结果
      */
     @PostMapping("/jobs/trigger")
+    @Override
     public Result<String> triggerJob(@Valid @RequestBody XxlJobTriggerRequest request) {
         xxlPermissionGuard.assertCanEdit();
         String result = xxlJobAppService.triggerJob(request.getId(), request.getExecutorParam(), request.getAddressList());
@@ -213,6 +223,7 @@ public class XxlAdminController {
      * @return 分页结果
      */
     @PostMapping("/logs/list")
+    @Override
     public Result<PageResult<XxlJobLogResponse>> listLogs(@Valid @RequestBody XxlJobLogListRequest request) {
         xxlPermissionGuard.assertCanView();
         String appName = resolveAppName(null);
@@ -239,6 +250,7 @@ public class XxlAdminController {
      * @return 日志详情
      */
     @PostMapping("/logs/detail")
+    @Override
     public Result<XxlJobLogDetailResponse> getLogDetail(@Valid @RequestBody XxlJobLogDetailRequest request) {
         xxlPermissionGuard.assertCanView();
         XxlJobLogDetail detail = xxlJobAppService.queryLogDetail(request.getLogId(), request.getFromLineNum());

@@ -27,7 +27,7 @@ const routes: RouteRecordRaw[] = [
         path: 'models',
         name: 'Models',
         component: () => import('@/views/model/index.vue'),
-        meta: { title: 'LLM 配置', icon: 'Setting', permission: 'agent:read', group: 'integration', order: 10 }
+        meta: { title: 'LLM 配置', icon: 'DataLine', permission: 'agent:read', group: 'integration', order: 10 }
       },
       {
         path: 'client-profiles',
@@ -129,7 +129,7 @@ const routes: RouteRecordRaw[] = [
         path: 'advisors',
         name: 'Advisors',
         component: () => import('@/views/advisor/index.vue'),
-        meta: { title: 'Advisor 配置', icon: 'Setting', permission: 'advisor:read', group: 'integration', order: 25 }
+        meta: { title: 'Advisor 配置', icon: 'Tools', permission: 'advisor:read', group: 'integration', order: 25 }
       },
       {
         path: 'xxl',

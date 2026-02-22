@@ -5,7 +5,10 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * Workflow 节点运行明细响应。
+ * Workflow 节点运行明细响应 DTO。
+ * 定义 Workflow 节点运行明细的 API 返回结构。
+ *
+ * 职责：接口契约 DTO，用于隔离领域对象并稳定 Trigger 层对外响应。
  *
  * @author sxie
  */
@@ -27,6 +30,12 @@ public class WorkflowNodeRunResponse {
     private Long modelIdUsed;
 
     private String modelNameUsed;
+
+    private Integer promptTokens;
+
+    private Integer completionTokens;
+
+    private Integer totalTokens;
 
     private Integer toolCallCount;
 

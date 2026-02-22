@@ -25,6 +25,8 @@ public class AgentScheduleResponse implements Serializable {
     private Long agentId;
     private String agentCode;
 
+    private String scheduleName;
+    private String description;
     private String cron;
     private Boolean enabled;
     private Long xxlJobId;

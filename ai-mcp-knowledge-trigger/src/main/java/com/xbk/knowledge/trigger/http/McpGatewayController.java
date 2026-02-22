@@ -1,5 +1,6 @@
 package com.xbk.knowledge.trigger.http;
 
+import com.xbk.knowledge.api.IMcpGatewayService;
 import com.xbk.knowledge.trigger.gateway.model.McpSchemaVO;
 import com.xbk.knowledge.trigger.gateway.service.GatewayMessageService;
 import com.xbk.knowledge.trigger.gateway.service.GatewaySessionService;
@@ -36,7 +37,7 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RequestMapping("/api/gateway")
-public class McpGatewayController {
+public class McpGatewayController implements IMcpGatewayService {
 
     private final GatewaySessionService gatewaySessionService;
     private final GatewayMessageService gatewayMessageService;
@@ -47,6 +48,7 @@ public class McpGatewayController {
      * API Key 支持 Header（X-API-Key）和 Query 参数两种传递方式
      */
     @GetMapping(value = "/{gatewayId}/mcp/sse", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @Override
     public Flux<ServerSentEvent<String>> establishSseConnection(@PathVariable("gatewayId") String gatewayId,
                                                                  @RequestHeader(value = "X-API-Key", required = false) String apiKey,
                                                                  @RequestParam(value = "apiKey", required = false) String apiKeyQuery) {
@@ -60,6 +62,7 @@ public class McpGatewayController {
      * 响应同时通过 SSE 通道推送给客户端
      */
     @PostMapping(value = "/{gatewayId}/mcp/message", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Override
     public Mono<ResponseEntity<Object>> handleMessage(@PathVariable("gatewayId") String gatewayId,
                                                       @RequestParam("sessionId") String sessionId,
                                                       @RequestBody String body) {

@@ -1,5 +1,6 @@
 package com.xbk.knowledge.trigger.http;
 
+import com.xbk.knowledge.api.IModelConfigService;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.xbk.knowledge.api.dto.common.IdRequest;
 import com.xbk.knowledge.api.dto.model.ModelConfigQueryRequest;
@@ -34,7 +35,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/models")
 @RequiredArgsConstructor
-public class ModelConfigController {
+public class ModelConfigController implements IModelConfigService {
 
     private final ModelConfigAppService modelConfigAppService;
 
@@ -47,6 +48,7 @@ public class ModelConfigController {
      */
     @PostMapping("/list")
     @SaCheckPermission("agent:read")
+    @Override
     public Result<PageResult<ModelConfigResponse>> listModels(@Valid @RequestBody ModelConfigQueryRequest request) {
         /*
          * 目的：将分页参数转为领域查询对象，隔离接口层字段
@@ -87,6 +89,7 @@ public class ModelConfigController {
      */
     @PostMapping("/get")
     @SaCheckPermission("agent:read")
+    @Override
     public Result<ModelConfigResponse> getModel(@Valid @RequestBody IdRequest request) {
         /*
          * 目的：查询模型配置并补充激活状态
@@ -115,6 +118,7 @@ public class ModelConfigController {
      */
     @PostMapping("/create")
     @SaCheckPermission("agent:write")
+    @Override
     public Result<ModelConfigResponse> createModel(@Valid @RequestBody ModelConfigRequest request) {
         /*
          * 目的：从接口请求构建领域实体，隔离 DTO 与领域模型
@@ -142,6 +146,7 @@ public class ModelConfigController {
      */
     @PostMapping("/update")
     @SaCheckPermission("agent:write")
+    @Override
     public Result<ModelConfigResponse> updateModel(@Valid @RequestBody ModelConfigRequest request) {
         /*
          * 目的：构建完整领域实体，确保字段映射一致
@@ -171,6 +176,7 @@ public class ModelConfigController {
      */
     @PostMapping("/delete")
     @SaCheckPermission("agent:write")
+    @Override
     public Result<Void> deleteModel(@Valid @RequestBody IdRequest request) {
         /*
          * 目的：由应用层完成删除与校验
@@ -191,6 +197,7 @@ public class ModelConfigController {
      */
     @PostMapping("/enable")
     @SaCheckPermission("agent:write")
+    @Override
     public Result<ModelConfigResponse> enableModel(@Valid @RequestBody IdRequest request) {
         /*
          * 目的：交由应用层处理启用逻辑与校验
@@ -215,6 +222,7 @@ public class ModelConfigController {
      */
     @PostMapping("/disable")
     @SaCheckPermission("agent:write")
+    @Override
     public Result<ModelConfigResponse> disableModel(@Valid @RequestBody IdRequest request) {
         /*
          * 目的：交由应用层处理禁用逻辑与校验
@@ -239,6 +247,7 @@ public class ModelConfigController {
      */
     @PostMapping("/active-chat")
     @SaCheckPermission("agent:read")
+    @Override
     public Result<ModelConfigResponse> getActiveChatModel() {
         ModelConfig modelConfig = modelConfigAppService.getActiveChatModel();
         if (modelConfig == null) {
@@ -257,6 +266,7 @@ public class ModelConfigController {
      */
     @PostMapping("/active-embedding")
     @SaCheckPermission("agent:read")
+    @Override
     public Result<ModelConfigResponse> getActiveEmbeddingModel() {
         ModelConfig modelConfig = modelConfigAppService.getActiveEmbeddingModel();
         if (modelConfig == null) {
@@ -275,6 +285,7 @@ public class ModelConfigController {
      */
     @PostMapping("/activate-chat")
     @SaCheckPermission("agent:write")
+    @Override
     public Result<ModelConfigResponse> activateChatModel(@Valid @RequestBody IdRequest request) {
         Long id = request.getId();
         IdQuery idQuery = new IdQuery(id);
@@ -295,6 +306,7 @@ public class ModelConfigController {
      */
     @PostMapping("/activate-embedding")
     @SaCheckPermission("agent:write")
+    @Override
     public Result<ModelConfigResponse> activateEmbeddingModel(@Valid @RequestBody IdRequest request) {
         Long id = request.getId();
         IdQuery idQuery = new IdQuery(id);
@@ -315,6 +327,7 @@ public class ModelConfigController {
      */
     @PostMapping("/test")
     @SaCheckPermission("agent:write")
+    @Override
     public Result<Boolean> testModel(@Valid @RequestBody IdRequest request) {
         Long id = request.getId();
         IdQuery idQuery = new IdQuery(id);

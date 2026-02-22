@@ -22,9 +22,14 @@ public interface AgentScheduleRepository {
     Optional<AgentSchedule> findById(AgentScheduleIdQuery query);
 
     /**
-     * 方法：findByAgentId。
+     * 方法：listByAgentId。
      */
-    Optional<AgentSchedule> findByAgentId(Long agentId);
+    List<AgentSchedule> listByAgentId(Long agentId);
+
+    /**
+     * 方法：existsByAgentIdAndScheduleName。
+     */
+    boolean existsByAgentIdAndScheduleName(Long agentId, String scheduleName, Long excludeId);
 
     /**
      * 方法：insert。

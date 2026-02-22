@@ -43,8 +43,10 @@ public class AgentScheduleServiceImpl implements IAgentScheduleService {
         }
         int offset = query.offset() == null ? 0 : Math.max(query.offset(), 0);
         int pageSize = query.pageSize() == null ? 20 : Math.min(Math.max(query.pageSize(), 1), 200);
+        String scheduleName = StringUtils.hasText(query.scheduleName()) ? query.scheduleName().trim() : null;
         AgentSchedulePageQuery normalized = new AgentSchedulePageQuery(
                 query.agentId(),
+                scheduleName,
                 query.enabled(),
                 offset,
                 pageSize
@@ -81,9 +83,18 @@ public class AgentScheduleServiceImpl implements IAgentScheduleService {
         if (schedule == null || schedule.getAgentId() == null) {
             throw new IllegalArgumentException("agentId 不能为空");
         }
+        if (!StringUtils.hasText(schedule.getScheduleName())) {
+            throw new BusinessException("scheduleName 不能为空");
+        }
         if (!StringUtils.hasText(schedule.getCron())) {
             throw new BusinessException("cron 不能为空");
         }
+        String scheduleName = schedule.getScheduleName().trim();
+        if (agentScheduleRepository.existsByAgentIdAndScheduleName(schedule.getAgentId(), scheduleName, null)) {
+            throw new BusinessException("调度名称已存在，agentId=" + schedule.getAgentId() + ", scheduleName=" + scheduleName);
+        }
+        schedule.setScheduleName(scheduleName);
+        schedule.setDescription(StringUtils.hasText(schedule.getDescription()) ? schedule.getDescription().trim() : null);
         LocalDateTime now = LocalDateTime.now();
         if (schedule.getEnabled() == null) {
             schedule.setEnabled(Boolean.TRUE);
@@ -112,6 +123,15 @@ public class AgentScheduleServiceImpl implements IAgentScheduleService {
         if (!StringUtils.hasText(schedule.getCron())) {
             throw new BusinessException("cron 不能为空");
         }
+        if (!StringUtils.hasText(schedule.getScheduleName())) {
+            throw new BusinessException("scheduleName 不能为空");
+        }
+        String scheduleName = schedule.getScheduleName().trim();
+        if (agentScheduleRepository.existsByAgentIdAndScheduleName(existed.getAgentId(), scheduleName, existed.getId())) {
+            throw new BusinessException("调度名称已存在，agentId=" + existed.getAgentId() + ", scheduleName=" + scheduleName);
+        }
+        existed.setScheduleName(scheduleName);
+        existed.setDescription(StringUtils.hasText(schedule.getDescription()) ? schedule.getDescription().trim() : null);
         existed.setCron(schedule.getCron());
         existed.setPayloadTemplateJson(schedule.getPayloadTemplateJson());
         existed.setUpdatedBy(schedule.getUpdatedBy());

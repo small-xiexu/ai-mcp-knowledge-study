@@ -1,5 +1,6 @@
 package com.xbk.knowledge.trigger.http;
 
+import com.xbk.knowledge.api.IPreheatService;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.stp.StpUtil;
 import com.xbk.knowledge.api.dto.preheat.PreheatAgentVersionRequest;
@@ -26,7 +27,7 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/preheat")
 @RequiredArgsConstructor
-public class PreheatController {
+public class PreheatController implements IPreheatService {
 
     private final PreheatAppService preheatAppService;
 
@@ -38,6 +39,7 @@ public class PreheatController {
      */
     @PostMapping("/agent-version")
     @SaCheckPermission("agent:write")
+    @Override
     public Result<PreheatResponse> preheatAgentVersion(@Valid @RequestBody PreheatAgentVersionRequest request) {
         boolean refreshMcp = request.getRefreshMcp() != null && request.getRefreshMcp();
         if (refreshMcp) {
@@ -55,6 +57,7 @@ public class PreheatController {
      */
     @PostMapping("/workflow-version")
     @SaCheckPermission("workflow:write")
+    @Override
     public Result<PreheatResponse> preheatWorkflowVersion(@Valid @RequestBody PreheatWorkflowVersionRequest request) {
         boolean refreshMcp = request.getRefreshMcp() != null && request.getRefreshMcp();
         if (refreshMcp) {

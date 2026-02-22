@@ -1,5 +1,6 @@
 package com.xbk.knowledge.trigger.http;
 
+import com.xbk.knowledge.api.IWorkbenchService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import com.xbk.knowledge.api.dto.workbench.WorkbenchSummaryResponse;
 import com.xbk.knowledge.application.model.workbench.WorkbenchSummary;
@@ -24,7 +25,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/workbench")
 @RequiredArgsConstructor
-public class WorkbenchController {
+public class WorkbenchController implements IWorkbenchService {
 
     private final WorkbenchAppService workbenchAppService;
 
@@ -35,6 +36,7 @@ public class WorkbenchController {
      */
     @PostMapping("/summary")
     @SaCheckLogin
+    @Override
     public Result<WorkbenchSummaryResponse> summary(@RequestBody(required = false) Object ignored) {
         WorkbenchSummary summary = workbenchAppService.summary();
         return Result.success(toResponse(summary));

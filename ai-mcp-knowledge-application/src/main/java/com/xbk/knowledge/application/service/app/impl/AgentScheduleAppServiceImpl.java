@@ -144,7 +144,7 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
         AgentSchedule schedule = agentScheduleService.enable(id, userId);
         if (schedule.getXxlJobId() == null) {
             // 未绑定 job 时，启用视为创建 job 并启动
-            String agentCode = resolveAgentCode(schedule.getAgentId());
+            String agentCode = resolveAgentCode(schedule);
             Long jobId = ensureXxlJob(schedule, agentCode, true);
             schedule = agentScheduleService.bindXxlJobId(id, jobId, userId);
         } else {
@@ -189,9 +189,15 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
         agentScheduleService.remove(id);
     }
 
-    private String resolveAgentCode(Long agentId) {
-        // 当前控制面只提供按 code 查；这里做最小兜底：不做反查，使用 agentId 作为标识在 jobDesc 中会降低可读性
-        // 生产建议补 agentId->agentCode 查询接口或在 schedule 表冗余 agent_code
+    private String resolveAgentCode(AgentSchedule schedule) {
+        if (schedule != null && StringUtils.hasText(schedule.getAgentCode())) {
+            return schedule.getAgentCode().trim();
+        }
+        Long agentId = schedule == null ? null : schedule.getAgentId();
+        // 回退方案：避免空值导致 jobDesc 信息缺失
+        if (agentId == null) {
+            return "UNKNOWN_AGENT";
+        }
         return "agentId=" + agentId;
     }
 
@@ -201,13 +207,15 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
         }
         Long scheduleId = schedule.getId();
         String executorParam = buildExecutorParam(scheduleId);
+        String scheduleName = StringUtils.hasText(schedule.getScheduleName()) ? schedule.getScheduleName().trim() : ("schedule-" + scheduleId);
+        String jobDesc = "AgentSchedule[" + scheduleName + "]: " + agentCode + " (scheduleId=" + scheduleId + ")";
 
         if (schedule.getXxlJobId() == null) {
             if (!createIfMissing) {
                 // update 场景若缺 jobId，则创建
             }
             XxlJobInfo jobInfo = XxlJobInfo.builder()
-                    .jobDesc("AgentSchedule: " + agentCode + " (scheduleId=" + scheduleId + ")")
+                    .jobDesc(jobDesc)
                     .author("platform")
                     .scheduleType("CRON")
                     .scheduleConf(schedule.getCron())
@@ -237,7 +245,7 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
         // 已存在 job：更新 cron 与 param
         XxlJobInfo jobInfo = XxlJobInfo.builder()
                 .id(schedule.getXxlJobId())
-                .jobDesc("AgentSchedule: " + agentCode + " (scheduleId=" + scheduleId + ")")
+                .jobDesc(jobDesc)
                 .author("platform")
                 .scheduleType("CRON")
                 .scheduleConf(schedule.getCron())

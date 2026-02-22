@@ -70,6 +70,8 @@ export interface AgentSchedule {
   id: number
   agentId: number
   agentCode?: string
+  scheduleName: string
+  description?: string
   cron: string
   enabled: boolean
   xxlJobId?: number
@@ -145,16 +147,16 @@ export const approveTool = (data: { id: number; decisionComment?: string }) =>
 export const rejectTool = (data: { id: number; decisionComment?: string }) =>
   request.post<ApprovalRequest>('/approvals/reject', data)
 
-export const listSchedules = (data: { agentCode?: string; enabled?: boolean; pageNum: number; pageSize: number }) =>
+export const listSchedules = (data: { agentCode?: string; scheduleName?: string; enabled?: boolean; pageNum: number; pageSize: number }) =>
   request.post<PageResult<AgentSchedule>>('/schedules/list', data)
 
 export const getSchedule = (id: number) =>
   request.post<AgentSchedule>('/schedules/get', { id })
 
-export const createSchedule = (data: { agentCode: string; cron: string; enabled?: boolean; payloadTemplateJson?: string }) =>
+export const createSchedule = (data: { agentCode: string; scheduleName: string; description?: string; cron: string; enabled?: boolean; payloadTemplateJson?: string }) =>
   request.post<AgentSchedule>('/schedules/create', data)
 
-export const updateSchedule = (data: { id: number; agentCode: string; cron: string; payloadTemplateJson?: string }) =>
+export const updateSchedule = (data: { id: number; agentCode: string; scheduleName: string; description?: string; cron: string; payloadTemplateJson?: string }) =>
   request.post<AgentSchedule>('/schedules/update', data)
 
 export const enableSchedule = (id: number) =>

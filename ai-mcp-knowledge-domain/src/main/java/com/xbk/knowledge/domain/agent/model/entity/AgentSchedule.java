@@ -33,6 +33,16 @@ public class AgentSchedule implements Serializable {
     private String agentCode;
 
     /**
+     * 调度名称（同一个 Agent 下唯一）。
+     */
+    private String scheduleName;
+
+    /**
+     * 调度描述（可选）。
+     */
+    private String description;
+
+    /**
      * Cron 表达式（由 XXL-Job 解释）。
      */
     private String cron;

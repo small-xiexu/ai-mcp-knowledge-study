@@ -35,7 +35,11 @@
         <el-table-column
           prop="id"
           label="ID"
-          width="80"
+          width="64"
+          align="center"
+          header-align="center"
+          class-name="id-column-cell"
+          label-class-name="id-column-header"
         />
         <el-table-column
           prop="modelName"
@@ -454,6 +458,12 @@ onMounted(() => {
   color: #9aa0a6;
   font-family: 'Roboto Mono', monospace;
   font-size: 12px;
+}
+
+:deep(.id-column-header),
+:deep(.id-column-cell) {
+  padding-left: 8px !important;
+  padding-right: 8px !important;
 }
 
 /* 状态样式 */

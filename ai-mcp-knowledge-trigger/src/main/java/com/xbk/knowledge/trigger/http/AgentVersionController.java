@@ -1,5 +1,6 @@
 package com.xbk.knowledge.trigger.http;
 
+import com.xbk.knowledge.api.IAgentVersionService;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.xbk.knowledge.api.dto.agent.AgentVersionDraftRequest;
 import com.xbk.knowledge.api.dto.agent.AgentVersionPublishRequest;
@@ -37,7 +38,7 @@ import java.math.BigDecimal;
 @RestController
 @RequestMapping("/api/agent-versions")
 @RequiredArgsConstructor
-public class AgentVersionController {
+public class AgentVersionController implements IAgentVersionService {
 
     private final AgentVersionAppService agentVersionAppService;
     private final AgentAppService agentAppService;
@@ -51,6 +52,7 @@ public class AgentVersionController {
      */
     @PostMapping("/list")
     @SaCheckPermission("agent:read")
+    @Override
     public Result<PageResult<AgentVersionResponse>> list(@Valid @RequestBody AgentVersionQueryRequest request) {
         Agent agent = agentAppService.queryByCode(new AgentCodeQuery(request.getAgentCode()));
         AgentVersionPageQuery query = new AgentVersionPageQuery(agent.getId(),
@@ -70,6 +72,7 @@ public class AgentVersionController {
      */
     @PostMapping("/get")
     @SaCheckPermission("agent:read")
+    @Override
     public Result<AgentVersionResponse> get(@Valid @RequestBody IdRequest request) {
         AgentVersion version = agentVersionAppService.queryById(new AgentVersionIdQuery(request.getId()));
         return Result.success(toResponse(version));
@@ -85,6 +88,7 @@ public class AgentVersionController {
      */
     @PostMapping("/draft/save")
     @SaCheckPermission("agent:write")
+    @Override
     public Result<AgentVersionResponse> saveDraft(@Valid @RequestBody AgentVersionDraftRequest request) {
         Long userId = identityContextService.getCurrentUserId();
         Agent agent = agentAppService.queryByCode(new AgentCodeQuery(request.getAgentCode()));
@@ -129,6 +133,7 @@ public class AgentVersionController {
      */
     @PostMapping("/publish")
     @SaCheckPermission("agent:publish")
+    @Override
     public Result<AgentVersionResponse> publish(@Valid @RequestBody AgentVersionPublishRequest request) {
         Long userId = identityContextService.getCurrentUserId();
         AgentVersion published = agentVersionAppService.publish(request.getAgentCode(), request.getVersionId(), userId);
@@ -143,6 +148,7 @@ public class AgentVersionController {
      */
     @PostMapping("/rollback")
     @SaCheckPermission("agent:publish")
+    @Override
     public Result<AgentVersionResponse> rollback(@Valid @RequestBody AgentVersionRollbackRequest request) {
         Long userId = identityContextService.getCurrentUserId();
         AgentVersion target = agentVersionAppService.rollback(request.getAgentCode(), request.getTargetVersionId(), userId);

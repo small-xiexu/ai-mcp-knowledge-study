@@ -99,6 +99,7 @@ public class AICallController implements IAICallService {
      */
     @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @SaCheckPermission("agent:read")
+    @Override
     public SseEmitter stream(@Valid @RequestBody AIRequest request, HttpServletResponse httpResponse) {
         
         httpResponse.setCharacterEncoding("UTF-8");

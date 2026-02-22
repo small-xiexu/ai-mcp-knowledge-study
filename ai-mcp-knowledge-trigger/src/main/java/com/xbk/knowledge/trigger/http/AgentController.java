@@ -1,5 +1,6 @@
 package com.xbk.knowledge.trigger.http;
 
+import com.xbk.knowledge.api.IAgentService;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.xbk.knowledge.api.dto.agent.AgentCodeRequest;
 import com.xbk.knowledge.api.dto.agent.AgentCreateRequest;
@@ -32,7 +33,7 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/agents")
 @RequiredArgsConstructor
-public class AgentController {
+public class AgentController implements IAgentService {
 
     private final AgentAppService agentAppService;
     private final IdentityContextService identityContextService;
@@ -45,6 +46,7 @@ public class AgentController {
      */
     @PostMapping("/list")
     @SaCheckPermission("agent:read")
+    @Override
     public Result<PageResult<AgentResponse>> list(@Valid @RequestBody AgentQueryRequest request) {
         AgentPageQuery query = new AgentPageQuery(request.getKeyword(),
                 request.getStatus(),
@@ -64,6 +66,7 @@ public class AgentController {
      */
     @PostMapping("/get")
     @SaCheckPermission("agent:read")
+    @Override
     public Result<AgentResponse> get(@Valid @RequestBody AgentCodeRequest request) {
         Agent agent = agentAppService.queryByCode(new AgentCodeQuery(request.getAgentCode()));
         return Result.success(toResponse(agent));
@@ -77,6 +80,7 @@ public class AgentController {
      */
     @PostMapping("/create")
     @SaCheckPermission("agent:write")
+    @Override
     public Result<AgentResponse> create(@Valid @RequestBody AgentCreateRequest request) {
         Long userId = identityContextService.getCurrentUserId();
         Agent agent = Agent.builder()
@@ -100,6 +104,7 @@ public class AgentController {
      */
     @PostMapping("/update")
     @SaCheckPermission("agent:write")
+    @Override
     public Result<AgentResponse> update(@Valid @RequestBody AgentUpdateRequest request) {
         Long userId = identityContextService.getCurrentUserId();
         Agent agent = Agent.builder()
@@ -122,6 +127,7 @@ public class AgentController {
      */
     @PostMapping("/remove")
     @SaCheckPermission("agent:write")
+    @Override
     public Result<Void> remove(@Valid @RequestBody AgentCodeRequest request) {
         agentAppService.remove(new AgentCodeQuery(request.getAgentCode()));
         return Result.success();

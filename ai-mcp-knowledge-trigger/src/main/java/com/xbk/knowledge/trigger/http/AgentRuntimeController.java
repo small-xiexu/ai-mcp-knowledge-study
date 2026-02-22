@@ -1,5 +1,6 @@
 package com.xbk.knowledge.trigger.http;
 
+import com.xbk.knowledge.api.IAgentRuntimeService;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.xbk.knowledge.api.dto.agent.AgentRuntimeChatRequest;
 import com.xbk.knowledge.api.dto.agent.AgentRuntimeInvokeRequest;
@@ -29,7 +30,7 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/agents/{agentCode}")
 @RequiredArgsConstructor
-public class AgentRuntimeController {
+public class AgentRuntimeController implements IAgentRuntimeService {
 
     private final AgentRuntimeAppService agentRuntimeAppService;
 
@@ -42,6 +43,7 @@ public class AgentRuntimeController {
      */
     @PostMapping("/chat")
     @SaCheckPermission("agent:invoke")
+    @Override
     public Result<PlatformContractV1> chat(@PathVariable("agentCode") String agentCode,
                                           @Valid @RequestBody AgentRuntimeChatRequest request) {
         PlatformContractV1 result = agentRuntimeAppService.chat(agentCode,
@@ -62,6 +64,7 @@ public class AgentRuntimeController {
      */
     @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @SaCheckPermission("agent:invoke")
+    @Override
     public SseEmitter stream(@PathVariable("agentCode") String agentCode,
                              @Valid @RequestBody AgentRuntimeChatRequest request,
                              HttpServletResponse httpResponse) {
@@ -109,6 +112,7 @@ public class AgentRuntimeController {
      */
     @PostMapping("/invoke")
     @SaCheckPermission("agent:invoke")
+    @Override
     public Result<PlatformContractV1> invoke(@PathVariable("agentCode") String agentCode,
                                             @Valid @RequestBody AgentRuntimeInvokeRequest request) {
         PlatformContractV1 result = agentRuntimeAppService.invoke(agentCode,

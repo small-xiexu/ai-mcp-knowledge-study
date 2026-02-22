@@ -1,5 +1,6 @@
 package com.xbk.knowledge.trigger.http;
 
+import com.xbk.knowledge.api.IWorkflowService;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.xbk.knowledge.api.dto.common.IdRequest;
 import com.xbk.knowledge.api.dto.workflow.*;
@@ -29,7 +30,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/workflows")
 @RequiredArgsConstructor
-public class WorkflowController {
+public class WorkflowController implements IWorkflowService {
 
     private final WorkflowAppService workflowAppService;
 
@@ -41,6 +42,7 @@ public class WorkflowController {
      */
     @PostMapping("/list")
     @SaCheckPermission("workflow:read")
+    @Override
     public Result<PageResult<WorkflowResponse>> list(@Valid @RequestBody WorkflowListRequest request) {
         PageResult<Workflow> page = workflowAppService.list(request.getKeyword(),
                 request.getOffset() == null ? 0 : request.getOffset(),
@@ -58,6 +60,7 @@ public class WorkflowController {
      */
     @PostMapping("/get")
     @SaCheckPermission("workflow:read")
+    @Override
     public Result<WorkflowResponse> get(@Valid @RequestBody IdRequest request) {
         Workflow wf = workflowAppService.get(request.getId());
         return Result.success(toResponse(wf));
@@ -71,6 +74,7 @@ public class WorkflowController {
      */
     @PostMapping("/create")
     @SaCheckPermission("workflow:write")
+    @Override
     public Result<WorkflowResponse> create(@Valid @RequestBody WorkflowCreateRequest request) {
         Workflow wf = Workflow.builder()
                 .workflowCode(request.getWorkflowCode())
@@ -90,6 +94,7 @@ public class WorkflowController {
      */
     @PostMapping("/update")
     @SaCheckPermission("workflow:write")
+    @Override
     public Result<WorkflowResponse> update(@Valid @RequestBody WorkflowUpdateRequest request) {
         Workflow wf = Workflow.builder()
                 .id(request.getId())
@@ -109,6 +114,7 @@ public class WorkflowController {
      */
     @PostMapping("/versions/create")
     @SaCheckPermission("workflow:write")
+    @Override
     public Result<WorkflowVersionResponse> createVersion(@Valid @RequestBody WorkflowVersionCreateRequest request) {
         WorkflowVersion v = workflowAppService.createVersion(request.getWorkflowId(), request.getChangeSummary());
         return Result.success(toVersionResponse(v));
@@ -122,6 +128,7 @@ public class WorkflowController {
      */
     @PostMapping("/versions/list")
     @SaCheckPermission("workflow:read")
+    @Override
     public Result<List<WorkflowVersionResponse>> listVersions(@Valid @RequestBody WorkflowVersionListRequest request) {
         List<WorkflowVersion> list = workflowAppService.listVersions(request.getWorkflowId());
         List<WorkflowVersionResponse> resp = new ArrayList<>();
@@ -141,6 +148,7 @@ public class WorkflowController {
      */
     @PostMapping("/versions/get")
     @SaCheckPermission("workflow:read")
+    @Override
     public Result<WorkflowVersionResponse> getVersion(@Valid @RequestBody IdRequest request) {
         WorkflowVersion v = workflowAppService.getVersion(request.getId());
         return Result.success(toVersionResponse(v));
@@ -154,6 +162,7 @@ public class WorkflowController {
      */
     @PostMapping("/versions/publish")
     @SaCheckPermission("workflow:publish")
+    @Override
     public Result<WorkflowVersionResponse> publish(@Valid @RequestBody WorkflowVersionPublishRequest request) {
         WorkflowVersion v = workflowAppService.publishVersion(request.getWorkflowVersionId());
         return Result.success("发布成功", toVersionResponse(v));
@@ -167,6 +176,7 @@ public class WorkflowController {
      */
     @PostMapping("/versions/save-graph")
     @SaCheckPermission("workflow:write")
+    @Override
     public Result<WorkflowVersionResponse> saveGraph(@Valid @RequestBody WorkflowGraphSaveRequest request) {
 
         List<WorkflowNode> nodes = new ArrayList<>();

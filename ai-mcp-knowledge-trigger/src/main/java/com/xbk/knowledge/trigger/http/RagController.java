@@ -1,5 +1,6 @@
 package com.xbk.knowledge.trigger.http;
 
+import com.xbk.knowledge.api.IRagService;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.xbk.knowledge.api.dto.rag.RagGitAnalyzeRequest;
 import com.xbk.knowledge.api.dto.rag.RagTaskIdRequest;
@@ -28,7 +29,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/ai/rag")
 @RequiredArgsConstructor
-public class RagController {
+public class RagController implements IRagService {
 
     private final RagAppService ragAppService;
 
@@ -41,6 +42,7 @@ public class RagController {
      */
     @PostMapping("/tags")
     @SaCheckPermission("agent:read")
+    @Override
     public Result<List<String>> listTags() {
         List<String> tags = ragAppService.listRagTags();
         return Result.success(tags);
@@ -55,6 +57,7 @@ public class RagController {
      */
     @PostMapping("/delete")
     @SaCheckPermission("agent:write")
+    @Override
     public Result<Boolean> deleteTag(@RequestParam("ragTag") String ragTag) {
         boolean success = ragAppService.deleteRagTag(ragTag);
         return Result.success(success);
@@ -69,6 +72,7 @@ public class RagController {
      */
     @PostMapping("/count")
     @SaCheckPermission("agent:read")
+    @Override
     public Result<Long> countTag(@RequestParam("ragTag") String ragTag) {
         long count = ragAppService.countByRagTag(ragTag);
         return Result.success(count);
@@ -83,6 +87,7 @@ public class RagController {
      */
     @PostMapping(value = "/upload", headers = "content-type=multipart/form-data")
     @SaCheckPermission("agent:write")
+    @Override
     public Result<Boolean> uploadFile(@RequestParam("ragTag") String ragTag,
                                       @RequestParam("file") List<MultipartFile> files) {
         boolean success = ragAppService.uploadFiles(ragTag, files);
@@ -98,6 +103,7 @@ public class RagController {
      */
     @PostMapping(value = "/upload/async", headers = "content-type=multipart/form-data")
     @SaCheckPermission("agent:write")
+    @Override
     public Result<String> uploadFileAsync(@RequestParam("ragTag") String ragTag,
                                           @RequestParam("file") List<MultipartFile> files) {
         String taskId = ragAppService.uploadFilesAsync(ragTag, files);
@@ -113,6 +119,7 @@ public class RagController {
      */
     @PostMapping("/analyze")
     @SaCheckPermission("agent:write")
+    @Override
     public Result<String> analyzeGitRepository(@Valid @RequestBody RagGitAnalyzeRequest request) {
         String taskId = ragAppService.analyzeGitRepository(
                 request.getRepoUrl(),
@@ -132,6 +139,7 @@ public class RagController {
      */
     @PostMapping("/task/progress")
     @SaCheckPermission("agent:read")
+    @Override
     public Result<RagTaskResponse> queryTask(@Valid @RequestBody RagTaskIdRequest request) {
         RagTask task = ragAppService.queryTask(request.getTaskId());
         if (task == null) {
@@ -150,6 +158,7 @@ public class RagController {
      */
     @PostMapping("/task/cancel")
     @SaCheckPermission("agent:write")
+    @Override
     public Result<Boolean> cancelTask(@Valid @RequestBody RagTaskIdRequest request) {
         boolean success = ragAppService.cancelTask(request.getTaskId());
         return Result.success(success);
@@ -164,6 +173,7 @@ public class RagController {
      */
     @PostMapping("/task/retry")
     @SaCheckPermission("agent:write")
+    @Override
     public Result<String> retryTask(@Valid @RequestBody RagTaskIdRequest request) {
         String newTaskId = ragAppService.retryTask(request.getTaskId());
         return Result.success("重试任务已创建", newTaskId);
@@ -178,6 +188,7 @@ public class RagController {
      */
     @PostMapping("/task/list")
     @SaCheckPermission("agent:read")
+    @Override
     public Result<PageResult<RagTaskResponse>> listTasks(@Valid @RequestBody RagTaskQueryRequest request) {
         request.validate();
         int offset = request.getOffset();

@@ -1,5 +1,6 @@
 package com.xbk.knowledge.trigger.http;
 
+import com.xbk.knowledge.api.IPermissionService;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.xbk.knowledge.api.dto.permission.PermissionQueryRequest;
 import com.xbk.knowledge.api.dto.permission.PermissionResponse;
@@ -27,7 +28,7 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/permissions")
 @RequiredArgsConstructor
-public class PermissionController {
+public class PermissionController implements IPermissionService {
 
     private final PermissionAppService permissionAppService;
 
@@ -39,6 +40,7 @@ public class PermissionController {
      */
     @SaCheckPermission("role:read")
     @PostMapping("/list")
+    @Override
     public Result<PageResult<PermissionResponse>> list(@Valid @RequestBody PermissionQueryRequest request) {
         PermissionPageQuery query = new PermissionPageQuery(
                 request.getResourceType(),

@@ -1,5 +1,6 @@
 package com.xbk.knowledge.trigger.http;
 
+import com.xbk.knowledge.api.IMcpToolService;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.xbk.knowledge.api.dto.mcp.McpToolResponse;
 import com.xbk.knowledge.application.model.dto.McpToolInfo;
@@ -22,7 +23,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/mcp/tools")
 @RequiredArgsConstructor
-public class McpToolController {
+public class McpToolController implements IMcpToolService {
 
     private final McpToolCatalogService mcpToolCatalogService;
 
@@ -35,6 +36,7 @@ public class McpToolController {
      */
     @PostMapping("/list")
     @SaCheckPermission("tool:read")
+    @Override
     public Result<List<McpToolResponse>> listTools() {
         List<McpToolInfo> tools = mcpToolCatalogService.listTools();
         /*

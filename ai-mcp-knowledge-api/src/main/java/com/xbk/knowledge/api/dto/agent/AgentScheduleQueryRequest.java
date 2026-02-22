@@ -21,8 +21,12 @@ public class AgentScheduleQueryRequest extends PageRequest {
     private String agentCode;
 
     /**
+     * 过滤：调度名称（可选，模糊匹配）。
+     */
+    private String scheduleName;
+
+    /**
      * 过滤：启用状态（可选）。
      */
     private Boolean enabled;
 }
-

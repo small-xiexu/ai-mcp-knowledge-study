@@ -6,6 +6,8 @@
         <id column="id" property="id"/>
         <result column="agent_id" property="agentId"/>
         <result column="agent_code" property="agentCode"/>
+        <result column="schedule_name" property="scheduleName"/>
+        <result column="description" property="description"/>
         <result column="cron" property="cron"/>
         <result column="enabled" property="enabled"/>
         <result column="xxl_job_id" property="xxlJobId"/>
@@ -17,17 +19,17 @@
     </resultMap>
 
     <sql id="BaseColumns">
-        s.id, s.agent_id, a.agent_code as agent_code,
+        s.id, s.agent_id, a.agent_code as agent_code, s.schedule_name, s.description,
         s.cron, s.enabled, s.xxl_job_id, s.payload_template_json,
         s.created_by, s.updated_by, s.created_at, s.updated_at
     </sql>
 
     <insert id="insertSchedule" parameterType="com.xbk.knowledge.infrastructure.dao.po.AgentSchedulePO" useGeneratedKeys="true" keyProperty="id">
         insert into agent_schedule (
-            agent_id, cron, enabled, xxl_job_id, payload_template_json,
+            agent_id, schedule_name, description, cron, enabled, xxl_job_id, payload_template_json,
             created_by, updated_by, created_at, updated_at
         ) values (
-            #{agentId}, #{cron}, #{enabled}, #{xxlJobId}, #{payloadTemplateJson},
+            #{agentId}, #{scheduleName}, #{description}, #{cron}, #{enabled}, #{xxlJobId}, #{payloadTemplateJson},
             #{createdBy}, #{updatedBy}, #{createdAt}, #{updatedAt}
         )
     </insert>
@@ -35,6 +37,8 @@
     <update id="updateSchedule" parameterType="com.xbk.knowledge.infrastructure.dao.po.AgentSchedulePO">
         update agent_schedule
         set
+            schedule_name = #{scheduleName},
+            description = #{description},
             cron = #{cron},
             payload_template_json = #{payloadTemplateJson},
             updated_by = #{updatedBy},
@@ -74,12 +78,22 @@
         limit 1
     </select>
 
-    <select id="findByAgentId" resultMap="AgentScheduleResultMap">
+    <select id="listByAgentId" resultMap="AgentScheduleResultMap">
         select <include refid="BaseColumns"/>
         from agent_schedule s
         left join agent a on a.id = s.agent_id
         where s.agent_id = #{agentId}
-        limit 1
+        order by s.updated_at desc, s.id desc
+    </select>
+
+    <select id="countByAgentIdAndScheduleName" resultType="long">
+        select count(1)
+        from agent_schedule
+        where agent_id = #{agentId}
+          and schedule_name = #{scheduleName}
+          <if test="excludeId != null">
+              and id &lt;&gt; #{excludeId}
+          </if>
     </select>
 
     <select id="count" resultType="long" parameterType="com.xbk.knowledge.domain.agent.model.valobj.AgentSchedulePageQuery">
@@ -88,6 +102,9 @@
         <where>
             <if test="agentId != null">
                 s.agent_id = #{agentId}
+            </if>
+            <if test="scheduleName != null and scheduleName != ''">
+                and s.schedule_name like concat('%', #{scheduleName}, '%')
             </if>
             <if test="enabled != null">
                 and s.enabled = #{enabled}
@@ -102,6 +119,9 @@
         <where>
             <if test="agentId != null">
                 s.agent_id = #{agentId}
+            </if>
+            <if test="scheduleName != null and scheduleName != ''">
+                and s.schedule_name like concat('%', #{scheduleName}, '%')
             </if>
             <if test="enabled != null">
                 and s.enabled = #{enabled}

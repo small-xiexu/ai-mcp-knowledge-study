@@ -656,6 +656,8 @@ CREATE TABLE prompt_template (
 CREATE TABLE agent_schedule (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     agent_id BIGINT NOT NULL COMMENT 'Agent ID',
+    schedule_name VARCHAR(100) NOT NULL COMMENT '调度名称（同 Agent 下唯一）',
+    description VARCHAR(500) DEFAULT NULL COMMENT '调度描述',
     cron VARCHAR(100) NOT NULL COMMENT 'Cron 表达式',
     enabled TINYINT(1) NOT NULL DEFAULT 1 COMMENT '是否启用',
     xxl_job_id BIGINT DEFAULT NULL COMMENT 'XXL Job ID',
@@ -664,8 +666,10 @@ CREATE TABLE agent_schedule (
     updated_by BIGINT DEFAULT NULL COMMENT '更新人用户ID',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    UNIQUE KEY uk_agent_schedule (agent_id),
-    INDEX idx_enabled (enabled)
+    UNIQUE KEY uk_agent_schedule_name (agent_id, schedule_name),
+    INDEX idx_agent_id (agent_id),
+    INDEX idx_agent_enabled (agent_id, enabled),
+    INDEX idx_updated_at (updated_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Agent 调度配置';
 
 -- 5) AgentRun（runId=traceId）

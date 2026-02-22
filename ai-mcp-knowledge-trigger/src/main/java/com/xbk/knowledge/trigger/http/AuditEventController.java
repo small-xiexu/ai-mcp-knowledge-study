@@ -1,5 +1,6 @@
 package com.xbk.knowledge.trigger.http;
 
+import com.xbk.knowledge.api.IAuditEventService;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.xbk.knowledge.api.dto.audit.AuditEventQueryRequest;
 import com.xbk.knowledge.api.dto.audit.AuditEventResponse;
@@ -27,7 +28,7 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/audit/events")
 @RequiredArgsConstructor
-public class AuditEventController {
+public class AuditEventController implements IAuditEventService {
 
     private final AuditEventAppService auditEventAppService;
 
@@ -39,6 +40,7 @@ public class AuditEventController {
      */
     @SaCheckPermission("audit:read")
     @PostMapping("/list")
+    @Override
     public Result<PageResult<AuditEventResponse>> list(@Valid @RequestBody AuditEventQueryRequest request) {
         AuditEventPageQuery query = new AuditEventPageQuery(
                 request.getOperatorKeyword(),

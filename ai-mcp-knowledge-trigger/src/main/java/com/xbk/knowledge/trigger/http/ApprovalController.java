@@ -1,5 +1,6 @@
 package com.xbk.knowledge.trigger.http;
 
+import com.xbk.knowledge.api.IApprovalService;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.xbk.knowledge.api.dto.approval.ApprovalDecisionRequest;
 import com.xbk.knowledge.api.dto.approval.ApprovalIdRequest;
@@ -32,7 +33,7 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/approvals")
 @RequiredArgsConstructor
-public class ApprovalController {
+public class ApprovalController implements IApprovalService {
 
     private final ApprovalAppService approvalAppService;
 
@@ -41,6 +42,7 @@ public class ApprovalController {
      */
     @PostMapping("/list")
     @SaCheckPermission("tool:approve")
+    @Override
     public Result<PageResult<ApprovalResponse>> list(@Valid @RequestBody ApprovalListRequest request) {
         PageResult<ApprovalRequest> page = approvalAppService.list(request.getStatus(),
                 request.getOffset() == null ? 0 : request.getOffset(),
@@ -55,6 +57,7 @@ public class ApprovalController {
      */
     @PostMapping("/get")
     @SaCheckPermission("tool:approve")
+    @Override
     public Result<ApprovalResponse> get(@Valid @RequestBody ApprovalIdRequest request) {
         ApprovalRequest approval = approvalAppService.get(request.getId());
         return Result.success(toResponse(approval));
@@ -65,6 +68,7 @@ public class ApprovalController {
      */
     @PostMapping("/approve")
     @SaCheckPermission("tool:approve")
+    @Override
     public Result<PlatformContractV1> approve(@Valid @RequestBody ApprovalDecisionRequest request) {
         PlatformContractV1 result = approvalAppService.approve(request.getId(), request.getDecisionComment());
         return Result.success("审批通过并已续跑完成", result);
@@ -75,6 +79,7 @@ public class ApprovalController {
      */
     @PostMapping("/reject")
     @SaCheckPermission("tool:approve")
+    @Override
     public Result<ApprovalResponse> reject(@Valid @RequestBody ApprovalDecisionRequest request) {
         ApprovalRequest result = approvalAppService.reject(request.getId(), request.getDecisionComment());
         return Result.success("审批已拒绝", toResponse(result));

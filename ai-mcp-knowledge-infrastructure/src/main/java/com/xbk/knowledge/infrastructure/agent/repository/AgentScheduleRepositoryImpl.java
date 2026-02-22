@@ -40,18 +40,23 @@ public class AgentScheduleRepositoryImpl implements AgentScheduleRepository {
         return Optional.ofNullable(toEntity(agentScheduleDao.findById(query)));
     }
 
-    /**
-     * findByAgentId。
-     *
-     * @param agentId 参数
-     * @return 返回结果
-     */
     @Override
-    public Optional<AgentSchedule> findByAgentId(Long agentId) {
+    public List<AgentSchedule> listByAgentId(Long agentId) {
         if (agentId == null) {
-            return Optional.empty();
+            return Collections.emptyList();
         }
-        return Optional.ofNullable(toEntity(agentScheduleDao.findByAgentId(agentId)));
+        return agentScheduleDao.listByAgentId(agentId)
+                .stream()
+                .map(this::toEntity)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean existsByAgentIdAndScheduleName(Long agentId, String scheduleName, Long excludeId) {
+        if (agentId == null || scheduleName == null || scheduleName.isBlank()) {
+            return false;
+        }
+        return agentScheduleDao.countByAgentIdAndScheduleName(agentId, scheduleName, excludeId) > 0;
     }
 
     /**
@@ -197,6 +202,8 @@ public class AgentScheduleRepositoryImpl implements AgentScheduleRepository {
                 .id(schedule.getId())
                 .agentId(schedule.getAgentId())
                 .agentCode(schedule.getAgentCode())
+                .scheduleName(schedule.getScheduleName())
+                .description(schedule.getDescription())
                 .cron(schedule.getCron())
                 .enabled(schedule.getEnabled())
                 .xxlJobId(schedule.getXxlJobId())
@@ -219,6 +226,8 @@ public class AgentScheduleRepositoryImpl implements AgentScheduleRepository {
                 .id(po.getId())
                 .agentId(po.getAgentId())
                 .agentCode(po.getAgentCode())
+                .scheduleName(po.getScheduleName())
+                .description(po.getDescription())
                 .cron(po.getCron())
                 .enabled(po.getEnabled())
                 .xxlJobId(po.getXxlJobId())

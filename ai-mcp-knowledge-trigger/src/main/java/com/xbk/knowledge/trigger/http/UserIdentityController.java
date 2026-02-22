@@ -1,5 +1,6 @@
 package com.xbk.knowledge.trigger.http;
 
+import com.xbk.knowledge.api.IUserIdentityService;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.xbk.knowledge.api.dto.user.UserCreateRequest;
 import com.xbk.knowledge.api.dto.user.UserPasswordResetRequest;
@@ -36,7 +37,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
-public class UserIdentityController {
+public class UserIdentityController implements IUserIdentityService {
 
     private final UserIdentityAppService userIdentityAppService;
     private final AuthAppService authAppService;
@@ -50,6 +51,7 @@ public class UserIdentityController {
      */
     @SaCheckPermission("user:read")
     @PostMapping("/list")
+    @Override
     public Result<PageResult<UserResponse>> list(@Valid @RequestBody UserQueryRequest request) {
         UserPageQuery query = new UserPageQuery(
                 request.getUsername(),
@@ -70,6 +72,7 @@ public class UserIdentityController {
      */
     @SaCheckPermission("user:write")
     @PostMapping("/create")
+    @Override
     public Result<UserResponse> create(@Valid @RequestBody UserCreateRequest request) {
         Integer isSuperAdmin = Boolean.TRUE.equals(request.getSuperAdmin()) ? 1 : 0;
         SysUser user = SysUser.builder()
@@ -92,6 +95,7 @@ public class UserIdentityController {
      */
     @SaCheckPermission("user:write")
     @PostMapping("/update")
+    @Override
     public Result<UserResponse> update(@Valid @RequestBody UserUpdateRequest request) {
         Integer isSuperAdmin = request.getSuperAdmin() == null ? null : (Boolean.TRUE.equals(request.getSuperAdmin()) ? 1 : 0);
         SysUser user = SysUser.builder()
@@ -114,6 +118,7 @@ public class UserIdentityController {
      */
     @SaCheckPermission("user:write")
     @PostMapping("/reset-password")
+    @Override
     public Result<Void> resetPassword(@Valid @RequestBody UserPasswordResetRequest request) {
         userIdentityAppService.resetPassword(request.getUserId(), request.getPassword());
         return Result.success();
@@ -127,6 +132,7 @@ public class UserIdentityController {
      */
     @SaCheckPermission("user:write")
     @PostMapping("/grant-roles")
+    @Override
     public Result<Void> grantRoles(@Valid @RequestBody UserRoleGrantRequest request) {
         AuthProfile currentProfile = currentProfile();
         userIdentityAppService.grantRoles(request.getUserId(), request.getRoleIds(), currentProfile.getUserId());
@@ -141,6 +147,7 @@ public class UserIdentityController {
      */
     @SaCheckPermission("user:read")
     @PostMapping("/role-ids")
+    @Override
     public Result<List<Long>> roleIds(@Valid @RequestBody UserRoleQueryRequest request) {
         List<Long> roleIds = userIdentityAppService.queryRoleIds(request.getUserId());
         return Result.success(roleIds);

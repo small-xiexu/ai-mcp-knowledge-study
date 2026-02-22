@@ -1,5 +1,6 @@
 package com.xbk.knowledge.trigger.http;
 
+import com.xbk.knowledge.api.IRoleService;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.xbk.knowledge.api.dto.role.RoleCreateRequest;
 import com.xbk.knowledge.api.dto.role.RolePermissionGrantRequest;
@@ -35,7 +36,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/roles")
 @RequiredArgsConstructor
-public class RoleController {
+public class RoleController implements IRoleService {
 
     private final RoleAppService roleAppService;
     private final AuthAppService authAppService;
@@ -49,6 +50,7 @@ public class RoleController {
      */
     @SaCheckPermission("role:read")
     @PostMapping("/list")
+    @Override
     public Result<PageResult<RoleResponse>> list(@Valid @RequestBody RoleQueryRequest request) {
         RolePageQuery query = new RolePageQuery(
                 request.getRoleCode(),
@@ -69,6 +71,7 @@ public class RoleController {
      */
     @SaCheckPermission("role:write")
     @PostMapping("/create")
+    @Override
     public Result<RoleResponse> create(@Valid @RequestBody RoleCreateRequest request) {
         SysRole role = SysRole.builder()
                 .roleCode(request.getRoleCode())
@@ -88,6 +91,7 @@ public class RoleController {
      */
     @SaCheckPermission("role:write")
     @PostMapping("/update")
+    @Override
     public Result<RoleResponse> update(@Valid @RequestBody RoleUpdateRequest request) {
         SysRole role = SysRole.builder()
                 .id(request.getId())
@@ -107,6 +111,7 @@ public class RoleController {
      */
     @SaCheckPermission("role:write")
     @PostMapping("/grant-permissions")
+    @Override
     public Result<Void> grantPermissions(@Valid @RequestBody RolePermissionGrantRequest request) {
         AuthProfile currentProfile = currentProfile();
         Long operatorId = currentProfile.getUserId();
@@ -122,6 +127,7 @@ public class RoleController {
      */
     @SaCheckPermission("role:read")
     @PostMapping("/permission-ids")
+    @Override
     public Result<List<Long>> permissionIds(@Valid @RequestBody RolePermissionQueryRequest request) {
         List<Long> permissionIds = roleAppService.queryPermissionIds(request.getRoleId());
         return Result.success(permissionIds);

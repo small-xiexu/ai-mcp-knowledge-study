@@ -5,6 +5,7 @@ import com.xbk.knowledge.api.dto.ai.AIRequest;
 import com.xbk.knowledge.api.dto.ai.AIResponse;
 import com.xbk.knowledge.api.dto.ai.ModelInfo;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 
 /**
@@ -24,6 +25,15 @@ public interface IAICallService {
      * @return AI 响应
      */
     Result<AIResponse> chat(AIRequest request);
+
+    /**
+     * 流式 AI 调用接口。
+     *
+     * @param request AI 请求
+     * @param httpResponse HTTP 响应
+     * @return 流式响应对象
+     */
+    Object stream(AIRequest request, HttpServletResponse httpResponse);
 
     /**
      * 获取所有可用模型列表

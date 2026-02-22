@@ -1,5 +1,6 @@
 package com.xbk.knowledge.trigger.http;
 
+import com.xbk.knowledge.api.IAuthService;
 import cn.dev33.satoken.annotation.SaCheckLogin;
 import com.xbk.knowledge.api.dto.auth.AuthLoginRequest;
 import com.xbk.knowledge.api.dto.auth.AuthLoginResponse;
@@ -29,7 +30,7 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-public class AuthController {
+public class AuthController implements IAuthService {
 
     private final AuthAppService authAppService;
     private final IdentityContextService identityContextService;
@@ -42,6 +43,7 @@ public class AuthController {
      * @return 登录响应
      */
     @PostMapping("/login")
+    @Override
     public Result<AuthLoginResponse> login(@Valid @RequestBody AuthLoginRequest request, HttpServletRequest httpRequest) {
         SysUser user = authAppService.verifyLogin(request.getUsername(), request.getPassword());
         identityContextService.login(user.getId());
@@ -64,6 +66,7 @@ public class AuthController {
      */
     @SaCheckLogin
     @PostMapping("/logout")
+    @Override
     public Result<Void> logout() {
         identityContextService.logout();
         return Result.success();
@@ -76,6 +79,7 @@ public class AuthController {
      */
     @SaCheckLogin
     @GetMapping("/me")
+    @Override
     public Result<AuthProfileResponse> currentUser() {
         Long userId = identityContextService.getCurrentUserId();
         AuthProfile profile = authAppService.loadProfile(userId);

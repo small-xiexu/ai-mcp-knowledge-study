@@ -66,8 +66,8 @@ public class WorkbenchAppServiceImpl implements WorkbenchAppService {
         long approvalsPending = approvalRequestRepository.count("PENDING");
 
         // Schedule
-        long scheduleTotal = agentScheduleRepository.count(new AgentSchedulePageQuery(null, null, 0, 1));
-        long scheduleEnabled = agentScheduleRepository.count(new AgentSchedulePageQuery(null, true, 0, 1));
+        long scheduleTotal = agentScheduleRepository.count(new AgentSchedulePageQuery(null, null, null, 0, 1));
+        long scheduleEnabled = agentScheduleRepository.count(new AgentSchedulePageQuery(null, null, true, 0, 1));
 
         // Knowledge (best effort: derive from tasks)
         long ragTaskTotal = ragTaskRepository.countAll();

@@ -29,6 +29,17 @@ public class AgentScheduleCreateRequest extends BaseRequest {
     private String agentCode;
 
     /**
+     * 调度名称（同一个 Agent 下唯一）。
+     */
+    @NotBlank(message = "scheduleName 不能为空")
+    private String scheduleName;
+
+    /**
+     * 调度描述（可选）。
+     */
+    private String description;
+
+    /**
      * Cron 表达式。
      */
     @NotBlank(message = "cron 不能为空")
@@ -44,4 +55,3 @@ public class AgentScheduleCreateRequest extends BaseRequest {
      */
     private String payloadTemplateJson;
 }
-

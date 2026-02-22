@@ -29,9 +29,13 @@ public class AgentScheduleUpdateRequest extends BaseRequest {
     @NotBlank(message = "agentCode 不能为空")
     private String agentCode;
 
+    @NotBlank(message = "scheduleName 不能为空")
+    private String scheduleName;
+
+    private String description;
+
     @NotBlank(message = "cron 不能为空")
     private String cron;
 
     private String payloadTemplateJson;
 }
-

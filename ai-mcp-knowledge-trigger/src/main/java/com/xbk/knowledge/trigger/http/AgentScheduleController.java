@@ -1,5 +1,6 @@
 package com.xbk.knowledge.trigger.http;
 
+import com.xbk.knowledge.api.IAgentScheduleService;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.xbk.knowledge.api.dto.agent.AgentScheduleCreateRequest;
 import com.xbk.knowledge.api.dto.agent.AgentScheduleQueryRequest;
@@ -35,7 +36,7 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/schedules")
 @RequiredArgsConstructor
-public class AgentScheduleController {
+public class AgentScheduleController implements IAgentScheduleService {
 
     private final AgentScheduleAppService agentScheduleAppService;
     private final AgentAppService agentAppService;
@@ -45,6 +46,7 @@ public class AgentScheduleController {
      */
     @PostMapping("/list")
     @SaCheckPermission("agent:read")
+    @Override
     public Result<PageResult<AgentScheduleResponse>> list(@Valid @RequestBody AgentScheduleQueryRequest request) {
         Long agentId = null;
         if (StringUtils.hasText(request.getAgentCode())) {
@@ -52,6 +54,7 @@ public class AgentScheduleController {
             agentId = agent.getId();
         }
         AgentSchedulePageQuery query = new AgentSchedulePageQuery(agentId,
+                request.getScheduleName(),
                 request.getEnabled(),
                 request.getOffset(),
                 request.getPageSize()
@@ -66,6 +69,7 @@ public class AgentScheduleController {
      */
     @PostMapping("/get")
     @SaCheckPermission("agent:read")
+    @Override
     public Result<AgentScheduleResponse> get(@Valid @RequestBody IdRequest request) {
         AgentSchedule schedule = agentScheduleAppService.queryById(new AgentScheduleIdQuery(request.getId()));
         return Result.success(toResponse(schedule));
@@ -76,8 +80,11 @@ public class AgentScheduleController {
      */
     @PostMapping("/create")
     @SaCheckPermission("agent:write")
+    @Override
     public Result<AgentScheduleResponse> create(@Valid @RequestBody AgentScheduleCreateRequest request) {
         AgentSchedule schedule = AgentSchedule.builder()
+                .scheduleName(request.getScheduleName())
+                .description(request.getDescription())
                 .cron(request.getCron())
                 .enabled(request.getEnabled())
                 .payloadTemplateJson(request.getPayloadTemplateJson())
@@ -91,9 +98,12 @@ public class AgentScheduleController {
      */
     @PostMapping("/update")
     @SaCheckPermission("agent:write")
+    @Override
     public Result<AgentScheduleResponse> update(@Valid @RequestBody AgentScheduleUpdateRequest request) {
         AgentSchedule schedule = AgentSchedule.builder()
                 .id(request.getId())
+                .scheduleName(request.getScheduleName())
+                .description(request.getDescription())
                 .cron(request.getCron())
                 .payloadTemplateJson(request.getPayloadTemplateJson())
                 .build();
@@ -106,6 +116,7 @@ public class AgentScheduleController {
      */
     @PostMapping("/enable")
     @SaCheckPermission("agent:write")
+    @Override
     public Result<AgentScheduleResponse> enable(@Valid @RequestBody IdRequest request) {
         AgentSchedule schedule = agentScheduleAppService.enable(request.getId());
         return Result.success(toResponse(schedule));
@@ -116,6 +127,7 @@ public class AgentScheduleController {
      */
     @PostMapping("/disable")
     @SaCheckPermission("agent:write")
+    @Override
     public Result<AgentScheduleResponse> disable(@Valid @RequestBody IdRequest request) {
         AgentSchedule schedule = agentScheduleAppService.disable(request.getId());
         return Result.success(toResponse(schedule));
@@ -126,6 +138,7 @@ public class AgentScheduleController {
      */
     @PostMapping("/remove")
     @SaCheckPermission("agent:write")
+    @Override
     public Result<Void> remove(@Valid @RequestBody IdRequest request) {
         agentScheduleAppService.remove(request.getId());
         return Result.success();
@@ -139,6 +152,8 @@ public class AgentScheduleController {
                 .id(schedule.getId())
                 .agentId(schedule.getAgentId())
                 .agentCode(schedule.getAgentCode())
+                .scheduleName(schedule.getScheduleName())
+                .description(schedule.getDescription())
                 .cron(schedule.getCron())
                 .enabled(schedule.getEnabled())
                 .xxlJobId(schedule.getXxlJobId())
