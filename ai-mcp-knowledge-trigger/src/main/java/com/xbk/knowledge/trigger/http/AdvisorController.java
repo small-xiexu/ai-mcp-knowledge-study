@@ -39,10 +39,10 @@ public class AdvisorController implements IAdvisorService {
     private final AdvisorBindingAppService advisorBindingAppService;
 
     /**
-     * 根据筛选条件查询顾问策略列表。
+     * 根据筛选条件查询 Agent 增强器（Advisor）列表。
      *
-     * @param request 顾问策略查询条件。
-     * @return 顾问策略分页查询结果。
+     * @param request Agent 增强器（Advisor）查询条件。
+     * @return Agent 增强器（Advisor）分页查询结果。
      */
     @PostMapping("/list")
     @SaCheckPermission("advisor:read")
@@ -61,10 +61,10 @@ public class AdvisorController implements IAdvisorService {
     }
 
     /**
-     * 查询顾问策略。
+     * 查询 Agent 增强器（Advisor）。
      *
-     * @param request 顾问策略详情查询参数。
-     * @return 顾问策略查询结果。
+     * @param request Agent 增强器（Advisor）详情查询参数。
+     * @return Agent 增强器（Advisor）查询结果。
      */
     @PostMapping("/get")
     @SaCheckPermission("advisor:read")
@@ -75,10 +75,10 @@ public class AdvisorController implements IAdvisorService {
     }
 
     /**
-     * 创建或更新顾问策略数据。
+     * 创建或更新 Agent 增强器（Advisor）数据。
      *
-     * @param request 顾问策略保存参数。
-     * @return 顾问策略保存结果。
+     * @param request Agent 增强器（Advisor）保存参数。
+     * @return Agent 增强器（Advisor）保存结果。
      */
     @PostMapping("/save")
     @SaCheckPermission("advisor:write")
@@ -99,8 +99,8 @@ public class AdvisorController implements IAdvisorService {
     /**
      * 启用业务配置。
      *
-     * @param request 顾问策略启用参数。
-     * @return 顾问策略启用结果。
+     * @param request Agent 增强器（Advisor）启用参数。
+     * @return Agent 增强器（Advisor）启用结果。
      */
     @PostMapping("/enable")
     @SaCheckPermission("advisor:write")
@@ -113,8 +113,8 @@ public class AdvisorController implements IAdvisorService {
     /**
      * 禁用业务配置。
      *
-     * @param request 顾问策略禁用参数。
-     * @return 顾问策略禁用结果。
+     * @param request Agent 增强器（Advisor）禁用参数。
+     * @return Agent 增强器（Advisor）禁用结果。
      */
     @PostMapping("/disable")
     @SaCheckPermission("advisor:write")
@@ -125,10 +125,10 @@ public class AdvisorController implements IAdvisorService {
     }
 
     /**
-     * 删除顾问策略数据。
+     * 删除 Agent 增强器（Advisor）数据。
      *
-     * @param request 顾问策略删除参数。
-     * @return 顾问策略删除结果。
+     * @param request Agent 增强器（Advisor）删除参数。
+     * @return Agent 增强器（Advisor）删除结果。
      */
     @PostMapping("/remove")
     @SaCheckPermission("advisor:write")
@@ -139,7 +139,7 @@ public class AdvisorController implements IAdvisorService {
     }
 
     /**
-     * 根据筛选条件查询顾问策略列表。
+     * 根据筛选条件查询 Agent 增强器（Advisor）绑定列表。
      *
      * @param request 绑定关系查询参数。
      * @return 绑定关系列表查询结果。
@@ -161,7 +161,7 @@ public class AdvisorController implements IAdvisorService {
     }
 
     /**
-     * 创建或更新顾问策略数据。
+     * 创建或更新 Agent 增强器（Advisor）绑定数据。
      *
      * @param request 绑定关系保存参数。
      * @return 绑定关系保存结果。

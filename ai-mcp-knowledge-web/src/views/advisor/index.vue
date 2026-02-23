@@ -2,8 +2,8 @@
   <div class="gemini-container">
     <div class="page-header">
       <div>
-        <h2 class="page-title">Advisor 管理</h2>
-        <p class="subtitle">可配置的 ChatClient Advisors</p>
+        <h2 class="page-title">Agent 增强器管理</h2>
+        <p class="subtitle">可配置的 ChatClient Agent 增强器（Advisors）</p>
       </div>
       <div class="header-actions">
         <el-button class="gemini-btn-secondary" @click="fetchData">
@@ -11,7 +11,7 @@
         </el-button>
         <el-button type="primary" class="gemini-btn-primary" @click="openCreate">
           <el-icon><Plus /></el-icon>
-          新建 Advisor
+          新建 Agent 增强器
         </el-button>
       </div>
     </div>
@@ -72,8 +72,8 @@
 
         <template #empty>
           <div style="padding: 18px 0">
-            <el-empty description="暂无 Advisor">
-              <el-button type="primary" class="gemini-btn-primary" @click="openCreate">新建 Advisor</el-button>
+            <el-empty description="暂无 Agent 增强器">
+              <el-button type="primary" class="gemini-btn-primary" @click="openCreate">新建 Agent 增强器</el-button>
             </el-empty>
           </div>
         </template>
@@ -177,7 +177,7 @@ const handlePageChange = (p: number) => {
 const dlg = reactive({
   visible: false,
   saving: false,
-  title: '新建 Advisor',
+  title: '新建 Agent 增强器',
   form: {
     id: undefined as number | undefined,
     advisorCode: '',
@@ -189,7 +189,7 @@ const dlg = reactive({
 })
 
 const openCreate = () => {
-  dlg.title = '新建 Advisor'
+  dlg.title = '新建 Agent 增强器'
   dlg.form.id = undefined
   dlg.form.advisorCode = ''
   dlg.form.advisorName = ''
@@ -200,7 +200,7 @@ const openCreate = () => {
 }
 
 const openEdit = (row: Advisor) => {
-  dlg.title = `编辑 Advisor: ${row.advisorCode}`
+  dlg.title = `编辑 Agent 增强器: ${row.advisorCode}`
   dlg.form.id = row.id
   dlg.form.advisorCode = row.advisorCode
   dlg.form.advisorName = row.advisorName
@@ -246,7 +246,7 @@ const disable = async (row: Advisor) => {
 }
 
 const removeRow = async (row: Advisor) => {
-  await ElMessageBox.confirm(`确认删除 Advisor ${row.advisorCode}？`, '提示', { type: 'warning' })
+  await ElMessageBox.confirm(`确认删除 Agent 增强器 ${row.advisorCode}？`, '提示', { type: 'warning' })
   await removeAdvisor(row.id)
   ElMessage.success('已删除')
   fetchData()

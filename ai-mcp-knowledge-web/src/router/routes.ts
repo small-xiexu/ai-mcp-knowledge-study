@@ -129,7 +129,7 @@ const routes: RouteRecordRaw[] = [
         path: 'advisors',
         name: 'Advisors',
         component: () => import('@/views/advisor/index.vue'),
-        meta: { title: 'Advisor 配置', icon: 'Tools', permission: 'advisor:read', group: 'integration', order: 25 }
+        meta: { title: 'Agent 增强器配置', icon: 'Tools', permission: 'advisor:read', group: 'integration', order: 25 }
       },
       {
         path: 'xxl',

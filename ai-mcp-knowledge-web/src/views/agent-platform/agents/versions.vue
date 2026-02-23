@@ -230,15 +230,15 @@
           <el-input-number v-model="form.temperature" :min="0" :max="2" :step="0.1" />
         </el-form-item>
 
-        <el-divider content-position="left">Advisors</el-divider>
-        <el-form-item label="Advisor 绑定">
+        <el-divider content-position="left">Agent 增强器（Advisors）</el-divider>
+        <el-form-item label="Agent 增强器绑定">
           <div style="width: 100%">
             <div v-if="runMode === 'WORKFLOW'" class="muted">
-              当前为 <span class="mono">Workflow</span> 运行模式：请在对应 <span class="mono">WorkflowVersion</span> 上绑定 Advisors（此处不生效）。
+              当前为 <span class="mono">Workflow</span> 运行模式：请在对应 <span class="mono">WorkflowVersion</span> 上绑定 Agent 增强器（Advisors）（此处不生效）。
             </div>
             <template v-else>
               <div class="bind-row">
-                <el-select v-model="advisorPickerId" filterable clearable placeholder="选择 Advisor" style="width: 100%">
+                <el-select v-model="advisorPickerId" filterable clearable placeholder="选择 Agent 增强器" style="width: 100%">
                   <el-option
                     v-for="a in advisorOptions"
                     :key="a.id"
@@ -263,7 +263,7 @@
                   </div>
                 </div>
               </div>
-              <div v-else class="muted">未绑定 Advisor（默认仅注入全局 TraceIdAdvisor）。</div>
+              <div v-else class="muted">未绑定 Agent 增强器（默认仅注入全局 TraceIdAdvisor）。</div>
             </template>
           </div>
         </el-form-item>
@@ -503,12 +503,12 @@ const advisorLabel = (advisorId: number) => {
 
 const addAdvisorBinding = () => {
   if (!advisorPickerId.value) {
-    ElMessage.warning('请选择 Advisor')
+    ElMessage.warning('请选择 Agent 增强器（Advisor）')
     return
   }
   const exists = boundAdvisors.value.some(x => x.advisorId === advisorPickerId.value)
   if (exists) {
-    ElMessage.warning('已绑定该 Advisor')
+    ElMessage.warning('已绑定该 Agent 增强器（Advisor）')
     return
   }
   boundAdvisors.value.push({ advisorId: advisorPickerId.value, enabled: true })

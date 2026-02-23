@@ -25,18 +25,18 @@ public interface AdvisorBindingAppService {
         private Boolean enabled;
 
         /**
-         * 获取顾问策略 ID。
+         * 获取 Agent 增强器 ID。
          *
-         * @return 返回顾问策略 ID。
+         * @return 返回 Agent 增强器 ID。
          */
         public Long getAdvisorId() {
             return advisorId;
         }
 
         /**
-         * 设置顾问策略 ID。
+         * 设置 Agent 增强器 ID。
          *
-         * @param advisorId 顾问策略 ID。
+         * @param advisorId Agent 增强器 ID。
          */
         public void setAdvisorId(Long advisorId) {
             this.advisorId = advisorId;

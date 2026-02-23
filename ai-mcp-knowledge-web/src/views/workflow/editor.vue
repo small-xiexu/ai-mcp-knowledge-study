@@ -11,7 +11,7 @@
         </el-button>
         <el-button class="gemini-btn-secondary" @click="openAdvisorDlg">
           <el-icon><Setting /></el-icon>
-          Advisors
+          Agent 增强器
         </el-button>
         <el-button type="primary" class="gemini-btn-primary" :loading="saving" @click="save">
           <el-icon><Download /></el-icon>
@@ -226,12 +226,12 @@
       </div>
     </div>
 
-    <el-dialog v-model="advisorDlg.visible" title="Workflow Advisors 绑定" width="860px" class="gemini-dialog">
+    <el-dialog v-model="advisorDlg.visible" title="Workflow Agent 增强器绑定" width="860px" class="gemini-dialog">
       <div class="muted" style="margin-bottom: 10px">
         bindType=<span class="mono">WORKFLOW_VERSION</span>, bindTargetId=<span class="mono">#{{ workflowVersionId }}</span>
       </div>
       <div class="bind-row">
-        <el-select v-model="advisorDlg.pickerId" filterable clearable placeholder="选择 Advisor" style="width: 100%">
+        <el-select v-model="advisorDlg.pickerId" filterable clearable placeholder="选择 Agent 增强器" style="width: 100%">
           <el-option
             v-for="a in advisorDlg.options"
             :key="a.id"
@@ -256,7 +256,7 @@
           </div>
         </div>
       </div>
-      <div v-else class="muted" style="margin-top: 10px">未绑定 Advisor（默认仅注入全局 TraceIdAdvisor）。</div>
+      <div v-else class="muted" style="margin-top: 10px">未绑定 Agent 增强器（默认仅注入全局 TraceIdAdvisor）。</div>
 
       <template #footer>
         <el-button class="gemini-btn-secondary" @click="advisorDlg.visible = false">关闭</el-button>
@@ -345,12 +345,12 @@ const openAdvisorDlg = async () => {
 
 const advisorAdd = () => {
   if (!advisorDlg.pickerId) {
-    ElMessage.warning('请选择 Advisor')
+    ElMessage.warning('请选择 Agent 增强器（Advisor）')
     return
   }
   const exists = advisorDlg.items.some(x => x.advisorId === advisorDlg.pickerId)
   if (exists) {
-    ElMessage.warning('已绑定该 Advisor')
+    ElMessage.warning('已绑定该 Agent 增强器（Advisor）')
     return
   }
   advisorDlg.items.push({ advisorId: advisorDlg.pickerId, enabled: true })

@@ -31,7 +31,7 @@ public class AdvisorAppServiceImpl implements AdvisorAppService {
     private final AdvisorRuntimeService advisorRuntimeService;
 
     /**
-     * 查询顾问策略。
+     * 查询 Agent 增强器（Advisor）配置。
      *
      * @param query 查询条件
      * @return 返回 Advisor 分页数据。
@@ -57,7 +57,7 @@ public class AdvisorAppServiceImpl implements AdvisorAppService {
     }
 
     /**
-     * 查询顾问策略。
+     * 查询 Agent 增强器（Advisor）配置。
      *
      * @param id 主键 ID
      * @return 返回 Advisor 数据。
@@ -72,10 +72,10 @@ public class AdvisorAppServiceImpl implements AdvisorAppService {
     }
 
     /**
-     * 创建或更新顾问策略数据。
+     * 创建或更新 Agent 增强器（Advisor）数据。
      *
-     * @param advisor 顾问策略实体。
-     * @return 顾问策略保存结果。
+     * @param advisor Agent 增强器（Advisor）实体。
+     * @return Agent 增强器（Advisor）保存结果。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -164,7 +164,7 @@ public class AdvisorAppServiceImpl implements AdvisorAppService {
     }
 
     /**
-     * 删除顾问策略数据。
+     * 删除 Agent 增强器（Advisor）数据。
      *
      * @param id 主键 ID
      */

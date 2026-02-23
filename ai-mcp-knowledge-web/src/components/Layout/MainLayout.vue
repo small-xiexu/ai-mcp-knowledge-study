@@ -199,8 +199,8 @@ const featureGuideMap: Record<string, FeatureGuide> = {
     steps: ['先新建 Profile 与基础信息', '配置步骤链并保存', '在上游 Agent 或 Workflow 中引用']
   },
   Advisors: {
-    summary: '配置 Advisor 处理链，用于统一扩展请求前后处理逻辑。',
-    steps: ['先定义 Advisor 参数', '按顺序组织处理链路', '在 Client Profile 中挂载并验证']
+    summary: '配置 Agent 增强器（Advisor）处理链，用于统一扩展请求前后处理逻辑。',
+    steps: ['先定义 Agent 增强器参数', '按顺序组织处理链路', '在 Client Profile 中挂载并验证']
   },
   McpServers: {
     summary: '管理外部 MCP Server 的连接与启停，控制工具来源。',
