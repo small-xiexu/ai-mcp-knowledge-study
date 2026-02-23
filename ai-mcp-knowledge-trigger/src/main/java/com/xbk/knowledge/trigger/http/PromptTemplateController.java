@@ -41,6 +41,12 @@ public class PromptTemplateController implements IPromptTemplateService {
 
     /**
      * 分页查询模板列表。
+     * 流程：
+     * 1. 进入接口后执行 `agent:read` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 组装 `PromptTemplatePageQuery` 并调用 `promptTemplateAppService.queryPage`。
+     * 4. 将领域分页结果转换为 `PromptTemplateResponse` 分页结果。
+     * 5. 统一封装 `Result.success` 返回。
      *
      * @param request 查询条件
      * @return 分页结果
@@ -61,6 +67,12 @@ public class PromptTemplateController implements IPromptTemplateService {
 
     /**
      * 根据模板 ID 查询模板详情。
+     * 流程：
+     * 1. 进入接口后执行 `agent:read` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 组装 `PromptTemplateIdQuery` 并调用 `promptTemplateAppService.queryById`。
+     * 4. 将领域实体转换为 `PromptTemplateResponse`。
+     * 5. 统一封装 `Result.success` 返回。
      *
      * @param request 模板 ID 请求
      * @return 模板详情
@@ -75,6 +87,12 @@ public class PromptTemplateController implements IPromptTemplateService {
 
     /**
      * 创建模板。
+     * 流程：
+     * 1. 进入接口后执行 `agent:write` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 获取当前用户并组装 `PromptTemplate` 草稿对象。
+     * 4. 调用 `promptTemplateAppService.create` 执行创建。
+     * 5. 将创建结果转换为 `PromptTemplateResponse` 并统一返回。
      *
      * @param request 创建参数
      * @return 创建后的模板
@@ -98,6 +116,12 @@ public class PromptTemplateController implements IPromptTemplateService {
 
     /**
      * 更新模板草稿（仅 DRAFT 可更新）。
+     * 流程：
+     * 1. 进入接口后执行 `agent:write` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 获取当前用户并组装更新对象。
+     * 4. 调用 `promptTemplateAppService.updateDraft` 执行草稿更新。
+     * 5. 将更新结果转换为 `PromptTemplateResponse` 并统一返回。
      *
      * @param request 更新参数
      * @return 更新后的模板
@@ -120,6 +144,12 @@ public class PromptTemplateController implements IPromptTemplateService {
 
     /**
      * 发布模板（version_no 自增）。
+     * 流程：
+     * 1. 进入接口后执行 `agent:publish` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 获取当前用户并调用 `promptTemplateAppService.publish`。
+     * 4. 应用层完成版本自增与状态切换。
+     * 5. 将发布结果转换为 `PromptTemplateResponse` 并统一返回。
      *
      * @param request 发布请求
      * @return 发布后的模板
@@ -135,6 +165,12 @@ public class PromptTemplateController implements IPromptTemplateService {
 
     /**
      * 归档模板。
+     * 流程：
+     * 1. 进入接口后执行 `agent:publish` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 获取当前用户并调用 `promptTemplateAppService.archive`。
+     * 4. 应用层完成模板状态归档。
+     * 5. 将归档结果转换为 `PromptTemplateResponse` 并统一返回。
      *
      * @param request 归档请求
      * @return 归档后的模板

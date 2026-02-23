@@ -31,8 +31,15 @@ public class WorkbenchController implements IWorkbenchService {
 
     /**
      * 获取工作台汇总信息。
+     * 流程：
+     * 1. 进入接口后执行 `@SaCheckLogin` 登录态校验。
+     * 2. Controller 调用 `workbenchAppService.summary` 拉取工作台聚合数据。
+     * 3. 在 Trigger 层将应用层模型转换为 `WorkbenchSummaryResponse`。
+     * 4. 对空值场景做兜底（如 guideSteps 返回空列表）。
+     * 5. 统一通过 `Result.success` 返回给前端工作台页面。
      *
-     * 说明：工作台本身为“入口页”，只要求登录即可。
+     * @param ignored 请求体占位参数（可为空）
+     * @return 工作台汇总响应
      */
     @PostMapping("/summary")
     @SaCheckLogin

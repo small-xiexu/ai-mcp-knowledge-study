@@ -39,6 +39,12 @@ public class WorkflowRuntimeController implements IWorkflowRuntimeService {
 
     /**
      * 执行 Workflow 运行。
+     * 流程：
+     * 1. 进入接口后按 `workflowCode` 路由并执行 `workflow:invoke` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 调用 `workflowRuntimeAppService.run` 执行运行编排。
+     * 4. 应用层完成版本解析、节点调度、上下文与审批处理。
+     * 5. 返回 `PlatformContractV1` 并统一封装 `Result.success`。
      *
      * @param workflowCode Workflow 编码
      * @param request 运行请求
@@ -60,6 +66,12 @@ public class WorkflowRuntimeController implements IWorkflowRuntimeService {
 
     /**
      * 根据筛选条件查询工作流运行列表。
+     * 流程：
+     * 1. 进入接口后执行 `workflow:read` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 调用 `workflowRuntimeAppService.listRuns` 查询运行分页。
+     * 4. 将领域分页结果转换为 `WorkflowRunResponse` 分页结果。
+     * 5. 统一封装 `Result.success` 返回。
      *
      * @param request 工作流运行分页查询参数。
      * @return 返回 WorkflowRunResponse 分页数据。
@@ -78,6 +90,12 @@ public class WorkflowRuntimeController implements IWorkflowRuntimeService {
 
     /**
      * 查询工作流运行。
+     * 流程：
+     * 1. 进入接口后执行 `workflow:read` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 调用 `workflowRuntimeAppService.getRun` 查询运行详情。
+     * 4. 将领域运行实体转换为 `WorkflowRunResponse`。
+     * 5. 统一封装 `Result.success` 返回。
      *
      * @param request 工作流运行查询参数。
      * @return 返回 WorkflowRunResponse 数据。
@@ -92,6 +110,12 @@ public class WorkflowRuntimeController implements IWorkflowRuntimeService {
 
     /**
      * 根据筛选条件查询工作流运行列表。
+     * 流程：
+     * 1. 进入接口后执行 `workflow:read` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 调用 `workflowRuntimeAppService.listNodeRuns` 查询节点明细。
+     * 4. 将节点运行实体列表转换为 `WorkflowNodeRunResponse` 列表。
+     * 5. 统一封装 `Result.success` 返回。
      *
      * @param request 工作流运行分页查询参数。
      * @return 返回 WorkflowNodeRunResponse 列表数据。

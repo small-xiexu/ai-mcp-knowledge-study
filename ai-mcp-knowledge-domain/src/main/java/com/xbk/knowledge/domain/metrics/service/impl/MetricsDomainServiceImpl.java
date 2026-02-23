@@ -42,21 +42,15 @@ public class MetricsDomainServiceImpl implements IMetricsDomainService {
         if (query == null) {
             throw new IllegalArgumentException("指标查询条件不能为空");
         }
-        /*
-         * 目的：校验时间范围，避免无效查询
- */
+        // 校验时间范围，避免无效查询
         LocalDateTime startTime = query.getStartTime();
         LocalDateTime endTime = query.getEndTime();
         validateTimeRange(startTime, endTime);
 
-        /*
-         * 目的：调用仓储完成指标聚合
- */
+        // 调用仓储完成指标聚合
         CallMetrics metrics = callLogRepository.aggregateCallMetrics(query);
 
-        /*
-         * 目的：规范化输出，避免前端空指针
- */
+        // 规范化输出，避免前端空指针
         return normalizeCallMetrics(metrics);
     }
 
@@ -72,21 +66,15 @@ public class MetricsDomainServiceImpl implements IMetricsDomainService {
         if (query == null) {
             throw new IllegalArgumentException("指标查询条件不能为空");
         }
-        /*
-         * 目的：校验时间范围，避免无效查询
- */
+        // 校验时间范围，避免无效查询
         LocalDateTime startTime = query.getStartTime();
         LocalDateTime endTime = query.getEndTime();
         validateTimeRange(startTime, endTime);
 
-        /*
-         * 目的：调用仓储完成指标聚合
- */
+        // 调用仓储完成指标聚合
         SuccessRate successRate = callLogRepository.aggregateSuccessRate(query);
 
-        /*
-         * 目的：规范化输出，保证成功率口径统一
- */
+        // 规范化输出，保证成功率口径统一
         return normalizeSuccessRate(successRate);
     }
 
@@ -102,21 +90,15 @@ public class MetricsDomainServiceImpl implements IMetricsDomainService {
         if (query == null) {
             throw new IllegalArgumentException("指标查询条件不能为空");
         }
-        /*
-         * 目的：校验时间范围，避免无效查询
- */
+        // 校验时间范围，避免无效查询
         LocalDateTime startTime = query.getStartTime();
         LocalDateTime endTime = query.getEndTime();
         validateTimeRange(startTime, endTime);
 
-        /*
-         * 目的：调用仓储完成指标聚合
- */
+        // 调用仓储完成指标聚合
         ResponseTime responseTime = callLogRepository.aggregateResponseTime(query);
 
-        /*
-         * 目的：规范化输出，避免 null 导致图表渲染失败
- */
+        // 规范化输出，避免 null 导致图表渲染失败
         return normalizeResponseTime(responseTime);
     }
 
@@ -132,21 +114,15 @@ public class MetricsDomainServiceImpl implements IMetricsDomainService {
         if (query == null) {
             throw new IllegalArgumentException("模型使用查询条件不能为空");
         }
-        /*
-         * 目的：校验时间范围，避免无效查询
- */
+        // 校验时间范围，避免无效查询
         LocalDateTime startTime = query.getStartTime();
         LocalDateTime endTime = query.getEndTime();
         validateTimeRange(startTime, endTime);
 
-        /*
-         * 目的：调用仓储完成指标聚合
- */
+        // 调用仓储完成指标聚合
         List<ModelUsage> usageList = callLogRepository.aggregateModelUsage(query);
 
-        /*
-         * 目的：保证返回稳定结构，避免空指针
- */
+        // 保证返回稳定结构，避免空指针
         return usageList != null ? usageList : Collections.emptyList();
     }
 

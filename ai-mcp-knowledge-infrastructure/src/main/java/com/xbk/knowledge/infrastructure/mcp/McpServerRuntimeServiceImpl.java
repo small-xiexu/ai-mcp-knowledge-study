@@ -80,16 +80,12 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
             return;
         }
 
-        /*
-         * 目的：先关闭旧连接，避免资源泄露
- */
+        // 先关闭旧连接，避免资源泄露
         McpSyncClient existing = clientRegistry.remove(configId);
         closeQuietly(existing);
         metaRegistry.remove(configId);
 
-        /*
-         * 目的：按配置创建客户端并完成初始化
- */
+        // 按配置创建客户端并完成初始化
         McpSyncClient client = buildClient(config);
         client.initialize();
         clientRegistry.put(configId, client);
@@ -261,9 +257,7 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
         if (!StringUtils.hasText(endpoint)) {
             throw new IllegalArgumentException("HTTP 模式必须配置 endpoint");
         }
-        /*
-         * 目的：支持配置完整 URL（包含路径），避免 SDK 固定使用 /mcp 造成 404
- */
+        // 支持配置完整 URL（包含路径），避免 SDK 固定使用 /mcp 造成 404
         String baseUri = endpoint;
         String endpointPath = null;
         try {

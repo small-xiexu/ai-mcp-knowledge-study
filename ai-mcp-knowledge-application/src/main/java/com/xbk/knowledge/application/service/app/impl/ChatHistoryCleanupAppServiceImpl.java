@@ -37,9 +37,7 @@ public class ChatHistoryCleanupAppServiceImpl implements ChatHistoryCleanupAppSe
         if (updatedBefore == null) {
             return 0;
         }
-        /*
-         * 目的：先清理消息，避免会话删除后遗留孤儿消息
- */
+        // 先清理消息，避免会话删除后遗留孤儿消息
         chatMessageRepository.deleteBySessionUpdatedBefore(updatedBefore);
         return chatSessionRepository.deleteByUpdatedBefore(updatedBefore);
     }

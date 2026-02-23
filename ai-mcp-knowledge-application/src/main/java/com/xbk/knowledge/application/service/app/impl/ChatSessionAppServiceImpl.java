@@ -59,9 +59,7 @@ public class ChatSessionAppServiceImpl implements ChatSessionAppService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ChatSession updateSession(ChatSession session) {
-        /*
-         * 目的：首次消息发送后锁定模型，避免会话中途切换模型
- */
+        // 首次消息发送后锁定模型，避免会话中途切换模型
         if (session != null && session.getId() != null) {
             ChatSession existing = chatSessionRepository.findById(session.getId());
             if (existing != null && existing.getModelId() != null) {
@@ -88,9 +86,7 @@ public class ChatSessionAppServiceImpl implements ChatSessionAppService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteSession(Long sessionId) {
-        /*
-         * 目的：先删消息再删会话，避免外键或引用一致性问题
- */
+        // 先删消息再删会话，避免外键或引用一致性问题
         chatMessageRepository.deleteBySessionId(sessionId);
         chatSessionRepository.deleteById(sessionId);
         if (sessionId != null) {
@@ -119,9 +115,7 @@ public class ChatSessionAppServiceImpl implements ChatSessionAppService {
      */
     @Override
     public PageResult<ChatSession> listSessions(int pageNum, int pageSize) {
-        /*
-         * 目的：将页码转换为偏移量以适配仓储分页
- */
+        // 将页码转换为偏移量以适配仓储分页
         int offset = Math.max(pageNum - 1, 0) * pageSize;
         ChatSessionPageQuery query = new ChatSessionPageQuery(offset, pageSize);
         List<ChatSession> sessions = chatSessionRepository.findPage(query);
@@ -151,9 +145,7 @@ public class ChatSessionAppServiceImpl implements ChatSessionAppService {
      */
     @Override
     public PageResult<ChatMessage> listMessages(Long sessionId, int pageNum, int pageSize) {
-        /*
-         * 目的：将页码转换为偏移量以适配仓储分页
- */
+        // 将页码转换为偏移量以适配仓储分页
         int offset = Math.max(pageNum - 1, 0) * pageSize;
         ChatMessagePageQuery query = new ChatMessagePageQuery(sessionId, offset, pageSize);
         List<ChatMessage> messages = chatMessageRepository.findPage(query);

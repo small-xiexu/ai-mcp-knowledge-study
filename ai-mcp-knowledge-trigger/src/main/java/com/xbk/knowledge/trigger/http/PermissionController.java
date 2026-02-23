@@ -34,6 +34,12 @@ public class PermissionController implements IPermissionService {
 
     /**
      * 分页查询权限。
+     * 流程：
+     * 1. 进入 Trigger 层后执行 `role:read` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 组装 `PermissionPageQuery` 并调用 `permissionAppService.queryPermissionPage`。
+     * 4. 将领域对象分页结果转换为 `PermissionResponse` 分页结果。
+     * 5. 统一封装 `Result.success` 返回。
      *
      * @param request 查询参数
      * @return 分页结果

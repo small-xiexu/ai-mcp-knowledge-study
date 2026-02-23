@@ -38,9 +38,7 @@ public class ChatClientAssemblyServiceImpl implements ChatClientAssemblyService 
         if (activeChatModel == null || activeChatModel.getModelType() == null) {
             throw new IllegalStateException("未配置激活的对话模型");
         }
-        /*
-         * 目的：复用统一构建逻辑，保持生成行为一致
- */
+        // 复用统一构建逻辑，保持生成行为一致
         return buildChatClient(activeChatModel, extraAdvisors);
     }
 

@@ -27,9 +27,7 @@ public abstract class AbstractOpenAiProtocolAdapter {
      * 出参：ChatModel
      */
     public ChatModel createChatModel(ModelConfig config) {
-        /*
-         * 目的：规范化 baseUrl，避免路径重复
- */
+        // 规范化 baseUrl，避免路径重复
         String baseUrl = config.getBaseUrl();
         String normalizedBaseUrl = normalizeBaseUrl(baseUrl);
         String completionsPath = normalizeApiPath(config.getCompletionsPath(), "/v1/chat/completions");
@@ -82,9 +80,7 @@ public abstract class AbstractOpenAiProtocolAdapter {
             normalized = normalized.substring(0, length - 1);
         }
 
-        /*
-         * 目的：兜底处理多余的 /v1 段，避免形成 /v1/v1/chat/completions
- */
+        // 兜底处理多余的 /v1 段，避免形成 /v1/v1/chat/completions
         while (normalized.contains("/v1/v1")) {
             normalized = normalized.replace("/v1/v1", "/v1");
         }

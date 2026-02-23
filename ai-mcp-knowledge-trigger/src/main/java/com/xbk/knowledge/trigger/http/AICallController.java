@@ -55,9 +55,16 @@ public class AICallController implements IAICallService {
 
     /**
      * 通用 AI 调用接口
-     * 根据策略自动选择最优模型
-     *
+     * 按规则选择模型并执行调用
+     * <p>
      * 为什么：统一入口封装模型选择与调用流程，避免调用方直接拼装命令。
+     * 模型选择优先级：显式 modelId > 会话绑定模型 > 全局激活聊天模型。
+     * 流程：
+     * 1. 进入接口后执行 `agent:read` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 通过 `DTOConverter` 将 API 请求转换为应用层 `AICallCommand`。
+     * 4. 调用 `aiChatAppService.chat` 执行模型调用与运行链路编排。
+     * 5. 将应用层结果转换为 `AIResponse` 并统一封装返回；异常分支返回标准错误码。
      *
      * @param request AI 请求
      * @return AI 响应
@@ -67,23 +74,18 @@ public class AICallController implements IAICallService {
     @SaCheckPermission("agent:read")
     public Result<AIResponse> chat(@Valid @RequestBody AIRequest request) {
         try {
-            
             AICallCommand command = DTOConverter.toAppAICallCommand(request);
             AICallResult result = aiChatAppService.chat(command);
             AIResponse response = DTOConverter.toApiAIResponse(result);
-
             return Result.success(response);
         } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {
             log.error("AI 调用失败", e);
-
-            
             AIResponse response = new AIResponse();
             response.setSuccess(false);
             String errorMessage = e.getMessage();
             response.setErrorMessage(errorMessage);
-
             String responseMessage = "AI 调用失败：" + errorMessage;
             return Result.error(ResultCode.AI_CALL_FAILED, responseMessage, response);
         }
@@ -91,8 +93,14 @@ public class AICallController implements IAICallService {
 
     /**
      * 流式 AI 对话
-     *
+     * <p>
      * 为什么：使用 SSE 保证前端逐步渲染，提升长文本体验。
+     * 流程：
+     * 1. 进入接口后执行 `agent:read` 权限校验并初始化 SSE 响应头。
+     * 2. 将 API 请求转换为 `AICallCommand`，并初始化 usage 统计容器。
+     * 3. 调用 `aiChatAppService.streamChat` 获取流式 `ChatResponse`。
+     * 4. 对每个分片执行内容发送与 token 统计，结束时推送 usage 事件并关闭连接。
+     * 5. 异常场景通过 `SseEmitter.completeWithError` 终止流并交由上层处理。
      *
      * @param request AI 请求
      * @return SSE 响应
@@ -101,7 +109,7 @@ public class AICallController implements IAICallService {
     @SaCheckPermission("agent:read")
     @Override
     public SseEmitter stream(@Valid @RequestBody AIRequest request, HttpServletResponse httpResponse) {
-        
+
         httpResponse.setCharacterEncoding("UTF-8");
         httpResponse.setHeader("Cache-Control", "no-cache");
         httpResponse.setHeader("Connection", "keep-alive");
@@ -109,7 +117,7 @@ public class AICallController implements IAICallService {
         SseEmitter emitter = new SseEmitter(0L);
         AICallCommand command = DTOConverter.toAppAICallCommand(request);
         UsageStats usageStats = new UsageStats();
-        
+
         aiChatAppService.streamChat(command).subscribe(
                 chatResponse -> {
                     captureUsage(chatResponse, usageStats);
@@ -126,8 +134,13 @@ public class AICallController implements IAICallService {
 
     /**
      * 获取所有可用模型列表
-     *
+     * <p>
      * 为什么：前端下拉统一来源，避免直接访问配置表。
+     * 流程：
+     * 1. 进入接口后执行 `agent:read` 权限校验。
+     * 2. Controller 以 `enabled=true` 条件调用 `modelConfigAppService.queryEnabledModels`。
+     * 3. 将领域模型配置映射为对外 `ModelInfo` 列表。
+     * 4. 统一封装 `Result.success` 返回，供前端模型选择器使用。
      *
      * @return 模型列表
      */
@@ -206,7 +219,7 @@ public class AICallController implements IAICallService {
      *
      * @author sxie
      */
-      private static class UsageStats {
+    private static class UsageStats {
         private Integer promptTokens;
         private Integer completionTokens;
         private Integer totalTokens;

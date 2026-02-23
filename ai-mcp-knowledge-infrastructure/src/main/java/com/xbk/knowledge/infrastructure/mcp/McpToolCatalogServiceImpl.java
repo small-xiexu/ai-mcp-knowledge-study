@@ -131,9 +131,7 @@ public class McpToolCatalogServiceImpl implements McpToolCatalogService {
             }
             prompt = builder.toString().trim();
         }
-        /*
-         * 目的：空工具结果不做长缓存，允许快速重试拉取
-         */
+        // 空工具结果不做长缓存，允许快速重试拉取
         int ttlSeconds = CollectionUtils.isEmpty(tools)
                 ? Math.min(properties.getCacheSeconds(), EMPTY_CACHE_SECONDS)
                 : properties.getCacheSeconds();

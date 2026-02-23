@@ -36,9 +36,7 @@ public class OllamaModelProvider implements ModelProvider {
 
             log.info("创建 Ollama 模型 - baseUrl: {}, model: {}", baseUrl, modelName);
 
-            /*
-             * 目的：构建 Ollama API 与默认选项
- */
+            // 构建 Ollama API 与默认选项
             OllamaApi ollamaApi = OllamaApi.builder()
                     .baseUrl(baseUrl)
                     .build();

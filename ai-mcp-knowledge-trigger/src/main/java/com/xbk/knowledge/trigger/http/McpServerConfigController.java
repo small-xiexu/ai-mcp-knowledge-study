@@ -45,11 +45,16 @@ public class McpServerConfigController implements IMcpServerConfigService {
     private final ObjectMapper objectMapper;
 
     /**
-     * 查询 MCP Server 配置列表（分页）
+     * 分页查询 MCP Server 配置列表。
+     * 流程：
+     * 1. 进入接口后执行 `tool:read` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 组装 `McpServerConfigPageQuery` 并调用应用服务分页查询。
+     * 4. 将领域分页结果转换为 `McpServerConfigResponse` 分页结构。
+     * 5. 统一封装 `Result.success` 返回。
      *
-     * 为什么：配置数量可能增长，分页保证接口稳定
-     * 入参：分页查询请求
-     * 出参：分页结果
+     * @param request 分页查询请求
+     * @return 分页结果
      */
     @PostMapping("/list")
     @SaCheckPermission("tool:read")
@@ -60,20 +65,23 @@ public class McpServerConfigController implements IMcpServerConfigService {
         McpServerConfigPageQuery query = new McpServerConfigPageQuery(offset, pageSize);
         PageResult<McpServerConfig> pageResult = mcpServerConfigAppService.queryMcpServerConfigPage(query);
 
-        /*
-         * 目的：统一分页转换逻辑，保障响应格式一致
- */
+        // 统一分页转换逻辑，保障响应格式一致
         PageResult<McpServerConfigResponse> result = PageResultConverter.convert(pageResult, this::convertToResponse);
 
         return Result.success(result);
     }
 
     /**
-     * 根据 ID 查询 MCP Server 配置
+     * 根据 ID 查询 MCP Server 配置详情。
+     * 流程：
+     * 1. 进入接口后执行 `tool:read` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 组装 `IdQuery` 并调用应用服务查询实体。
+     * 4. 转换为 `McpServerConfigResponse`（包含运行状态）。
+     * 5. 统一封装 `Result.success` 返回。
      *
-     * 为什么：前端进入配置详情时只关心单条记录
-     * 入参：ID 查询请求
-     * 出参：MCP Server 配置
+     * @param request ID 查询请求
+     * @return MCP Server 配置
      */
     @PostMapping("/get")
     @SaCheckPermission("tool:read")
@@ -87,19 +95,22 @@ public class McpServerConfigController implements IMcpServerConfigService {
     }
 
     /**
-     * 创建 MCP Server 配置
+     * 创建 MCP Server 配置。
+     * 流程：
+     * 1. 进入接口后执行 `tool:write` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 将请求 DTO 转换为 `McpServerConfig` 领域对象。
+     * 4. 调用 `mcpServerConfigAppService.createMcpServerConfig` 执行创建。
+     * 5. 转换响应并返回“创建成功”结果。
      *
-     * 为什么：统一由应用层处理校验与持久化
-     * 入参：MCP Server 配置请求
-     * 出参：创建后的配置
+     * @param request MCP Server 配置请求
+     * @return 创建后的配置
      */
     @PostMapping("/create")
     @SaCheckPermission("tool:write")
     @Override
     public Result<McpServerConfigResponse> createConfig(@Valid @RequestBody McpServerConfigRequest request) {
-        /*
-         * 目的：从请求 DTO 组装领域实体，避免接口层结构泄露
- */
+        // 从请求 DTO 组装领域实体，避免接口层结构泄露
         McpServerConfig config = buildFromRequest(request);
         McpServerConfig savedConfig = mcpServerConfigAppService.createMcpServerConfig(config);
         McpServerConfigResponse response = convertToResponse(savedConfig);
@@ -107,11 +118,16 @@ public class McpServerConfigController implements IMcpServerConfigService {
     }
 
     /**
-     * 更新 MCP Server 配置
+     * 更新 MCP Server 配置。
+     * 流程：
+     * 1. 进入接口后执行 `tool:write` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 组装领域对象并补齐待更新 id。
+     * 4. 调用 `mcpServerConfigAppService.updateMcpServerConfig` 执行更新。
+     * 5. 转换响应并返回“更新成功”结果。
      *
-     * 为什么：保持配置管理入口统一，便于审计与回溯
-     * 入参：MCP Server 配置请求
-     * 出参：更新后的配置
+     * @param request MCP Server 配置请求
+     * @return 更新后的配置
      */
     @PostMapping("/update")
     @SaCheckPermission("tool:write")
@@ -125,11 +141,16 @@ public class McpServerConfigController implements IMcpServerConfigService {
     }
 
     /**
-     * 删除 MCP Server 配置
+     * 删除 MCP Server 配置。
+     * 流程：
+     * 1. 进入接口后执行 `tool:write` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 组装 `IdQuery` 并调用应用服务删除。
+     * 4. 应用层执行引用校验与删除逻辑。
+     * 5. 统一封装空成功结果返回。
      *
-     * 为什么：允许清理无效配置，避免运行时加载失败
-     * 入参：ID 查询请求
-     * 出参：删除结果
+     * @param request ID 查询请求
+     * @return 删除结果
      */
     @PostMapping("/delete")
     @SaCheckPermission("tool:write")
@@ -142,11 +163,16 @@ public class McpServerConfigController implements IMcpServerConfigService {
     }
 
     /**
-     * 启用 MCP Server
+     * 启用 MCP Server。
+     * 流程：
+     * 1. 进入接口后执行 `tool:write` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 组装 `IdQuery` 并调用应用服务执行启用。
+     * 4. 将启用后的实体转换为响应 DTO。
+     * 5. 返回“启用成功”的统一结果。
      *
-     * 为什么：启用后允许运行时连接与工具调用
-     * 入参：ID 查询请求
-     * 出参：更新后的配置
+     * @param request ID 查询请求
+     * @return 更新后的配置
      */
     @PostMapping("/enable")
     @SaCheckPermission("tool:write")
@@ -160,11 +186,16 @@ public class McpServerConfigController implements IMcpServerConfigService {
     }
 
     /**
-     * 禁用 MCP Server
+     * 禁用 MCP Server。
+     * 流程：
+     * 1. 进入接口后执行 `tool:write` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 组装 `IdQuery` 并调用应用服务执行禁用。
+     * 4. 将禁用后的实体转换为响应 DTO。
+     * 5. 返回“禁用成功”的统一结果。
      *
-     * 为什么：禁用后停止运行时连接与工具调用
-     * 入参：ID 查询请求
-     * 出参：更新后的配置
+     * @param request ID 查询请求
+     * @return 更新后的配置
      */
     @PostMapping("/disable")
     @SaCheckPermission("tool:write")
@@ -178,11 +209,15 @@ public class McpServerConfigController implements IMcpServerConfigService {
     }
 
     /**
-     * 刷新启用的 MCP Server 运行时连接
+     * 刷新所有已启用 MCP Server 的运行时连接。
+     * 流程：
+     * 1. 进入接口后执行 `tool:write` 权限校验。
+     * 2. Controller 调用 `mcpServerConfigAppService.refreshEnabledServers`。
+     * 3. 应用层重建运行时连接并同步工具目录。
+     * 4. Controller 不返回业务数据，仅返回执行状态。
+     * 5. 返回“刷新成功”的统一结果。
      *
-     * 为什么：配置变更后需要触发运行时重建连接
-     * 入参：无
-     * 出参：操作结果
+     * @return 操作结果
      */
     @PostMapping("/refresh")
     @SaCheckPermission("tool:write")
@@ -193,11 +228,16 @@ public class McpServerConfigController implements IMcpServerConfigService {
     }
 
     /**
-     * 刷新指定 MCP Server 运行时连接
+     * 刷新指定 MCP Server 的运行时连接。
+     * 流程：
+     * 1. 进入接口后执行 `tool:write` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 组装 `IdQuery` 并调用 `refreshServer`。
+     * 4. 应用层仅重建目标 Server 连接与工具缓存。
+     * 5. 返回“刷新成功”的统一结果。
      *
-     * 为什么：单条刷新避免影响其它运行中配置
-     * 入参：ID 查询请求
-     * 出参：操作结果
+     * @param request ID 查询请求
+     * @return 操作结果
      */
     @PostMapping("/refresh-one")
     @SaCheckPermission("tool:write")
@@ -210,9 +250,7 @@ public class McpServerConfigController implements IMcpServerConfigService {
     }
 
     private McpServerConfig buildFromRequest(McpServerConfigRequest request) {
-        /*
-         * 目的：统一构建领域对象，保证入参映射可维护
- */
+        // 统一构建领域对象，保证入参映射可维护
         return McpServerConfig
                 .builder()
                 .serverName(request.getServerName())
@@ -235,9 +273,7 @@ public class McpServerConfigController implements IMcpServerConfigService {
         if (config == null) {
             return null;
         }
-        /*
-         * 目的：补充运行时状态，前端无需二次调用查询
- */
+        // 补充运行时状态，前端无需二次调用查询
         Long id = config.getId();
         Boolean running = mcpServerRuntimeService.isRunning(id);
         return McpServerConfigResponse
@@ -266,10 +302,8 @@ public class McpServerConfigController implements IMcpServerConfigService {
         if (value == null) {
             return null;
         }
-        /*
-         * 目的：序列化可变结构字段，避免表结构频繁变更
+        // 序列化可变结构字段，避免表结构频繁变更
          * 约束：序列化失败时返回 null，交由应用层处理
- */
         try {
             return objectMapper.writeValueAsString(value);
         } catch (Exception e) {
@@ -282,10 +316,8 @@ public class McpServerConfigController implements IMcpServerConfigService {
         if (!StringUtils.hasText(json)) {
             return Collections.emptyList();
         }
-        /*
-         * 目的：将存储的 JSON 数组解析为列表，给前端可直接展示
+        // 将存储的 JSON 数组解析为列表，给前端可直接展示
          * 约束：解析失败时降级为空列表
- */
         try {
             return objectMapper.readValue(json, new TypeReference<List<String>>() {});
         } catch (Exception e) {
@@ -298,10 +330,8 @@ public class McpServerConfigController implements IMcpServerConfigService {
         if (!StringUtils.hasText(json)) {
             return Collections.emptyMap();
         }
-        /*
-         * 目的：将存储的 JSON 对象解析为 Map，确保前端表单可直接回显
+        // 将存储的 JSON 对象解析为 Map，确保前端表单可直接回显
          * 约束：解析失败时降级为空 Map
- */
         try {
             return JsonMapUtils.readStringMap(objectMapper, json);
         } catch (Exception e) {

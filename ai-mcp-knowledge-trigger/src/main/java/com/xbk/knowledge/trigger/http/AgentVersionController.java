@@ -46,6 +46,12 @@ public class AgentVersionController implements IAgentVersionService {
 
     /**
      * 分页查询指定 Agent 的版本列表。
+     * 流程：
+     * 1. 进入接口后执行 `agent:read` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. 先按 `agentCode` 查询 Agent，再组装 `AgentVersionPageQuery`。
+     * 4. 调用 `agentVersionAppService.queryPage` 获取版本分页数据。
+     * 5. 转换为 `AgentVersionResponse` 分页并统一返回。
      *
      * @param request 查询参数
      * @return 版本分页
@@ -66,6 +72,12 @@ public class AgentVersionController implements IAgentVersionService {
 
     /**
      * 根据版本 ID 查询版本详情。
+     * 流程：
+     * 1. 进入接口后执行 `agent:read` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 组装 `AgentVersionIdQuery` 并调用 `agentVersionAppService.queryById`。
+     * 4. 将领域实体转换为 `AgentVersionResponse`。
+     * 5. 统一封装 `Result.success` 返回。
      *
      * @param request 版本 ID 请求
      * @return 版本详情
@@ -82,6 +94,12 @@ public class AgentVersionController implements IAgentVersionService {
      * 创建或更新草稿版本。
      *
      * 说明：当 id 为空时创建草稿；否则更新草稿（仅 DRAFT 可更新）。
+     * 流程：
+     * 1. 进入接口后执行 `agent:write` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. 读取当前登录用户与 Agent 主体，组装 `AgentVersion` 草稿对象。
+     * 4. 根据 `id` 是否为空分别调用 `createDraft` 或 `updateDraft`。
+     * 5. 将保存结果转换为 `AgentVersionResponse` 并返回对应成功文案。
      *
      * @param request 草稿请求
      * @return 保存后的草稿
@@ -128,6 +146,12 @@ public class AgentVersionController implements IAgentVersionService {
 
     /**
      * 发布指定版本（切换为当前生效版本）。
+     * 流程：
+     * 1. 进入接口后执行 `agent:publish` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 获取当前用户 ID 并调用 `agentVersionAppService.publish`。
+     * 4. 应用层完成版本状态流转与当前生效版本切换。
+     * 5. 返回发布后的 `AgentVersionResponse`。
      *
      * @param request 发布请求
      * @return 发布后的版本
@@ -143,6 +167,12 @@ public class AgentVersionController implements IAgentVersionService {
 
     /**
      * 回滚到指定历史版本（切换当前生效版本）。
+     * 流程：
+     * 1. 进入接口后执行 `agent:publish` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 获取当前用户 ID 并调用 `agentVersionAppService.rollback`。
+     * 4. 应用层完成目标版本校验与当前生效版本回切。
+     * 5. 返回回滚后的 `AgentVersionResponse`。
      *
      * @param request 回滚请求
      * @return 回滚后的目标版本

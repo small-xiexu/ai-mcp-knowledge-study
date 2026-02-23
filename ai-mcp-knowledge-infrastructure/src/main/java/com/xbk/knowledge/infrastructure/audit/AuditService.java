@@ -48,9 +48,7 @@ public class AuditService {
             return;
         }
 
-        /*
-         * 目的：统一解析操作者并序列化数据
- */
+        // 统一解析操作者并序列化数据
         Long operatorId = resolveOperatorId();
         String operatorType = operatorId == null ? "system" : "user";
         String oldValueJson = toJson(oldValue);

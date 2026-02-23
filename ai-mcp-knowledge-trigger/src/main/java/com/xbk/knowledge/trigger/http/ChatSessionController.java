@@ -45,14 +45,18 @@ public class ChatSessionController implements IChatSessionService {
      * 为什么：会话是消息聚合的根，先创建会话再追加消息，保证消息归属清晰
      * 入参：会话标题、模型、RAG 标签
      * 出参：创建后的会话信息
+     * 流程：
+     * 1. 进入接口后执行 `agent:write` 权限校验。
+     * 2. Spring 完成请求体绑定。
+     * 3. Controller 组装 `ChatSession` 并序列化 RAG 标签。
+     * 4. 调用 `chatSessionAppService.createSession` 持久化会话。
+     * 5. 转换为 `ChatSessionResponse` 并统一返回。
      */
     @PostMapping
     @SaCheckPermission("agent:write")
     @Override
     public Result<ChatSessionResponse> createSession(@RequestBody ChatSessionCreateRequest request) {
-        /*
-         * 目的：将请求 DTO 转为领域实体，保持领域层不依赖接口层结构
- */
+        // 将请求 DTO 转为领域实体，保持领域层不依赖接口层结构
         ChatSession session = ChatSession.builder()
                 .title(request.getTitle())
                 .modelId(request.getModelId())
@@ -68,6 +72,12 @@ public class ChatSessionController implements IChatSessionService {
      * 为什么：前端只允许修改标题、模型与标签，不在此处处理消息集合
      * 入参：会话 ID + 更新字段
      * 出参：更新后的会话信息
+     * 流程：
+     * 1. 进入接口后执行 `agent:write` 权限校验。
+     * 2. Spring 完成请求体绑定。
+     * 3. Controller 先查会话，不存在则直接返回错误。
+     * 4. 更新允许变更字段后调用 `chatSessionAppService.updateSession`。
+     * 5. 转换为 `ChatSessionResponse` 并统一返回。
      */
     @PostMapping("/update")
     @SaCheckPermission("agent:write")
@@ -91,6 +101,12 @@ public class ChatSessionController implements IChatSessionService {
      * 为什么：由应用层统一处理会话级联逻辑（如消息清理）
      * 入参：会话 ID
      * 出参：删除结果
+     * 流程：
+     * 1. 进入接口后执行 `agent:write` 权限校验。
+     * 2. Spring 完成请求体绑定。
+     * 3. Controller 调用 `chatSessionAppService.deleteSession`。
+     * 4. 应用层执行会话与关联消息清理。
+     * 5. 返回空成功结果。
      */
     @PostMapping("/delete")
     @SaCheckPermission("agent:write")
@@ -107,6 +123,12 @@ public class ChatSessionController implements IChatSessionService {
      * 为什么：提供前端进入会话时的详情数据
      * 入参：会话 ID
      * 出参：会话详情
+     * 流程：
+     * 1. 进入接口后执行 `agent:read` 权限校验。
+     * 2. Spring 完成请求体绑定。
+     * 3. Controller 调用 `chatSessionAppService.getSession` 查询详情。
+     * 4. 不存在返回错误；存在则转换为 `ChatSessionResponse`。
+     * 5. 统一封装结果返回。
      */
     @PostMapping("/detail")
     @SaCheckPermission("agent:read")
@@ -126,6 +148,12 @@ public class ChatSessionController implements IChatSessionService {
      * 为什么：统一分页协议，避免一次性拉取全部会话导致响应变大
      * 入参：分页参数
      * 出参：分页后的会话列表
+     * 流程：
+     * 1. 进入接口后执行 `agent:read` 权限校验。
+     * 2. Spring 完成请求体绑定。
+     * 3. Controller 调用 `chatSessionAppService.listSessions` 查询分页数据。
+     * 4. 将领域分页记录转换为 `ChatSessionResponse` 列表并重组分页对象。
+     * 5. 统一封装 `Result.success` 返回。
      */
     @PostMapping("/list")
     @SaCheckPermission("agent:read")
@@ -146,15 +174,19 @@ public class ChatSessionController implements IChatSessionService {
      * 为什么：消息写入需要绑定会话 ID，保持会话上下文连续
      * 入参：会话 ID + 消息内容
      * 出参：保存后的消息
+     * 流程：
+     * 1. 进入接口后执行 `agent:write` 权限校验。
+     * 2. Spring 完成路径变量与请求体绑定。
+     * 3. Controller 组装 `ChatMessage` 领域对象。
+     * 4. 调用 `chatSessionAppService.appendMessage` 追加消息。
+     * 5. 转换为 `ChatMessageResponse` 并统一返回。
      */
     @PostMapping("/{id}/messages")
     @SaCheckPermission("agent:write")
     @Override
     public Result<ChatMessageResponse> appendMessage(@PathVariable("id") Long id,
                                                      @RequestBody ChatMessageCreateRequest request) {
-        /*
-         * 目的：从请求构建领域消息，防止接口层字段直接流入持久层
- */
+        // 从请求构建领域消息，防止接口层字段直接流入持久层
         ChatMessage message = ChatMessage.builder()
                 .sessionId(id)
                 .role(request.getRole())
@@ -171,6 +203,12 @@ public class ChatSessionController implements IChatSessionService {
      * 为什么：避免一次加载过多历史消息导致性能问题
      * 入参：会话 ID + 分页参数
      * 出参：分页后的消息列表
+     * 流程：
+     * 1. 进入接口后执行 `agent:read` 权限校验。
+     * 2. Spring 完成请求体绑定。
+     * 3. Controller 调用 `chatSessionAppService.listMessages` 查询分页消息。
+     * 4. 将领域消息转换为 `ChatMessageResponse` 并重组分页对象。
+     * 5. 统一封装 `Result.success` 返回。
      */
     @PostMapping("/messages/list")
     @SaCheckPermission("agent:read")
@@ -194,6 +232,12 @@ public class ChatSessionController implements IChatSessionService {
      * 为什么：提供会话级清理能力，避免影响会话元数据
      * 入参：会话 ID
      * 出参：清理结果
+     * 流程：
+     * 1. 进入接口后执行 `agent:write` 权限校验。
+     * 2. Spring 完成请求体绑定。
+     * 3. Controller 调用 `chatSessionAppService.deleteMessages` 清理消息。
+     * 4. 应用层执行会话消息删除，不影响会话主档。
+     * 5. 返回空成功结果。
      */
     @PostMapping("/messages/delete")
     @SaCheckPermission("agent:write")
@@ -230,10 +274,8 @@ public class ChatSessionController implements IChatSessionService {
         if (rawTags == null || rawTags.isEmpty()) {
             return Collections.emptyList();
         }
-        /*
-         * 目的：将存储的 JSON 字符串还原为标签列表，前端无需自行解析
+        // 将存储的 JSON 字符串还原为标签列表，前端无需自行解析
          * 约束：解析失败时回退为空列表，避免影响主流程
- */
         try {
             return objectMapper.readValue(rawTags, new TypeReference<List<String>>() {});
         } catch (JsonProcessingException e) {
@@ -245,10 +287,8 @@ public class ChatSessionController implements IChatSessionService {
         if (tags == null || tags.isEmpty()) {
             return "[]";
         }
-        /*
-         * 目的：存储时统一序列化为 JSON，便于数据库索引与查询
+        // 存储时统一序列化为 JSON，便于数据库索引与查询
          * 约束：序列化失败时回退为空数组，保持字段结构稳定
- */
         try {
             return objectMapper.writeValueAsString(tags);
         } catch (JsonProcessingException e) {

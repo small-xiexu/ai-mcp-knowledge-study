@@ -34,9 +34,7 @@ public class ChatMessageRepositoryImpl implements ChatMessageRepository {
      */
     @Override
     public ChatMessage create(ChatMessage message) {
-        /*
-         * 目的：基础设施层统一维护时间戳
- */
+        // 基础设施层统一维护时间戳
         message.setCreatedAt(LocalDateTime.now());
         chatMessageMapper.insertMessage(BeanMappingUtils.map(message, ChatMessagePO.class));
         return message;

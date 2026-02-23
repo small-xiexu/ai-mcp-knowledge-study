@@ -6,7 +6,7 @@ import java.util.Set;
 /**
  * Gateway 工具绑定上下文
  * 通过 ThreadLocal 传递当前会话和模型信息
- *
+ * <p>
  * 为什么需要：GatewayToolCallbackProvider 在构建工具列表时需要知道当前请求的
  * 模型 ID 和会话 ID，以便按绑定关系过滤可见工具。由于 ToolCallbackProvider
  * 接口无法传递额外参数，因此通过 ThreadLocal 在调用链路中透传上下文
@@ -23,13 +23,13 @@ public final class GatewayToolBindingContextHolder {
     /**
      * 设置当前线程的绑定上下文
      */
-     public static void set(Long modelId, Long sessionId) {
+    public static void set(Long modelId, Long sessionId) {
         CONTEXT.set(new BindingContext(modelId, sessionId, null, null, null, null, null, null));
     }
 
     /**
      * 设置当前线程的绑定上下文（支持 AgentVersion allowlist）。
-     *
+     * <p>
      * 说明：
      * - allowedToolKeys = null 表示“不启用 allowlist 过滤”（保持历史行为）。
      * - allowedToolKeys = 空集合 表示“明确无可用工具”。
@@ -40,7 +40,7 @@ public final class GatewayToolBindingContextHolder {
 
     /**
      * 设置当前线程的绑定上下文（支持 AgentVersion allowlist + runId）。
-     *
+     * <p>
      * 说明：
      * - runId 通常与 traceId 对齐，用于工具调用审计与链路串联。
      */
@@ -82,29 +82,60 @@ public final class GatewayToolBindingContextHolder {
     /**
      * 获取当前线程的绑定上下文
      */
-     public static BindingContext get() {
+    public static BindingContext get() {
         return CONTEXT.get();
     }
 
     /**
      * 清除当前线程的绑定上下文（必须在 finally 中调用，防止内存泄漏）
      */
-     public static void clear() {
+    public static void clear() {
         CONTEXT.remove();
     }
 
     /**
      * 绑定上下文，承载模型 ID 和会话 ID
      */
-     public static final class BindingContext {
+    public static final class BindingContext {
 
+        /**
+         * 当前请求绑定的模型标识。
+         */
         private final Long modelId;
+
+        /**
+         * 当前请求绑定的会话标识。
+         */
         private final Long sessionId;
+
+        /**
+         * 当前会话使用的 Agent 版本标识。
+         */
         private final Long agentVersionId;
+
+        /**
+         * 当前执行流程对应的 Workflow 标识。
+         */
         private final Long workflowId;
+
+        /**
+         * 当前执行流程对应的 Workflow 版本标识。
+         */
         private final Long workflowVersionId;
+
+        /**
+         * 当前执行到的 Workflow 节点标识。
+         */
         private final String workflowNodeKey;
+
+        /**
+         * 当前执行链路的运行标识。
+         */
         private final String runId;
+
+        /**
+         * 当前上下文允许调用的工具 Key 集合。
+         */
         private final Set<String> allowedToolKeys;
 
         private BindingContext(Long modelId,

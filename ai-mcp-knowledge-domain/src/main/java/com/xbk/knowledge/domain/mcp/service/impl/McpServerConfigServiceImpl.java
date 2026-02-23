@@ -45,9 +45,7 @@ public class McpServerConfigServiceImpl implements IMcpServerConfigService {
         }
         int offset = query.getOffset() == null ? 0 : query.getOffset();
         int pageSize = query.getPageSize() == null ? 10 : query.getPageSize();
-        /*
-         * 目的：规范化分页参数，避免异常分页导致性能问题
- */
+        // 规范化分页参数，避免异常分页导致性能问题
         McpServerConfigPageQuery pageQuery = new McpServerConfigPageQuery(offset, pageSize);
         List<McpServerConfig> configs = mcpServerConfigRepository.findPage(pageQuery);
 
@@ -86,9 +84,7 @@ public class McpServerConfigServiceImpl implements IMcpServerConfigService {
      */
     @Override
     public McpServerConfig createMcpServerConfig(McpServerConfig config) {
-        /*
-         * 目的：校验名称唯一性，避免数据库异常
- */
+        // 校验名称唯一性，避免数据库异常
         String serverName = config.getServerName();
         McpServerNameQuery nameQuery = new McpServerNameQuery(serverName);
         if (mcpServerConfigRepository
@@ -97,9 +93,7 @@ public class McpServerConfigServiceImpl implements IMcpServerConfigService {
             throw new IllegalArgumentException("MCP Server 名称已存在：" + serverName);
         }
 
-        /*
-         * 目的：补齐创建/更新时间，保证审计字段一致
- */
+        // 补齐创建/更新时间，保证审计字段一致
         LocalDateTime now = LocalDateTime.now();
         config.setCreatedAt(now);
         config.setUpdatedAt(now);
@@ -119,9 +113,7 @@ public class McpServerConfigServiceImpl implements IMcpServerConfigService {
             throw new IllegalArgumentException("更新操作必须提供 MCP Server ID");
         }
 
-        /*
-         * 目的：读取现有配置，确保更新基于最新数据
- */
+        // 读取现有配置，确保更新基于最新数据
         Long configId = config.getId();
         IdQuery idQuery = new IdQuery(configId);
         String notFoundMessage = "MCP Server 配置不存在，id: " + configId;
@@ -130,9 +122,7 @@ public class McpServerConfigServiceImpl implements IMcpServerConfigService {
                 .findById(idQuery)
                 .orElseThrow(exceptionSupplier);
 
-        /*
-         * 目的：校验名称唯一性，避免冲突
- */
+        // 校验名称唯一性，避免冲突
         String serverName = config.getServerName();
         McpServerNameQuery nameQuery = new McpServerNameQuery(serverName);
         mcpServerConfigRepository
@@ -145,9 +135,7 @@ public class McpServerConfigServiceImpl implements IMcpServerConfigService {
                     }
                 });
 
-        /*
-         * 目的：覆盖可更新字段并刷新更新时间
- */
+        // 覆盖可更新字段并刷新更新时间
         existingConfig.setServerName(serverName);
         existingConfig.setServerType(config.getServerType());
         existingConfig.setEnabled(config.getEnabled());
@@ -180,9 +168,7 @@ public class McpServerConfigServiceImpl implements IMcpServerConfigService {
         }
         Long id = query.getId();
         IdQuery idQuery = new IdQuery(id);
-        /*
-         * 目的：先检查存在性，避免静默失败
- */
+        // 先检查存在性，避免静默失败
         if (!mcpServerConfigRepository.existsById(idQuery)) {
             throw new NotFoundException("MCP Server 配置不存在，id: " + id);
         }

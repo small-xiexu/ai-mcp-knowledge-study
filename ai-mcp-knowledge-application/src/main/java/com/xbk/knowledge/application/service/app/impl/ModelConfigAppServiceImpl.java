@@ -173,9 +173,7 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
         if (activation == null || activation.getChatModelId() == null) {
             return null;
         }
-        /*
-         * 目的：通过配置表反查当前激活模型
- */
+        // 通过配置表反查当前激活模型
         IdQuery query = new IdQuery(activation.getChatModelId());
         return modelConfigService.queryModelConfigById(query);
     }
@@ -193,9 +191,7 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
         if (activation == null || activation.getEmbeddingModelId() == null) {
             return null;
         }
-        /*
-         * 目的：通过配置表反查当前激活模型
- */
+        // 通过配置表反查当前激活模型
         IdQuery query = new IdQuery(activation.getEmbeddingModelId());
         return modelConfigService.queryModelConfigById(query);
     }
@@ -214,9 +210,7 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
         if (modelConfig == null) {
             return null;
         }
-        /*
-         * 目的：保留当前嵌入模型配置，避免覆盖
- */
+        // 保留当前嵌入模型配置，避免覆盖
         ModelActivation existing = modelActivationRepository.queryActivation();
         Long embeddingModelId = existing != null ? existing.getEmbeddingModelId() : null;
         ModelActivation activation = ModelActivation.builder()
@@ -245,9 +239,7 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
         if (modelType != ModelType.OPENAI && modelType != ModelType.OLLAMA) {
             throw new IllegalArgumentException("当前模型类型不支持作为嵌入模型");
         }
-        /*
-         * 目的：保留当前对话模型配置，避免覆盖
- */
+        // 保留当前对话模型配置，避免覆盖
         ModelActivation existing = modelActivationRepository.queryActivation();
         Long chatModelId = existing != null ? existing.getChatModelId() : null;
         ModelActivation activation = ModelActivation.builder()

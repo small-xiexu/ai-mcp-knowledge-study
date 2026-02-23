@@ -39,6 +39,15 @@ public class ApprovalController implements IApprovalService {
 
     /**
      * 分页查询审批单列表。
+     * 流程：
+     * 1. 进入接口后执行 `tool:approve` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 调用 `approvalAppService.list` 查询审批单分页数据。
+     * 4. 将领域对象分页结果转换为 `ApprovalResponse` 分页结果。
+     * 5. 统一封装 `Result.success` 返回。
+     *
+     * @param request 分页查询参数
+     * @return 审批单分页结果
      */
     @PostMapping("/list")
     @SaCheckPermission("tool:approve")
@@ -54,6 +63,15 @@ public class ApprovalController implements IApprovalService {
 
     /**
      * 查询审批单详情。
+     * 流程：
+     * 1. 进入接口后执行 `tool:approve` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 调用 `approvalAppService.get` 查询审批单详情。
+     * 4. 将领域实体转换为 `ApprovalResponse`。
+     * 5. 统一封装 `Result.success` 返回。
+     *
+     * @param request 审批单 ID 请求
+     * @return 审批单详情
      */
     @PostMapping("/get")
     @SaCheckPermission("tool:approve")
@@ -65,6 +83,15 @@ public class ApprovalController implements IApprovalService {
 
     /**
      * 审批通过（方式B：自动续跑）。
+     * 流程：
+     * 1. 进入接口后执行 `tool:approve` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 调用 `approvalAppService.approve` 执行审批通过。
+     * 4. 应用层按审批快照触发续跑并生成 `PlatformContractV1` 结果。
+     * 5. Controller 统一封装成功文案与续跑结果返回。
+     *
+     * @param request 审批决策请求
+     * @return 续跑后的平台标准结果
      */
     @PostMapping("/approve")
     @SaCheckPermission("tool:approve")
@@ -76,6 +103,15 @@ public class ApprovalController implements IApprovalService {
 
     /**
      * 审批拒绝。
+     * 流程：
+     * 1. 进入接口后执行 `tool:approve` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 调用 `approvalAppService.reject` 执行审批拒绝。
+     * 4. 将拒绝后的审批实体转换为 `ApprovalResponse`。
+     * 5. 统一封装拒绝结果并返回。
+     *
+     * @param request 审批决策请求
+     * @return 拒绝后的审批单详情
      */
     @PostMapping("/reject")
     @SaCheckPermission("tool:approve")

@@ -54,9 +54,7 @@ public class CallLogRepositoryImpl implements CallLogRepository {
             LocalDateTime createdAt = LocalDateTime.now();
             callLog.setCreatedAt(createdAt);
         }
-        /*
-         * 目的：统一落库入口，避免重复插入逻辑
- */
+        // 统一落库入口，避免重复插入逻辑
         callLogMapper.insertCallLog(BeanMappingUtils.map(callLog, CallLogPO.class));
         aggregate.setCallLog(callLog);
         return aggregate;

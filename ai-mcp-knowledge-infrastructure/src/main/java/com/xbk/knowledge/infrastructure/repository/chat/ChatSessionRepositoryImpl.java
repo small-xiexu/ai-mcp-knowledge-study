@@ -34,9 +34,7 @@ public class ChatSessionRepositoryImpl implements ChatSessionRepository {
      */
     @Override
     public ChatSession create(ChatSession session) {
-        /*
-         * 目的：基础设施层统一维护时间戳，避免上层重复设置
- */
+        // 基础设施层统一维护时间戳，避免上层重复设置
         LocalDateTime now = LocalDateTime.now();
         session.setCreatedAt(now);
         session.setUpdatedAt(now);

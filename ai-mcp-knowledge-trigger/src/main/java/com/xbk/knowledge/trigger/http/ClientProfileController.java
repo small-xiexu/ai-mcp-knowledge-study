@@ -39,6 +39,12 @@ public class ClientProfileController implements IClientProfileService {
 
     /**
      * 根据筛选条件查询客户端画像列表。
+     * 流程：
+     * 1. 进入接口后执行 `agent:read` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 组装 `ClientProfilePageQuery` 并调用 `clientProfileAppService.queryPage`。
+     * 4. 将领域分页结果转换为 `ClientProfileResponse`（列表接口不展开 steps）。
+     * 5. 统一封装 `Result.success` 返回。
      *
      * @param request 客户端画像分页查询参数。
      * @return 返回 ClientProfileResponse 分页数据。
@@ -60,6 +66,12 @@ public class ClientProfileController implements IClientProfileService {
 
     /**
      * 查询客户端画像。
+     * 流程：
+     * 1. 进入接口后执行 `agent:read` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 调用 `clientProfileAppService.get` 查询主档。
+     * 4. 再调用 `clientProfileAppService.listSteps` 查询步骤链。
+     * 5. 聚合为 `ClientProfileResponse` 并统一返回。
      *
      * @param request 客户端画像查询参数。
      * @return 返回 ClientProfileResponse 数据。
@@ -75,6 +87,12 @@ public class ClientProfileController implements IClientProfileService {
 
     /**
      * 创建或更新客户端画像数据。
+     * 流程：
+     * 1. 进入接口后执行 `agent:write` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 从登录上下文获取用户并组装 `ClientProfile` + `ClientProfileStep`。
+     * 4. 调用 `clientProfileAppService.save` 执行保存。
+     * 5. 保存后回查步骤链并组装完整响应返回。
      *
      * @param request 客户端画像保存参数。
      * @return 返回 ClientProfileResponse 数据。
@@ -101,6 +119,12 @@ public class ClientProfileController implements IClientProfileService {
 
     /**
      * 启用业务配置。
+     * 流程：
+     * 1. 进入接口后执行 `agent:write` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 获取当前用户并调用 `clientProfileAppService.enable`。
+     * 4. 回查步骤链并组装启用后的完整响应。
+     * 5. 统一封装 `Result.success` 返回。
      *
      * @param request 客户端画像启停参数。
      * @return 返回 ClientProfileResponse 数据。
@@ -117,6 +141,12 @@ public class ClientProfileController implements IClientProfileService {
 
     /**
      * 禁用业务配置。
+     * 流程：
+     * 1. 进入接口后执行 `agent:write` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 获取当前用户并调用 `clientProfileAppService.disable`。
+     * 4. 回查步骤链并组装禁用后的完整响应。
+     * 5. 统一封装 `Result.success` 返回。
      *
      * @param request 客户端画像启停参数。
      * @return 返回 ClientProfileResponse 数据。
@@ -133,6 +163,12 @@ public class ClientProfileController implements IClientProfileService {
 
     /**
      * 删除客户端画像数据。
+     * 流程：
+     * 1. 进入接口后执行 `agent:write` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 调用 `clientProfileAppService.remove` 执行删除。
+     * 4. 应用层负责清理主档与关联步骤数据。
+     * 5. 统一返回空成功结果。
      *
      * @param request 客户端画像删除参数。
      * @return 返回客户端画像删除状态。

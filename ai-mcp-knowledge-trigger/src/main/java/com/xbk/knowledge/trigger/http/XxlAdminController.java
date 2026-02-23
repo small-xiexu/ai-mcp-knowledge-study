@@ -55,9 +55,13 @@ public class XxlAdminController implements IXxlAdminService {
     private final XxlPermissionGuard xxlPermissionGuard;
 
     /**
-     * 查询 XXL 任务列表（分页）
-     *
-     * 为什么：统一入口管理任务分页，便于权限与 appName 约束集中处理。
+     * 分页查询 XXL 任务列表。
+     * 流程：
+     * 1. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 2. Controller 调用 `xxlPermissionGuard.assertCanView` 做查看权限校验。
+     * 3. 解析并校验 appName，组装 `XxlJobPageQuery`。
+     * 4. 调用 `xxlJobAppService.queryJobPage` 查询并转换分页结果。
+     * 5. 统一封装 `Result.success` 返回。
      *
      * @param request 分页查询参数
      * @return 分页结果
@@ -77,9 +81,13 @@ public class XxlAdminController implements IXxlAdminService {
     }
 
     /**
-     * 查询 XXL 任务下拉列表
-     *
-     * 为什么：通过缓存统一任务选项，避免前端反复分页拉取。
+     * 查询 XXL 任务下拉选项列表。
+     * 流程：
+     * 1. Spring 绑定请求体（可为空）。
+     * 2. Controller 调用 `xxlPermissionGuard.assertCanView` 做查看权限校验。
+     * 3. 解析 appName 与 refresh 标记，调用 `queryAllJobs`。
+     * 4. 将任务实体逐条转换为 `XxlJobResponse`。
+     * 5. 统一封装 `Result.success` 返回。
      *
      * @param request 查询参数
      * @return 任务列表
@@ -99,9 +107,13 @@ public class XxlAdminController implements IXxlAdminService {
     }
 
     /**
-     * 查询 XXL 任务详情
-     *
-     * 为什么：编辑/查看需要完整详情，统一从后端校验与转换。
+     * 查询 XXL 任务详情。
+     * 流程：
+     * 1. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 2. Controller 执行查看权限校验。
+     * 3. 解析 appName 并调用 `queryJobDetail` 查询任务详情。
+     * 4. 将领域对象转换为 `XxlJobDetailResponse`。
+     * 5. 统一封装 `Result.success` 返回。
      *
      * @param request 查询参数
      * @return 任务详情
@@ -116,9 +128,13 @@ public class XxlAdminController implements IXxlAdminService {
     }
 
     /**
-     * 创建 XXL 任务
-     *
-     * 为什么：创建前统一校验与字段白名单控制，避免越权字段写入。
+     * 创建 XXL 任务。
+     * 流程：
+     * 1. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 2. Controller 执行编辑权限校验。
+     * 3. 将请求转换为 `XxlJobInfo` 领域对象。
+     * 4. 调用 `xxlJobAppService.createJob` 创建任务。
+     * 5. 返回“任务创建成功”与结果标识。
      *
      * @param request 任务创建参数
      * @return 返回任务创建结果标识。
@@ -133,9 +149,13 @@ public class XxlAdminController implements IXxlAdminService {
     }
 
     /**
-     * 更新 XXL 任务
-     *
-     * 为什么：更新需要保持字段一致性，统一从后端对接 xxl-admin。
+     * 更新 XXL 任务。
+     * 流程：
+     * 1. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 2. Controller 执行编辑权限校验。
+     * 3. 将请求转换为 `XxlJobInfo` 并设置目标 id。
+     * 4. 调用 `xxlJobAppService.updateJob` 执行更新。
+     * 5. 返回“任务更新成功”的统一结果。
      *
      * @param request 任务更新参数
      * @return 返回任务更新状态。
@@ -151,9 +171,13 @@ public class XxlAdminController implements IXxlAdminService {
     }
 
     /**
-     * 删除 XXL 任务
-     *
-     * 为什么：删除属高风险操作，集中权限与操作日志入口。
+     * 删除 XXL 任务。
+     * 流程：
+     * 1. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 2. Controller 执行编辑权限校验。
+     * 3. 调用 `xxlJobAppService.removeJob` 删除指定任务。
+     * 4. 应用层调用调度中心并清理关联状态。
+     * 5. 返回“任务删除成功”的统一结果。
      *
      * @param request 任务删除参数
      * @return 返回任务删除状态。
@@ -167,9 +191,13 @@ public class XxlAdminController implements IXxlAdminService {
     }
 
     /**
-     * 启动 XXL 任务
-     *
-     * 为什么：启动任务需校验权限并统一调用调度中心接口。
+     * 启动 XXL 任务。
+     * 流程：
+     * 1. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 2. Controller 执行编辑权限校验。
+     * 3. 调用 `xxlJobAppService.startJob` 启动任务。
+     * 4. 应用层对接调度中心更新触发状态。
+     * 5. 返回“任务启动成功”的统一结果。
      *
      * @param request 启动参数
      * @return 启动结果
@@ -183,9 +211,13 @@ public class XxlAdminController implements IXxlAdminService {
     }
 
     /**
-     * 停止 XXL 任务
-     *
-     * 为什么：停止任务避免误触发，统一走后端校验与调用链。
+     * 停止 XXL 任务。
+     * 流程：
+     * 1. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 2. Controller 执行编辑权限校验。
+     * 3. 调用 `xxlJobAppService.stopJob` 停止任务。
+     * 4. 应用层对接调度中心更新触发状态。
+     * 5. 返回“任务停止成功”的统一结果。
      *
      * @param request 停止参数
      * @return 停止结果
@@ -199,9 +231,13 @@ public class XxlAdminController implements IXxlAdminService {
     }
 
     /**
-     * 手动触发 XXL 任务
-     *
-     * 为什么：手动触发需审计与权限控制，避免绕过调度策略。
+     * 手动触发 XXL 任务。
+     * 流程：
+     * 1. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 2. Controller 执行编辑权限校验。
+     * 3. 调用 `xxlJobAppService.triggerJob` 发起手动触发。
+     * 4. 应用层调用调度中心并记录触发结果。
+     * 5. 返回“任务触发成功”与执行回执。
      *
      * @param request 触发参数
      * @return 触发结果
@@ -215,9 +251,13 @@ public class XxlAdminController implements IXxlAdminService {
     }
 
     /**
-     * 查询 XXL 任务日志列表（分页）
-     *
-     * 为什么：日志查询统一由后端过滤 appName，避免越权查看。
+     * 分页查询 XXL 任务日志列表。
+     * 流程：
+     * 1. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 2. Controller 执行查看权限校验。
+     * 3. 组装 `XxlJobLogPageQuery` 并调用应用服务分页查询。
+     * 4. 将日志实体分页转换为 `XxlJobLogResponse`。
+     * 5. 统一封装 `Result.success` 返回。
      *
      * @param request 分页查询参数
      * @return 分页结果
@@ -242,9 +282,13 @@ public class XxlAdminController implements IXxlAdminService {
     }
 
     /**
-     * 查询 XXL 任务日志详情
-     *
-     * 为什么：日志内容需按行拉取，统一由后端做参数校验与调用。
+     * 查询 XXL 任务日志详情。
+     * 流程：
+     * 1. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 2. Controller 执行查看权限校验。
+     * 3. 调用 `xxlJobAppService.queryLogDetail` 按行查询日志内容。
+     * 4. 将结果转换为 `XxlJobLogDetailResponse`。
+     * 5. 统一封装 `Result.success` 返回。
      *
      * @param request 查询参数
      * @return 日志详情

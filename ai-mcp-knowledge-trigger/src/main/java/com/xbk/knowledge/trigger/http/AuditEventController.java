@@ -34,6 +34,12 @@ public class AuditEventController implements IAuditEventService {
 
     /**
      * 分页查询审计事件。
+     * 流程：
+     * 1. 进入 Trigger 层后先执行 `audit:read` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 将请求 DTO 组装为 `AuditEventPageQuery` 查询对象。
+     * 4. 调用 `auditEventAppService.queryPage` 执行分页查询。
+     * 5. 将领域分页结果转换为 `AuditEventResponse` 并统一封装 `Result.success` 返回。
      *
      * @param request 查询参数
      * @return 分页结果

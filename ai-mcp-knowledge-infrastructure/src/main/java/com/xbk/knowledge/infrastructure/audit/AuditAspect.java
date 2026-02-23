@@ -59,9 +59,7 @@ public class AuditAspect {
                 ModelConfig newValue = modelConfigRepository
                         .findById(idQuery)
                         .orElse(null);
-                /*
-                 * 目的：记录新增前后差异，新增时旧值为空
- */
+                // 记录新增前后差异，新增时旧值为空
                 auditService.recordAudit(MODEL_CONFIG_TABLE, recordId, OPERATION_INSERT, null, newValue);
             } else {
                 log.warn("创建模型配置审计未记录，未解析到记录ID");
@@ -94,9 +92,7 @@ public class AuditAspect {
                     ModelConfig newValue = modelConfigRepository
                             .findById(idQuery)
                             .orElse(null);
-                    /*
-                     * 目的：记录更新前后差异
- */
+                    // 记录更新前后差异
                     auditService.recordAudit(MODEL_CONFIG_TABLE, recordId, OPERATION_UPDATE, oldValue, newValue);
                 } else {
                     log.warn("更新模型配置审计未记录，未解析到记录ID");
@@ -130,9 +126,7 @@ public class AuditAspect {
             Object result = joinPoint.proceed();
             try {
                 if (recordId != null) {
-                    /*
-                     * 目的：删除时只记录旧值
- */
+                    // 删除时只记录旧值
                     auditService.recordAudit(MODEL_CONFIG_TABLE, recordId, OPERATION_DELETE, oldValue, null);
                 } else {
                     log.warn("删除模型配置审计未记录，未解析到记录ID");
@@ -164,9 +158,7 @@ public class AuditAspect {
                 McpServerConfig newValue = mcpServerConfigRepository
                         .findById(idQuery)
                         .orElse(null);
-                /*
-                 * 目的：记录新增前后差异，新增时旧值为空
- */
+                // 记录新增前后差异，新增时旧值为空
                 auditService.recordAudit(MCP_SERVER_CONFIG_TABLE, recordId, OPERATION_INSERT, null, newValue);
             } else {
                 log.warn("创建 MCP Server 配置审计未记录，未解析到记录ID");
@@ -199,9 +191,7 @@ public class AuditAspect {
                     McpServerConfig newValue = mcpServerConfigRepository
                             .findById(idQuery)
                             .orElse(null);
-                    /*
-                     * 目的：记录更新前后差异
- */
+                    // 记录更新前后差异
                     auditService.recordAudit(MCP_SERVER_CONFIG_TABLE, recordId, OPERATION_UPDATE, oldValue, newValue);
                 } else {
                     log.warn("更新 MCP Server 配置审计未记录，未解析到记录ID");
@@ -235,9 +225,7 @@ public class AuditAspect {
             Object result = joinPoint.proceed();
             try {
                 if (recordId != null) {
-                    /*
-                     * 目的：删除时只记录旧值
- */
+                    // 删除时只记录旧值
                     auditService.recordAudit(MCP_SERVER_CONFIG_TABLE, recordId, OPERATION_DELETE, oldValue, null);
                 } else {
                     log.warn("删除 MCP Server 配置审计未记录，未解析到记录ID");

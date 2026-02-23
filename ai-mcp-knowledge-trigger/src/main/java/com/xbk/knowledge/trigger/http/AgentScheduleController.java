@@ -43,6 +43,15 @@ public class AgentScheduleController implements IAgentScheduleService {
 
     /**
      * 分页查询调度列表。
+     * 流程：
+     * 1. 进入接口后执行 `agent:read` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. 若传入 `agentCode`，先查询 Agent 再得到 `agentId`。
+     * 4. 组装 `AgentSchedulePageQuery` 并调用 `agentScheduleAppService.queryPage`。
+     * 5. 转换分页结果并统一封装 `Result.success` 返回。
+     *
+     * @param request 分页查询参数
+     * @return 调度分页结果
      */
     @PostMapping("/list")
     @SaCheckPermission("agent:read")
@@ -66,6 +75,15 @@ public class AgentScheduleController implements IAgentScheduleService {
 
     /**
      * 查询调度详情。
+     * 流程：
+     * 1. 进入接口后执行 `agent:read` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 组装 `AgentScheduleIdQuery` 并调用 `agentScheduleAppService.queryById`。
+     * 4. 将领域实体转换为 `AgentScheduleResponse`。
+     * 5. 统一封装 `Result.success` 返回。
+     *
+     * @param request 调度 ID 请求
+     * @return 调度详情
      */
     @PostMapping("/get")
     @SaCheckPermission("agent:read")
@@ -77,6 +95,15 @@ public class AgentScheduleController implements IAgentScheduleService {
 
     /**
      * 创建调度。
+     * 流程：
+     * 1. 进入接口后执行 `agent:write` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 组装 `AgentSchedule` 领域对象。
+     * 4. 调用 `agentScheduleAppService.create` 创建调度并注册对应任务。
+     * 5. 将创建结果转换为 `AgentScheduleResponse` 并统一返回。
+     *
+     * @param request 创建请求
+     * @return 创建后的调度配置
      */
     @PostMapping("/create")
     @SaCheckPermission("agent:write")
@@ -95,6 +122,15 @@ public class AgentScheduleController implements IAgentScheduleService {
 
     /**
      * 更新调度。
+     * 流程：
+     * 1. 进入接口后执行 `agent:write` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 组装更新对象并调用 `agentScheduleAppService.update`。
+     * 4. 应用层完成调度配置更新与任务同步。
+     * 5. 将更新结果转换为 `AgentScheduleResponse` 并统一返回。
+     *
+     * @param request 更新请求
+     * @return 更新后的调度配置
      */
     @PostMapping("/update")
     @SaCheckPermission("agent:write")
@@ -113,6 +149,15 @@ public class AgentScheduleController implements IAgentScheduleService {
 
     /**
      * 启用调度。
+     * 流程：
+     * 1. 进入接口后执行 `agent:write` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 调用 `agentScheduleAppService.enable` 启用调度。
+     * 4. 应用层完成任务状态切换。
+     * 5. 返回启用后的 `AgentScheduleResponse`。
+     *
+     * @param request 调度 ID 请求
+     * @return 启用后的调度配置
      */
     @PostMapping("/enable")
     @SaCheckPermission("agent:write")
@@ -124,6 +169,15 @@ public class AgentScheduleController implements IAgentScheduleService {
 
     /**
      * 禁用调度。
+     * 流程：
+     * 1. 进入接口后执行 `agent:write` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 调用 `agentScheduleAppService.disable` 禁用调度。
+     * 4. 应用层完成任务状态切换。
+     * 5. 返回禁用后的 `AgentScheduleResponse`。
+     *
+     * @param request 调度 ID 请求
+     * @return 禁用后的调度配置
      */
     @PostMapping("/disable")
     @SaCheckPermission("agent:write")
@@ -135,6 +189,15 @@ public class AgentScheduleController implements IAgentScheduleService {
 
     /**
      * 删除调度。
+     * 流程：
+     * 1. 进入接口后执行 `agent:write` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 调用 `agentScheduleAppService.remove` 执行删除。
+     * 4. 应用层完成调度与关联任务清理。
+     * 5. 统一返回空成功结果。
+     *
+     * @param request 调度 ID 请求
+     * @return 空成功结果
      */
     @PostMapping("/remove")
     @SaCheckPermission("agent:write")

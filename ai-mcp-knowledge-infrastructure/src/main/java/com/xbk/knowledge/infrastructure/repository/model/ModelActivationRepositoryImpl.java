@@ -46,17 +46,13 @@ public class ModelActivationRepositoryImpl implements ModelActivationRepository 
         ModelActivation existing = BeanMappingUtils.map(modelActivationMapper.findActivation(), ModelActivation.class);
         LocalDateTime now = LocalDateTime.now();
         if (existing == null) {
-            /*
-             * 目的：首次创建时补齐时间戳
- */
+            // 首次创建时补齐时间戳
             activation.setCreatedAt(now);
             activation.setUpdatedAt(now);
             modelActivationMapper.insertActivation(BeanMappingUtils.map(activation, ModelActivationPO.class));
             return;
         }
-        /*
-         * 目的：沿用原 ID 与创建时间，仅更新更新时间
- */
+        // 沿用原 ID 与创建时间，仅更新更新时间
         activation.setId(existing.getId());
         activation.setCreatedAt(existing.getCreatedAt());
         activation.setUpdatedAt(now);

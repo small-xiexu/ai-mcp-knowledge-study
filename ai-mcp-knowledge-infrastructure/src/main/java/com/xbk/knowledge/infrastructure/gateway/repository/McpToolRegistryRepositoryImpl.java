@@ -110,10 +110,8 @@ public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository 
         if (registry == null) {
             return null;
         }
-        /*
-         * 目的：补齐 toolKey/riskLevel，保证治理字段稳定。
+        // 补齐 toolKey/riskLevel，保证治理字段稳定。
          * 约束：Gateway HTTP 工具默认使用 gateway:{gatewayId}:{toolName} 作为 toolKey。
- */
         if (registry.getToolKey() == null || registry.getToolKey().isBlank()) {
             String gatewayId = registry.getGatewayId();
             String toolName = registry.getToolName();

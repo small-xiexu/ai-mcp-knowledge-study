@@ -34,11 +34,15 @@ public class RagController implements IRagService {
     private final RagAppService ragAppService;
 
     /**
-     * 查询知识库标签列表
+     * 查询知识库标签列表。
+     * 流程：
+     * 1. 进入接口后执行 `agent:read` 权限校验。
+     * 2. Controller 调用 `ragAppService.listRagTags` 查询标签集合。
+     * 3. 应用层汇总可用标签并去重返回。
+     * 4. Controller 接收结果并封装响应。
+     * 5. 统一返回 `Result.success(tags)`。
      *
-     * 为什么：前端需要下拉选择已存在的标签
-     * 入参：无
-     * 出参：标签列表
+     * @return 标签列表
      */
     @PostMapping("/tags")
     @SaCheckPermission("agent:read")
@@ -49,11 +53,16 @@ public class RagController implements IRagService {
     }
 
     /**
-     * 删除知识库标签
+     * 删除知识库标签及其关联向量数据。
+     * 流程：
+     * 1. 进入接口后执行 `agent:write` 权限校验。
+     * 2. Spring 绑定请求参数 `ragTag`。
+     * 3. Controller 调用 `ragAppService.deleteRagTag` 执行删除。
+     * 4. 应用层清理标签对应文档与向量索引。
+     * 5. 返回删除结果布尔值。
      *
-     * 为什么：释放不再使用的知识库标签与向量资源
-     * 入参：RAG 标签
-     * 出参：删除结果
+     * @param ragTag RAG 标签
+     * @return 删除结果
      */
     @PostMapping("/delete")
     @SaCheckPermission("agent:write")
@@ -64,11 +73,16 @@ public class RagController implements IRagService {
     }
 
     /**
-     * 统计标签向量数量
+     * 统计指定标签下的向量数量。
+     * 流程：
+     * 1. 进入接口后执行 `agent:read` 权限校验。
+     * 2. Spring 绑定请求参数 `ragTag`。
+     * 3. Controller 调用 `ragAppService.countByRagTag` 查询数量。
+     * 4. 应用层从向量库或索引层返回统计值。
+     * 5. 返回数量结果。
      *
-     * 为什么：展示知识库规模，便于评估检索覆盖度
-     * 入参：RAG 标签
-     * 出参：向量数量
+     * @param ragTag RAG 标签
+     * @return 向量数量
      */
     @PostMapping("/count")
     @SaCheckPermission("agent:read")
@@ -79,11 +93,17 @@ public class RagController implements IRagService {
     }
 
     /**
-     * 上传知识库文件
+     * 同步上传知识库文件。
+     * 流程：
+     * 1. 进入接口后执行 `agent:write` 权限校验。
+     * 2. Spring 绑定 multipart 参数（`ragTag` + `file[]`）。
+     * 3. Controller 调用 `ragAppService.uploadFiles` 执行同步导入。
+     * 4. 应用层完成解析、切片、向量化和入库。
+     * 5. 返回上传成功布尔值。
      *
-     * 为什么：允许同步导入文档，适合小文件或即时入库
-     * 入参：RAG 标签 + 文件列表
-     * 出参：上传结果
+     * @param ragTag RAG 标签
+     * @param files 文件列表
+     * @return 上传结果
      */
     @PostMapping(value = "/upload", headers = "content-type=multipart/form-data")
     @SaCheckPermission("agent:write")
@@ -95,11 +115,17 @@ public class RagController implements IRagService {
     }
 
     /**
-     * 异步上传知识库文件
+     * 异步上传知识库文件。
+     * 流程：
+     * 1. 进入接口后执行 `agent:write` 权限校验。
+     * 2. Spring 绑定 multipart 参数（`ragTag` + `file[]`）。
+     * 3. Controller 调用 `ragAppService.uploadFilesAsync` 创建任务。
+     * 4. 应用层写入任务记录并异步执行导入流程。
+     * 5. 返回“任务已创建”和任务 ID。
      *
-     * 为什么：大文件或批量导入需要异步任务，避免阻塞接口
-     * 入参：RAG 标签 + 文件列表
-     * 出参：异步任务 ID
+     * @param ragTag RAG 标签
+     * @param files 文件列表
+     * @return 异步任务 ID
      */
     @PostMapping(value = "/upload/async", headers = "content-type=multipart/form-data")
     @SaCheckPermission("agent:write")
@@ -111,11 +137,16 @@ public class RagController implements IRagService {
     }
 
     /**
-     * 分析 Git 仓库
+     * 分析 Git 仓库并创建知识入库任务。
+     * 流程：
+     * 1. 进入接口后执行 `agent:write` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 提取仓库参数并调用 `analyzeGitRepository`。
+     * 4. 应用层拉取仓库、分析文件并提交异步向量化任务。
+     * 5. 返回“任务已提交”和任务 ID。
      *
-     * 为什么：支持直接从仓库构建知识库，减少手动上传
-     * 入参：仓库地址、账号、Token、RAG 标签
-     * 出参：异步任务 ID
+     * @param request Git 分析请求
+     * @return 异步任务 ID
      */
     @PostMapping("/analyze")
     @SaCheckPermission("agent:write")
@@ -131,11 +162,16 @@ public class RagController implements IRagService {
     }
 
     /**
-     * 查询任务进度
+     * 查询异步任务进度。
+     * 流程：
+     * 1. 进入接口后执行 `agent:read` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 调用 `ragAppService.queryTask` 查询任务实体。
+     * 4. 任务存在时转换为 `RagTaskResponse`，不存在返回 null。
+     * 5. 统一封装 `Result.success` 返回。
      *
-     * 为什么：异步任务需要轮询进度展示
-     * 入参：任务 ID
-     * 出参：任务状态详情
+     * @param request 任务 ID 请求
+     * @return 任务状态详情
      */
     @PostMapping("/task/progress")
     @SaCheckPermission("agent:read")
@@ -150,11 +186,16 @@ public class RagController implements IRagService {
     }
 
     /**
-     * 取消任务
+     * 取消异步任务。
+     * 流程：
+     * 1. 进入接口后执行 `agent:write` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 调用 `ragAppService.cancelTask` 发起取消。
+     * 4. 应用层更新任务状态并尝试中断执行。
+     * 5. 返回取消是否成功。
      *
-     * 为什么：长任务可被终止，节省资源
-     * 入参：任务 ID
-     * 出参：取消结果
+     * @param request 任务 ID 请求
+     * @return 取消结果
      */
     @PostMapping("/task/cancel")
     @SaCheckPermission("agent:write")
@@ -165,11 +206,16 @@ public class RagController implements IRagService {
     }
 
     /**
-     * 重试任务
+     * 重试指定任务。
+     * 流程：
+     * 1. 进入接口后执行 `agent:write` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 调用 `ragAppService.retryTask` 创建重试任务。
+     * 4. 应用层复制原任务关键参数并重新排队执行。
+     * 5. 返回“重试任务已创建”和新任务 ID。
      *
-     * 为什么：失败任务可基于同一配置重新执行
-     * 入参：任务 ID
-     * 出参：新任务 ID
+     * @param request 任务 ID 请求
+     * @return 新任务 ID
      */
     @PostMapping("/task/retry")
     @SaCheckPermission("agent:write")
@@ -180,11 +226,16 @@ public class RagController implements IRagService {
     }
 
     /**
-     * 查询任务列表
+     * 分页查询任务列表。
+     * 流程：
+     * 1. 进入接口后执行 `agent:read` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`），并执行 `request.validate()`。
+     * 3. Controller 调用 `ragAppService.queryTaskPage` 查询分页任务。
+     * 4. 将 `RagTask` 分页结果转换为 `RagTaskResponse` 分页结构。
+     * 5. 统一封装 `Result.success` 返回。
      *
-     * 为什么：前端展示最近任务与状态，需分页以控制响应大小
-     * 入参：分页请求
-     * 出参：任务列表分页结果
+     * @param request 分页请求
+     * @return 任务列表分页结果
      */
     @PostMapping("/task/list")
     @SaCheckPermission("agent:read")
@@ -199,9 +250,7 @@ public class RagController implements IRagService {
     }
 
     private RagTaskResponse toResponse(RagTask task) {
-        /*
-         * 目的：统一 DTO 映射入口，屏蔽领域实体细节
- */
+        // 统一 DTO 映射入口，屏蔽领域实体细节
         return RagTaskResponse.builder()
                 .taskId(task.getTaskId())
                 .type(task.getType())

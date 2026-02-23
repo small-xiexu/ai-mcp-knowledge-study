@@ -82,9 +82,7 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
         cachedCallbacks.set(null);
         int size = safeClients.size();
         log.info("MCP 工具回调更新完成，当前客户端数量: {}", size);
-        /*
-         * 目的：预热工具列表，避免首次查询命中空缓存
-         */
+        // 预热工具列表，避免首次查询命中空缓存
         try {
             getToolCallbacks();
         } catch (Exception e) {

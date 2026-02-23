@@ -44,6 +44,12 @@ public class RoleController implements IRoleService {
 
     /**
      * 分页查询角色。
+     * 流程：
+     * 1. 进入接口后执行 `role:read` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 组装 `RolePageQuery` 并调用 `roleAppService.queryRolePage`。
+     * 4. 将领域分页结果转换为 `RoleResponse` 分页结果。
+     * 5. 统一封装 `Result.success` 返回。
      *
      * @param request 查询参数
      * @return 分页结果
@@ -65,6 +71,12 @@ public class RoleController implements IRoleService {
 
     /**
      * 创建角色。
+     * 流程：
+     * 1. 进入接口后执行 `role:write` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 组装 `SysRole` 领域对象并调用 `roleAppService.createRole`。
+     * 4. 应用层完成角色唯一性校验与落库。
+     * 5. 将创建结果转换为 `RoleResponse` 并统一返回。
      *
      * @param request 创建参数
      * @return 角色信息
@@ -85,6 +97,12 @@ public class RoleController implements IRoleService {
 
     /**
      * 更新角色。
+     * 流程：
+     * 1. 进入接口后执行 `role:write` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 组装更新领域对象并调用 `roleAppService.updateRole`。
+     * 4. 应用层执行角色状态与基础信息更新。
+     * 5. 将更新结果转换为 `RoleResponse` 并统一返回。
      *
      * @param request 更新参数
      * @return 角色信息
@@ -105,6 +123,12 @@ public class RoleController implements IRoleService {
 
     /**
      * 角色授权。
+     * 流程：
+     * 1. 进入接口后执行 `role:write` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 读取当前登录用户，作为授权操作人。
+     * 4. 调用 `roleAppService.grantPermissions` 更新角色-权限关系。
+     * 5. 统一封装空成功结果返回。
      *
      * @param request 授权请求
      * @return 响应
@@ -121,6 +145,11 @@ public class RoleController implements IRoleService {
 
     /**
      * 查询角色已绑定的权限 ID 列表。
+     * 流程：
+     * 1. 进入接口后执行 `role:read` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 调用 `roleAppService.queryPermissionIds` 查询绑定权限。
+     * 4. 统一封装权限 ID 列表返回。
      *
      * @param request 查询参数
      * @return 权限ID列表

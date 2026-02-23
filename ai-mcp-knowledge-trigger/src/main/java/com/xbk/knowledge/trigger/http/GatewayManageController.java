@@ -86,7 +86,13 @@ public class GatewayManageController implements IGatewayManageService {
     private final GatewayManageAppService gatewayManageAppService;
 
     /**
-     * 根据筛选条件查询网关实例列表。
+     * 分页查询网关实例列表。
+     * 流程：
+     * 1. 进入接口后执行 `tool:read` 权限校验。
+     * 2. Spring 完成请求体绑定与分页参数校验（`@Valid`）。
+     * 3. Controller 组装 `GatewayPageQuery` 并查询网关分页数据与总数。
+     * 4. 逐条补充工具数量等展示字段，组装列表行数据。
+     * 5. 统一封装 `PageResult` 并返回 `Result.success`。
      *
      * @param request 网关管理分页查询参数。
      * @return 返回网关实例分页视图数据。
@@ -119,7 +125,13 @@ public class GatewayManageController implements IGatewayManageService {
     }
 
     /**
-     * 创建或更新网关实例数据。
+     * 创建或更新网关实例。
+     * 流程：
+     * 1. 进入接口后执行 `tool:write` 权限校验。
+     * 2. Spring 绑定请求体，Controller 先校验 `gatewayName` 必填。
+     * 3. 按是否携带 id 决定新建或查询现有实例，并准备默认网关 ID。
+     * 4. 回填网关基础字段后调用 `gatewayRepository.save` 持久化。
+     * 5. 转换为展示结构并统一封装返回。
      *
      * @param request 网关管理保存参数。
      * @return 返回保存后的网关实例视图数据。
@@ -160,7 +172,13 @@ public class GatewayManageController implements IGatewayManageService {
     }
 
     /**
-     * 删除网关管理数据。
+     * 删除网关实例。
+     * 流程：
+     * 1. 进入接口后执行 `tool:write` 权限校验。
+     * 2. Spring 绑定请求体并校验 id 是否为空。
+     * 3. Controller 调用 `gatewayManageAppService.deleteGatewayInstance`。
+     * 4. 应用层执行关联数据清理与删除。
+     * 5. 统一封装空成功结果返回。
      *
      * @param request 网关实例删除参数。
      * @return 返回网关实例删除状态。
@@ -177,7 +195,13 @@ public class GatewayManageController implements IGatewayManageService {
     }
 
     /**
-     * 根据筛选条件查询网关凭证列表。
+     * 分页查询网关凭证列表。
+     * 流程：
+     * 1. 进入接口后执行 `tool:read` 权限校验。
+     * 2. Spring 绑定请求体，解析 gatewayId 并确保网关存在。
+     * 3. 从仓储查询凭证列表，并按状态与 apiKey 关键字过滤。
+     * 4. 执行内存分页并转换为前端展示结构。
+     * 5. 统一封装 `PageResult` 返回。
      *
      * @param request 网关管理分页查询参数。
      * @return 返回网关凭证分页视图数据。
@@ -235,7 +259,13 @@ public class GatewayManageController implements IGatewayManageService {
     }
 
     /**
-     * 创建或更新网关凭证数据。
+     * 创建或更新网关凭证。
+     * 流程：
+     * 1. 进入接口后执行 `tool:write` 权限校验。
+     * 2. Spring 绑定请求体并校验请求对象有效性。
+     * 3. 按新增/更新分支加载凭证与网关信息，补齐默认值。
+     * 4. 执行 API Key 唯一性检查后持久化保存。
+     * 5. 转换为凭证视图结构并统一封装返回。
      *
      * @param request 网关管理保存参数。
      * @return 返回保存后的网关凭证视图数据。
@@ -294,6 +324,12 @@ public class GatewayManageController implements IGatewayManageService {
 
     /**
      * 启用网关凭证。
+     * 流程：
+     * 1. 进入接口后执行 `tool:write` 权限校验。
+     * 2. Spring 绑定请求体并提取 id。
+     * 3. Controller 调用统一方法 `updateGatewayAuthStatus(id, 1)`。
+     * 4. 统一方法校验凭证存在并更新状态为启用。
+     * 5. 返回统一成功结果。
      *
      * @param request 网关凭证启用参数。
      * @return 返回网关凭证启用状态。
@@ -307,6 +343,12 @@ public class GatewayManageController implements IGatewayManageService {
 
     /**
      * 禁用网关凭证。
+     * 流程：
+     * 1. 进入接口后执行 `tool:write` 权限校验。
+     * 2. Spring 绑定请求体并提取 id。
+     * 3. Controller 调用统一方法 `updateGatewayAuthStatus(id, 0)`。
+     * 4. 统一方法校验凭证存在并更新状态为禁用。
+     * 5. 返回统一成功结果。
      *
      * @param request 网关凭证禁用参数。
      * @return 返回网关凭证禁用状态。
@@ -319,7 +361,13 @@ public class GatewayManageController implements IGatewayManageService {
     }
 
     /**
-     * 根据筛选条件查询工具列表。
+     * 分页查询网关工具列表。
+     * 流程：
+     * 1. 进入接口后执行 `tool:read` 权限校验。
+     * 2. Spring 绑定请求体并解析 gatewayId，确保网关存在。
+     * 3. 计算分页偏移量并查询工具分页数据与总数。
+     * 4. 逐条转换为前端展示字段。
+     * 5. 统一封装 `PageResult` 返回。
      *
      * @param request 网关管理分页查询参数。
      * @return 返回工具分页视图数据。
@@ -359,7 +407,13 @@ public class GatewayManageController implements IGatewayManageService {
     }
 
     /**
-     * 根据标识查询工具详情。
+     * 查询单个工具详情及映射配置。
+     * 流程：
+     * 1. 进入接口后执行 `tool:read` 权限校验。
+     * 2. Spring 绑定请求体并校验 id 非空。
+     * 3. 查询工具主记录，不存在直接返回业务错误。
+     * 4. 分别查询 request/response 映射并组装详情对象。
+     * 5. 统一封装 `Result.success` 返回。
      *
      * @param request 工具详情查询参数。
      * @return 返回工具详情视图数据。
@@ -391,7 +445,13 @@ public class GatewayManageController implements IGatewayManageService {
     }
 
     /**
-     * 创建或更新工具配置数据。
+     * 创建或更新工具配置。
+     * 流程：
+     * 1. 进入接口后执行 `tool:write` 权限校验。
+     * 2. Spring 绑定请求体并校验 `toolName` 必填。
+     * 3. 按新增/更新分支组装 `McpToolRegistry` 并保存主记录。
+     * 4. 清理旧映射后重建 request/response 映射与 schema 数据。
+     * 5. 返回保存后的工具视图数据。
      *
      * @param request 网关管理保存参数。
      * @return 返回保存后的工具视图数据。
@@ -436,7 +496,13 @@ public class GatewayManageController implements IGatewayManageService {
     }
 
     /**
-     * 删除工具配置数据。
+     * 删除工具配置。
+     * 流程：
+     * 1. 进入接口后执行 `tool:write` 权限校验。
+     * 2. Spring 绑定请求体并校验 id 非空。
+     * 3. Controller 调用 `gatewayManageAppService.deleteTool`。
+     * 4. 应用层执行工具与关联映射/绑定清理。
+     * 5. 统一封装空成功结果返回。
      *
      * @param request 工具删除参数。
      * @return 返回工具删除状态。
@@ -454,6 +520,12 @@ public class GatewayManageController implements IGatewayManageService {
 
     /**
      * 启用工具配置。
+     * 流程：
+     * 1. 进入接口后执行 `tool:write` 权限校验。
+     * 2. Spring 绑定请求体并校验 id 非空。
+     * 3. 查询目标工具，不存在返回业务错误。
+     * 4. 更新状态为启用并持久化。
+     * 5. 返回统一成功结果。
      *
      * @param request 工具启用参数。
      * @return 返回工具启用状态。
@@ -477,6 +549,12 @@ public class GatewayManageController implements IGatewayManageService {
 
     /**
      * 禁用工具配置。
+     * 流程：
+     * 1. 进入接口后执行 `tool:write` 权限校验。
+     * 2. Spring 绑定请求体并校验 id 非空。
+     * 3. 查询目标工具，不存在返回业务错误。
+     * 4. 更新状态为禁用并持久化。
+     * 5. 返回统一成功结果。
      *
      * @param request 工具禁用参数。
      * @return 返回工具禁用状态。
@@ -499,7 +577,13 @@ public class GatewayManageController implements IGatewayManageService {
     }
 
     /**
-     * 调试工具调用并返回执行结果。
+     * 调试执行工具并返回调用结果。
+     * 流程：
+     * 1. 进入接口后执行 `tool:invoke` 权限校验。
+     * 2. Spring 绑定请求体并校验 `toolName` 必填。
+     * 3. 解析 gatewayId、准备调用参数并写入 callId 到 MDC。
+     * 4. 调用 `gatewayToolService.callTool` 执行工具并记录耗时日志。
+     * 5. 组装 success/content/errorCode 并统一封装返回。
      *
      * @param request 网关管理调用参数。
      * @return 返回工具调试执行结果数据。
@@ -552,7 +636,13 @@ public class GatewayManageController implements IGatewayManageService {
     }
 
     /**
-     * 查询模型工具绑定关系。
+     * 查询模型与工具的绑定关系。
+     * 流程：
+     * 1. 进入接口后执行 `tool:read` 权限校验。
+     * 2. Spring 绑定请求体并校验 `modelId` 非空。
+     * 3. 查询 MODEL 维度绑定记录并过滤掉禁用项。
+     * 4. 汇总 toolId 列表并计算 `globalVisible` 标记。
+     * 5. 统一封装 `Result.success` 返回。
      *
      * @param request 网关管理查询参数。
      * @return 返回模型工具绑定视图数据。
@@ -585,7 +675,13 @@ public class GatewayManageController implements IGatewayManageService {
     }
 
     /**
-     * 创建或更新模型工具绑定关系。
+     * 覆盖保存模型与工具绑定关系。
+     * 流程：
+     * 1. 进入接口后执行 `tool:write` 权限校验。
+     * 2. Spring 绑定请求体并校验 `modelId` 非空。
+     * 3. 先删除该模型历史绑定，保证保存语义为“全量覆盖”。
+     * 4. 遍历 toolIds 校验工具存在后逐条创建绑定记录。
+     * 5. 统一封装空成功结果返回。
      *
      * @param request 网关管理保存参数。
      * @return 返回模型工具绑定保存状态。
@@ -636,6 +732,12 @@ public class GatewayManageController implements IGatewayManageService {
 
     /**
      * 查询全部已启用工具。
+     * 流程：
+     * 1. 进入接口后执行 `tool:read` 权限校验。
+     * 2. 查询所有启用网关实例。
+     * 3. 按网关逐个查询启用工具列表。
+     * 4. 转换为统一的简化工具视图集合。
+     * 5. 统一封装 `Result.success` 返回。
      *
      * @return 返回已启用工具视图列表数据。
      */
@@ -663,6 +765,12 @@ public class GatewayManageController implements IGatewayManageService {
 
     /**
      * 查询已启用模型列表。
+     * 流程：
+     * 1. 进入接口后执行 `tool:read` 权限校验。
+     * 2. 查询所有 `enabled=true` 的模型配置。
+     * 3. 逐条提取 id、modelName、modelType 关键字段。
+     * 4. 组装前端使用的模型下拉数据结构。
+     * 5. 统一封装 `Result.success` 返回。
      *
      * @return 返回已启用模型视图列表数据。
      */
@@ -683,7 +791,13 @@ public class GatewayManageController implements IGatewayManageService {
     }
 
     /**
-     * 查询网关监控指标。
+     * 查询网关监控指标总览。
+     * 流程：
+     * 1. 进入接口后执行 `tool:read` 权限校验。
+     * 2. Spring 绑定请求体并解析 gatewayId/toolName/recentMinutes。
+     * 3. Controller 组装 `MetricsQuery` 调用观测应用服务。
+     * 4. 将报告对象转换为 `generatedAt/toolMetrics/alerts` 结构。
+     * 5. 统一封装 `Result.success` 返回。
      *
      * @param request 网关管理查询参数。
      * @return 返回网关监控指标视图数据。

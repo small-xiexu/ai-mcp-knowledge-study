@@ -32,9 +32,7 @@ public class RagTaskRepositoryImpl implements RagTaskRepository {
      */
     @Override
     public RagTask create(RagTask task) {
-        /*
-         * 目的：基础设施层统一维护时间戳，避免上层重复设置
- */
+        // 基础设施层统一维护时间戳，避免上层重复设置
         LocalDateTime now = LocalDateTime.now();
         task.setCreatedAt(now);
         task.setUpdatedAt(now);

@@ -39,7 +39,13 @@ public class AgentEnhancerController implements IAgentEnhancerService {
     private final AgentEnhancerBindingAppService agentEnhancerBindingAppService;
 
     /**
-     * 根据筛选条件查询 Agent 增强器（AgentEnhancer）列表。
+     * 分页查询 Agent 增强器（AgentEnhancer）列表。
+     * 流程：
+     * 1. 进入接口后执行 `agent-enhancer:read` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 组装 `AgentEnhancerPageQuery` 并调用应用服务分页查询。
+     * 4. 将领域分页结果转换为 `AgentEnhancerResponse` 分页结构。
+     * 5. 统一封装 `Result.success` 返回。
      *
      * @param request Agent 增强器（AgentEnhancer）查询条件。
      * @return Agent 增强器（AgentEnhancer）分页查询结果。
@@ -61,7 +67,13 @@ public class AgentEnhancerController implements IAgentEnhancerService {
     }
 
     /**
-     * 查询 Agent 增强器（AgentEnhancer）。
+     * 按主键查询 Agent 增强器（AgentEnhancer）详情。
+     * 流程：
+     * 1. 进入接口后执行 `agent-enhancer:read` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 调用 `agentEnhancerAppService.get` 查询实体。
+     * 4. 将实体转换为 `AgentEnhancerResponse`。
+     * 5. 统一封装 `Result.success` 返回。
      *
      * @param request Agent 增强器（AgentEnhancer）详情查询参数。
      * @return Agent 增强器（AgentEnhancer）查询结果。
@@ -76,6 +88,12 @@ public class AgentEnhancerController implements IAgentEnhancerService {
 
     /**
      * 创建或更新 Agent 增强器（AgentEnhancer）数据。
+     * 流程：
+     * 1. 进入接口后执行 `agent-enhancer:write` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 按请求组装 `AgentEnhancer` 领域对象。
+     * 4. 调用 `agentEnhancerAppService.save` 执行新增或更新。
+     * 5. 转换为 `AgentEnhancerResponse` 并返回“保存成功”。
      *
      * @param request Agent 增强器（AgentEnhancer）保存参数。
      * @return Agent 增强器（AgentEnhancer）保存结果。
@@ -97,7 +115,13 @@ public class AgentEnhancerController implements IAgentEnhancerService {
     }
 
     /**
-     * 启用业务配置。
+     * 启用 Agent 增强器（AgentEnhancer）。
+     * 流程：
+     * 1. 进入接口后执行 `agent-enhancer:write` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 调用 `agentEnhancerAppService.enable` 更新状态。
+     * 4. 将更新结果转换为 `AgentEnhancerResponse`。
+     * 5. 统一封装 `Result.success` 返回。
      *
      * @param request Agent 增强器（AgentEnhancer）启用参数。
      * @return Agent 增强器（AgentEnhancer）启用结果。
@@ -111,7 +135,13 @@ public class AgentEnhancerController implements IAgentEnhancerService {
     }
 
     /**
-     * 禁用业务配置。
+     * 禁用 Agent 增强器（AgentEnhancer）。
+     * 流程：
+     * 1. 进入接口后执行 `agent-enhancer:write` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 调用 `agentEnhancerAppService.disable` 更新状态。
+     * 4. 将更新结果转换为 `AgentEnhancerResponse`。
+     * 5. 统一封装 `Result.success` 返回。
      *
      * @param request Agent 增强器（AgentEnhancer）禁用参数。
      * @return Agent 增强器（AgentEnhancer）禁用结果。
@@ -126,6 +156,12 @@ public class AgentEnhancerController implements IAgentEnhancerService {
 
     /**
      * 删除 Agent 增强器（AgentEnhancer）数据。
+     * 流程：
+     * 1. 进入接口后执行 `agent-enhancer:write` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 调用 `agentEnhancerAppService.remove` 执行删除。
+     * 4. 应用层完成资源与绑定校验后落库删除。
+     * 5. 统一封装空成功结果返回。
      *
      * @param request Agent 增强器（AgentEnhancer）删除参数。
      * @return Agent 增强器（AgentEnhancer）删除结果。
@@ -139,7 +175,13 @@ public class AgentEnhancerController implements IAgentEnhancerService {
     }
 
     /**
-     * 根据筛选条件查询 Agent 增强器（AgentEnhancer）绑定列表。
+     * 查询绑定目标下的 Agent 增强器（AgentEnhancer）绑定列表。
+     * 流程：
+     * 1. 进入接口后执行 `agent-enhancer:read` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 组装 `AgentEnhancerBindingQuery` 并调用应用服务查询。
+     * 4. 将查询结果逐条转换为 `AgentEnhancerBindingViewResponse`。
+     * 5. 统一封装 `Result.success` 返回（空列表时返回 `List.of()`）。
      *
      * @param request 绑定关系查询参数。
      * @return 绑定关系列表查询结果。
@@ -161,7 +203,13 @@ public class AgentEnhancerController implements IAgentEnhancerService {
     }
 
     /**
-     * 创建或更新 Agent 增强器（AgentEnhancer）绑定数据。
+     * 覆盖保存绑定目标的 Agent 增强器（AgentEnhancer）绑定链路。
+     * 流程：
+     * 1. 进入接口后执行 `agent-enhancer:write` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 将请求 items 转换为应用服务可识别的保存项。
+     * 4. 调用 `agentEnhancerBindingAppService.saveBindings` 持久化绑定关系。
+     * 5. 返回“保存成功”的统一结果。
      *
      * @param request 绑定关系保存参数。
      * @return 绑定关系保存结果。

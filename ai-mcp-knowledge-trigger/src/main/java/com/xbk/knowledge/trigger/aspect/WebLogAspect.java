@@ -69,9 +69,7 @@ public class WebLogAspect {
         HttpServletRequest request = attributes != null ? attributes.getRequest() : null;
         // 获取或生成 traceId，保证日志可串联
         String traceId = TraceIdUtils.getOrCreateTraceId();
-        /*
-         * 目的：将 traceId 写入日志上下文，便于日志平台串联请求
- */
+        // 将 traceId 写入日志上下文，便于日志平台串联请求
         RequestContext requestContext = buildRequestContext(joinPoint, request, traceId);
 
         Object result = null;

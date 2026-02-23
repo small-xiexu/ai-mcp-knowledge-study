@@ -78,16 +78,13 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
         }
         Integer pageNum = query.getPageNum();
         Integer pageSize = query.getPageSize();
-        /*
-         * 目的：规范化分页参数，避免异常分页导致接口报错
+        // 规范化分页参数，避免异常分页导致接口报错
  */
         int safePageNum = pageNum == null ? 1 : pageNum;
         int safePageSize = pageSize == null ? DEFAULT_PAGE_SIZE : pageSize;
         int start = (safePageNum - 1) * safePageSize;
 
-        /*
-         * 目的：先解析执行器 ID，再调用任务分页接口
- */
+        // 先解析执行器 ID，再调用任务分页接口
         Long jobGroupId = resolveJobGroupId(appName);
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
         form.add("jobGroup", String.valueOf(jobGroupId));
@@ -127,9 +124,7 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
             }
         }
 
-        /*
-         * 目的：缓存未命中或强刷时回源查询
- */
+        // 缓存未命中或强刷时回源查询
         List<XxlJobInfo> allJobs = fetchAllJobsFromXxl(appName);
         Integer ttlSeconds = xxlAdminProperties.getJobCacheTtlSeconds();
         int ttl = ttlSeconds == null ? 600 : ttlSeconds;
@@ -201,9 +196,7 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
         int pageSize = DETAIL_PAGE_SIZE;
         List<XxlJobInfo> allJobs = new ArrayList<>();
         while (true) {
-            /*
-             * 目的：分页拉取，避免一次性请求过大
- */
+            // 分页拉取，避免一次性请求过大
             MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
             form.add("jobGroup", String.valueOf(jobGroupId));
             form.add("start", String.valueOf(start));
@@ -346,16 +339,12 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
         }
         Integer pageNum = query.getPageNum();
         Integer pageSize = query.getPageSize();
-        /*
-         * 目的：规范化分页参数，避免异常分页导致接口报错
- */
+        // 规范化分页参数，避免异常分页导致接口报错
         int safePageNum = pageNum == null ? 1 : pageNum;
         int safePageSize = pageSize == null ? DEFAULT_PAGE_SIZE : pageSize;
         int start = (safePageNum - 1) * safePageSize;
 
-        /*
-         * 目的：先解析执行器 ID，再调用日志分页接口
- */
+        // 先解析执行器 ID，再调用日志分页接口
         Long jobGroupId = resolveJobGroupId(appName);
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
         form.add("start", String.valueOf(start));
@@ -414,9 +403,7 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
      * 根据执行器应用名解析执行器分组 ID。
      */
     private Long resolveJobGroupId(String appName) {
-        /*
-         * 目的：优先读取缓存，避免频繁查询执行器列表
- */
+        // 优先读取缓存，避免频繁查询执行器列表
         String cacheKey = XxlJobRedisKeys.JOB_GROUP_PREFIX + appName;
         String cached = stringRedisTemplate.opsForValue().get(cacheKey);
         if (StringUtils.hasText(cached)) {
@@ -941,7 +928,6 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
 
         /**
          * 返回响应状态码。
-         */
         private HttpStatusCode status() {
             return status;
         }

@@ -32,7 +32,13 @@ public class PreheatController implements IPreheatService {
     private final PreheatAppService preheatAppService;
 
     /**
-     * 预热运行资源。
+     * 预热 Agent 版本运行资源。
+     * 流程：
+     * 1. 进入接口后先执行 `agent:write` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. 当 `refreshMcp=true` 时追加校验 `tool:write` 权限。
+     * 4. 调用 `preheatAppService.preheatAgentVersion` 执行运行资源预热。
+     * 5. 将预热结果转换为 `PreheatResponse` 并统一返回。
      *
      * @param request Agent 版本预热参数。
      * @return 返回 PreheatResponse 数据。
@@ -50,7 +56,13 @@ public class PreheatController implements IPreheatService {
     }
 
     /**
-     * 预热运行资源。
+     * 预热 Workflow 版本运行资源。
+     * 流程：
+     * 1. 进入接口后先执行 `workflow:write` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. 当 `refreshMcp=true` 时追加校验 `tool:write` 权限。
+     * 4. 调用 `preheatAppService.preheatWorkflowVersion` 执行运行资源预热。
+     * 5. 将预热结果转换为 `PreheatResponse` 并统一返回。
      *
      * @param request Workflow 版本预热参数。
      * @return 返回 PreheatResponse 数据。

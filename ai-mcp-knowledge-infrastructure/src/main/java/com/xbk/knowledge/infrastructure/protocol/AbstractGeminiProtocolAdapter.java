@@ -35,9 +35,7 @@ public abstract class AbstractGeminiProtocolAdapter {
         log.info("创建 Gemini 模型（通过 OpenAI 兼容协议）: {}", modelName);
 
         String baseUrl = config.getBaseUrl();
-        /*
-         * 目的：规范化 baseUrl，避免路径重复导致 404
-         */
+        // 规范化 baseUrl，避免路径重复导致 404
         String normalizedBaseUrl = normalizeBaseUrl(baseUrl);
         String completionsPath = normalizeApiPath(config.getCompletionsPath(), "/v1/chat/completions");
         log.info("创建 Gemini 兼容协议模型 - 原始 baseUrl: {}, 规范化后: {}, completionsPath: {}",
@@ -82,9 +80,7 @@ public abstract class AbstractGeminiProtocolAdapter {
             normalized = normalized.substring(0, length - 1);
         }
 
-        /*
-         * 目的：兜底处理多余的 /v1 段，避免形成 /v1/v1/chat/completions
-         */
+        // 兜底处理多余的 /v1 段，避免形成 /v1/v1/chat/completions
         while (normalized.contains("/v1/v1")) {
             normalized = normalized.replace("/v1/v1", "/v1");
         }

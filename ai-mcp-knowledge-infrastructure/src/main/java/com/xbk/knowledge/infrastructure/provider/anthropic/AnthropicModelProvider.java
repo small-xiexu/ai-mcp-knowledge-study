@@ -59,9 +59,7 @@ public class AnthropicModelProvider extends AbstractAnthropicProtocolAdapter imp
     @Override
     public boolean isHealthy(ModelConfig config) {
         try {
-            /*
-             * 目的：通过创建模型验证配置有效性
- */
+            // 通过创建模型验证配置有效性
             createChatModel(config);
             return true;
         } catch (Exception e) {

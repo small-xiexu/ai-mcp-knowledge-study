@@ -40,9 +40,7 @@ public class XxlJobServiceImpl implements IXxlJobService {
         }
         Integer pageNum = query.getPageNum();
         Integer pageSize = query.getPageSize();
-        /*
-         * 目的：规范化分页参数，避免超大分页导致性能问题
- */
+        // 规范化分页参数，避免超大分页导致性能问题
         if (pageNum == null || pageNum < 1) {
             pageNum = 1;
         }
@@ -189,9 +187,7 @@ public class XxlJobServiceImpl implements IXxlJobService {
         }
         Integer pageNum = query.getPageNum();
         Integer pageSize = query.getPageSize();
-        /*
-         * 目的：规范化分页参数，避免超大分页影响性能
- */
+        // 规范化分页参数，避免超大分页影响性能
         if (pageNum == null || pageNum < 1) {
             pageNum = 1;
         }
@@ -223,9 +219,7 @@ public class XxlJobServiceImpl implements IXxlJobService {
         if (logId == null || logId <= 0) {
             throw new IllegalArgumentException("日志 ID 不能为空");
         }
-        /*
-         * 目的：起始行兜底，避免负数导致接口异常
- */
+        // 起始行兜底，避免负数导致接口异常
         Integer startLine = fromLineNum == null || fromLineNum < 0 ? 0 : fromLineNum;
         return xxlJobRepository.queryLogDetail(logId, startLine);
     }

@@ -78,9 +78,7 @@ public class McpServerConfigAppServiceImpl implements McpServerConfigAppService 
         McpServerConfig savedConfig = mcpServerConfigService.updateMcpServerConfig(config);
         if (!Boolean.TRUE.equals(savedConfig.getEnabled())) {
             Long id = savedConfig.getId();
-            /*
-             * 目的：禁用后释放运行时资源
- */
+            // 禁用后释放运行时资源
             mcpServerRuntimeService.unregister(id);
         }
         return savedConfig;
@@ -172,14 +170,10 @@ public class McpServerConfigAppServiceImpl implements McpServerConfigAppService 
             return;
         }
         if (Boolean.TRUE.equals(config.getEnabled())) {
-            /*
-             * 目的：单条刷新重建运行时连接
- */
+            // 单条刷新重建运行时连接
             mcpServerRuntimeService.registerOrUpdate(config);
         } else {
-            /*
-             * 目的：禁用配置不应维持运行时连接
- */
+            // 禁用配置不应维持运行时连接
             mcpServerRuntimeService.unregister(config.getId());
         }
     }

@@ -33,17 +33,13 @@ public class TraceIdFilter extends OncePerRequestFilter {
         String previous = MDC.get(TraceIdUtils.TRACE_ID_KEY);
         String incoming = request.getHeader(TRACE_ID_HEADER);
         String traceId = StringUtils.hasText(incoming) ? incoming : TraceIdUtils.getOrCreateTraceId();
-        /*
-         * 目的：优先使用上游传入的 traceId，保证跨服务链路一致
- */
+        // 优先使用上游传入的 traceId，保证跨服务链路一致
         MDC.put(TraceIdUtils.TRACE_ID_KEY, traceId);
         response.setHeader(TRACE_ID_HEADER, traceId);
         try {
             filterChain.doFilter(request, response);
         } finally {
-            /*
-             * 目的：恢复或清理 MDC，避免线程复用导致串号
- */
+            // 恢复或清理 MDC，避免线程复用导致串号
             if (StringUtils.hasText(previous)) {
                 MDC.put(TraceIdUtils.TRACE_ID_KEY, previous);
             } else {

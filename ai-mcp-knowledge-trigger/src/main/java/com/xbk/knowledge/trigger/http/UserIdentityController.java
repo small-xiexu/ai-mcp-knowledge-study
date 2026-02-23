@@ -45,6 +45,12 @@ public class UserIdentityController implements IUserIdentityService {
 
     /**
      * 用户列表查询。
+     * 流程：
+     * 1. 进入接口后执行 `user:read` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 组装 `UserPageQuery` 并调用 `userIdentityAppService.queryUserPage`。
+     * 4. 将领域分页结果转换为 `UserResponse` 分页结果。
+     * 5. 统一封装 `Result.success` 返回。
      *
      * @param request 查询参数
      * @return 分页结果
@@ -66,6 +72,12 @@ public class UserIdentityController implements IUserIdentityService {
 
     /**
      * 创建用户。
+     * 流程：
+     * 1. 进入接口后执行 `user:write` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 组装 `SysUser` 领域对象（含超管标识转换）。
+     * 4. 调用 `userIdentityAppService.createUser` 执行创建与密码初始化。
+     * 5. 将创建结果转换为 `UserResponse` 并统一返回。
      *
      * @param request 创建参数
      * @return 创建后的用户
@@ -89,6 +101,12 @@ public class UserIdentityController implements IUserIdentityService {
 
     /**
      * 更新用户基础信息。
+     * 流程：
+     * 1. 进入接口后执行 `user:write` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 组装更新领域对象（含超管标识转换）。
+     * 4. 调用 `userIdentityAppService.updateUser` 执行更新。
+     * 5. 将更新结果转换为 `UserResponse` 并统一返回。
      *
      * @param request 更新参数
      * @return 更新后的用户
@@ -112,6 +130,12 @@ public class UserIdentityController implements IUserIdentityService {
 
     /**
      * 重置用户密码。
+     * 流程：
+     * 1. 进入接口后执行 `user:write` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 调用 `userIdentityAppService.resetPassword` 重置密码。
+     * 4. 应用层执行密码加密与持久化更新。
+     * 5. 统一返回空成功结果。
      *
      * @param request 密码重置请求
      * @return 响应
@@ -126,6 +150,12 @@ public class UserIdentityController implements IUserIdentityService {
 
     /**
      * 分配用户角色。
+     * 流程：
+     * 1. 进入接口后执行 `user:write` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 读取当前登录用户，作为授权操作人。
+     * 4. 调用 `userIdentityAppService.grantRoles` 更新用户-角色关系。
+     * 5. 统一返回空成功结果。
      *
      * @param request 角色分配请求
      * @return 响应
@@ -141,6 +171,11 @@ public class UserIdentityController implements IUserIdentityService {
 
     /**
      * 查询用户已绑定的角色 ID 列表。
+     * 流程：
+     * 1. 进入接口后执行 `user:read` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 调用 `userIdentityAppService.queryRoleIds` 查询绑定角色。
+     * 4. 统一封装角色 ID 列表返回。
      *
      * @param request 查询参数
      * @return 角色ID列表

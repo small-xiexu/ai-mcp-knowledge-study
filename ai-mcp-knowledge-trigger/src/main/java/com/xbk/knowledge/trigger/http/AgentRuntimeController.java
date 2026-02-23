@@ -36,6 +36,12 @@ public class AgentRuntimeController implements IAgentRuntimeService {
 
     /**
      * 同步对话调用（返回 Platform Contract v1）。
+     * 流程：
+     * 1. 进入接口后按 `agentCode` 路由并执行 `agent:invoke` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 调用 `agentRuntimeAppService.chat` 执行 Agent 同步运行链路。
+     * 4. 应用层完成版本解析、上下文组装、模型调用与结果封装。
+     * 5. Controller 统一通过 `Result.success` 返回平台标准结构体。
      *
      * @param agentCode Agent 对外编码
      * @param request   对话请求
@@ -56,6 +62,12 @@ public class AgentRuntimeController implements IAgentRuntimeService {
 
     /**
      * 流式对话调用（SSE：delta + final）。
+     * 流程：
+     * 1. 进入接口后按 `agentCode` 路由并执行 `agent:invoke` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`），并设置 SSE 响应头。
+     * 3. Controller 调用 `agentRuntimeAppService.stream` 获取流式事件。
+     * 4. 将应用层 `PlatformStreamEvent` 按事件名写入 `SseEmitter`。
+     * 5. 异常走 `completeWithError`，完成时调用 `complete` 结束连接。
      *
      * @param agentCode     Agent 对外编码
      * @param request       对话请求
@@ -105,6 +117,12 @@ public class AgentRuntimeController implements IAgentRuntimeService {
 
     /**
      * 通用 invoke（内部触发或外部调用统一入口）。
+     * 流程：
+     * 1. 进入接口后按 `agentCode` 路由并执行 `agent:invoke` 权限校验。
+     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
+     * 3. Controller 调用 `agentRuntimeAppService.invoke` 执行统一运行入口逻辑。
+     * 4. 应用层完成运行快照、上下文与标准输出契约组装。
+     * 5. Controller 统一通过 `Result.success` 返回平台标准结构体。
      *
      * @param agentCode Agent 对外编码
      * @param request   调用请求
