@@ -345,12 +345,12 @@ const openAgentEnhancerDlg = async () => {
 
 const agentEnhancerAdd = () => {
   if (!agentEnhancerDlg.pickerId) {
-    ElMessage.warning('请选择 Agent 增强器（AgentEnhancer）')
+    ElMessage.warning('请选择 Agent 增强器')
     return
   }
   const exists = agentEnhancerDlg.items.some(x => x.agentEnhancerId === agentEnhancerDlg.pickerId)
   if (exists) {
-    ElMessage.warning('已绑定该 Agent 增强器（AgentEnhancer）')
+    ElMessage.warning('已绑定该 Agent 增强器')
     return
   }
   agentEnhancerDlg.items.push({ agentEnhancerId: agentEnhancerDlg.pickerId, enabled: true })

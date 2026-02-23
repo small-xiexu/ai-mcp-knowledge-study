@@ -3,7 +3,7 @@
     <div class="page-header">
       <div>
         <h2 class="page-title">Client 配置</h2>
-        <p class="subtitle">维护可复用的 Client Profile 步骤链，供 Agent CHAIN 模式直接引用。</p>
+        <p class="subtitle">维护可复用的 Client 调用链，Agent 在“链路模式”下可直接引用。</p>
       </div>
       <div class="header-actions">
         <el-button class="gemini-btn-secondary" @click="fetchData">

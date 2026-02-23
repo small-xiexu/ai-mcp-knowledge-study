@@ -3,7 +3,7 @@
     <div class="page-header">
       <div>
         <h2 class="page-title">Agent 调用</h2>
-        <p class="subtitle">按 agentCode 调用运行入口（返回 Platform Contract v1）</p>
+        <p class="subtitle">按 agentCode 调用运行入口</p>
       </div>
       <div class="header-actions">
         <el-button class="gemini-btn-secondary" @click="loadAgents">

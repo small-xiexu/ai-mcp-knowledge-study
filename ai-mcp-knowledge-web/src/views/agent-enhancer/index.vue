@@ -3,7 +3,7 @@
     <div class="page-header">
       <div>
         <h2 class="page-title">Agent 增强器管理</h2>
-        <p class="subtitle">可配置的 ChatClient Agent 增强器（AgentEnhancers）</p>
+        <p class="subtitle">可配置的 ChatClient Agent 增强器</p>
       </div>
       <div class="header-actions">
         <el-button class="gemini-btn-secondary" @click="fetchData">

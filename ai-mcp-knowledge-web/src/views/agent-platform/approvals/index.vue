@@ -3,7 +3,7 @@
     <div class="page-header">
       <div>
         <h2 class="page-title">工具审批</h2>
-        <p class="subtitle">HIGH 风险工具默认生成审批单，通过后方式B自动续跑</p>
+        <p class="subtitle">HIGH 风险工具默认生成审批单，审批通过后系统会自动从中断点继续执行并返回结果</p>
       </div>
       <div class="header-actions">
         <el-button class="gemini-btn-secondary" @click="fetchData">
@@ -106,7 +106,7 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="resultVisible" title="续跑结果（Platform Contract v1）" width="900px" class="gemini-dialog">
+    <el-dialog v-model="resultVisible" title="继续执行结果（Platform Contract v1）" width="900px" class="gemini-dialog">
       <pre class="detail-pre">{{ JSON.stringify(currentResult, null, 2) }}</pre>
       <template #footer>
         <el-button class="gemini-btn-primary" @click="resultVisible = false">关闭</el-button>
@@ -153,14 +153,14 @@ const openDetail = async (row: any) => {
 
 const approve = async (row: any) => {
   const { value } = await ElMessageBox.prompt('审批意见（可空）', '审批通过', {
-    confirmButtonText: '通过并续跑',
+    confirmButtonText: '通过并继续执行',
     cancelButtonText: '取消',
     inputPlaceholder: '例如：同意执行'
   })
   const res = await approveTool({ id: row.id, decisionComment: value || undefined })
   currentResult.value = res.data
   resultVisible.value = true
-  ElMessage.success('已通过并续跑完成')
+  ElMessage.success('已通过并自动继续执行')
   fetchData()
 }
 

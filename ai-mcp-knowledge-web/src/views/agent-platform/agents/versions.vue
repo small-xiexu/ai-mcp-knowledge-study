@@ -230,11 +230,11 @@
           <el-input-number v-model="form.temperature" :min="0" :max="2" :step="0.1" />
         </el-form-item>
 
-        <el-divider content-position="left">Agent 增强器（AgentEnhancers）</el-divider>
+        <el-divider content-position="left">Agent 增强器</el-divider>
         <el-form-item label="Agent 增强器绑定">
           <div style="width: 100%">
             <div v-if="runMode === 'WORKFLOW'" class="muted">
-              当前为 <span class="mono">Workflow</span> 运行模式：请在对应 <span class="mono">WorkflowVersion</span> 上绑定 Agent 增强器（AgentEnhancers）（此处不生效）。
+              当前为 <span class="mono">Workflow</span> 运行模式：请在对应 <span class="mono">WorkflowVersion</span> 上绑定 Agent 增强器（此处不生效）。
             </div>
             <template v-else>
               <div class="bind-row">
@@ -503,12 +503,12 @@ const agentEnhancerLabel = (agentEnhancerId: number) => {
 
 const addAgentEnhancerBinding = () => {
   if (!agentEnhancerPickerId.value) {
-    ElMessage.warning('请选择 Agent 增强器（AgentEnhancer）')
+    ElMessage.warning('请选择 Agent 增强器')
     return
   }
   const exists = boundAgentEnhancers.value.some(x => x.agentEnhancerId === agentEnhancerPickerId.value)
   if (exists) {
-    ElMessage.warning('已绑定该 Agent 增强器（AgentEnhancer）')
+    ElMessage.warning('已绑定该 Agent 增强器')
     return
   }
   boundAgentEnhancers.value.push({ agentEnhancerId: agentEnhancerPickerId.value, enabled: true })

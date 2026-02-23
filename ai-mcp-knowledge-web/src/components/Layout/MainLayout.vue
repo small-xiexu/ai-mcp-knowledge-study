@@ -199,7 +199,7 @@ const featureGuideMap: Record<string, FeatureGuide> = {
     steps: ['先新建 Profile 与基础信息', '配置步骤链并保存', '在上游 Agent 或 Workflow 中引用']
   },
   AgentEnhancers: {
-    summary: '配置 Agent 增强器（AgentEnhancer）处理链，用于统一扩展请求前后处理逻辑。',
+    summary: '配置 Agent 增强器处理链，用于统一扩展请求前后处理逻辑。',
     steps: ['先定义 Agent 增强器参数', '按顺序组织处理链路', '在 Client Profile 中挂载并验证']
   },
   McpServers: {
@@ -235,8 +235,8 @@ const featureGuideMap: Record<string, FeatureGuide> = {
     steps: ['先创建调度并填写 CRON', '设置启停状态', '通过运行记录确认任务执行成功']
   },
   ToolApprovals: {
-    summary: '管理高风险工具审批单，审批后任务可自动续跑。',
-    steps: ['筛选待处理审批单', '核对风险说明与调用上下文', '通过或拒绝并记录处理结论']
+    summary: '管理高风险工具审批单；审批通过后系统会自动从中断点继续执行并返回结果。',
+    steps: ['筛选待处理审批单', '核对风险说明与调用上下文', '通过后自动继续执行，拒绝则结束本次运行']
   },
   PromptTemplates: {
     summary: '集中维护 Prompt 模板，减少重复编写并保证输出风格一致。',

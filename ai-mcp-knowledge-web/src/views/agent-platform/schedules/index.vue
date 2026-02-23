@@ -3,7 +3,7 @@
     <div class="page-header">
       <div>
         <h2 class="page-title">Agent 调度</h2>
-        <p class="subtitle">调度执行时始终取当前发布版本（current_published_version_id）</p>
+        <p class="subtitle">调度执行时始终取当前发布版本</p>
       </div>
       <div class="header-actions">
         <el-button class="gemini-btn-secondary" @click="fetchData">

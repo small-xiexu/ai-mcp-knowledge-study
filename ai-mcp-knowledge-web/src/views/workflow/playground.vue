@@ -3,7 +3,7 @@
     <div class="page-header">
       <div>
         <h2 class="page-title">Workflow 调用</h2>
-        <p class="subtitle">按 workflowCode 运行（返回 Platform Contract v1，并包含 steps 明细）</p>
+        <p class="subtitle">按 workflowCode 运行</p>
       </div>
       <div class="header-actions">
         <el-button class="gemini-btn-secondary" @click="loadWorkflows">

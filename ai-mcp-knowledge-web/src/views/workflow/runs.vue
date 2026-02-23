@@ -3,7 +3,7 @@
     <div class="page-header">
       <div>
         <h2 class="page-title">Workflow 运行记录</h2>
-        <p class="subtitle">最近 7 天运行明细会自动清理（服务端 Job）</p>
+        <p class="subtitle">最近 7 天运行明细会自动清理</p>
       </div>
       <div class="header-actions">
         <el-button class="gemini-btn-secondary" @click="load">
