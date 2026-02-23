@@ -30,88 +30,88 @@ public interface IXxlAdminService {
     /**
      * 分页查询任务列表。
      *
-     * @param request 请求参数
-     * @return 列表结果
+     * @param request XXL-JOB 管理分页查询参数。
+     * @return 返回 XxlJobResponse 分页数据。
      */
     Result<PageResult<XxlJobResponse>> listJobs(XxlJobListRequest request);
 
     /**
      * 查询任务选项列表。
      *
-     * @param request 请求参数
-     * @return 列表结果
+     * @param request XXL-JOB 管理分页查询参数。
+     * @return 返回 XxlJobResponse 列表数据。
      */
     Result<List<XxlJobResponse>> listJobOptions(XxlJobOptionRequest request);
 
     /**
      * 查询任务详情。
      *
-     * @param request 请求参数
-     * @return 查询结果
+     * @param request XXL-JOB 管理查询参数。
+     * @return 返回 XxlJobDetailResponse 数据。
      */
     Result<XxlJobDetailResponse> getJobDetail(XxlJobDetailRequest request);
 
     /**
      * 创建任务。
      *
-     * @param request 请求参数
-     * @return 创建结果
+     * @param request XXL-JOB 管理创建参数。
+     * @return 返回任务创建结果标识。
      */
     Result<String> createJob(XxlJobCreateRequest request);
 
     /**
      * 更新任务。
      *
-     * @param request 请求参数
-     * @return 处理结果
+     * @param request XXL-JOB 管理更新参数。
+     * @return 返回任务更新状态。
      */
     Result<Void> updateJob(XxlJobUpdateRequest request);
 
     /**
      * 删除任务。
      *
-     * @param request 请求参数
-     * @return 处理结果
+     * @param request XXL-JOB 管理删除参数。
+     * @return 返回任务删除状态。
      */
     Result<Void> removeJob(XxlJobOperateRequest request);
 
     /**
      * 启动任务。
      *
-     * @param request 请求参数
-     * @return 处理结果
+     * @param request XXL-JOB 任务启动参数。
+     * @return 返回任务启动状态。
      */
     Result<Void> startJob(XxlJobOperateRequest request);
 
     /**
      * 停止任务。
      *
-     * @param request 请求参数
-     * @return 处理结果
+     * @param request XXL-JOB 任务停止参数。
+     * @return 返回任务停止状态。
      */
     Result<Void> stopJob(XxlJobOperateRequest request);
 
     /**
      * 手动触发任务。
      *
-     * @param request 请求参数
-     * @return 任务结果
+     * @param request XXL-JOB 任务触发参数。
+     * @return 返回任务触发结果标识。
      */
     Result<String> triggerJob(XxlJobTriggerRequest request);
 
     /**
      * 分页查询任务日志。
      *
-     * @param request 请求参数
-     * @return 列表结果
+     * @param request XXL-JOB 管理分页查询参数。
+     * @return 返回 XxlJobLogResponse 分页数据。
      */
     Result<PageResult<XxlJobLogResponse>> listLogs(XxlJobLogListRequest request);
 
     /**
      * 查询日志详情。
      *
-     * @param request 请求参数
-     * @return 查询结果
+     * @param request XXL-JOB 管理查询参数。
+     * @return 返回 XxlJobLogDetailResponse 数据。
      */
     Result<XxlJobLogDetailResponse> getLogDetail(XxlJobLogDetailRequest request);
 }

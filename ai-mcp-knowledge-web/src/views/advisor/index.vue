@@ -43,7 +43,7 @@
         <el-table-column prop="advisorCode" label="code" min-width="160" />
         <el-table-column prop="advisorName" label="名称" min-width="160" />
         <el-table-column prop="advisorType" label="类型" min-width="200" />
-        <el-table-column label="启用" width="120">
+        <el-table-column label="启用" width="120" align="center" header-align="center">
           <template #default="{ row }">
             <el-tag size="small" :type="row.enabled === 1 ? 'success' : 'info'">{{ row.enabled === 1 ? 'ENABLED' : 'DISABLED' }}</el-tag>
           </template>
@@ -51,7 +51,7 @@
         <el-table-column label="更新时间" width="180">
           <template #default="{ row }">{{ formatDateTime(row.updatedAt) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="240" align="right">
+        <el-table-column label="操作" width="240" align="center" header-align="center">
           <template #default="{ row }">
             <div class="action-buttons">
               <el-button link type="primary" class="action-btn" @click="openEdit(row)">

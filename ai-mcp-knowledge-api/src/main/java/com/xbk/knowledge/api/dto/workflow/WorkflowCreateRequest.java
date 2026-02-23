@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
- * Workflow 创建请求。
+ * Workflow 创建参数。
  *
  * @author sxie
  */

@@ -1,5 +1,12 @@
 <template>
   <div class="gemini-container">
+    <div class="page-header">
+      <div>
+        <h2 class="page-title">角色管理</h2>
+        <p class="subtitle">管理角色定义与权限授权范围。</p>
+      </div>
+    </div>
+
     <el-card class="gemini-card">
       <el-form :inline="true" :model="searchForm" class="search-form">
         <el-form-item label="角色编码">
@@ -44,7 +51,7 @@
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="roleCode" label="角色编码" min-width="160" />
         <el-table-column prop="roleName" label="角色名称" min-width="140" />
-        <el-table-column label="状态" width="100">
+        <el-table-column label="状态" width="100" align="center" header-align="center">
           <template #default="{ row }">
             <el-tag :type="row.status === 1 ? 'success' : 'info'" effect="dark" style="border: none">
               {{ row.status === 1 ? '启用' : '禁用' }}
@@ -57,7 +64,7 @@
             {{ formatDateTime(row.updatedAt) }}
           </template>
         </el-table-column>
-        <el-table-column v-if="canWrite" label="操作" width="200" fixed="right">
+        <el-table-column v-if="canWrite" label="操作" width="200" align="center" header-align="center">
           <template #default="{ row }">
             <div class="action-buttons">
               <el-button text class="action-btn" @click="handleEdit(row)">编辑</el-button>

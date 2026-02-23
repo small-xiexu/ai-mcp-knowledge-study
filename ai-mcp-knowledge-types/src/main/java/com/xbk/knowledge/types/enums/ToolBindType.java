@@ -7,8 +7,12 @@ package com.xbk.knowledge.types.enums;
  * @author sxie
  */
 public enum ToolBindType {
-    /** 按模型绑定 */
-    MODEL,
-    /** 按会话绑定 */
-    SESSION
+    /**
+     * 按模型绑定
+     */
+     MODEL,
+    /**
+     * 按会话绑定
+     */
+     SESSION
 }

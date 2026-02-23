@@ -36,6 +36,7 @@ import com.xbk.knowledge.types.contract.PlatformContractV1;
 import com.xbk.knowledge.types.exception.ApprovalRequiredException;
 import com.xbk.knowledge.types.exception.BusinessException;
 import com.xbk.knowledge.types.exception.NotFoundException;
+import com.xbk.knowledge.types.json.JsonMapUtils;
 import com.xbk.knowledge.types.tool.ToolKeyAware;
 import com.xbk.knowledge.types.tool.ToolInvokeBypassContextHolder;
 import com.xbk.knowledge.types.trace.TraceIdUtils;
@@ -204,10 +205,10 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
     }
 
     /**
-     * resumeFromApproval。
+     * 在审批通过后恢复工作流运行。
      *
-     * @param approvalRequestId 参数
-     * @return 返回结果
+     * @param approvalRequestId 审批单 ID。
+     * @return 返回 PlatformContractV1 数据。
      */
     @Override
     public PlatformContractV1 resumeFromApproval(Long approvalRequestId) {
@@ -289,12 +290,12 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
     }
 
     /**
-     * listRuns。
+     * 根据筛选条件查询工作流运行列表。
      *
-     * @param status 参数
-     * @param offset 参数
-     * @param pageSize 参数
-     * @return 返回结果
+     * @param status 状态值
+     * @param offset 分页偏移量
+     * @param pageSize 分页大小
+     * @return 返回 WorkflowRun 分页数据。
      */
     @Override
     public PageResult<WorkflowRun> listRuns(String status, int offset, int pageSize) {
@@ -307,10 +308,10 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
     }
 
     /**
-     * getRun。
+     * 查询工作流运行。
      *
-     * @param runId 参数
-     * @return 返回结果
+     * @param runId 运行 ID
+     * @return 返回 WorkflowRun 数据。
      */
     @Override
     public WorkflowRun getRun(String runId) {
@@ -322,10 +323,10 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
     }
 
     /**
-     * listNodeRuns。
+     * 根据筛选条件查询工作流运行列表。
      *
-     * @param runId 参数
-     * @return 返回结果
+     * @param runId 运行 ID
+     * @return 返回 WorkflowNodeRun 列表数据。
      */
     @Override
     public List<WorkflowNodeRun> listNodeRuns(String runId) {
@@ -959,8 +960,7 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
             return new LinkedHashMap<>();
         }
         try {
-            Map<String, Object> map = objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {});
-            return map == null ? new LinkedHashMap<>() : new LinkedHashMap<>(map);
+            return JsonMapUtils.readMap(objectMapper, json);
         } catch (Exception e) {
             return new LinkedHashMap<>();
         }
@@ -1157,11 +1157,15 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
                         return null;
                     }
                     try {
-                        Map<String, Object> map = objectMapper.readValue(ctx.getSnapshotJson(), new TypeReference<Map<String, Object>>() {});
+                        Map<String, Object> map = JsonMapUtils.readMap(objectMapper, ctx.getSnapshotJson());
                         Long sessionId = map.get("sessionId") == null ? null : Long.valueOf(String.valueOf(map.get("sessionId")));
                         String content = map.get("content") == null ? "" : String.valueOf(map.get("content"));
-                        Map<String, Object> vars = map.get("variables") instanceof Map<?, ?> m ? new LinkedHashMap<>((Map<String, Object>) m) : new LinkedHashMap<>();
-                        Map<String, Object> steps = map.get("stepOutputs") instanceof Map<?, ?> m ? new LinkedHashMap<>((Map<String, Object>) m) : new LinkedHashMap<>();
+                        Map<String, Object> vars = map.get("variables") instanceof Map<?, ?>
+                                ? JsonMapUtils.convertToMap(objectMapper, map.get("variables"))
+                                : new LinkedHashMap<>();
+                        Map<String, Object> steps = map.get("stepOutputs") instanceof Map<?, ?>
+                                ? JsonMapUtils.convertToMap(objectMapper, map.get("stepOutputs"))
+                                : new LinkedHashMap<>();
                         String pendingNodeKey = map.get("pendingNodeKey") == null ? null : String.valueOf(map.get("pendingNodeKey"));
                         return new WorkflowSnapshot(sessionId, content, vars, steps, pendingNodeKey);
                     } catch (Exception e) {

@@ -49,7 +49,7 @@ public interface UserIdentityAppService {
     void resetPassword(Long userId, String rawPassword);
 
     /**
-     * 查询用户已分配角色ID列表。
+     * 查询用户已绑定的角色 ID 列表。
      *
      * @param userId 用户ID
      * @return 角色ID列表

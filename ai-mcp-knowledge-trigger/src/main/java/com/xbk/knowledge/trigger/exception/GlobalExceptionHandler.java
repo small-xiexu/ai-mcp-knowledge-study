@@ -111,7 +111,7 @@ public class GlobalExceptionHandler {
      *
      * 为什么：集中收敛校验错误，返回字段级错误信息便于前端提示。
      *
-     * @param e       参数校验异常
+     * @param e       校验异常对象
      * @param request HTTP 请求
      * @return 错误响应
      */

@@ -86,10 +86,10 @@ public class GatewayManageController implements IGatewayManageService {
     private final GatewayManageAppService gatewayManageAppService;
 
     /**
-     * listGatewayInstances。
+     * 根据筛选条件查询网关实例列表。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 网关管理分页查询参数。
+     * @return 返回网关实例分页视图数据。
      */
     @PostMapping("/instances/list")
     @SaCheckPermission("tool:read")
@@ -119,10 +119,10 @@ public class GatewayManageController implements IGatewayManageService {
     }
 
     /**
-     * saveGatewayInstance。
+     * 创建或更新网关实例数据。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 网关管理保存参数。
+     * @return 返回保存后的网关实例视图数据。
      */
     @PostMapping("/instances/save")
     @SaCheckPermission("tool:write")
@@ -160,10 +160,10 @@ public class GatewayManageController implements IGatewayManageService {
     }
 
     /**
-     * deleteGatewayInstance。
+     * 删除网关管理数据。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param request 网关实例删除参数。
+     * @return 返回网关实例删除状态。
      */
     @PostMapping("/instances/delete")
     @SaCheckPermission("tool:write")
@@ -177,10 +177,10 @@ public class GatewayManageController implements IGatewayManageService {
     }
 
     /**
-     * listGatewayAuth。
+     * 根据筛选条件查询网关凭证列表。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 网关管理分页查询参数。
+     * @return 返回网关凭证分页视图数据。
      */
     @PostMapping("/auth/list")
     @SaCheckPermission("tool:read")
@@ -235,10 +235,10 @@ public class GatewayManageController implements IGatewayManageService {
     }
 
     /**
-     * saveGatewayAuth。
+     * 创建或更新网关凭证数据。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 网关管理保存参数。
+     * @return 返回保存后的网关凭证视图数据。
      */
     @PostMapping("/auth/save")
     @SaCheckPermission("tool:write")
@@ -293,10 +293,10 @@ public class GatewayManageController implements IGatewayManageService {
     }
 
     /**
-     * enableGatewayAuth。
+     * 启用网关凭证。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param request 网关凭证启用参数。
+     * @return 返回网关凭证启用状态。
      */
     @PostMapping("/auth/enable")
     @SaCheckPermission("tool:write")
@@ -306,10 +306,10 @@ public class GatewayManageController implements IGatewayManageService {
     }
 
     /**
-     * disableGatewayAuth。
+     * 禁用网关凭证。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param request 网关凭证禁用参数。
+     * @return 返回网关凭证禁用状态。
      */
     @PostMapping("/auth/disable")
     @SaCheckPermission("tool:write")
@@ -319,10 +319,10 @@ public class GatewayManageController implements IGatewayManageService {
     }
 
     /**
-     * listTools。
+     * 根据筛选条件查询工具列表。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 网关管理分页查询参数。
+     * @return 返回工具分页视图数据。
      */
     @PostMapping("/tools/list")
     @SaCheckPermission("tool:read")
@@ -359,10 +359,10 @@ public class GatewayManageController implements IGatewayManageService {
     }
 
     /**
-     * getTool。
+     * 根据标识查询工具详情。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param request 工具详情查询参数。
+     * @return 返回工具详情视图数据。
      */
     @PostMapping("/tools/get")
     @SaCheckPermission("tool:read")
@@ -391,10 +391,10 @@ public class GatewayManageController implements IGatewayManageService {
     }
 
     /**
-     * saveTool。
+     * 创建或更新工具配置数据。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 网关管理保存参数。
+     * @return 返回保存后的工具视图数据。
      */
     @PostMapping("/tools/save")
     @SaCheckPermission("tool:write")
@@ -436,10 +436,10 @@ public class GatewayManageController implements IGatewayManageService {
     }
 
     /**
-     * deleteTool。
+     * 删除工具配置数据。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param request 工具删除参数。
+     * @return 返回工具删除状态。
      */
     @PostMapping("/tools/delete")
     @SaCheckPermission("tool:write")
@@ -453,10 +453,10 @@ public class GatewayManageController implements IGatewayManageService {
     }
 
     /**
-     * enableTool。
+     * 启用工具配置。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param request 工具启用参数。
+     * @return 返回工具启用状态。
      */
     @PostMapping("/tools/enable")
     @SaCheckPermission("tool:write")
@@ -476,10 +476,10 @@ public class GatewayManageController implements IGatewayManageService {
     }
 
     /**
-     * disableTool。
+     * 禁用工具配置。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param request 工具禁用参数。
+     * @return 返回工具禁用状态。
      */
     @PostMapping("/tools/disable")
     @SaCheckPermission("tool:write")
@@ -499,10 +499,10 @@ public class GatewayManageController implements IGatewayManageService {
     }
 
     /**
-     * debugTool。
+     * 调试工具调用并返回执行结果。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 网关管理调用参数。
+     * @return 返回工具调试执行结果数据。
      */
     @PostMapping("/tools/debug")
     @SaCheckPermission("tool:invoke")
@@ -552,10 +552,10 @@ public class GatewayManageController implements IGatewayManageService {
     }
 
     /**
-     * getModelBindings。
+     * 查询模型工具绑定关系。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 网关管理查询参数。
+     * @return 返回模型工具绑定视图数据。
      */
     @PostMapping("/bindings/model/get")
     @SaCheckPermission("tool:read")
@@ -585,10 +585,10 @@ public class GatewayManageController implements IGatewayManageService {
     }
 
     /**
-     * saveModelBindings。
+     * 创建或更新模型工具绑定关系。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 网关管理保存参数。
+     * @return 返回模型工具绑定保存状态。
      */
     @PostMapping("/bindings/model/save")
     @SaCheckPermission("tool:write")
@@ -635,9 +635,9 @@ public class GatewayManageController implements IGatewayManageService {
     }
 
     /**
-     * allEnabledTools。
+     * 查询全部已启用工具。
      *
-     * @return 返回结果
+     * @return 返回已启用工具视图列表数据。
      */
     @PostMapping("/tools/all-enabled")
     @SaCheckPermission("tool:read")
@@ -662,9 +662,9 @@ public class GatewayManageController implements IGatewayManageService {
     }
 
     /**
-     * enabledModels。
+     * 查询已启用模型列表。
      *
-     * @return 返回结果
+     * @return 返回已启用模型视图列表数据。
      */
     @PostMapping("/models/enabled")
     @SaCheckPermission("tool:read")
@@ -683,10 +683,10 @@ public class GatewayManageController implements IGatewayManageService {
     }
 
     /**
-     * queryGatewayMetrics。
+     * 查询网关监控指标。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 网关管理查询参数。
+     * @return 返回网关监控指标视图数据。
      */
     @PostMapping("/metrics/overview")
     @SaCheckPermission("tool:read")

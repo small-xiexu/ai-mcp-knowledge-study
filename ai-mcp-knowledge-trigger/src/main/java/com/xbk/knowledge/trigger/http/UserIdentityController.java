@@ -46,7 +46,7 @@ public class UserIdentityController implements IUserIdentityService {
     /**
      * 用户列表查询。
      *
-     * @param request 查询请求
+     * @param request 查询参数
      * @return 分页结果
      */
     @SaCheckPermission("user:read")
@@ -67,7 +67,7 @@ public class UserIdentityController implements IUserIdentityService {
     /**
      * 创建用户。
      *
-     * @param request 创建请求
+     * @param request 创建参数
      * @return 创建后的用户
      */
     @SaCheckPermission("user:write")
@@ -90,7 +90,7 @@ public class UserIdentityController implements IUserIdentityService {
     /**
      * 更新用户基础信息。
      *
-     * @param request 更新请求
+     * @param request 更新参数
      * @return 更新后的用户
      */
     @SaCheckPermission("user:write")
@@ -140,9 +140,9 @@ public class UserIdentityController implements IUserIdentityService {
     }
 
     /**
-     * 查询用户已分配角色ID列表。
+     * 查询用户已绑定的角色 ID 列表。
      *
-     * @param request 查询请求
+     * @param request 查询参数
      * @return 角色ID列表
      */
     @SaCheckPermission("user:read")

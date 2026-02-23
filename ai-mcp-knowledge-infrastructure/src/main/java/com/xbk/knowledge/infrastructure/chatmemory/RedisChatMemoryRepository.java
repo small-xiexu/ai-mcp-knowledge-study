@@ -206,36 +206,36 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
         private String content;
 
         /**
-         * getType。
+         * 获取消息角色类型。
          *
-         * @return 返回结果
+         * @return 返回角色类型值。
          */
         public String getType() {
             return type;
         }
 
         /**
-         * setType。
+         * 设置消息角色类型。
          *
-         * @param type 参数
+         * @param type 类型标识。
          */
         public void setType(String type) {
             this.type = type;
         }
 
         /**
-         * getContent。
+         * 获取消息文本内容。
          *
-         * @return 返回结果
+         * @return 返回消息文本。
          */
         public String getContent() {
             return content;
         }
 
         /**
-         * setContent。
+         * 设置消息文本内容。
          *
-         * @param content 参数
+         * @param content 输入内容
          */
         public void setContent(String content) {
             this.content = content;

@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * WorkflowRepositoryImpl。
+ * 查询工作流。
  *
  * @author sxie
  */
@@ -27,10 +27,10 @@ public class WorkflowRepositoryImpl implements WorkflowRepository {
     private final IWorkflowDao workflowMapper;
 
     /**
-     * findById。
+     * 查询工作流。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 Workflow 查询结果（可能为空）。
      */
     @Override
     public Optional<Workflow> findById(IdQuery query) {
@@ -42,10 +42,10 @@ public class WorkflowRepositoryImpl implements WorkflowRepository {
     }
 
     /**
-     * findByCode。
+     * 查询工作流。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 Workflow 查询结果（可能为空）。
      */
     @Override
     public Optional<Workflow> findByCode(WorkflowCodeQuery query) {
@@ -57,10 +57,10 @@ public class WorkflowRepositoryImpl implements WorkflowRepository {
     }
 
     /**
-     * insert。
+     * 创建并持久化工作流数据。
      *
-     * @param workflow 参数
-     * @return 返回结果
+     * @param workflow 工作流实体。
+     * @return 返回 Workflow 数据。
      */
     @Override
     public Workflow insert(Workflow workflow) {
@@ -72,10 +72,10 @@ public class WorkflowRepositoryImpl implements WorkflowRepository {
     }
 
     /**
-     * updateById。
+     * 更新工作流数据。
      *
-     * @param workflow 参数
-     * @return 返回结果
+     * @param workflow 工作流实体。
+     * @return 返回工作流更新条数。
      */
     @Override
     public int updateById(Workflow workflow) {
@@ -86,12 +86,12 @@ public class WorkflowRepositoryImpl implements WorkflowRepository {
     }
 
     /**
-     * list。
+     * 根据筛选条件查询工作流列表。
      *
-     * @param keyword 参数
-     * @param offset 参数
-     * @param pageSize 参数
-     * @return 返回结果
+     * @param keyword 关键字。
+     * @param offset 分页偏移量
+     * @param pageSize 分页大小
+     * @return 返回 Workflow 列表数据。
      */
     @Override
     public List<Workflow> list(String keyword, int offset, int pageSize) {
@@ -101,10 +101,10 @@ public class WorkflowRepositoryImpl implements WorkflowRepository {
     }
 
     /**
-     * count。
+     * 按条件统计业务数量。
      *
-     * @param keyword 参数
-     * @return 返回结果
+     * @param keyword 关键字。
+     * @return 统计数量
      */
     @Override
     public long count(String keyword) {

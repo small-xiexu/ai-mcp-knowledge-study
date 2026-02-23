@@ -36,7 +36,7 @@
 
       <el-table v-loading="loading" :data="tableData" class="gemini-table" style="width: 100%">
         <el-table-column prop="id" label="ID" width="90" />
-        <el-table-column prop="status" label="状态" width="140">
+        <el-table-column prop="status" label="状态" width="140" align="center" header-align="center">
           <template #default="{ row }">
             <el-tag size="small" effect="dark" :type="row.status === 'PENDING' ? 'warning' : (row.status === 'APPROVED' ? 'success' : 'info')">
               {{ row.status }}
@@ -50,7 +50,7 @@
         <el-table-column label="过期时间" width="180">
           <template #default="{ row }">{{ formatDateTime(row.expireAt) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="240" align="right">
+        <el-table-column label="操作" width="240" align="center" header-align="center">
           <template #default="{ row }">
             <div class="action-buttons">
               <el-button link type="primary" class="action-btn" @click="openDetail(row)">

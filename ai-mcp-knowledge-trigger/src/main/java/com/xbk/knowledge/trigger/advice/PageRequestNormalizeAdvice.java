@@ -13,18 +13,19 @@ import java.lang.reflect.Type;
 /**
  * 分页参数自动归一化
  * 在反序列化完成后自动修正分页参数
- *
+ * <p>
  * 职责：接口适配增强，用于统一请求参数修正
+ *
  * @author sxie
  */
 @RestControllerAdvice
 public class PageRequestNormalizeAdvice implements RequestBodyAdvice {
 
-    @Override
     /**
      * 确定是否启用该 Advice
      * 统一拦截所有请求体以便后续做归一化处理
      */
+    @Override
     public boolean supports(MethodParameter methodParameter,
                             Type targetType,
                             Class<? extends HttpMessageConverter<?>> converterType) {
@@ -46,7 +47,7 @@ public class PageRequestNormalizeAdvice implements RequestBodyAdvice {
     /**
      * 读取请求体之后的钩子
      * 对分页请求统一执行参数修正
-     *
+     * <p>
      * 为什么：避免各接口重复校验分页边界，保证分页口径一致。
      */
     @Override
@@ -54,8 +55,8 @@ public class PageRequestNormalizeAdvice implements RequestBodyAdvice {
                                 HttpInputMessage inputMessage,
                                 MethodParameter parameter,
                                 Type targetType,
-        Class<? extends HttpMessageConverter<?>> converterType) {
-        
+                                Class<? extends HttpMessageConverter<?>> converterType) {
+
         if (body instanceof PageRequest) {
             PageRequest pageRequest = (PageRequest) body;
             pageRequest.validate();

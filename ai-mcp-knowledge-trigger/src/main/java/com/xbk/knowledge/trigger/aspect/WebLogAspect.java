@@ -164,7 +164,7 @@ public class WebLogAspect {
      *
      * 为什么：保证日志可解析且不会因大对象导致日志爆量。
      *
-     * @param args 参数数组
+     * @param args 方法参数数组
      * @return 格式化后的参数字符串
      */
     private String formatRequestJson(Object[] args) {

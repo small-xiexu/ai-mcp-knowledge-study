@@ -55,11 +55,17 @@ public interface GatewayToolService {
      * 工具定义（tools/list 的单个工具）
      */
     record ToolDefinition(
-            /** 工具名称 */
+            /**
+             * 工具名称
+             */
             String name,
-            /** 工具描述 */
+            /**
+             * 工具描述
+             */
             String description,
-            /** 输入参数的 JSON Schema */
+            /**
+             * 输入参数的 JSON Schema
+             */
             Map<String, Object> inputSchema
     ) {}
 
@@ -67,11 +73,17 @@ public interface GatewayToolService {
      * 工具调用结果
      */
     record ToolCallResult(
-            /** 是否调用成功 */
+            /**
+             * 是否调用成功
+             */
             boolean success,
-            /** 结果内容（成功时为响应数据，失败时为错误信息） */
+            /**
+             * 结果内容（成功时为响应数据，失败时为错误信息）
+             */
             String content,
-            /** 错误码（失败时有值） */
+            /**
+             * 错误码（失败时有值）
+             */
             String errorCode
     ) {}
 
@@ -79,13 +91,21 @@ public interface GatewayToolService {
      * 网关能力声明（initialize 响应）
      */
     record GatewayInfo(
-            /** 协议版本 */
+            /**
+             * 协议版本
+             */
             String protocolVersion,
-            /** 网关名称 */
+            /**
+             * 网关名称
+             */
             String serverName,
-            /** 网关版本 */
+            /**
+             * 网关版本
+             */
             String serverVersion,
-            /** 网关使用说明 */
+            /**
+             * 网关使用说明
+             */
             String instructions
     ) {}
 }

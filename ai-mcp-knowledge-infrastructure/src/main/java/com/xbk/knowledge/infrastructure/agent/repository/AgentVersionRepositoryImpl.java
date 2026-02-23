@@ -27,10 +27,10 @@ public class AgentVersionRepositoryImpl implements AgentVersionRepository {
     private final IAgentVersionDao agentVersionDao;
 
     /**
-     * findById。
+     * 查询Agent 版本。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 AgentVersion 查询结果（可能为空）。
      */
     @Override
     public Optional<AgentVersion> findById(AgentVersionIdQuery query) {
@@ -41,10 +41,10 @@ public class AgentVersionRepositoryImpl implements AgentVersionRepository {
     }
 
     /**
-     * findPage。
+     * 查询Agent 版本。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 AgentVersion 列表数据。
      */
     @Override
     public List<AgentVersion> findPage(AgentVersionPageQuery query) {
@@ -58,10 +58,10 @@ public class AgentVersionRepositoryImpl implements AgentVersionRepository {
     }
 
     /**
-     * listByAgentId。
+     * 根据筛选条件查询Agent 版本列表。
      *
-     * @param agentId 参数
-     * @return 返回结果
+     * @param agentId Agent ID
+     * @return 返回 AgentVersion 列表数据。
      */
     @Override
     public List<AgentVersion> listByAgentId(Long agentId) {
@@ -75,10 +75,10 @@ public class AgentVersionRepositoryImpl implements AgentVersionRepository {
     }
 
     /**
-     * count。
+     * 按条件统计业务数量。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 统计数量
      */
     @Override
     public long count(AgentVersionPageQuery query) {
@@ -89,10 +89,10 @@ public class AgentVersionRepositoryImpl implements AgentVersionRepository {
     }
 
     /**
-     * findMaxVersionNo。
+     * 查询Agent 版本。
      *
-     * @param agentId 参数
-     * @return 返回结果
+     * @param agentId Agent ID
+     * @return 返回最大版本号。
      */
     @Override
     public Integer findMaxVersionNo(Long agentId) {
@@ -103,11 +103,11 @@ public class AgentVersionRepositoryImpl implements AgentVersionRepository {
     }
 
     /**
-     * existsByAgentIdAndVersionNo。
+     * 判断指定版本号是否已存在。
      *
-     * @param agentId 参数
-     * @param versionNo 参数
-     * @return 返回结果
+     * @param agentId Agent ID
+     * @param versionNo 版本号。
+     * @return 返回是否存在。
      */
     @Override
     public boolean existsByAgentIdAndVersionNo(Long agentId, Integer versionNo) {
@@ -118,10 +118,10 @@ public class AgentVersionRepositoryImpl implements AgentVersionRepository {
     }
 
     /**
-     * insert。
+     * 创建并持久化Agent 版本数据。
      *
-     * @param version 参数
-     * @return 返回结果
+     * @param version 版本实体。
+     * @return Agent 版本保存结果。
      */
     @Override
     public AgentVersion insert(AgentVersion version) {
@@ -142,10 +142,10 @@ public class AgentVersionRepositoryImpl implements AgentVersionRepository {
     }
 
     /**
-     * updateDraft。
+     * 更新Agent 版本数据。
      *
-     * @param version 参数
-     * @return 返回结果
+     * @param version 版本实体。
+     * @return Agent 版本处理条数。
      */
     @Override
     public int updateDraft(AgentVersion version) {
@@ -159,14 +159,14 @@ public class AgentVersionRepositoryImpl implements AgentVersionRepository {
     }
 
     /**
-     * publish。
+     * 发布业务配置。
      *
-     * @param id 参数
-     * @param promptTemplateVersionNo 参数
-     * @param templateParamsJson 参数
-     * @param systemPromptSnapshot 参数
-     * @param updatedBy 参数
-     * @return 返回结果
+     * @param id 主键 ID
+     * @param promptTemplateVersionNo 提示词模板版本号。
+     * @param templateParamsJson 模板参数 JSON。
+     * @param systemPromptSnapshot 系统提示词快照。
+     * @param updatedBy 更新人 ID
+     * @return Agent 版本处理条数。
      */
     @Override
     public int publish(Long id,
@@ -186,12 +186,12 @@ public class AgentVersionRepositoryImpl implements AgentVersionRepository {
     }
 
     /**
-     * updateState。
+     * 更新Agent 版本数据。
      *
-     * @param id 参数
-     * @param fromState 参数
-     * @param toState 参数
-     * @return 返回结果
+     * @param id 主键 ID
+     * @param fromState 原状态。
+     * @param toState 目标状态。
+     * @return Agent 版本处理条数。
      */
     @Override
     public int updateState(Long id, String fromState, String toState) {
@@ -202,10 +202,10 @@ public class AgentVersionRepositoryImpl implements AgentVersionRepository {
     }
 
     /**
-     * removeByAgentId。
+     * 删除Agent 版本数据。
      *
-     * @param agentId 参数
-     * @return 返回结果
+     * @param agentId Agent ID
+     * @return Agent 版本处理条数。
      */
     @Override
     public int removeByAgentId(Long agentId) {

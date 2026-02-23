@@ -15,37 +15,37 @@ import java.util.Optional;
 public interface AgentRepository {
 
     /**
-     * 方法：findByCode。
+     * 按编码查询记录。
      */
     Optional<Agent> findByCode(AgentCodeQuery query);
 
     /**
-     * 方法：existsByCode。
+     * 判断编码是否已存在。
      */
     boolean existsByCode(AgentCodeQuery query);
 
     /**
-     * 方法：insert。
+     * 新增记录。
      */
     Agent insert(Agent agent);
 
     /**
-     * 方法：updateByCode。
+     * 按编码更新记录。
      */
     int updateByCode(Agent agent);
 
     /**
-     * 方法：deleteByCode。
+     * 按编码删除记录。
      */
     int deleteByCode(AgentCodeQuery query);
 
     /**
-     * 方法：findPage。
+     * 按条件分页查询记录。
      */
     List<Agent> findPage(AgentPageQuery query);
 
     /**
-     * 方法：count。
+     * 统计符合条件的记录数量。
      */
     long count(AgentPageQuery query);
 

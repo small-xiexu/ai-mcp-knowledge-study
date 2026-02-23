@@ -19,15 +19,14 @@ public final class ToolInvokeBypassContextHolder {
     }
 
     /**
-     * enable。
-     *
+     * 启用工具调用权限绕过标记。
      */
     public static void enable() {
         BYPASS.set(Boolean.TRUE);
     }
 
     /**
-     * clear。
+     * 清理工具调用权限绕过标记。
      *
      */
     public static void clear() {
@@ -35,13 +34,12 @@ public final class ToolInvokeBypassContextHolder {
     }
 
     /**
-     * isEnabled。
+     * 判断是否启用工具调用权限绕过标记。
      *
-     * @return 返回结果
+     * @return 返回是否启用。
      */
     public static boolean isEnabled() {
         Boolean v = BYPASS.get();
         return Boolean.TRUE.equals(v);
     }
 }
-

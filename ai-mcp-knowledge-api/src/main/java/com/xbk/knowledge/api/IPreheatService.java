@@ -17,7 +17,7 @@ public interface IPreheatService {
     /**
      * 预热 Agent 版本。
      *
-     * @param request 请求参数
+     * @param request Agent 版本预热参数。
      * @return 预热结果
      */
     Result<PreheatResponse> preheatAgentVersion(PreheatAgentVersionRequest request);
@@ -25,7 +25,7 @@ public interface IPreheatService {
     /**
      * 预热 Workflow 版本。
      *
-     * @param request 请求参数
+     * @param request Workflow 版本预热参数。
      * @return 预热结果
      */
     Result<PreheatResponse> preheatWorkflowVersion(PreheatWorkflowVersionRequest request);

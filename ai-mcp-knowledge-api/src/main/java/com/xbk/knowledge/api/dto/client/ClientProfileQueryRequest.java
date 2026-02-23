@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * Client Profile 分页查询请求。
+ * Client Profile 分页查询参数。
  *
  * @author sxie
  */

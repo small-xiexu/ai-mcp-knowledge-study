@@ -47,7 +47,7 @@ public class AgentVersionController implements IAgentVersionService {
     /**
      * 分页查询指定 Agent 的版本列表。
      *
-     * @param request 查询请求
+     * @param request 查询参数
      * @return 版本分页
      */
     @PostMapping("/list")

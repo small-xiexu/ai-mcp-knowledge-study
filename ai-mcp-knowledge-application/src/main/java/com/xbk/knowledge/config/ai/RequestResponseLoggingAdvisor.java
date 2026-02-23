@@ -27,9 +27,9 @@ public class RequestResponseLoggingAdvisor implements CallAdvisor {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
-     * getName。
+     * 返回 Advisor 名称。
      *
-     * @return 返回结果
+     * @return 返回固定名称标识。
      */
     @Override
     public String getName() {
@@ -37,9 +37,9 @@ public class RequestResponseLoggingAdvisor implements CallAdvisor {
     }
 
     /**
-     * getOrder。
+     * 返回 Advisor 执行顺序。
      *
-     * @return 返回结果
+     * @return 返回 Advisor 执行顺序值。
      */
     @Override
     public int getOrder() {
@@ -48,11 +48,11 @@ public class RequestResponseLoggingAdvisor implements CallAdvisor {
     }
 
     /**
-     * adviseCall。
+     * 执行请求与响应日志拦截。
      *
-     * @param request 参数
-     * @param chain 参数
-     * @return 返回结果
+     * @param request ChatClient 请求参数。
+     * @param chain Advisor 链。
+     * @return 返回 ChatClientResponse 数据。
      */
     @Override
     public ChatClientResponse adviseCall(ChatClientRequest request, CallAdvisorChain chain) {
@@ -98,4 +98,3 @@ public class RequestResponseLoggingAdvisor implements CallAdvisor {
         return text.substring(0, maxLength) + "... (truncated)";
     }
 }
-

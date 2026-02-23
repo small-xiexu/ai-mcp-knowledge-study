@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * WorkflowVersionRepositoryImpl。
+ * 查询工作流版本。
  *
  * @author sxie
  */
@@ -26,10 +26,10 @@ public class WorkflowVersionRepositoryImpl implements WorkflowVersionRepository 
     private final IWorkflowVersionDao mapper;
 
     /**
-     * findById。
+     * 查询工作流版本。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 WorkflowVersion 查询结果（可能为空）。
      */
     @Override
     public Optional<WorkflowVersion> findById(WorkflowVersionIdQuery query) {
@@ -41,10 +41,10 @@ public class WorkflowVersionRepositoryImpl implements WorkflowVersionRepository 
     }
 
     /**
-     * listByWorkflowId。
+     * 根据筛选条件查询工作流版本列表。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 WorkflowVersion 列表数据。
      */
     @Override
     public List<WorkflowVersion> listByWorkflowId(WorkflowVersionListQuery query) {
@@ -55,10 +55,10 @@ public class WorkflowVersionRepositoryImpl implements WorkflowVersionRepository 
     }
 
     /**
-     * insert。
+     * 创建并持久化工作流版本数据。
      *
-     * @param version 参数
-     * @return 返回结果
+     * @param version 版本实体。
+     * @return 返回 WorkflowVersion 数据。
      */
     @Override
     public WorkflowVersion insert(WorkflowVersion version) {
@@ -70,10 +70,10 @@ public class WorkflowVersionRepositoryImpl implements WorkflowVersionRepository 
     }
 
     /**
-     * updateById。
+     * 更新工作流版本数据。
      *
-     * @param version 参数
-     * @return 返回结果
+     * @param version 版本实体。
+     * @return 返回版本更新条数。
      */
     @Override
     public int updateById(WorkflowVersion version) {
@@ -84,10 +84,10 @@ public class WorkflowVersionRepositoryImpl implements WorkflowVersionRepository 
     }
 
     /**
-     * findPublishedVersion。
+     * 查询工作流版本。
      *
-     * @param workflowId 参数
-     * @return 返回结果
+     * @param workflowId Workflow ID
+     * @return 返回 WorkflowVersion 查询结果（可能为空）。
      */
     @Override
     public Optional<WorkflowVersion> findPublishedVersion(Long workflowId) {

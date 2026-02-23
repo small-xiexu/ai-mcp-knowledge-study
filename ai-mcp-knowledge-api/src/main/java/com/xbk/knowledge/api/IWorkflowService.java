@@ -25,65 +25,65 @@ import java.util.List;
 public interface IWorkflowService {
 
     /**
-     * 分页查询数据列表。
+     * 按筛选条件分页查询工作流数据。
      *
-     * @param request 请求参数
-     * @return 列表结果
+     * @param request 工作流分页查询参数。
+     * @return 返回 WorkflowResponse 分页数据。
      */
     Result<PageResult<WorkflowResponse>> list(WorkflowListRequest request);
 
     /**
-     * 查询详情信息。
+     * 查询工作流详情。
      *
-     * @param request 请求参数
-     * @return 查询结果
+     * @param request 工作流查询参数。
+     * @return 返回 WorkflowResponse 数据。
      */
     Result<WorkflowResponse> get(IdRequest request);
 
     /**
-     * 创建数据。
+     * 创建工作流数据。
      *
-     * @param request 请求参数
-     * @return 创建结果
+     * @param request 工作流创建参数。
+     * @return 返回 WorkflowResponse 数据。
      */
     Result<WorkflowResponse> create(WorkflowCreateRequest request);
 
     /**
-     * 更新数据。
+     * 更新工作流数据。
      *
-     * @param request 请求参数
-     * @return 更新结果
+     * @param request 工作流更新参数。
+     * @return 返回 WorkflowResponse 数据。
      */
     Result<WorkflowResponse> update(WorkflowUpdateRequest request);
 
     /**
      * 创建版本。
      *
-     * @param request 请求参数
-     * @return 创建结果
+     * @param request 工作流创建参数。
+     * @return 返回 WorkflowVersionResponse 数据。
      */
     Result<WorkflowVersionResponse> createVersion(WorkflowVersionCreateRequest request);
 
     /**
      * 查询版本列表。
      *
-     * @param request 请求参数
-     * @return 列表结果
+     * @param request 工作流分页查询参数。
+     * @return 返回 WorkflowVersionResponse 列表数据。
      */
     Result<List<WorkflowVersionResponse>> listVersions(WorkflowVersionListRequest request);
 
     /**
      * 查询版本详情。
      *
-     * @param request 请求参数
-     * @return 查询结果
+     * @param request 工作流查询参数。
+     * @return 返回 WorkflowVersionResponse 数据。
      */
     Result<WorkflowVersionResponse> getVersion(IdRequest request);
 
     /**
      * 发布版本。
      *
-     * @param request 请求参数
+     * @param request 工作流发布参数。
      * @return 发布结果
      */
     Result<WorkflowVersionResponse> publish(WorkflowVersionPublishRequest request);
@@ -91,8 +91,8 @@ public interface IWorkflowService {
     /**
      * 保存流程图配置。
      *
-     * @param request 请求参数
-     * @return 保存结果
+     * @param request 工作流保存参数。
+     * @return 返回 WorkflowVersionResponse 数据。
      */
     Result<WorkflowVersionResponse> saveGraph(WorkflowGraphSaveRequest request);
 }

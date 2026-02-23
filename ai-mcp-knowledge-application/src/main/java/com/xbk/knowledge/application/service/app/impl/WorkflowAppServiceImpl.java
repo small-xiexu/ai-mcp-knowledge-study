@@ -40,12 +40,12 @@ public class WorkflowAppServiceImpl implements WorkflowAppService {
     private final IdentityContextService identityContextService;
 
     /**
-     * list。
+     * 根据筛选条件查询工作流列表。
      *
-     * @param keyword 参数
-     * @param offset 参数
-     * @param pageSize 参数
-     * @return 返回结果
+     * @param keyword 关键字。
+     * @param offset 分页偏移量
+     * @param pageSize 分页大小
+     * @return 返回 Workflow 分页数据。
      */
     @Override
     public PageResult<Workflow> list(String keyword, int offset, int pageSize) {
@@ -58,10 +58,10 @@ public class WorkflowAppServiceImpl implements WorkflowAppService {
     }
 
     /**
-     * get。
+     * 查询工作流。
      *
-     * @param id 参数
-     * @return 返回结果
+     * @param id 主键 ID
+     * @return 返回 Workflow 数据。
      */
     @Override
     public Workflow get(Long id) {
@@ -70,10 +70,10 @@ public class WorkflowAppServiceImpl implements WorkflowAppService {
     }
 
     /**
-     * create。
+     * 创建并持久化工作流数据。
      *
-     * @param workflow 参数
-     * @return 返回结果
+     * @param workflow 工作流实体。
+     * @return 返回 Workflow 数据。
      */
     @Override
     public Workflow create(Workflow workflow) {
@@ -99,10 +99,10 @@ public class WorkflowAppServiceImpl implements WorkflowAppService {
     }
 
     /**
-     * update。
+     * 更新工作流数据。
      *
-     * @param workflow 参数
-     * @return 返回结果
+     * @param workflow 工作流实体。
+     * @return 返回 Workflow 数据。
      */
     @Override
     public Workflow update(Workflow workflow) {
@@ -125,11 +125,11 @@ public class WorkflowAppServiceImpl implements WorkflowAppService {
     }
 
     /**
-     * createVersion。
+     * 创建并持久化工作流数据。
      *
-     * @param workflowId 参数
-     * @param changeSummary 参数
-     * @return 返回结果
+     * @param workflowId Workflow ID
+     * @param changeSummary 变更说明。
+     * @return 返回 WorkflowVersion 数据。
      */
     @Override
     public WorkflowVersion createVersion(Long workflowId, String changeSummary) {
@@ -169,10 +169,10 @@ public class WorkflowAppServiceImpl implements WorkflowAppService {
     }
 
     /**
-     * listVersions。
+     * 根据筛选条件查询工作流列表。
      *
-     * @param workflowId 参数
-     * @return 返回结果
+     * @param workflowId Workflow ID
+     * @return 返回 WorkflowVersion 列表数据。
      */
     @Override
     public List<WorkflowVersion> listVersions(Long workflowId) {
@@ -182,10 +182,10 @@ public class WorkflowAppServiceImpl implements WorkflowAppService {
     }
 
     /**
-     * getVersion。
+     * 查询工作流。
      *
-     * @param workflowVersionId 参数
-     * @return 返回结果
+     * @param workflowVersionId 工作流版本 ID。
+     * @return 返回 WorkflowVersion 数据。
      */
     @Override
     public WorkflowVersion getVersion(Long workflowVersionId) {
@@ -197,10 +197,10 @@ public class WorkflowAppServiceImpl implements WorkflowAppService {
     }
 
     /**
-     * publishVersion。
+     * 发布业务配置。
      *
-     * @param workflowVersionId 参数
-     * @return 返回结果
+     * @param workflowVersionId 工作流版本 ID。
+     * @return 返回 WorkflowVersion 数据。
      */
     @Override
     public WorkflowVersion publishVersion(Long workflowVersionId) {

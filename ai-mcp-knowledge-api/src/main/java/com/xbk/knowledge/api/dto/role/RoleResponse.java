@@ -50,7 +50,7 @@ public class RoleResponse implements Serializable {
     private String remark;
 
     /**
-     * 权限ID列表。
+     * 权限 ID 列表。
      */
     private List<Long> permissionIds;
 

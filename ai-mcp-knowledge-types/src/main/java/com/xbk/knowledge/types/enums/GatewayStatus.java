@@ -7,8 +7,12 @@ package com.xbk.knowledge.types.enums;
  * @author sxie
  */
 public enum GatewayStatus {
-    /** 启用 */
-    ENABLED,
-    /** 禁用 */
-    DISABLED
+    /**
+     * 启用
+     */
+     ENABLED,
+    /**
+     * 禁用
+     */
+     DISABLED
 }

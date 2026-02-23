@@ -32,10 +32,10 @@ public class AgentAppServiceImpl implements AgentAppService {
     private final XxlJobAppService xxlJobAppService;
 
     /**
-     * queryPage。
+     * 查询智能体。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 Agent 分页数据。
      */
     @Override
     public PageResult<Agent> queryPage(AgentPageQuery query) {
@@ -43,10 +43,10 @@ public class AgentAppServiceImpl implements AgentAppService {
     }
 
     /**
-     * queryByCode。
+     * 查询智能体。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 Agent 数据。
      */
     @Override
     public Agent queryByCode(AgentCodeQuery query) {
@@ -54,10 +54,10 @@ public class AgentAppServiceImpl implements AgentAppService {
     }
 
     /**
-     * create。
+     * 创建并持久化智能体数据。
      *
-     * @param agent 参数
-     * @return 返回结果
+     * @param agent 智能体实体。
+     * @return 智能体保存结果。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -66,10 +66,10 @@ public class AgentAppServiceImpl implements AgentAppService {
     }
 
     /**
-     * update。
+     * 更新智能体数据。
      *
-     * @param agent 参数
-     * @return 返回结果
+     * @param agent 智能体实体。
+     * @return 智能体更新结果。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -78,9 +78,9 @@ public class AgentAppServiceImpl implements AgentAppService {
     }
 
     /**
-     * remove。
+     * 删除智能体数据。
      *
-     * @param query 参数
+     * @param query 查询条件
      */
     @Override
     @Transactional(rollbackFor = Exception.class)

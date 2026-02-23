@@ -59,10 +59,10 @@ public class WorkflowRuntimeController implements IWorkflowRuntimeService {
     }
 
     /**
-     * listRuns。
+     * 根据筛选条件查询工作流运行列表。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 工作流运行分页查询参数。
+     * @return 返回 WorkflowRunResponse 分页数据。
      */
     @PostMapping("/runs/list")
     @SaCheckPermission("workflow:read")
@@ -77,10 +77,10 @@ public class WorkflowRuntimeController implements IWorkflowRuntimeService {
     }
 
     /**
-     * getRun。
+     * 查询工作流运行。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 工作流运行查询参数。
+     * @return 返回 WorkflowRunResponse 数据。
      */
     @PostMapping("/runs/get")
     @SaCheckPermission("workflow:read")
@@ -91,10 +91,10 @@ public class WorkflowRuntimeController implements IWorkflowRuntimeService {
     }
 
     /**
-     * listNodeRuns。
+     * 根据筛选条件查询工作流运行列表。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 工作流运行分页查询参数。
+     * @return 返回 WorkflowNodeRunResponse 列表数据。
      */
     @PostMapping("/runs/nodes")
     @SaCheckPermission("workflow:read")

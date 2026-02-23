@@ -35,7 +35,7 @@ public class PermissionController implements IPermissionService {
     /**
      * 分页查询权限。
      *
-     * @param request 查询请求
+     * @param request 查询参数
      * @return 分页结果
      */
     @SaCheckPermission("role:read")

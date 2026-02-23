@@ -93,10 +93,10 @@ public class RagTaskRepositoryImpl implements RagTaskRepository {
     }
 
     /**
-     * countByStatus。
+     * 按条件统计业务数量。
      *
-     * @param status 参数
-     * @return 返回结果
+     * @param status 状态值
+     * @return 统计数量
      */
     @Override
     public long countByStatus(String status) {
@@ -107,9 +107,9 @@ public class RagTaskRepositoryImpl implements RagTaskRepository {
     }
 
     /**
-     * countDistinctRagTag。
+     * 按条件统计业务数量。
      *
-     * @return 返回结果
+     * @return 统计数量
      */
     @Override
     public long countDistinctRagTag() {
@@ -117,10 +117,10 @@ public class RagTaskRepositoryImpl implements RagTaskRepository {
     }
 
     /**
-     * countFailedTasksSince。
+     * 按条件统计业务数量。
      *
-     * @param since 参数
-     * @return 返回结果
+     * @param since 起始时间。
+     * @return 统计数量
      */
     @Override
     public long countFailedTasksSince(LocalDateTime since) {

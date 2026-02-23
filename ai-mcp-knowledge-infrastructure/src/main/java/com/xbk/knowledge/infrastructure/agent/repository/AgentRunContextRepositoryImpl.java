@@ -23,9 +23,9 @@ public class AgentRunContextRepositoryImpl implements AgentRunContextRepository 
     private final IAgentRunContextDao dao;
 
     /**
-     * upsert。
+     * 新增或更新Agent 运行上下文数据。
      *
-     * @param context 参数
+     * @param context 运行上下文。
      */
     @Override
     public void upsert(AgentRunContext context) {
@@ -42,10 +42,10 @@ public class AgentRunContextRepositoryImpl implements AgentRunContextRepository 
     }
 
     /**
-     * findByRunId。
+     * 查询Agent 运行上下文。
      *
-     * @param runId 参数
-     * @return 返回结果
+     * @param runId 运行 ID
+     * @return 返回 AgentRunContext 查询结果（可能为空）。
      */
     @Override
     public Optional<AgentRunContext> findByRunId(String runId) {
@@ -56,11 +56,11 @@ public class AgentRunContextRepositoryImpl implements AgentRunContextRepository 
     }
 
     /**
-     * updateStatus。
+     * 更新Agent 运行上下文数据。
      *
-     * @param runId 参数
-     * @param status 参数
-     * @return 返回结果
+     * @param runId 运行 ID
+     * @param status 状态值
+     * @return Agent 运行上下文处理条数。
      */
     @Override
     public int updateStatus(String runId, String status) {
@@ -71,10 +71,10 @@ public class AgentRunContextRepositoryImpl implements AgentRunContextRepository 
     }
 
     /**
-     * deleteByAgentId。
+     * 删除Agent 运行上下文数据。
      *
-     * @param agentId 参数
-     * @return 返回结果
+     * @param agentId Agent ID
+     * @return Agent 运行上下文处理条数。
      */
     @Override
     public int deleteByAgentId(Long agentId) {

@@ -15,32 +15,32 @@ import java.util.Optional;
 public interface McpGatewayAuthRepository {
 
     /**
-     * 方法：findById。
+     * 按主键查询记录。
      */
     Optional<McpGatewayAuth> findById(Long id);
 
     /**
-     * 方法：findByApiKey。
+     * 按 API Key 查询鉴权配置。
      */
     Optional<McpGatewayAuth> findByApiKey(String apiKey);
 
     /**
-     * 方法：findByGatewayId。
+     * 按网关 ID 查询关联记录。
      */
     List<McpGatewayAuth> findByGatewayId(GatewayIdQuery query);
 
     /**
-     * 方法：save。
+     * 保存或更新记录。
      */
     McpGatewayAuth save(McpGatewayAuth auth);
 
     /**
-     * 方法：deleteById。
+     * 按主键删除记录。
      */
     void deleteById(Long id);
 
     /**
-     * 方法：deleteByGatewayId。
+     * 删除指定网关下的认证配置。
      */
     void deleteByGatewayId(GatewayIdQuery query);
 }

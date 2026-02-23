@@ -1,6 +1,5 @@
 package com.xbk.knowledge.infrastructure.mcp;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xbk.knowledge.application.context.GatewayToolBindingContextHolder;
 import com.xbk.knowledge.application.context.GatewayToolBindingContextHolder.BindingContext;
@@ -15,6 +14,7 @@ import com.xbk.knowledge.domain.approval.adapter.repository.ApprovalRequestRepos
 import com.xbk.knowledge.infrastructure.audit.IdentityAuditLogService;
 import com.xbk.knowledge.types.exception.ApprovalRequiredException;
 import com.xbk.knowledge.types.exception.BusinessException;
+import com.xbk.knowledge.types.json.JsonMapUtils;
 import com.xbk.knowledge.types.tool.ToolNameUtils;
 import com.xbk.knowledge.types.tool.ToolKeyAware;
 import com.xbk.knowledge.types.tool.ToolInvokeBypassContextHolder;
@@ -48,8 +48,9 @@ import io.modelcontextprotocol.client.McpSyncClient;
 /**
  * 动态 MCP 工具回调提供者
  * 根据运行时注册的 MCP Server 动态提供工具列表
- *
+ * <p>
  * 职责：基础设施适配，用于提供可热更新的 ToolCallbackProvider
+ *
  * @author sxie
  */
 @Slf4j
@@ -70,8 +71,9 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
 
     /**
      * 更新 MCP 客户端列表
-     *
+     * <p>
      * 为什么：运行时连接变更后需要刷新工具回调
+     *
      * @param mcpClients MCP 客户端列表（带 serverName）
      */
     public void updateClients(List<McpClientDescriptor> mcpClients) {
@@ -82,7 +84,7 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
         log.info("MCP 工具回调更新完成，当前客户端数量: {}", size);
         /*
          * 目的：预热工具列表，避免首次查询命中空缓存
- */
+         */
         try {
             getToolCallbacks();
         } catch (Exception e) {
@@ -92,8 +94,9 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
 
     /**
      * 返回可用工具回调
-     *
+     * <p>
      * 为什么：按需构建并缓存工具回调数组
+     *
      * @return 工具回调列表
      */
     @Override
@@ -142,7 +145,7 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
             String serverName = descriptor.serverName == null ? "mcp" : descriptor.serverName;
             List<ToolCallback> callbacks = SyncMcpToolCallbackProvider.syncToolCallbacks(Collections.singletonList(descriptor.client));
             for (ToolCallback cb : callbacks) {
-                if (cb == null || cb.getToolDefinition() == null || !StringUtils.hasText(cb.getToolDefinition().name())) {
+                if (cb == null || !StringUtils.hasText(cb.getToolDefinition().name())) {
                     continue;
                 }
                 String toolName = cb.getToolDefinition().name();
@@ -159,16 +162,18 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
         return ctx == null ? null : ctx.getAllowedToolKeys();
     }
 
-    /** MCP 工具回调描述符（serverName + client）。 */
+    /**
+     * MCP 工具回调描述符（serverName + client）。
+     */
     public static final class McpClientDescriptor {
         private final String serverName;
         private final McpSyncClient client;
 
         /**
-         * McpClientDescriptor。
+         * 查询动态 MCP 工具回调。
          *
-         * @param serverName 参数
-         * @param client 参数
+         * @param serverName 服务端名称。
+         * @param client MCP 客户端。
          */
         public McpClientDescriptor(String serverName, McpSyncClient client) {
             this.serverName = serverName;
@@ -191,17 +196,13 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
             this.delegate = delegate;
             this.toolKey = toolKey;
             ToolDefinition def = delegate.getToolDefinition();
-            this.toolDefinition = DefaultToolDefinition.builder()
-                    .name(functionName)
-                    .description(def == null ? "" : def.description())
-                    .inputSchema(def == null ? "{\"type\":\"object\",\"properties\":{}}" : def.inputSchema())
-                    .build();
+            this.toolDefinition = DefaultToolDefinition.builder().name(functionName).description(def == null ? "" : def.description()).inputSchema(def == null ? "{\"type\":\"object\",\"properties\":{}}" : def.inputSchema()).build();
         }
 
         /**
-         * getToolDefinition。
+         * 获取工具定义。
          *
-         * @return 返回结果
+         * @return 返回 ToolDefinition 数据。
          */
         @Override
         public ToolDefinition getToolDefinition() {
@@ -209,9 +210,9 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
         }
 
         /**
-         * getToolMetadata。
+         * 获取工具元数据。
          *
-         * @return 返回结果
+         * @return 返回 ToolMetadata 数据。
          */
         @Override
         public ToolMetadata getToolMetadata() {
@@ -219,10 +220,10 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
         }
 
         /**
-         * call。
+         * 调用 MCP 工具（无上下文）。
          *
-         * @param arguments 参数
-         * @return 返回结果
+         * @param arguments 工具调用参数。
+         * @return 返回工具执行结果文本。
          */
         @Override
         public String call(String arguments) {
@@ -230,11 +231,11 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
         }
 
         /**
-         * call。
+         * 调用 MCP 工具（带上下文）。
          *
-         * @param arguments 参数
-         * @param toolContext 参数
-         * @return 返回结果
+         * @param arguments 工具调用参数。
+         * @param toolContext 工具上下文。
+         * @return 返回工具执行结果文本。
          */
         @Override
         public String call(String arguments, ToolContext toolContext) {
@@ -298,7 +299,7 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
         private void recordToolDeniedAndAudit(String runId, String reason, Long operatorId) {
             try {
                 if (agentRunRepository != null && StringUtils.hasText(runId)) {
-                    agentRunRepository.incrementToolDeniedCount(runId,  1);
+                    agentRunRepository.incrementToolDeniedCount(runId, 1);
                 }
                 BindingContext ctx = GatewayToolBindingContextHolder.get();
                 String nodeKey = ctx == null ? null : ctx.getWorkflowNodeKey();
@@ -313,32 +314,17 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
                 if (auditLogService == null || !StringUtils.hasText(toolKey)) {
                     return;
                 }
-                SysAuditEvent event = SysAuditEvent.builder()
-                        .operatorId(operatorId)
-                        .operatorType(operatorId == null ? "system" : "user")
-                        .eventType("TOOL_INVOKE")
-                        .resourceType("mcp_tool")
-                        .resourceId(toolKey)
-                        .action("DENIED")
-                        .requestId(runId)
-                        .result(0)
-                        .errorMessage(reason)
-                        .costMs(0L)
-                        .build();
+                SysAuditEvent event = SysAuditEvent.builder().operatorId(operatorId).operatorType(operatorId == null ? "system" : "user").eventType("TOOL_INVOKE").resourceType("mcp_tool").resourceId(toolKey).action("DENIED").requestId(runId).result(0).errorMessage(reason).costMs(0L).build();
                 auditLogService.record(event);
             } catch (Exception e) {
                 log.warn("写入工具拒绝审计失败，runId: {}, toolKey: {}", runId, toolKey, e);
             }
         }
 
-        private void recordToolMetricsAndAudit(String runId, 
-                                              boolean success,
-                                              long latencyMs,
-                                              String errorMessage,
-                                              Long operatorId) {
+        private void recordToolMetricsAndAudit(String runId, boolean success, long latencyMs, String errorMessage, Long operatorId) {
             try {
                 if (agentRunRepository != null && StringUtils.hasText(runId)) {
-                    agentRunRepository.incrementToolCallCount(runId,  1);
+                    agentRunRepository.incrementToolCallCount(runId, 1);
                 }
                 BindingContext ctx = GatewayToolBindingContextHolder.get();
                 String nodeKey = ctx == null ? null : ctx.getWorkflowNodeKey();
@@ -353,18 +339,7 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
                 if (auditLogService == null || !StringUtils.hasText(toolKey)) {
                     return;
                 }
-                SysAuditEvent event = SysAuditEvent.builder()
-                        .operatorId(operatorId)
-                        .operatorType(operatorId == null ? "system" : "user")
-                        .eventType("TOOL_INVOKE")
-                        .resourceType("mcp_tool")
-                        .resourceId(toolKey)
-                        .action(success ? "SUCCESS" : "FAILED")
-                        .requestId(runId)
-                        .result(success ? 1 : 0)
-                        .errorMessage(success ? null : errorMessage)
-                        .costMs(latencyMs)
-                        .build();
+                SysAuditEvent event = SysAuditEvent.builder().operatorId(operatorId).operatorType(operatorId == null ? "system" : "user").eventType("TOOL_INVOKE").resourceType("mcp_tool").resourceId(toolKey).action(success ? "SUCCESS" : "FAILED").requestId(runId).result(success ? 1 : 0).errorMessage(success ? null : errorMessage).costMs(latencyMs).build();
                 auditLogService.record(event);
             } catch (Exception e) {
                 log.warn("写入工具调用审计失败，runId: {}, toolKey: {}", runId, toolKey, e);
@@ -372,9 +347,9 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
         }
 
         /**
-         * toolKey。
+         * 返回当前工具标识。
          *
-         * @return 返回结果
+         * @return 返回工具唯一标识。
          */
         @Override
         public String toolKey() {
@@ -382,9 +357,9 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
         }
 
         /**
-         * toolSource。
+         * 返回工具来源类型。
          *
-         * @return 返回结果
+         * @return 返回固定来源标识。
          */
         @Override
         public String toolSource() {
@@ -393,26 +368,17 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
 
         /**
          * MCP 工具的高风险审批门禁（方式B）。
-         *
+         * <p>
          * 说明：
          * - MCP 工具按默认 MEDIUM 风险处理
          * - riskLevel=HIGH 时触发审批
          */
-        private void maybeRequireApproval(String runId, 
-                                          String toolKey,
-                                          String argumentsSnapshotJson,
-                                          Long requesterId,
-                                          String requesterType,
-                                          Long operatorId) {
+        private void maybeRequireApproval(String runId, String toolKey, String argumentsSnapshotJson, Long requesterId, String requesterType, Long operatorId) {
             if (!StringUtils.hasText(runId) || !StringUtils.hasText(toolKey) || approvalRequestRepository == null) {
                 return;
             }
             String riskLevel = "MEDIUM";
-            boolean approvalRequired = false;
-            if (!approvalRequired && "HIGH".equalsIgnoreCase(riskLevel)) {
-                approvalRequired = true;
-            }
-            if (!approvalRequired) {
+            if (!"HIGH".equalsIgnoreCase(riskLevel)) {
                 return;
             }
 
@@ -426,9 +392,7 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
             }
 
             try {
-                ApprovalRequest pending = approvalRequestRepository
-                        .findLatestPending(runId, toolKey, now)
-                        .orElse(null);
+                ApprovalRequest pending = approvalRequestRepository.findLatestPending(runId, toolKey, now).orElse(null);
                 if (pending != null && pending.getId() != null) {
                     throw new ApprovalRequiredException(pending.getId(), toolKey, riskLevel, "工具调用需要审批（已存在待审批单）");
                 }
@@ -451,9 +415,7 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
             workflowNodeKey = ctx == null ? null : ctx.getWorkflowNodeKey();
             if (workflowId == null || workflowVersionId == null || !StringUtils.hasText(workflowNodeKey)) {
                 // fallback：按 agent_run 归属
-                AgentRun run = agentRunRepository
-                        .findByRunId(runId)
-                        .orElse(null);
+                AgentRun run = agentRunRepository.findByRunId(runId).orElse(null);
                 if (run != null && run.getAgentId() != null && run.getAgentVersionId() != null) {
                     agentId = run.getAgentId();
                     agentVersionId = run.getAgentVersionId();
@@ -464,23 +426,7 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
 
             String snapshot = StringUtils.hasText(argumentsSnapshotJson) ? argumentsSnapshotJson : "{}";
             String digest = snapshot.length() <= 500 ? snapshot : snapshot.substring(0, 500);
-            ApprovalRequest req = ApprovalRequest.builder()
-                    .approvalType("TOOL_INVOKE")
-                    .status("PENDING")
-                    .runId(runId)
-                    .agentId(agentId)
-                    .agentVersionId(agentVersionId)
-                    .workflowId(workflowId)
-                    .workflowVersionId(workflowVersionId)
-                    .nodeKey(workflowNodeKey)
-                    .requesterId(requesterId)
-                    .requesterType(requesterType)
-                    .toolKey(toolKey)
-                    .riskLevel(riskLevel.toUpperCase(Locale.ROOT))
-                    .argumentsSnapshotJson(snapshot)
-                    .argumentsDigest(digest)
-                    .expireAt(now.plusMinutes(30))
-                    .build();
+            ApprovalRequest req = ApprovalRequest.builder().approvalType("TOOL_INVOKE").status("PENDING").runId(runId).agentId(agentId).agentVersionId(agentVersionId).workflowId(workflowId).workflowVersionId(workflowVersionId).nodeKey(workflowNodeKey).requesterId(requesterId).requesterType(requesterType).toolKey(toolKey).riskLevel(riskLevel.toUpperCase(Locale.ROOT)).argumentsSnapshotJson(snapshot).argumentsDigest(digest).expireAt(now.plusMinutes(30)).build();
             approvalRequestRepository.insert(req);
             // agent_run_context 续跑快照由 Agent 侧维护；Workflow 场景由 WorkflowRuntime 侧写入 workflow_run_context
             if (agentId != null && agentVersionId != null) {
@@ -489,12 +435,7 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
             throw new ApprovalRequiredException(req.getId(), toolKey, riskLevel, "工具调用需要审批（已生成审批单）");
         }
 
-        private void upsertPendingToolSnapshot(String runId,
-                                              String toolKey,
-                                              String riskLevel,
-                                              String argsDigest,
-                                              Long approvalRequestId,
-                                              LocalDateTime now) {
+        private void upsertPendingToolSnapshot(String runId, String toolKey, String riskLevel, String argsDigest, Long approvalRequestId, LocalDateTime now) {
             if (agentRunContextRepository == null || !StringUtils.hasText(runId)) {
                 return;
             }
@@ -503,10 +444,7 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
                 agentRunContextRepository.findByRunId(runId).ifPresent(ctx -> {
                     if (ctx != null && StringUtils.hasText(ctx.getSnapshotJson())) {
                         try {
-                            Map<String, Object> existed = objectMapper.readValue(
-                                    ctx.getSnapshotJson(),
-                                    new TypeReference<Map<String, Object>>() {}
-                            );
+                            Map<String, Object> existed = JsonMapUtils.readMap(objectMapper, ctx.getSnapshotJson());
                             if (existed != null) {
                                 map.putAll(existed);
                             }
@@ -521,11 +459,7 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
                 map.put("pendingAt", now == null ? null : now.toString());
 
                 String json = objectMapper.writeValueAsString(map);
-                AgentRunContext ctx = AgentRunContext.builder()
-                        .runId(runId)
-                        .status("SAVED")
-                        .snapshotJson(json)
-                        .build();
+                AgentRunContext ctx = AgentRunContext.builder().runId(runId).status("SAVED").snapshotJson(json).build();
                 agentRunContextRepository.upsert(ctx);
             } catch (Exception e) {
                 log.warn("更新 agent_run_context 待审批快照失败，runId: {}, toolKey: {}", runId, toolKey, e);

@@ -38,10 +38,10 @@ public class ClientProfileController implements IClientProfileService {
     private final IdentityContextService identityContextService;
 
     /**
-     * list。
+     * 根据筛选条件查询客户端画像列表。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 客户端画像分页查询参数。
+     * @return 返回 ClientProfileResponse 分页数据。
      */
     @PostMapping("/list")
     @SaCheckPermission("agent:read")
@@ -59,10 +59,10 @@ public class ClientProfileController implements IClientProfileService {
     }
 
     /**
-     * get。
+     * 查询客户端画像。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 客户端画像查询参数。
+     * @return 返回 ClientProfileResponse 数据。
      */
     @PostMapping("/get")
     @SaCheckPermission("agent:read")
@@ -74,10 +74,10 @@ public class ClientProfileController implements IClientProfileService {
     }
 
     /**
-     * save。
+     * 创建或更新客户端画像数据。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 客户端画像保存参数。
+     * @return 返回 ClientProfileResponse 数据。
      */
     @PostMapping("/save")
     @SaCheckPermission("agent:write")
@@ -100,10 +100,10 @@ public class ClientProfileController implements IClientProfileService {
     }
 
     /**
-     * enable。
+     * 启用业务配置。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 客户端画像启停参数。
+     * @return 返回 ClientProfileResponse 数据。
      */
     @PostMapping("/enable")
     @SaCheckPermission("agent:write")
@@ -116,10 +116,10 @@ public class ClientProfileController implements IClientProfileService {
     }
 
     /**
-     * disable。
+     * 禁用业务配置。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 客户端画像启停参数。
+     * @return 返回 ClientProfileResponse 数据。
      */
     @PostMapping("/disable")
     @SaCheckPermission("agent:write")
@@ -132,10 +132,10 @@ public class ClientProfileController implements IClientProfileService {
     }
 
     /**
-     * remove。
+     * 删除客户端画像数据。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 客户端画像删除参数。
+     * @return 返回客户端画像删除状态。
      */
     @PostMapping("/remove")
     @SaCheckPermission("agent:write")

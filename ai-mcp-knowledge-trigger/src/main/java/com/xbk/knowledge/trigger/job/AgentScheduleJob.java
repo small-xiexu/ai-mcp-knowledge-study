@@ -1,6 +1,5 @@
 package com.xbk.knowledge.trigger.job;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xbk.knowledge.application.service.app.AgentRuntimeAppService;
 import com.xbk.knowledge.domain.agent.model.entity.AgentSchedule;
@@ -8,6 +7,7 @@ import com.xbk.knowledge.domain.agent.model.valobj.AgentScheduleIdQuery;
 import com.xbk.knowledge.domain.agent.adapter.repository.AgentScheduleRepository;
 import com.xbk.knowledge.types.contract.PlatformContractV1;
 import com.xbk.knowledge.types.exception.BusinessException;
+import com.xbk.knowledge.types.json.JsonMapUtils;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +41,7 @@ public class AgentScheduleJob {
     private final AgentRuntimeAppService agentRuntimeAppService;
 
     /**
-     * execute。
+     * 执行定时任务处理。
      *
      */
     @XxlJob("agentScheduleHandler")
@@ -53,7 +53,7 @@ public class AgentScheduleJob {
 
         Long scheduleId = null;
         try {
-            Map<String, Object> map = objectMapper.readValue(param, new TypeReference<Map<String, Object>>() {});
+            Map<String, Object> map = JsonMapUtils.readMap(objectMapper, param);
             Object o1 = map == null ? null : map.get("scheduleId");
             scheduleId = o1 == null ? null : Long.valueOf(String.valueOf(o1));
         } catch (Exception e) {
@@ -103,7 +103,7 @@ public class AgentScheduleJob {
             return new Payload("", null);
         }
         try {
-            Map<String, Object> map = objectMapper.readValue(payloadTemplateJson, new TypeReference<Map<String, Object>>() {});
+            Map<String, Object> map = JsonMapUtils.readMap(objectMapper, payloadTemplateJson);
             String content = map == null || map.get("content") == null ? "" : String.valueOf(map.get("content"));
             String ragTagsJson = map == null || map.get("ragTagsJson") == null ? null : String.valueOf(map.get("ragTagsJson"));
             return new Payload(content, ragTagsJson);

@@ -26,10 +26,10 @@ public class AdvisorBindingRepositoryImpl implements AdvisorBindingRepository {
     private final IAdvisorBindingDao mapper;
 
     /**
-     * listBindings。
+     * 查询指定绑定目标下的 Advisor 绑定关系。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 绑定查询条件（绑定类型 + 绑定目标 ID）
+     * @return 绑定关系列表
      */
     @Override
     public List<AdvisorBinding> listBindings(AdvisorBindingQuery query) {
@@ -40,10 +40,10 @@ public class AdvisorBindingRepositoryImpl implements AdvisorBindingRepository {
     }
 
     /**
-     * listBindingViews。
+     * 查询绑定视图数据（含 Advisor 基础信息）。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 绑定查询条件（绑定类型 + 绑定目标 ID）
+     * @return 绑定视图列表
      */
     @Override
     public List<AdvisorBindingView> listBindingViews(AdvisorBindingQuery query) {
@@ -54,10 +54,10 @@ public class AdvisorBindingRepositoryImpl implements AdvisorBindingRepository {
     }
 
     /**
-     * deleteByTarget。
+     * 删除指定绑定目标下的全部 Advisor 绑定关系。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 绑定查询条件（绑定类型 + 绑定目标 ID）
+     * @return 删除影响行数
      */
     @Override
     public int deleteByTarget(AdvisorBindingQuery query) {
@@ -68,10 +68,10 @@ public class AdvisorBindingRepositoryImpl implements AdvisorBindingRepository {
     }
 
     /**
-     * insertBinding。
+     * 新增一条 Advisor 绑定关系。
      *
-     * @param binding 参数
-     * @return 返回结果
+     * @param binding 绑定实体
+     * @return 新增影响行数
      */
     @Override
     public int insertBinding(AdvisorBinding binding) {
@@ -83,10 +83,10 @@ public class AdvisorBindingRepositoryImpl implements AdvisorBindingRepository {
     }
 
     /**
-     * deleteByAdvisorId。
+     * 按 Advisor 主键删除其全部绑定关系。
      *
-     * @param advisorId 参数
-     * @return 返回结果
+     * @param advisorId Advisor 主键
+     * @return 删除影响行数
      */
     @Override
     public int deleteByAdvisorId(Long advisorId) {

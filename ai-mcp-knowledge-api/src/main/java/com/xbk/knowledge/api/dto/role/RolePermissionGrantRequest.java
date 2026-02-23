@@ -33,7 +33,7 @@ public class RolePermissionGrantRequest extends BaseRequest {
     private Long roleId;
 
     /**
-     * 权限ID列表。
+     * 权限 ID 列表。
      */
     private List<Long> permissionIds;
 }

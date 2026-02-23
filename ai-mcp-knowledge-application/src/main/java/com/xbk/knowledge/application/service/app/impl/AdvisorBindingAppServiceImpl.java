@@ -34,10 +34,10 @@ public class AdvisorBindingAppServiceImpl implements AdvisorBindingAppService {
     private final AdvisorRuntimeService advisorRuntimeService;
 
     /**
-     * listBindings。
+     * 根据筛选条件查询Advisor 绑定列表。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 AdvisorBindingView 列表数据。
      */
     @Override
     public List<AdvisorBindingView> listBindings(AdvisorBindingQuery query) {
@@ -52,11 +52,11 @@ public class AdvisorBindingAppServiceImpl implements AdvisorBindingAppService {
     }
 
     /**
-     * saveBindings。
+     * 创建或更新Advisor 绑定数据。
      *
-     * @param bindType 参数
-     * @param bindTargetId 参数
-     * @param items 参数
+     * @param bindType 绑定类型
+     * @param bindTargetId 绑定目标 ID
+     * @param items 条目列表。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)

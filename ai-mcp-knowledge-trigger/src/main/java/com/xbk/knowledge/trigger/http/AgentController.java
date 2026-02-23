@@ -75,7 +75,7 @@ public class AgentController implements IAgentService {
     /**
      * 创建 Agent。
      *
-     * @param request 创建请求
+     * @param request 创建参数
      * @return 创建后的 Agent
      */
     @PostMapping("/create")
@@ -99,7 +99,7 @@ public class AgentController implements IAgentService {
     /**
      * 更新 Agent（按 agentCode 定位）。
      *
-     * @param request 更新请求
+     * @param request 更新参数
      * @return 更新后的 Agent
      */
     @PostMapping("/update")
@@ -122,7 +122,7 @@ public class AgentController implements IAgentService {
     /**
      * 删除 Agent 及其关联数据。
      *
-     * @param request 删除请求
+     * @param request 删除参数
      * @return 空结果
      */
     @PostMapping("/remove")

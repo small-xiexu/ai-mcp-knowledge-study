@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 import jakarta.validation.constraints.NotNull;
 
 /**
- * ID 查询请求
+ * ID 查询参数
  * 用于根据 ID 查询、删除、启用、禁用等操作
  *
  * 职责：接口层 DTO，用于承载请求/响应参数并保证传输边界稳定

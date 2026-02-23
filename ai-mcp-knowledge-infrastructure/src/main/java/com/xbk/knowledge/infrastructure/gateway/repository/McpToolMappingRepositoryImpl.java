@@ -26,10 +26,10 @@ public class McpToolMappingRepositoryImpl implements McpToolMappingRepository {
     private final IMcpToolMappingDao mapper;
 
     /**
-     * findByToolIdAndMappingType。
+     * 查询MCP 工具映射。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 McpToolMapping 列表数据。
      */
     @Override
     public List<McpToolMapping> findByToolIdAndMappingType(ToolMappingQuery query) {
@@ -40,10 +40,10 @@ public class McpToolMappingRepositoryImpl implements McpToolMappingRepository {
     }
 
     /**
-     * save。
+     * 创建或更新MCP 工具映射数据。
      *
-     * @param mapping 参数
-     * @return 返回结果
+     * @param mapping 工具映射配置。
+     * @return 返回 McpToolMapping 数据。
      */
     @Override
     public McpToolMapping save(McpToolMapping mapping) {
@@ -59,9 +59,9 @@ public class McpToolMappingRepositoryImpl implements McpToolMappingRepository {
     }
 
     /**
-     * deleteById。
+     * 删除MCP 工具映射数据。
      *
-     * @param query 参数
+     * @param query 查询条件
      */
     @Override
     public void deleteById(IdQuery query) {
@@ -72,9 +72,9 @@ public class McpToolMappingRepositoryImpl implements McpToolMappingRepository {
     }
 
     /**
-     * deleteByToolId。
+     * 删除MCP 工具映射数据。
      *
-     * @param toolId 参数
+     * @param toolId 工具 ID
      */
     @Override
     public void deleteByToolId(Long toolId) {

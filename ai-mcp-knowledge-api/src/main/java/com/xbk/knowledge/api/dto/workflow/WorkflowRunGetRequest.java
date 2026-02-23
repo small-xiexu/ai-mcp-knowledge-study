@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
- * WorkflowRun 按 runId 查询请求。
+ * WorkflowRun 按 runId 查询参数。
  *
  * @author sxie
  */

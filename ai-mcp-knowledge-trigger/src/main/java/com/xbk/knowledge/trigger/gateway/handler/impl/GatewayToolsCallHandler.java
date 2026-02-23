@@ -27,11 +27,11 @@ public class GatewayToolsCallHandler implements IRequestHandler {
     private final GatewayToolService gatewayToolService;
 
     /**
-     * handle。
+     * 处理业务请求。
      *
-     * @param gatewayId 参数
-     * @param request 参数
-     * @return 返回结果
+     * @param gatewayId 网关 ID
+     * @param request tools/call 协议请求参数。
+     * @return 返回 McpSchemaVO.JSONRPCResponse 数据。
      */
     @Override
     public McpSchemaVO.JSONRPCResponse handle(String gatewayId, McpSchemaVO.JSONRPCRequest request) {
@@ -78,8 +78,10 @@ public class GatewayToolsCallHandler implements IRequestHandler {
         return new McpSchemaVO.JSONRPCResponse(McpSchemaVO.JSONRPC_VERSION, requestId, result, null);
     }
 
-    /** 构造参数校验失败的 JSON-RPC 错误响应（错误码 -32602） */
-    private McpSchemaVO.JSONRPCResponse invalidParams(Object requestId, String message) {
+    /**
+     * 构造参数校验失败的 JSON-RPC 错误响应（错误码 -32602）
+     */
+     private McpSchemaVO.JSONRPCResponse invalidParams(Object requestId, String message) {
         return new McpSchemaVO.JSONRPCResponse(
                 McpSchemaVO.JSONRPC_VERSION,
                 requestId,

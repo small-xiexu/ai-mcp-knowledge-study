@@ -32,10 +32,10 @@ public class PreheatController implements IPreheatService {
     private final PreheatAppService preheatAppService;
 
     /**
-     * preheatAgentVersion。
+     * 预热运行资源。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request Agent 版本预热参数。
+     * @return 返回 PreheatResponse 数据。
      */
     @PostMapping("/agent-version")
     @SaCheckPermission("agent:write")
@@ -50,10 +50,10 @@ public class PreheatController implements IPreheatService {
     }
 
     /**
-     * preheatWorkflowVersion。
+     * 预热运行资源。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request Workflow 版本预热参数。
+     * @return 返回 PreheatResponse 数据。
      */
     @PostMapping("/workflow-version")
     @SaCheckPermission("workflow:write")

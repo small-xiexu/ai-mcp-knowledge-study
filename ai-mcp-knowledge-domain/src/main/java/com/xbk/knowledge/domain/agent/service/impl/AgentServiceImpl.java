@@ -40,10 +40,10 @@ public class AgentServiceImpl implements IAgentService {
     private final AdvisorBindingRepository advisorBindingRepository;
 
     /**
-     * queryPage。
+     * 查询智能体。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 Agent 分页数据。
      */
     @Override
     public PageResult<Agent> queryPage(AgentPageQuery query) {
@@ -65,10 +65,10 @@ public class AgentServiceImpl implements IAgentService {
     }
 
     /**
-     * queryByCode。
+     * 查询智能体。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 Agent 数据。
      */
     @Override
     public Agent queryByCode(AgentCodeQuery query) {
@@ -81,10 +81,10 @@ public class AgentServiceImpl implements IAgentService {
     }
 
     /**
-     * create。
+     * 创建并持久化智能体数据。
      *
-     * @param agent 参数
-     * @return 返回结果
+     * @param agent 智能体实体。
+     * @return 智能体保存结果。
      */
     @Override
     public Agent create(Agent agent) {
@@ -114,10 +114,10 @@ public class AgentServiceImpl implements IAgentService {
     }
 
     /**
-     * update。
+     * 更新智能体数据。
      *
-     * @param agent 参数
-     * @return 返回结果
+     * @param agent 智能体实体。
+     * @return 智能体更新结果。
      */
     @Override
     public Agent update(Agent agent) {
@@ -149,9 +149,9 @@ public class AgentServiceImpl implements IAgentService {
     }
 
     /**
-     * remove。
+     * 删除智能体数据。
      *
-     * @param query 参数
+     * @param query 查询条件
      */
     @Override
     public void remove(AgentCodeQuery query) {

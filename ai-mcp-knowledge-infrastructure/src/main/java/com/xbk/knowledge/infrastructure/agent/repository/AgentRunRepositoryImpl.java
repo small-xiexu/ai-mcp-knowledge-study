@@ -22,9 +22,9 @@ public class AgentRunRepositoryImpl implements AgentRunRepository {
     private final IAgentRunDao agentRunDao;
 
     /**
-     * insert。
+     * 创建并持久化Agent 运行记录数据。
      *
-     * @param run 参数
+     * @param run 运行记录。
      */
     @Override
     public void insert(AgentRun run) {
@@ -38,9 +38,9 @@ public class AgentRunRepositoryImpl implements AgentRunRepository {
     }
 
     /**
-     * updateStatusAndMetrics。
+     * 更新Agent 运行记录数据。
      *
-     * @param run 参数
+     * @param run 运行记录。
      */
     @Override
     public void updateStatusAndMetrics(AgentRun run) {
@@ -54,10 +54,10 @@ public class AgentRunRepositoryImpl implements AgentRunRepository {
     }
 
     /**
-     * findByRunId。
+     * 查询Agent 运行记录。
      *
-     * @param runId 参数
-     * @return 返回结果
+     * @param runId 运行 ID
+     * @return 返回 AgentRun 查询结果（可能为空）。
      */
     @Override
     public Optional<AgentRun> findByRunId(String runId) {
@@ -68,13 +68,13 @@ public class AgentRunRepositoryImpl implements AgentRunRepository {
     }
 
     /**
-     * updateStatus。
+     * 更新Agent 运行记录数据。
      *
-     * @param runId 参数
-     * @param status 参数
-     * @param errorMessage 参数
-     * @param endedAt 参数
-     * @return 返回结果
+     * @param runId 运行 ID
+     * @param status 状态值
+     * @param errorMessage 错误信息
+     * @param endedAt 结束时间。
+     * @return Agent 运行记录处理条数。
      */
     @Override
     public int updateStatus(String runId, String status, String errorMessage, LocalDateTime endedAt) {
@@ -85,11 +85,11 @@ public class AgentRunRepositoryImpl implements AgentRunRepository {
     }
 
     /**
-     * incrementToolCallCount。
+     * 累加运行记录工具调用次数。
      *
-     * @param runId 参数
-     * @param delta 参数
-     * @return 返回结果
+     * @param runId 运行 ID
+     * @param delta 增量值
+     * @return Agent 运行记录处理条数。
      */
     @Override
     public int incrementToolCallCount(String runId, int delta) {
@@ -100,11 +100,11 @@ public class AgentRunRepositoryImpl implements AgentRunRepository {
     }
 
     /**
-     * incrementToolDeniedCount。
+     * 累加运行记录工具拒绝次数。
      *
-     * @param runId 参数
-     * @param delta 参数
-     * @return 返回结果
+     * @param runId 运行 ID
+     * @param delta 增量值
+     * @return Agent 运行记录处理条数。
      */
     @Override
     public int incrementToolDeniedCount(String runId, int delta) {
@@ -115,10 +115,10 @@ public class AgentRunRepositoryImpl implements AgentRunRepository {
     }
 
     /**
-     * deleteByAgentId。
+     * 删除Agent 运行记录数据。
      *
-     * @param agentId 参数
-     * @return 返回结果
+     * @param agentId Agent ID
+     * @return Agent 运行记录处理条数。
      */
     @Override
     public int deleteByAgentId(Long agentId) {

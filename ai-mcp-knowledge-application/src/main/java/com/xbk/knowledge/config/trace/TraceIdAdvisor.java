@@ -23,9 +23,9 @@ import org.springframework.stereotype.Component;
 public class TraceIdAdvisor implements CallAdvisor {
 
     /**
-     * getName。
+     * 返回 Advisor 名称。
      *
-     * @return 返回结果
+     * @return 返回固定名称标识。
      */
     @Override
     public String getName() {
@@ -33,9 +33,9 @@ public class TraceIdAdvisor implements CallAdvisor {
     }
 
     /**
-     * getOrder。
+     * 返回 Advisor 执行顺序。
      *
-     * @return 返回结果
+     * @return 返回 Advisor 执行顺序值。
      */
     @Override
     public int getOrder() {
@@ -43,11 +43,11 @@ public class TraceIdAdvisor implements CallAdvisor {
     }
 
     /**
-     * adviseCall。
+     * 执行 traceId 注入与清理逻辑。
      *
-     * @param request 参数
-     * @param chain 参数
-     * @return 返回结果
+     * @param request ChatClient 请求参数。
+     * @param chain Advisor 链。
+     * @return 返回 ChatClientResponse 数据。
      */
     @Override
     public ChatClientResponse adviseCall(ChatClientRequest request, CallAdvisorChain chain) {
@@ -65,12 +65,11 @@ public class TraceIdAdvisor implements CallAdvisor {
     }
 
     /**
-     * getCurrentTraceId。
+     * 查询链路追踪 ID。
      *
-     * @return 返回结果
+     * @return 返回当前 traceId。
      */
     public static String getCurrentTraceId() {
         return TraceIdUtils.getOrCreateTraceId();
     }
 }
-

@@ -4,7 +4,7 @@ import jakarta.validation.constraints.Min;
 import lombok.Data;
 
 /**
- * WorkflowRunListRequest。
+ * WorkflowRunList 请求参数模型。
  *
  * @author sxie
  */

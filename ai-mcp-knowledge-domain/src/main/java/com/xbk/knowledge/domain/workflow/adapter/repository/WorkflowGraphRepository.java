@@ -14,12 +14,12 @@ import java.util.List;
 public interface WorkflowGraphRepository {
 
     /**
-     * 方法：listNodes。
+     * 查询流程图节点集合。
      */
     List<WorkflowNode> listNodes(WorkflowGraphQuery query);
 
     /**
-     * 方法：listEdges。
+     * 查询流程图边集合。
      */
     List<WorkflowEdge> listEdges(WorkflowGraphQuery query);
 

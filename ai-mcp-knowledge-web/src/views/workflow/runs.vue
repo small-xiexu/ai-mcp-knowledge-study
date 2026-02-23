@@ -37,7 +37,7 @@
         </el-table-column>
         <el-table-column prop="costMs" label="costMs" width="120" />
         <el-table-column prop="startedAt" label="startedAt" width="200" />
-        <el-table-column label="操作" width="120" fixed="right">
+        <el-table-column label="操作" width="120" align="center" header-align="center">
           <template #default="{ row }">
             <el-button link type="primary" @click.stop="openNodeRuns(row)">明细</el-button>
             <el-button link type="primary" @click.stop="goDetail(row)">详情</el-button>

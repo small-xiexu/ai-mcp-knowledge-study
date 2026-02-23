@@ -7,8 +7,12 @@ package com.xbk.knowledge.types.enums;
  * @author sxie
  */
 public enum MappingType {
-    /** 请求参数映射 */
-    REQUEST,
-    /** 响应参数映射 */
-    RESPONSE
+    /**
+     * 请求参数映射
+     */
+     REQUEST,
+    /**
+     * 响应参数映射
+     */
+     RESPONSE
 }

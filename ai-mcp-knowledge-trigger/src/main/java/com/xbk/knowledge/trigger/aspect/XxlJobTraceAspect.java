@@ -32,7 +32,7 @@ public class XxlJobTraceAspect {
      *
      * @param joinPoint 切点
      * @param xxlJob 任务注解（用于获取 handler 名称）
-     * @return 执行结果
+     * @return 返回 Object 数据。
      * @throws Throwable 原始异常
      */
     @Around("@annotation(xxlJob)")

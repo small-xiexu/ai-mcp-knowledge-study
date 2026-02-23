@@ -17,50 +17,50 @@ import com.xbk.knowledge.types.common.Result;
 public interface IClientProfileService {
 
     /**
-     * 分页查询数据列表。
+     * 按筛选条件分页查询客户端画像数据。
      *
-     * @param request 请求参数
-     * @return 列表结果
+     * @param request 客户端画像分页查询参数。
+     * @return 返回 ClientProfileResponse 分页数据。
      */
     Result<PageResult<ClientProfileResponse>> list(ClientProfileQueryRequest request);
 
     /**
-     * 查询详情信息。
+     * 查询客户端画像详情。
      *
-     * @param request 请求参数
-     * @return 查询结果
+     * @param request 客户端画像查询参数。
+     * @return 返回 ClientProfileResponse 数据。
      */
     Result<ClientProfileResponse> get(IdRequest request);
 
     /**
-     * 保存配置信息。
+     * 创建或更新客户端画像。
      *
-     * @param request 请求参数
-     * @return 保存结果
+     * @param request 客户端画像保存参数。
+     * @return 返回 ClientProfileResponse 数据。
      */
     Result<ClientProfileResponse> save(ClientProfileSaveRequest request);
 
     /**
-     * 启用目标对象。
+     * 启用客户端画像。
      *
-     * @param request 请求参数
-     * @return 处理结果
+     * @param request 客户端画像启停参数。
+     * @return 返回 ClientProfileResponse 数据。
      */
     Result<ClientProfileResponse> enable(IdRequest request);
 
     /**
-     * 禁用目标对象。
+     * 禁用客户端画像。
      *
-     * @param request 请求参数
-     * @return 处理结果
+     * @param request 客户端画像启停参数。
+     * @return 返回 ClientProfileResponse 数据。
      */
     Result<ClientProfileResponse> disable(IdRequest request);
 
     /**
-     * 删除目标对象。
+     * 删除客户端画像。
      *
-     * @param request 请求参数
-     * @return 处理结果
+     * @param request 客户端画像删除参数。
+     * @return 返回客户端画像删除状态。
      */
     Result<Void> remove(IdRequest request);
 }

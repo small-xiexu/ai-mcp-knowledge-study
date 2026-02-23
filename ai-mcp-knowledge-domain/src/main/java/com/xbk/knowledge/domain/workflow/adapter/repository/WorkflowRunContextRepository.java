@@ -13,22 +13,22 @@ import java.util.Optional;
 public interface WorkflowRunContextRepository {
 
     /**
-     * 方法：upsert。
+     * 按运行维度新增或更新上下文。
      */
     void upsert(WorkflowRunContext ctx);
 
     /**
-     * 方法：findByRunId。
+     * 按运行 ID 查询记录。
      */
     Optional<WorkflowRunContext> findByRunId(String runId);
 
     /**
-     * 方法：updateStatus。
+     * 更新执行状态及异常信息。
      */
     int updateStatus(String runId, String status);
 
     /**
-     * 方法：deleteByRunIds。
+     * 批量删除运行记录。
      */
     int deleteByRunIds(List<String> runIds);
 }

@@ -16,42 +16,42 @@ import java.util.Optional;
 public interface AdvisorRepository {
 
     /**
-     * 方法：findById。
+     * 按主键查询记录。
      */
     Optional<Advisor> findById(Long id);
 
     /**
-     * 方法：findByCode。
+     * 按编码查询记录。
      */
     Optional<Advisor> findByCode(String advisorCode);
 
     /**
-     * 方法：findPage。
+     * 按条件分页查询记录。
      */
     List<Advisor> findPage(AdvisorPageQuery query);
 
     /**
-     * 方法：count。
+     * 统计符合条件的记录数量。
      */
     long count(AdvisorPageQuery query);
 
     /**
-     * 方法：insert。
+     * 新增记录。
      */
     Advisor insert(Advisor advisor);
 
     /**
-     * 方法：update。
+     * 更新记录。
      */
     int update(Advisor advisor);
 
     /**
-     * 方法：updateEnabled。
+     * 更新启用状态。
      */
     int updateEnabled(Long id, Integer enabled);
 
     /**
-     * 方法：deleteById。
+     * 按主键删除记录。
      */
     int deleteById(Long id);
 }

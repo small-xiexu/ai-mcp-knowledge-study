@@ -18,58 +18,58 @@ import com.xbk.knowledge.types.common.Result;
 public interface IAgentScheduleService {
 
     /**
-     * 分页查询数据列表。
+     * 按筛选条件分页查询Agent 调度数据。
      *
-     * @param request 请求参数
-     * @return 列表结果
+     * @param request Agent 调度分页查询参数。
+     * @return 返回 AgentScheduleResponse 分页数据。
      */
     Result<PageResult<AgentScheduleResponse>> list(AgentScheduleQueryRequest request);
 
     /**
-     * 查询详情信息。
+     * 查询Agent 调度详情。
      *
-     * @param request 请求参数
-     * @return 查询结果
+     * @param request Agent 调度查询参数。
+     * @return 返回 AgentScheduleResponse 数据。
      */
     Result<AgentScheduleResponse> get(IdRequest request);
 
     /**
-     * 创建数据。
+     * 创建Agent 调度数据。
      *
-     * @param request 请求参数
-     * @return 创建结果
+     * @param request Agent 调度创建参数。
+     * @return 返回 AgentScheduleResponse 数据。
      */
     Result<AgentScheduleResponse> create(AgentScheduleCreateRequest request);
 
     /**
-     * 更新数据。
+     * 更新Agent 调度数据。
      *
-     * @param request 请求参数
-     * @return 更新结果
+     * @param request Agent 调度更新参数。
+     * @return 返回 AgentScheduleResponse 数据。
      */
     Result<AgentScheduleResponse> update(AgentScheduleUpdateRequest request);
 
     /**
-     * 启用目标对象。
+     * 启用 Agent 调度任务。
      *
-     * @param request 请求参数
-     * @return 处理结果
+     * @param request Agent 调度启停参数。
+     * @return 返回 AgentScheduleResponse 数据。
      */
     Result<AgentScheduleResponse> enable(IdRequest request);
 
     /**
-     * 禁用目标对象。
+     * 禁用 Agent 调度任务。
      *
-     * @param request 请求参数
-     * @return 处理结果
+     * @param request Agent 调度启停参数。
+     * @return 返回 AgentScheduleResponse 数据。
      */
     Result<AgentScheduleResponse> disable(IdRequest request);
 
     /**
-     * 删除目标对象。
+     * 删除 Agent 调度任务。
      *
-     * @param request 请求参数
-     * @return 处理结果
+     * @param request Agent 调度删除参数。
+     * @return 返回 Agent 调度删除状态。
      */
     Result<Void> remove(IdRequest request);
 }

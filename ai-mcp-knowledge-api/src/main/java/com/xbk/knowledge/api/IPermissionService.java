@@ -15,10 +15,10 @@ import com.xbk.knowledge.types.common.Result;
 public interface IPermissionService {
 
     /**
-     * 分页查询数据列表。
+     * 按筛选条件分页查询权限数据。
      *
-     * @param request 请求参数
-     * @return 列表结果
+     * @param request 权限分页查询参数。
+     * @return 返回 PermissionResponse 分页数据。
      */
     Result<PageResult<PermissionResponse>> list(PermissionQueryRequest request);
 }

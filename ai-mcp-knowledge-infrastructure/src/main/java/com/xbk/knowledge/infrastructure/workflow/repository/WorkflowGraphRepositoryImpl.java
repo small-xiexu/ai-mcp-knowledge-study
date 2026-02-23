@@ -16,7 +16,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * WorkflowGraphRepositoryImpl。
+ * 根据筛选条件查询工作流图列表。
  *
  * @author sxie
  */
@@ -28,10 +28,10 @@ public class WorkflowGraphRepositoryImpl implements WorkflowGraphRepository {
     private final IWorkflowEdgeDao edgeMapper;
 
     /**
-     * listNodes。
+     * 根据筛选条件查询工作流图列表。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 WorkflowNode 列表数据。
      */
     @Override
     public List<WorkflowNode> listNodes(WorkflowGraphQuery query) {
@@ -42,10 +42,10 @@ public class WorkflowGraphRepositoryImpl implements WorkflowGraphRepository {
     }
 
     /**
-     * listEdges。
+     * 根据筛选条件查询工作流图列表。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 WorkflowEdge 列表数据。
      */
     @Override
     public List<WorkflowEdge> listEdges(WorkflowGraphQuery query) {
@@ -56,11 +56,11 @@ public class WorkflowGraphRepositoryImpl implements WorkflowGraphRepository {
     }
 
     /**
-     * replaceGraph。
+     * 替换指定工作流版本的节点与边定义。
      *
-     * @param workflowVersionId 参数
-     * @param nodes 参数
-     * @param edges 参数
+     * @param workflowVersionId 工作流版本 ID。
+     * @param nodes 节点列表。
+     * @param edges 边列表。
      */
     @Override
     public void replaceGraph(Long workflowVersionId, List<WorkflowNode> nodes, List<WorkflowEdge> edges) {

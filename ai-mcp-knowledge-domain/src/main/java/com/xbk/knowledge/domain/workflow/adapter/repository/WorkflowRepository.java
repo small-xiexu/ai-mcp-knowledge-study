@@ -15,32 +15,32 @@ import java.util.Optional;
 public interface WorkflowRepository {
 
     /**
-     * 方法：findById。
+     * 按主键查询记录。
      */
     Optional<Workflow> findById(IdQuery query);
 
     /**
-     * 方法：findByCode。
+     * 按编码查询记录。
      */
     Optional<Workflow> findByCode(WorkflowCodeQuery query);
 
     /**
-     * 方法：insert。
+     * 新增记录。
      */
     Workflow insert(Workflow workflow);
 
     /**
-     * 方法：updateById。
+     * 按主键更新记录。
      */
     int updateById(Workflow workflow);
 
     /**
-     * 方法：list。
+     * 按条件查询列表。
      */
     List<Workflow> list(String keyword, int offset, int pageSize);
 
     /**
-     * 方法：count。
+     * 统计符合条件的记录数量。
      */
     long count(String keyword);
 }

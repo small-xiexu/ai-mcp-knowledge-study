@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xbk.knowledge.application.service.runtime.McpServerRuntimeService;
 import com.xbk.knowledge.domain.mcp.model.entity.McpServerConfig;
 import com.xbk.knowledge.types.enums.McpServerType;
+import com.xbk.knowledge.types.json.JsonMapUtils;
 import io.modelcontextprotocol.client.McpClient;
 import io.modelcontextprotocol.client.McpSyncClient;
 import io.modelcontextprotocol.client.transport.HttpClientSseClientTransport;
@@ -365,7 +366,7 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
             return Collections.emptyMap();
         }
         try {
-            return objectMapper.readValue(json, new TypeReference<Map<String, String>>() {});
+            return JsonMapUtils.readStringMap(objectMapper, json);
         } catch (Exception e) {
             log.warn("解析 MCP map 配置失败，json: {}", json, e);
             return Collections.emptyMap();

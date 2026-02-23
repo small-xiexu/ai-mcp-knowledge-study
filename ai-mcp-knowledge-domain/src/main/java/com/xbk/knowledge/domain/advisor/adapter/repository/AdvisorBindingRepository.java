@@ -18,27 +18,27 @@ import java.util.List;
 public interface AdvisorBindingRepository {
 
     /**
-     * 方法：listBindings。
+     * 查询 Advisor 绑定关系列表。
      */
     List<AdvisorBinding> listBindings(AdvisorBindingQuery query);
 
     /**
-     * 方法：listBindingViews。
+     * 查询 Advisor 绑定视图列表（含运行时装配信息）。
      */
     List<AdvisorBindingView> listBindingViews(AdvisorBindingQuery query);
 
     /**
-     * 方法：deleteByTarget。
+     * 删除指定绑定目标下的 Advisor 绑定。
      */
     int deleteByTarget(AdvisorBindingQuery query);
 
     /**
-     * 方法：insertBinding。
+     * 新增 Advisor 绑定关系。
      */
     int insertBinding(AdvisorBinding binding);
 
     /**
-     * 方法：deleteByAdvisorId。
+     * 删除指定 Advisor 的全部绑定关系。
      */
     int deleteByAdvisorId(Long advisorId);
 }

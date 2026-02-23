@@ -18,34 +18,34 @@ import com.xbk.knowledge.types.contract.PlatformContractV1;
 public interface IApprovalService {
 
     /**
-     * 分页查询数据列表。
+     * 按筛选条件分页查询审批数据。
      *
-     * @param request 请求参数
-     * @return 列表结果
+     * @param request 审批分页查询参数。
+     * @return 返回 ApprovalResponse 分页数据。
      */
     Result<PageResult<ApprovalResponse>> list(ApprovalListRequest request);
 
     /**
-     * 查询详情信息。
+     * 查询审批详情。
      *
-     * @param request 请求参数
-     * @return 查询结果
+     * @param request 审批查询参数。
+     * @return 返回 ApprovalResponse 数据。
      */
     Result<ApprovalResponse> get(ApprovalIdRequest request);
 
     /**
      * 执行审批通过操作。
      *
-     * @param request 请求参数
-     * @return 审批处理结果
+     * @param request 审批审批参数。
+     * @return 审批结果
      */
     Result<PlatformContractV1> approve(ApprovalDecisionRequest request);
 
     /**
      * 执行审批拒绝操作。
      *
-     * @param request 请求参数
-     * @return 审批处理结果
+     * @param request 审批审批参数。
+     * @return 审批结果
      */
     Result<ApprovalResponse> reject(ApprovalDecisionRequest request);
 }

@@ -51,12 +51,12 @@ public class AuthProfile {
     private Boolean superAdmin;
 
     /**
-     * 角色编码列表。
+     * 角色编码集合。
      */
     private List<String> roleCodes;
 
     /**
-     * 权限编码列表。
+     * 权限编码集合。
      */
     private List<String> permissionCodes;
 }

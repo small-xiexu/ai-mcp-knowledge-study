@@ -28,11 +28,11 @@ public class GatewayInitializeHandler implements IRequestHandler {
     private final GatewayToolService gatewayToolService;
 
     /**
-     * handle。
+     * 处理业务请求。
      *
-     * @param gatewayId 参数
-     * @param request 参数
-     * @return 返回结果
+     * @param gatewayId 网关 ID
+     * @param request initialize 协议请求参数。
+     * @return 返回 McpSchemaVO.JSONRPCResponse 数据。
      */
     @Override
     public McpSchemaVO.JSONRPCResponse handle(String gatewayId, McpSchemaVO.JSONRPCRequest request) {

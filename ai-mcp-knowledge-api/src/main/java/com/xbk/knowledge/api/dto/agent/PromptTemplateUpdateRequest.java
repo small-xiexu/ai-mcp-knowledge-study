@@ -9,7 +9,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
- * PromptTemplate 更新请求。
+ * PromptTemplate 更新参数。
  *
  * @author sxie
  */

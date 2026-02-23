@@ -22,10 +22,10 @@ public class PromptTemplateAppServiceImpl implements PromptTemplateAppService {
     private final IPromptTemplateService promptTemplateService;
 
     /**
-     * queryPage。
+     * 查询提示词模板。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 PromptTemplate 分页数据。
      */
     @Override
     public PageResult<PromptTemplate> queryPage(PromptTemplatePageQuery query) {
@@ -33,10 +33,10 @@ public class PromptTemplateAppServiceImpl implements PromptTemplateAppService {
     }
 
     /**
-     * queryById。
+     * 查询提示词模板。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 PromptTemplate 数据。
      */
     @Override
     public PromptTemplate queryById(PromptTemplateIdQuery query) {
@@ -44,10 +44,10 @@ public class PromptTemplateAppServiceImpl implements PromptTemplateAppService {
     }
 
     /**
-     * create。
+     * 创建并持久化提示词模板数据。
      *
-     * @param template 参数
-     * @return 返回结果
+     * @param template 模板实体。
+     * @return 返回 PromptTemplate 数据。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -56,10 +56,10 @@ public class PromptTemplateAppServiceImpl implements PromptTemplateAppService {
     }
 
     /**
-     * updateDraft。
+     * 更新提示词模板数据。
      *
-     * @param template 参数
-     * @return 返回结果
+     * @param template 模板实体。
+     * @return 返回 PromptTemplate 数据。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -68,11 +68,11 @@ public class PromptTemplateAppServiceImpl implements PromptTemplateAppService {
     }
 
     /**
-     * publish。
+     * 发布业务配置。
      *
-     * @param query 参数
-     * @param operatorId 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @param operatorId 操作人 ID
+     * @return 返回 PromptTemplate 数据。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -81,11 +81,11 @@ public class PromptTemplateAppServiceImpl implements PromptTemplateAppService {
     }
 
     /**
-     * archive。
+     * 归档业务配置。
      *
-     * @param query 参数
-     * @param operatorId 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @param operatorId 操作人 ID
+     * @return 返回 PromptTemplate 数据。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)

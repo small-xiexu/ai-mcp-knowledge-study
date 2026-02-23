@@ -16,6 +16,7 @@ import com.xbk.knowledge.domain.mcp.model.valobj.McpServerConfigPageQuery;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.common.PageResultConverter;
 import com.xbk.knowledge.types.common.Result;
+import com.xbk.knowledge.types.json.JsonMapUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
@@ -302,7 +303,7 @@ public class McpServerConfigController implements IMcpServerConfigService {
          * 约束：解析失败时降级为空 Map
  */
         try {
-            return objectMapper.readValue(json, new TypeReference<Map<String, String>>() {});
+            return JsonMapUtils.readStringMap(objectMapper, json);
         } catch (Exception e) {
             log.warn("解析 MCP map 失败，json: {}", json, e);
             return Collections.emptyMap();

@@ -1,7 +1,7 @@
 package com.xbk.knowledge.domain.agent.model.valobj;
 
 /**
- * AgentSchedule 分页查询参数。
+ * Agent 调度分页查询参数。
  *
  * @param agentId   Agent ID（可空）
  * @param scheduleName 调度名称（可空，模糊匹配）

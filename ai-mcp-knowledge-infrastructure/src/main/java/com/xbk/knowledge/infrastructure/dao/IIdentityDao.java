@@ -40,7 +40,7 @@ public interface IIdentityDao extends BaseMapper<SysUserPO> {
     SysUserPO findById(@Param("userId") Long userId);
 
     /**
-     * 查询角色编码列表。
+     * 查询角色编码集合。
      *
      * @param userId 用户ID
      * @return 角色编码列表
@@ -48,7 +48,7 @@ public interface IIdentityDao extends BaseMapper<SysUserPO> {
     List<String> findRoleCodes(@Param("userId") Long userId);
 
     /**
-     * 查询权限编码列表。
+     * 查询权限编码集合。
      *
      * @param userId 用户ID
      * @return 权限编码列表
@@ -177,7 +177,7 @@ public interface IIdentityDao extends BaseMapper<SysUserPO> {
                          @Param("excludeRoleId") Long excludeRoleId);
 
     /**
-     * 查询角色绑定权限ID列表。
+     * 查询角色绑定权限 ID 列表。
      *
      * @param roleId 角色ID
      * @return 权限ID列表
@@ -229,7 +229,7 @@ public interface IIdentityDao extends BaseMapper<SysUserPO> {
     long countPermissionByIds(@Param("permissionIds") List<Long> permissionIds);
 
     /**
-     * 查询用户角色ID列表。
+     * 查询用户绑定的角色 ID 列表。
      *
      * @param userId 用户ID
      * @return 角色ID列表

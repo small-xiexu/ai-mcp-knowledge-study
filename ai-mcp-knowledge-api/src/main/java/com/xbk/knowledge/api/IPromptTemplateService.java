@@ -19,41 +19,41 @@ import com.xbk.knowledge.types.common.Result;
 public interface IPromptTemplateService {
 
     /**
-     * 分页查询数据列表。
+     * 按筛选条件分页查询提示词模板数据。
      *
-     * @param request 请求参数
-     * @return 列表结果
+     * @param request 提示词模板分页查询参数。
+     * @return 返回 PromptTemplateResponse 分页数据。
      */
     Result<PageResult<PromptTemplateResponse>> list(PromptTemplateQueryRequest request);
 
     /**
-     * 查询详情信息。
+     * 查询提示词模板详情。
      *
-     * @param request 请求参数
-     * @return 查询结果
+     * @param request 提示词模板查询参数。
+     * @return 返回 PromptTemplateResponse 数据。
      */
     Result<PromptTemplateResponse> get(IdRequest request);
 
     /**
-     * 创建数据。
+     * 创建提示词模板数据。
      *
-     * @param request 请求参数
-     * @return 创建结果
+     * @param request 提示词模板创建参数。
+     * @return 返回 PromptTemplateResponse 数据。
      */
     Result<PromptTemplateResponse> create(PromptTemplateCreateRequest request);
 
     /**
-     * 更新数据。
+     * 更新提示词模板数据。
      *
-     * @param request 请求参数
-     * @return 更新结果
+     * @param request 提示词模板更新参数。
+     * @return 返回 PromptTemplateResponse 数据。
      */
     Result<PromptTemplateResponse> update(PromptTemplateUpdateRequest request);
 
     /**
      * 发布版本。
      *
-     * @param request 请求参数
+     * @param request 提示词模板发布参数。
      * @return 发布结果
      */
     Result<PromptTemplateResponse> publish(PromptTemplatePublishRequest request);
@@ -61,8 +61,8 @@ public interface IPromptTemplateService {
     /**
      * 归档模板。
      *
-     * @param request 请求参数
-     * @return 处理结果
+     * @param request 提示词模板归档参数。
+     * @return 返回 PromptTemplateResponse 数据。
      */
     Result<PromptTemplateResponse> archive(PromptTemplatePublishRequest request);
 }

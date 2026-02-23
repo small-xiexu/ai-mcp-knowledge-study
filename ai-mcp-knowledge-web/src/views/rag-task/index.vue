@@ -55,6 +55,8 @@
           prop="status"
           label="状态"
           width="130"
+          align="center"
+          header-align="center"
         >
           <template #default="{ row }">
             <el-tag size="small" effect="dark" :type="statusTagType(row.status)">
@@ -70,7 +72,7 @@
             {{ formatDateTime(row.updatedAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="进度" width="220">
+        <el-table-column label="进度" width="220" align="center" header-align="center">
           <template #default="{ row }">
             <el-progress
               :percentage="row.progress || 0"
@@ -122,6 +124,8 @@
           label="操作"
           width="180"
           fixed="right"
+          align="center"
+          header-align="center"
         >
           <template #default="{ row }">
             <el-button

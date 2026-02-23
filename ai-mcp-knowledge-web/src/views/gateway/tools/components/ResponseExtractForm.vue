@@ -37,7 +37,7 @@
           <el-input v-model="row.mcpDesc" placeholder="如 发送是否成功" />
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="100">
+      <el-table-column label="操作" width="100" align="center" header-align="center">
         <template #default="{ $index }">
           <el-button type="danger" text @click="removeRule($index)">删除</el-button>
         </template>

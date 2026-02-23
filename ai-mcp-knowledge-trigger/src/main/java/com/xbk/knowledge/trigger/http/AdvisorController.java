@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,10 +39,10 @@ public class AdvisorController implements IAdvisorService {
     private final AdvisorBindingAppService advisorBindingAppService;
 
     /**
-     * list。
+     * 根据筛选条件查询顾问策略列表。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 顾问策略查询条件。
+     * @return 顾问策略分页查询结果。
      */
     @PostMapping("/list")
     @SaCheckPermission("advisor:read")
@@ -60,10 +61,10 @@ public class AdvisorController implements IAdvisorService {
     }
 
     /**
-     * get。
+     * 查询顾问策略。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 顾问策略详情查询参数。
+     * @return 顾问策略查询结果。
      */
     @PostMapping("/get")
     @SaCheckPermission("advisor:read")
@@ -74,10 +75,10 @@ public class AdvisorController implements IAdvisorService {
     }
 
     /**
-     * save。
+     * 创建或更新顾问策略数据。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 顾问策略保存参数。
+     * @return 顾问策略保存结果。
      */
     @PostMapping("/save")
     @SaCheckPermission("advisor:write")
@@ -85,7 +86,7 @@ public class AdvisorController implements IAdvisorService {
     public Result<AdvisorResponse> save(@Valid @RequestBody AdvisorSaveRequest request) {
         Advisor advisor = Advisor.builder()
                 .id(request.getId())
-                                .advisorCode(request.getAdvisorCode())
+                .advisorCode(request.getAdvisorCode())
                 .advisorName(request.getAdvisorName())
                 .advisorType(request.getAdvisorType())
                 .enabled(request.getEnabled() == null || request.getEnabled() ? 1 : 0)
@@ -96,10 +97,10 @@ public class AdvisorController implements IAdvisorService {
     }
 
     /**
-     * enable。
+     * 启用业务配置。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 顾问策略启用参数。
+     * @return 顾问策略启用结果。
      */
     @PostMapping("/enable")
     @SaCheckPermission("advisor:write")
@@ -110,10 +111,10 @@ public class AdvisorController implements IAdvisorService {
     }
 
     /**
-     * disable。
+     * 禁用业务配置。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 顾问策略禁用参数。
+     * @return 顾问策略禁用结果。
      */
     @PostMapping("/disable")
     @SaCheckPermission("advisor:write")
@@ -124,10 +125,10 @@ public class AdvisorController implements IAdvisorService {
     }
 
     /**
-     * remove。
+     * 删除顾问策略数据。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 顾问策略删除参数。
+     * @return 顾问策略删除结果。
      */
     @PostMapping("/remove")
     @SaCheckPermission("advisor:write")
@@ -138,10 +139,10 @@ public class AdvisorController implements IAdvisorService {
     }
 
     /**
-     * listBindings。
+     * 根据筛选条件查询顾问策略列表。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 绑定关系查询参数。
+     * @return 绑定关系列表查询结果。
      */
     @PostMapping("/bindings/list")
     @SaCheckPermission("advisor:read")
@@ -160,10 +161,10 @@ public class AdvisorController implements IAdvisorService {
     }
 
     /**
-     * saveBindings。
+     * 创建或更新顾问策略数据。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 绑定关系保存参数。
+     * @return 绑定关系保存结果。
      */
     @PostMapping("/bindings/save")
     @SaCheckPermission("advisor:write")

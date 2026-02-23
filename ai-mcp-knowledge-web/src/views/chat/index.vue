@@ -50,7 +50,7 @@
           <div class="model-selector-wrapper">
             <el-dropdown trigger="click" :disabled="isModelLocked" @command="handleModelChange">
               <div class="model-selector-trigger" :class="{ disabled: isModelLocked }">
-                <span>{{ resolveSelectedModelName() || 'Gemini 2.0 Pro' }}</span>
+                <span>{{ resolveSelectedModelName() || 'MASP 智能助手' }}</span>
                 <el-icon><CaretBottom /></el-icon>
               </div>
               <template #dropdown>
@@ -69,9 +69,21 @@
           </div>
           
           <div class="rag-selector">
-            <el-popover placement="bottom" title="私有知识库" :width="280" trigger="click">
+            <el-popover
+              placement="bottom"
+              title="私有知识库"
+              :width="280"
+              trigger="click"
+              :disabled="!hasRagTags"
+              popper-class="chat-rag-popper"
+            >
               <template #reference>
-                <el-button link class="rag-trigger-btn">
+                <el-button
+                  link
+                  class="rag-trigger-btn"
+                  :class="{ disabled: !hasRagTags }"
+                  @click="handleRagButtonClick"
+                >
                   <el-icon><Files /></el-icon>
                   <span>知识库{{ selectedTags.length ? ` (${selectedTags.length})` : '' }}</span>
                 </el-button>
@@ -95,7 +107,7 @@
             <div class="logo-area">
               <img src="https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg" alt="Logo" class="welcome-logo">
             </div>
-            <h1 class="welcome-title">你好！我是 {{ resolveSelectedModelName() || 'Gemini' }}</h1>
+            <h1 class="welcome-title">你好！我是 {{ resolveSelectedModelName() || 'MASP 智能助手' }}</h1>
             <p class="welcome-subtitle">我可以帮你写代码、分析数据、或者回答你的任何问题。</p>
           </div>
 
@@ -148,7 +160,7 @@
                v-model="input"
                type="textarea"
                :autosize="{ minRows: 1, maxRows: 8 }"
-               :placeholder="`问问 ${resolveSelectedModelName() || 'Gemini'}...`"
+               :placeholder="`问问 ${resolveSelectedModelName() || 'MASP 智能助手'}...`"
                class="gemini-input"
                resize="none"
                @keydown.enter="handleSendShortcut"
@@ -246,6 +258,8 @@ const isModelLocked = computed(() => {
   }
   return messages.value.length > 0
 })
+
+const hasRagTags = computed(() => ragTags.value.length > 0)
 
 const resolveSelectedModelName = () => {
   const modelId = selectedModelId.value
@@ -404,9 +418,18 @@ const fetchTags = async () => {
   try {
     const res = await listRagTags()
     ragTags.value = res.data || []
+    // Keep selected tags consistent with latest available knowledge tags.
+    selectedTags.value = selectedTags.value.filter(tag => ragTags.value.includes(tag))
   } catch (error: any) {
     ElMessage.error(error.message || '获取标签失败')
   }
+}
+
+const handleRagButtonClick = () => {
+  if (hasRagTags.value) {
+    return
+  }
+  ElMessage.info('暂无私有知识库，请先前往「知识库管理」创建。')
 }
 
 const handleChatCommand = (command: string, chat: ChatSession) => {
@@ -894,6 +917,16 @@ watch(selectedTags, value => {
 .rag-trigger-btn:hover {
   background-color: rgba(255, 255, 255, 0.05) !important;
   color: var(--gemini-text-primary);
+}
+
+.rag-trigger-btn.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.rag-trigger-btn.disabled:hover {
+  background-color: transparent !important;
+  color: var(--gemini-text-secondary);
 }
 
 .chat-body {

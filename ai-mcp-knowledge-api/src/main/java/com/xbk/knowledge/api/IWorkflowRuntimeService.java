@@ -25,7 +25,7 @@ public interface IWorkflowRuntimeService {
      * 执行运行调用。
      *
      * @param workflowCode Workflow 编码
-     * @param request 请求参数
+     * @param request 工作流运行调用参数。
      * @return 调用结果
      */
     Result<PlatformContractV1> run(String workflowCode, WorkflowRunRequest request);
@@ -33,24 +33,24 @@ public interface IWorkflowRuntimeService {
     /**
      * 分页查询运行记录。
      *
-     * @param request 请求参数
-     * @return 列表结果
+     * @param request 工作流运行分页查询参数。
+     * @return 返回 WorkflowRunResponse 分页数据。
      */
     Result<PageResult<WorkflowRunResponse>> listRuns(WorkflowRunListRequest request);
 
     /**
      * 查询运行详情。
      *
-     * @param request 请求参数
-     * @return 查询结果
+     * @param request 工作流运行查询参数。
+     * @return 返回 WorkflowRunResponse 数据。
      */
     Result<WorkflowRunResponse> getRun(WorkflowRunGetRequest request);
 
     /**
      * 查询节点运行明细。
      *
-     * @param request 请求参数
-     * @return 列表结果
+     * @param request 工作流运行分页查询参数。
+     * @return 返回 WorkflowNodeRunResponse 列表数据。
      */
     Result<List<WorkflowNodeRunResponse>> listNodeRuns(WorkflowRunNodeListRequest request);
 }

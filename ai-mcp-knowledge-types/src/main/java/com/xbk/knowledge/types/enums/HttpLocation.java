@@ -7,12 +7,20 @@ package com.xbk.knowledge.types.enums;
  * @author sxie
  */
 public enum HttpLocation {
-    /** 请求体 */
-    BODY,
-    /** URL 查询参数 */
-    QUERY,
-    /** URL 路径参数 */
-    PATH,
-    /** 请求头 */
-    HEADER
+    /**
+     * 请求体
+     */
+     BODY,
+    /**
+     * URL 查询参数
+     */
+     QUERY,
+    /**
+     * URL 路径参数
+     */
+     PATH,
+    /**
+     * 请求头
+     */
+     HEADER
 }

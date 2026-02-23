@@ -8,6 +8,7 @@
   --gemini-surface-dim: #0e0e10;
   /* Darker background for depth */
   --gemini-card-bg: rgba(30, 31, 32, 0.72);
+  --gemini-input-bg: #282a2d;
   --gemini-text-primary: #e3e3e3;
   /* Main text */
   --gemini-text-secondary: #c4c7c5;
@@ -23,11 +24,20 @@
   --gemini-success: #81c995;
   --gemini-warning: #fdd663;
   --gemini-font: "Google Sans", "Helvetica Neue", Arial, sans-serif;
+  --gemini-content-max-width: 1600px;
+  --gemini-col-xs: 80px;
+  --gemini-col-sm: 110px;
+  --gemini-col-md: 140px;
+  --gemini-col-lg: 180px;
+  --gemini-col-xl: 220px;
+  --gemini-col-2xl: 280px;
 }
 
 /* Page Container */
 .gemini-container {
   width: 100%;
+  max-width: var(--gemini-content-max-width);
+  margin: 0 auto;
   min-height: 100%;
   padding: 24px;
   /* Use layout surface; avoid painting another large background block inside app-content. */
@@ -41,6 +51,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 0;
   margin-bottom: 24px;
 
   h2,
@@ -106,6 +117,7 @@
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 14px;
+  padding: 0 12px;
 
   .toolbar-left {
     display: flex;
@@ -123,6 +135,15 @@
   }
 }
 
+/* Keep ad-hoc filter bars aligned with table content baseline. */
+.gemini-card > .filters,
+.gemini-card > .search-form,
+.gemini-card > .toolbar,
+.gemini-card > .filter-bar {
+  padding: 0 12px;
+  box-sizing: border-box;
+}
+
 .pager {
   display: flex;
   justify-content: flex-end;
@@ -131,7 +152,8 @@
 
 .action-buttons {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
+  align-items: center;
   gap: 8px;
 }
 
@@ -139,6 +161,7 @@
 /* Transparent Table */
 .gemini-table {
   background: transparent !important;
+  padding: 0 12px;
   --el-table-border-color: var(--gemini-border);
   --el-table-header-bg-color: transparent;
   --el-table-bg-color: transparent;
@@ -147,10 +170,22 @@
 
   /* Headers */
   th.el-table__cell {
-    background: transparent !important;
+    background: rgba(255, 255, 255, 0.02) !important;
     color: var(--gemini-text-secondary);
     border-bottom: 1px solid var(--gemini-border) !important;
     font-weight: 500;
+    font-size: 13px;
+    letter-spacing: 0.4px;
+    padding: 12px 0 !important;
+  }
+
+  /* Keep centered columns visually centered for mixed content (tag/switch/buttons). */
+  th.el-table__cell.is-center .cell,
+  td.el-table__cell.is-center .cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
   }
 
   /* Cells */
@@ -159,6 +194,7 @@
     color: var(--gemini-text-primary);
     border-bottom: 1px solid var(--gemini-border) !important;
     transition: background-color 0.3s;
+    padding: 14px 0 !important;
   }
 
   /* Remove side borders */
@@ -181,17 +217,15 @@
   tr td.el-table-fixed-column--right,
   tr th.el-table-fixed-column--left,
   tr td.el-table-fixed-column--left {
-    background-color: #1e1f20 !important;
-    /* Solid dark color */
+    background-color: rgba(30, 31, 32, 0.9) !important;
     opacity: 1 !important;
     z-index: 10 !important;
-    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2) !important;
-    /* Shadow to separate */
+    box-shadow: none !important;
   }
 
   /* Patch for the corner */
   .el-table__fixed-right-patch {
-    background-color: #1e1f20 !important;
+    background-color: rgba(30, 31, 32, 0.9) !important;
   }
 }
 

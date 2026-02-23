@@ -19,14 +19,14 @@
     <div class="gemini-card">
       <el-table :data="versions" stripe class="gemini-table" v-loading="loading">
         <el-table-column prop="versionNo" label="版本号" width="120" />
-        <el-table-column prop="state" label="状态" width="150">
+        <el-table-column prop="state" label="状态" width="150" align="center" header-align="center">
           <template #default="{ row }">
             <el-tag size="small" :type="row.state === 'PUBLISHED' ? 'success' : 'info'">{{ row.state }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="changeSummary" label="变更说明" min-width="220" />
         <el-table-column prop="id" label="versionId" width="140" />
-        <el-table-column label="操作" min-width="340" fixed="right">
+        <el-table-column label="操作" min-width="340" fixed="right" align="center" header-align="center">
           <template #default="{ row }">
             <el-button link type="primary" @click="openEditor(row)">画布编辑</el-button>
             <el-button link type="primary" @click="goPlayground(row)">调用</el-button>

@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
- * Workflow 更新请求（按 id 更新）。
+ * Workflow 更新参数（按 id 更新）。
  *
  * @author sxie
  */

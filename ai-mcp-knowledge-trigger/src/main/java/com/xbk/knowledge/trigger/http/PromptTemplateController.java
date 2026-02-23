@@ -76,7 +76,7 @@ public class PromptTemplateController implements IPromptTemplateService {
     /**
      * 创建模板。
      *
-     * @param request 创建请求
+     * @param request 创建参数
      * @return 创建后的模板
      */
     @PostMapping("/create")
@@ -99,7 +99,7 @@ public class PromptTemplateController implements IPromptTemplateService {
     /**
      * 更新模板草稿（仅 DRAFT 可更新）。
      *
-     * @param request 更新请求
+     * @param request 更新参数
      * @return 更新后的模板
      */
     @PostMapping("/update")

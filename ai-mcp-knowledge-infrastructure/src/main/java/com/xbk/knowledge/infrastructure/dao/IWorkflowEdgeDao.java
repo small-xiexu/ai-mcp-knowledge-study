@@ -9,7 +9,7 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 /**
- * IWorkflowEdgeDao。
+ * IWorkflowEdge 数据访问接口定义。
  *
  * @author sxie
  */

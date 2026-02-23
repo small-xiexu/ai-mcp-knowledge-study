@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
 import routes from './routes'
 
+const APP_TITLE = '多智能体调度平台'
+
 const router = createRouter({
   history: createWebHistory(),
   routes
@@ -52,6 +54,11 @@ router.beforeEach(async (to) => {
   }
 
   return true
+})
+
+router.afterEach((to) => {
+  const routeTitle = typeof to.meta.title === 'string' ? to.meta.title.trim() : ''
+  document.title = routeTitle ? `${routeTitle} - ${APP_TITLE}` : APP_TITLE
 })
 
 export default router

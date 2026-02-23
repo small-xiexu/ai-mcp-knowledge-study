@@ -52,12 +52,12 @@ public class AdvisorRuntimeServiceImpl implements AdvisorRuntimeService {
     private final ConcurrentHashMap<BindingKey, List<AdvisorBindingView>> bindingCache = new ConcurrentHashMap<>();
 
     /**
-     * resolveForAgentVersion。
+     * 解析 Agent 版本绑定的 Advisor 链路。
      *
-     * @param agentVersionId 参数
-     * @param runId 参数
-     * @param sessionId 参数
-     * @return 返回结果
+     * @param agentVersionId Agent 版本 ID。
+     * @param runId 运行 ID
+     * @param sessionId 会话 ID
+     * @return 返回 CallAdvisor[] 数据。
      */
     @Override
     public CallAdvisor[] resolveForAgentVersion(Long agentVersionId, String runId, Long sessionId) {
@@ -65,12 +65,12 @@ public class AdvisorRuntimeServiceImpl implements AdvisorRuntimeService {
     }
 
     /**
-     * resolveForWorkflowVersion。
+     * 解析 Workflow 版本绑定的 Advisor 链路。
      *
-     * @param workflowVersionId 参数
-     * @param runId 参数
-     * @param sessionId 参数
-     * @return 返回结果
+     * @param workflowVersionId 工作流版本 ID。
+     * @param runId 运行 ID
+     * @param sessionId 会话 ID
+     * @return 返回 CallAdvisor[] 数据。
      */
     @Override
     public CallAdvisor[] resolveForWorkflowVersion(Long workflowVersionId, String runId, Long sessionId) {
@@ -78,10 +78,10 @@ public class AdvisorRuntimeServiceImpl implements AdvisorRuntimeService {
     }
 
     /**
-     * evictBindingCache。
+     * 按绑定类型清理 Advisor 绑定缓存。
      *
-     * @param bindType 参数
-     * @param bindTargetId 参数
+     * @param bindType 绑定类型
+     * @param bindTargetId 绑定目标 ID
      */
     @Override
     public void evictBindingCache(String bindType, Long bindTargetId) {
@@ -93,7 +93,8 @@ public class AdvisorRuntimeServiceImpl implements AdvisorRuntimeService {
     }
 
     /**
-     * evictAll。
+     * 清空全部 Advisor 绑定缓存。
+     *
      *
      */
     @Override

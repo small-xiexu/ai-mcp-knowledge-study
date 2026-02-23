@@ -45,8 +45,10 @@ public class CompositeToolCallbackProvider implements ToolCallbackProvider {
         return merged.toArray(new ToolCallback[0]);
     }
 
-    /** 将回调数组追加到合并列表，跳过空值和重名工具 */
-    private void appendCallbacks(List<ToolCallback> merged,
+    /**
+     * 将回调数组追加到合并列表，跳过空值和重名工具
+     */
+     private void appendCallbacks(List<ToolCallback> merged,
                                  Set<String> names,
                                  ToolCallback[] callbacks) {
         if (callbacks == null || callbacks.length == 0) {

@@ -43,7 +43,7 @@
         <el-table-column prop="templateCode" label="编码" min-width="180" />
         <el-table-column prop="templateName" label="名称" min-width="200" />
         <el-table-column prop="versionNo" label="版本" width="90" />
-        <el-table-column prop="state" label="状态" width="130">
+        <el-table-column prop="state" label="状态" width="130" align="center" header-align="center">
           <template #default="{ row }">
             <el-tag size="small" effect="dark" :type="row.state === 'PUBLISHED' ? 'success' : (row.state === 'DRAFT' ? 'warning' : 'info')">
               {{ row.state }}
@@ -53,7 +53,7 @@
         <el-table-column label="更新时间" width="180">
           <template #default="{ row }">{{ formatDateTime(row.updatedAt) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="300" align="right">
+        <el-table-column label="操作" width="300" align="center" header-align="center">
           <template #default="{ row }">
             <div class="action-buttons">
               <el-button link type="primary" class="action-btn" @click="openContent(row)">

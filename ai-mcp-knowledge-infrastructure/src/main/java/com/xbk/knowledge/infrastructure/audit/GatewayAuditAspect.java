@@ -65,8 +65,10 @@ public class GatewayAuditAspect {
     private final McpToolRegistryRepository toolRegistryRepository;
     private final McpToolBindingRepository toolBindingRepository;
 
-    /** 审计：网关实例新增/更新 */
-    @Around("execution(* com.xbk.knowledge.trigger.http.GatewayManageController.saveGatewayInstance(..))")
+    /**
+     * 审计：网关实例新增/更新
+     */
+     @Around("execution(* com.xbk.knowledge.trigger.http.GatewayManageController.saveGatewayInstance(..))")
     public Object aroundSaveGatewayInstance(ProceedingJoinPoint joinPoint) throws Throwable {
         Long id = extractLongField(firstArg(joinPoint), "id");
         McpGateway oldValue = loadGateway(id);
@@ -94,8 +96,10 @@ public class GatewayAuditAspect {
         return result;
     }
 
-    /** 审计：网关实例删除 */
-    @Around("execution(* com.xbk.knowledge.trigger.http.GatewayManageController.deleteGatewayInstance(..))")
+    /**
+     * 审计：网关实例删除
+     */
+     @Around("execution(* com.xbk.knowledge.trigger.http.GatewayManageController.deleteGatewayInstance(..))")
     public Object aroundDeleteGatewayInstance(ProceedingJoinPoint joinPoint) throws Throwable {
         Long id = extractIdQuery(firstArg(joinPoint));
         McpGateway oldValue = loadGateway(id);
@@ -112,8 +116,10 @@ public class GatewayAuditAspect {
         return result;
     }
 
-    /** 审计：网关凭证新增/更新 */
-    @Around("execution(* com.xbk.knowledge.trigger.http.GatewayManageController.saveGatewayAuth(..))")
+    /**
+     * 审计：网关凭证新增/更新
+     */
+     @Around("execution(* com.xbk.knowledge.trigger.http.GatewayManageController.saveGatewayAuth(..))")
     public Object aroundSaveGatewayAuth(ProceedingJoinPoint joinPoint) throws Throwable {
         Long id = extractLongField(firstArg(joinPoint), "id");
         McpGatewayAuth oldValue = loadGatewayAuth(id);
@@ -141,20 +147,26 @@ public class GatewayAuditAspect {
         return result;
     }
 
-    /** 审计：网关凭证启用 */
-    @Around("execution(* com.xbk.knowledge.trigger.http.GatewayManageController.enableGatewayAuth(..))")
+    /**
+     * 审计：网关凭证启用
+     */
+     @Around("execution(* com.xbk.knowledge.trigger.http.GatewayManageController.enableGatewayAuth(..))")
     public Object aroundEnableGatewayAuth(ProceedingJoinPoint joinPoint) throws Throwable {
         return aroundGatewayAuthStatusChange(joinPoint, OP_GATEWAY_AUTH_ENABLE);
     }
 
-    /** 审计：网关凭证禁用 */
-    @Around("execution(* com.xbk.knowledge.trigger.http.GatewayManageController.disableGatewayAuth(..))")
+    /**
+     * 审计：网关凭证禁用
+     */
+     @Around("execution(* com.xbk.knowledge.trigger.http.GatewayManageController.disableGatewayAuth(..))")
     public Object aroundDisableGatewayAuth(ProceedingJoinPoint joinPoint) throws Throwable {
         return aroundGatewayAuthStatusChange(joinPoint, OP_GATEWAY_AUTH_DISABLE);
     }
 
-    /** 审计：工具新增/更新 */
-    @Around("execution(* com.xbk.knowledge.trigger.http.GatewayManageController.saveTool(..))")
+    /**
+     * 审计：工具新增/更新
+     */
+     @Around("execution(* com.xbk.knowledge.trigger.http.GatewayManageController.saveTool(..))")
     public Object aroundSaveTool(ProceedingJoinPoint joinPoint) throws Throwable {
         Long id = extractLongField(firstArg(joinPoint), "id");
         McpToolRegistry oldValue = loadTool(id);
@@ -182,8 +194,10 @@ public class GatewayAuditAspect {
         return result;
     }
 
-    /** 审计：工具删除 */
-    @Around("execution(* com.xbk.knowledge.trigger.http.GatewayManageController.deleteTool(..))")
+    /**
+     * 审计：工具删除
+     */
+     @Around("execution(* com.xbk.knowledge.trigger.http.GatewayManageController.deleteTool(..))")
     public Object aroundDeleteTool(ProceedingJoinPoint joinPoint) throws Throwable {
         Long id = extractIdQuery(firstArg(joinPoint));
         McpToolRegistry oldValue = loadTool(id);
@@ -201,20 +215,26 @@ public class GatewayAuditAspect {
         return result;
     }
 
-    /** 审计：工具启用 */
-    @Around("execution(* com.xbk.knowledge.trigger.http.GatewayManageController.enableTool(..))")
+    /**
+     * 审计：工具启用
+     */
+     @Around("execution(* com.xbk.knowledge.trigger.http.GatewayManageController.enableTool(..))")
     public Object aroundEnableTool(ProceedingJoinPoint joinPoint) throws Throwable {
         return aroundToolStatusChange(joinPoint, OP_GATEWAY_TOOL_ENABLE);
     }
 
-    /** 审计：工具禁用 */
-    @Around("execution(* com.xbk.knowledge.trigger.http.GatewayManageController.disableTool(..))")
+    /**
+     * 审计：工具禁用
+     */
+     @Around("execution(* com.xbk.knowledge.trigger.http.GatewayManageController.disableTool(..))")
     public Object aroundDisableTool(ProceedingJoinPoint joinPoint) throws Throwable {
         return aroundToolStatusChange(joinPoint, OP_GATEWAY_TOOL_DISABLE);
     }
 
-    /** 审计：模型绑定关系变更 */
-    @Around("execution(* com.xbk.knowledge.trigger.http.GatewayManageController.saveModelBindings(..))")
+    /**
+     * 审计：模型绑定关系变更
+     */
+     @Around("execution(* com.xbk.knowledge.trigger.http.GatewayManageController.saveModelBindings(..))")
     public Object aroundSaveModelBindings(ProceedingJoinPoint joinPoint) throws Throwable {
         Object request = firstArg(joinPoint);
         Long modelId = extractLongField(request, "modelId");
@@ -234,8 +254,10 @@ public class GatewayAuditAspect {
         return result;
     }
 
-    /** 通用工具状态变更审计（启用/禁用共用） */
-    private Object aroundToolStatusChange(ProceedingJoinPoint joinPoint, String operation) throws Throwable {
+    /**
+     * 通用工具状态变更审计（启用/禁用共用）
+     */
+     private Object aroundToolStatusChange(ProceedingJoinPoint joinPoint, String operation) throws Throwable {
         Long id = extractIdQuery(firstArg(joinPoint));
         McpToolRegistry oldValue = loadTool(id);
         Object result = joinPoint.proceed();
@@ -251,8 +273,10 @@ public class GatewayAuditAspect {
         return result;
     }
 
-    /** 通用网关凭证状态变更审计（启用/禁用共用） */
-    private Object aroundGatewayAuthStatusChange(ProceedingJoinPoint joinPoint, String operation) throws Throwable {
+    /**
+     * 通用网关凭证状态变更审计（启用/禁用共用）
+     */
+     private Object aroundGatewayAuthStatusChange(ProceedingJoinPoint joinPoint, String operation) throws Throwable {
         Long id = extractIdQuery(firstArg(joinPoint));
         McpGatewayAuth oldValue = loadGatewayAuth(id);
         Object result = joinPoint.proceed();
@@ -268,32 +292,40 @@ public class GatewayAuditAspect {
         return result;
     }
 
-    /** 按主键加载网关实例快照（审计前置） */
-    private McpGateway loadGateway(Long id) {
+    /**
+     * 按主键加载网关实例快照（审计前置）
+     */
+     private McpGateway loadGateway(Long id) {
         if (id == null) {
             return null;
         }
         return gatewayRepository.findById(new IdQuery(id)).orElse(null);
     }
 
-    /** 按主键加载工具注册快照（审计前置） */
-    private McpToolRegistry loadTool(Long id) {
+    /**
+     * 按主键加载工具注册快照（审计前置）
+     */
+     private McpToolRegistry loadTool(Long id) {
         if (id == null) {
             return null;
         }
         return toolRegistryRepository.findById(new IdQuery(id)).orElse(null);
     }
 
-    /** 按主键加载网关鉴权快照（审计前置） */
-    private McpGatewayAuth loadGatewayAuth(Long id) {
+    /**
+     * 按主键加载网关鉴权快照（审计前置）
+     */
+     private McpGatewayAuth loadGatewayAuth(Long id) {
         if (id == null) {
             return null;
         }
         return gatewayAuthRepository.findById(id).orElse(null);
     }
 
-    /** 查询指定模型的工具绑定列表（审计前后对比用） */
-    private List<McpToolBinding> queryModelBindings(Long modelId) {
+    /**
+     * 查询指定模型的工具绑定列表（审计前后对比用）
+     */
+     private List<McpToolBinding> queryModelBindings(Long modelId) {
         if (modelId == null) {
             return new ArrayList<>();
         }
@@ -303,16 +335,20 @@ public class GatewayAuditAspect {
         return bindings == null ? new ArrayList<>() : bindings;
     }
 
-    /** 判断 Controller 返回结果是否成功（code == 200） */
-    private boolean isSuccess(Object result) {
+    /**
+     * 判断 Controller 返回结果是否成功（code == 200）
+     */
+     private boolean isSuccess(Object result) {
         if (!(result instanceof Result<?> wrapper)) {
             return false;
         }
         return Objects.equals(wrapper.getCode(), 200);
     }
 
-    /** 提取切点方法的第一个参数 */
-    private Object firstArg(ProceedingJoinPoint joinPoint) {
+    /**
+     * 提取切点方法的第一个参数
+     */
+     private Object firstArg(ProceedingJoinPoint joinPoint) {
         Object[] args = joinPoint.getArgs();
         if (args == null || args.length == 0) {
             return null;
@@ -320,16 +356,20 @@ public class GatewayAuditAspect {
         return args[0];
     }
 
-    /** 从参数中提取 IdQuery 的 id 值 */
-    private Long extractIdQuery(Object arg) {
+    /**
+     * 从参数中提取 IdQuery 的 id 值
+     */
+     private Long extractIdQuery(Object arg) {
         if (arg instanceof IdQuery query) {
             return query.getId();
         }
         return extractLongField(arg, "id");
     }
 
-    /** 从 Result 包装中提取指定类型的 data 对象 */
-    private <T> T extractResultData(Object result, Class<T> type) {
+    /**
+     * 从 Result 包装中提取指定类型的 data 对象
+     */
+     private <T> T extractResultData(Object result, Class<T> type) {
         if (!(result instanceof Result<?> wrapper)) {
             return null;
         }
@@ -340,8 +380,10 @@ public class GatewayAuditAspect {
         return null;
     }
 
-    /** 通过反射提取对象中指定名称的 Long 字段值 */
-    private Long extractLongField(Object target, String fieldName) {
+    /**
+     * 通过反射提取对象中指定名称的 Long 字段值
+     */
+     private Long extractLongField(Object target, String fieldName) {
         if (target == null || !StringUtils.hasText(fieldName)) {
             return null;
         }

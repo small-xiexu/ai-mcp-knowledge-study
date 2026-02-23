@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Client Profile 分页查询参数。
+ * 客户端画像分页查询参数。
  *
  * @author sxie
  */

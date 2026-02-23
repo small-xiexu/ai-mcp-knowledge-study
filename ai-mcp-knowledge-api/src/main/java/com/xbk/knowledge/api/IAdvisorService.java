@@ -22,66 +22,66 @@ import java.util.List;
 public interface IAdvisorService {
 
     /**
-     * 分页查询数据列表。
+     * 按筛选条件分页查询顾问策略数据。
      *
-     * @param request 请求参数
-     * @return 列表结果
+     * @param request 顾问策略查询条件。
+     * @return 返回 AdvisorResponse 分页数据。
      */
     Result<PageResult<AdvisorResponse>> list(AdvisorQueryRequest request);
 
     /**
-     * 查询详情信息。
+     * 查询顾问策略详情。
      *
-     * @param request 请求参数
-     * @return 查询结果
+     * @param request 顾问策略详情查询参数。
+     * @return 返回 AdvisorResponse 数据。
      */
     Result<AdvisorResponse> get(IdRequest request);
 
     /**
-     * 保存配置信息。
+     * 创建或更新顾问策略。
      *
-     * @param request 请求参数
-     * @return 保存结果
+     * @param request 顾问策略保存参数。
+     * @return 返回 AdvisorResponse 数据。
      */
     Result<AdvisorResponse> save(AdvisorSaveRequest request);
 
     /**
-     * 启用目标对象。
+     * 启用顾问策略。
      *
-     * @param request 请求参数
-     * @return 处理结果
+     * @param request 顾问策略启用参数。
+     * @return 启用结果
      */
     Result<AdvisorResponse> enable(IdRequest request);
 
     /**
-     * 禁用目标对象。
+     * 禁用顾问策略。
      *
-     * @param request 请求参数
-     * @return 处理结果
+     * @param request 顾问策略禁用参数。
+     * @return 禁用结果
      */
     Result<AdvisorResponse> disable(IdRequest request);
 
     /**
-     * 删除目标对象。
+     * 删除顾问策略。
      *
-     * @param request 请求参数
-     * @return 处理结果
+     * @param request 顾问策略删除参数。
+     * @return 返回顾问策略删除状态。
      */
     Result<Void> remove(IdRequest request);
 
     /**
      * 查询绑定关系列表。
      *
-     * @param request 请求参数
-     * @return 列表结果
+     * @param request 绑定关系查询参数。
+     * @return 返回 AdvisorBindingViewResponse 列表数据。
      */
     Result<List<AdvisorBindingViewResponse>> listBindings(AdvisorBindingGetRequest request);
 
     /**
      * 保存绑定关系配置。
      *
-     * @param request 请求参数
-     * @return 处理结果
+     * @param request 绑定关系保存参数。
+     * @return 返回绑定关系保存状态。
      */
     Result<Void> saveBindings(AdvisorBindingSaveRequest request);
 }

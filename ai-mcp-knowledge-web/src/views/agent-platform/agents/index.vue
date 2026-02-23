@@ -54,7 +54,7 @@
             <span class="mono">{{ row.channel || 'agent' }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="status" label="状态" width="130">
+        <el-table-column prop="status" label="状态" width="130" align="center" header-align="center">
           <template #default="{ row }">
             <el-tag size="small" effect="dark" :type="row.status === 'ENABLED' ? 'success' : 'info'">
               {{ row.status }}
@@ -65,7 +65,7 @@
         <el-table-column label="更新时间" width="180">
           <template #default="{ row }">{{ formatDateTime(row.updatedAt) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="260" align="right">
+        <el-table-column label="操作" width="260" align="center" header-align="center">
           <template #default="{ row }">
             <div class="action-buttons">
               <el-button link type="primary" class="action-btn" @click="openEdit(row)">

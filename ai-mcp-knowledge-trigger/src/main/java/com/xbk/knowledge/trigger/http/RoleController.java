@@ -45,7 +45,7 @@ public class RoleController implements IRoleService {
     /**
      * 分页查询角色。
      *
-     * @param request 查询请求
+     * @param request 查询参数
      * @return 分页结果
      */
     @SaCheckPermission("role:read")
@@ -66,7 +66,7 @@ public class RoleController implements IRoleService {
     /**
      * 创建角色。
      *
-     * @param request 创建请求
+     * @param request 创建参数
      * @return 角色信息
      */
     @SaCheckPermission("role:write")
@@ -86,7 +86,7 @@ public class RoleController implements IRoleService {
     /**
      * 更新角色。
      *
-     * @param request 更新请求
+     * @param request 更新参数
      * @return 角色信息
      */
     @SaCheckPermission("role:write")
@@ -120,9 +120,9 @@ public class RoleController implements IRoleService {
     }
 
     /**
-     * 查询角色已分配权限ID列表。
+     * 查询角色已绑定的权限 ID 列表。
      *
-     * @param request 查询请求
+     * @param request 查询参数
      * @return 权限ID列表
      */
     @SaCheckPermission("role:read")

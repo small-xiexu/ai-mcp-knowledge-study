@@ -27,10 +27,10 @@ public class McpGatewayRepositoryImpl implements McpGatewayRepository {
     private final IMcpGatewayDao mapper;
 
     /**
-     * findByGatewayId。
+     * 查询MCP 网关。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 McpGateway 查询结果（可能为空）。
      */
     @Override
     public Optional<McpGateway> findByGatewayId(GatewayIdQuery query) {
@@ -42,10 +42,10 @@ public class McpGatewayRepositoryImpl implements McpGatewayRepository {
     }
 
     /**
-     * findById。
+     * 查询MCP 网关。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 McpGateway 查询结果（可能为空）。
      */
     @Override
     public Optional<McpGateway> findById(IdQuery query) {
@@ -57,10 +57,10 @@ public class McpGatewayRepositoryImpl implements McpGatewayRepository {
     }
 
     /**
-     * save。
+     * 创建或更新MCP 网关数据。
      *
-     * @param gateway 参数
-     * @return 返回结果
+     * @param gateway 网关配置。
+     * @return 返回 McpGateway 数据。
      */
     @Override
     public McpGateway save(McpGateway gateway) {
@@ -76,9 +76,9 @@ public class McpGatewayRepositoryImpl implements McpGatewayRepository {
     }
 
     /**
-     * deleteById。
+     * 删除MCP 网关数据。
      *
-     * @param query 参数
+     * @param query 查询条件
      */
     @Override
     public void deleteById(IdQuery query) {
@@ -89,10 +89,10 @@ public class McpGatewayRepositoryImpl implements McpGatewayRepository {
     }
 
     /**
-     * findPage。
+     * 查询MCP 网关。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 McpGateway 列表数据。
      */
     @Override
     public List<McpGateway> findPage(GatewayPageQuery query) {
@@ -103,9 +103,9 @@ public class McpGatewayRepositoryImpl implements McpGatewayRepository {
     }
 
     /**
-     * findAllEnabled。
+     * 查询MCP 网关。
      *
-     * @return 返回结果
+     * @return 返回 McpGateway 列表数据。
      */
     @Override
     public List<McpGateway> findAllEnabled() {
@@ -113,9 +113,9 @@ public class McpGatewayRepositoryImpl implements McpGatewayRepository {
     }
 
     /**
-     * countAll。
+     * 按条件统计业务数量。
      *
-     * @return 返回结果
+     * @return 统计数量
      */
     @Override
     public long countAll() {

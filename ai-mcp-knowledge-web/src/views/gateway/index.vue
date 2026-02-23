@@ -20,13 +20,13 @@
         <el-table-column prop="gatewayId" label="网关 ID" min-width="140" />
         <el-table-column prop="gatewayName" label="名称" min-width="180" />
         <el-table-column prop="gatewayVersion" label="版本" width="110" />
-        <el-table-column label="状态" width="90">
+        <el-table-column label="状态" width="90" align="center" header-align="center">
           <template #default="{ row }">
             <el-tag :type="row.status === 1 ? 'success' : 'info'">{{ row.status === 1 ? '启用' : '禁用' }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="toolCount" label="工具数" width="90" />
-        <el-table-column label="操作" width="280" fixed="right">
+        <el-table-column label="操作" width="280" align="center" header-align="center">
           <template #default="{ row }">
             <el-button type="primary" text @click="goTools(row)">工具配置</el-button>
             <el-button type="primary" text @click="openEdit(row)">编辑</el-button>

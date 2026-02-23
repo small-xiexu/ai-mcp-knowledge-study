@@ -15,27 +15,27 @@ import java.util.Optional;
 public interface WorkflowVersionRepository {
 
     /**
-     * 方法：findById。
+     * 按主键查询记录。
      */
     Optional<WorkflowVersion> findById(WorkflowVersionIdQuery query);
 
     /**
-     * 方法：listByWorkflowId。
+     * 查询 Workflow 下的版本列表。
      */
     List<WorkflowVersion> listByWorkflowId(WorkflowVersionListQuery query);
 
     /**
-     * 方法：insert。
+     * 新增记录。
      */
     WorkflowVersion insert(WorkflowVersion version);
 
     /**
-     * 方法：updateById。
+     * 按主键更新记录。
      */
     int updateById(WorkflowVersion version);
 
     /**
-     * 方法：findPublishedVersion。
+     * 查询 Workflow 当前已发布版本。
      */
     Optional<WorkflowVersion> findPublishedVersion(Long workflowId);
 }

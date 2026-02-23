@@ -18,42 +18,42 @@ import java.util.Optional;
 public interface McpToolRegistryRepository {
 
     /**
-     * 方法：findById。
+     * 按主键查询记录。
      */
     Optional<McpToolRegistry> findById(IdQuery query);
 
     /**
-     * 方法：findByGatewayIdAndToolName。
+     * 按网关 ID 与工具名查询工具注册记录。
      */
     Optional<McpToolRegistry> findByGatewayIdAndToolName(ToolNameQuery query);
 
     /**
-     * 方法：findByGatewayId。
+     * 按网关 ID 查询关联记录。
      */
     List<McpToolRegistry> findByGatewayId(GatewayIdQuery query);
 
     /**
-     * 方法：findEnabledByGatewayId。
+     * 查询网关下已启用工具列表。
      */
     List<McpToolRegistry> findEnabledByGatewayId(GatewayIdQuery query);
 
     /**
-     * 方法：findPage。
+     * 按条件分页查询记录。
      */
     List<McpToolRegistry> findPage(ToolRegistryPageQuery query);
 
     /**
-     * 方法：save。
+     * 保存或更新记录。
      */
     McpToolRegistry save(McpToolRegistry registry);
 
     /**
-     * 方法：deleteById。
+     * 按主键删除记录。
      */
     void deleteById(IdQuery query);
 
     /**
-     * 方法：countByGatewayId。
+     * 统计指定网关下的工具数量。
      */
     long countByGatewayId(GatewayIdQuery query);
 }

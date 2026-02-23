@@ -21,42 +21,42 @@ import java.util.List;
 public interface IRoleService {
 
     /**
-     * 分页查询数据列表。
+     * 按筛选条件分页查询角色数据。
      *
-     * @param request 请求参数
-     * @return 列表结果
+     * @param request 角色分页查询条件。
+     * @return 返回 RoleResponse 分页数据。
      */
     Result<PageResult<RoleResponse>> list(RoleQueryRequest request);
 
     /**
-     * 创建数据。
+     * 创建角色数据。
      *
-     * @param request 请求参数
-     * @return 创建结果
+     * @param request 角色创建参数。
+     * @return 返回 RoleResponse 数据。
      */
     Result<RoleResponse> create(RoleCreateRequest request);
 
     /**
-     * 更新数据。
+     * 更新角色数据。
      *
-     * @param request 请求参数
-     * @return 更新结果
+     * @param request 角色更新参数。
+     * @return 返回 RoleResponse 数据。
      */
     Result<RoleResponse> update(RoleUpdateRequest request);
 
     /**
      * 授予角色权限。
      *
-     * @param request 请求参数
-     * @return 处理结果
+     * @param request 角色授权参数。
+     * @return 返回角色授权保存状态。
      */
     Result<Void> grantPermissions(RolePermissionGrantRequest request);
 
     /**
      * 查询角色已分配权限 ID 列表。
      *
-     * @param request 请求参数
-     * @return ID 列表结果
+     * @param request 角色权限查询参数。
+     * @return 返回 Long 列表数据。
      */
     Result<List<Long>> permissionIds(RolePermissionQueryRequest request);
 }

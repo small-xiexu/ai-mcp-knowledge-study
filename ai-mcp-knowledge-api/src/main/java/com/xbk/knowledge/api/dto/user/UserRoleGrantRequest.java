@@ -33,7 +33,7 @@ public class UserRoleGrantRequest extends BaseRequest {
     private Long userId;
 
     /**
-     * 角色ID列表。
+     * 角色 ID 列表。
      */
     private List<Long> roleIds;
 }

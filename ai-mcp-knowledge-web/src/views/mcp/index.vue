@@ -1,5 +1,12 @@
 <template>
   <div class="gemini-container">
+    <div class="page-header">
+      <div>
+        <h2 class="page-title">MCP 配置</h2>
+        <p class="subtitle">管理外部 MCP Server 的连接方式、启停状态与运行健康。</p>
+      </div>
+    </div>
+
     <el-card class="gemini-card">
       <el-alert
         title="用途说明"
@@ -74,6 +81,8 @@
         <el-table-column
           label="启用"
           width="90"
+          align="center"
+          header-align="center"
         >
           <template #default="{ row }">
             <div class="status-indicator" :class="{ active: row.enabled }">
@@ -116,7 +125,8 @@
         <el-table-column
           label="操作"
           width="280"
-          fixed="right"
+          align="center"
+          header-align="center"
         >
           <template #default="{ row }">
             <div class="action-buttons">

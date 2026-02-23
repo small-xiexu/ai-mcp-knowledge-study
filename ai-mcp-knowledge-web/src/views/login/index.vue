@@ -1,8 +1,8 @@
 <template>
   <div class="login-page">
     <div class="login-panel">
-      <h1 class="login-title">AI Agent Station</h1>
-      <p class="login-subtitle">统一身份登录</p>
+      <h1 class="login-title">多智能体调度平台</h1>
+      <p class="login-subtitle">MASP 统一身份登录</p>
 
       <el-form ref="formRef" :model="form" :rules="rules" class="login-form" label-position="top">
         <el-form-item label="用户名" prop="username">

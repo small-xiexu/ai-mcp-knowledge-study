@@ -6,7 +6,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * WorkflowVersionResponse。
+ * WorkflowVersion 响应数据模型。
  *
  * @author sxie
  */

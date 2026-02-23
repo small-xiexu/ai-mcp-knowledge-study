@@ -20,7 +20,7 @@ public interface IAgentRuntimeService {
      * 执行对话调用。
      *
      * @param agentCode Agent 编码
-     * @param request 请求参数
+     * @param request Agent 对话调用参数。
      * @return 调用结果
      */
     Result<PlatformContractV1> chat(String agentCode, AgentRuntimeChatRequest request);
@@ -29,7 +29,7 @@ public interface IAgentRuntimeService {
      * 执行流式调用。
      *
      * @param agentCode Agent 编码
-     * @param request 请求参数
+     * @param request Agent 流式调用参数。
      * @param httpResponse HTTP 响应对象
      * @return 流式响应对象
      */
@@ -39,7 +39,7 @@ public interface IAgentRuntimeService {
      * 执行通用调用。
      *
      * @param agentCode Agent 编码
-     * @param request 请求参数
+     * @param request Agent 运行调用参数。
      * @return 调用结果
      */
     Result<PlatformContractV1> invoke(String agentCode, AgentRuntimeInvokeRequest request);

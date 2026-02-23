@@ -25,58 +25,57 @@ public interface AdvisorBindingAppService {
         private Boolean enabled;
 
         /**
-         * getAdvisorId。
+         * 获取顾问策略 ID。
          *
-         * @return 返回结果
+         * @return 返回顾问策略 ID。
          */
         public Long getAdvisorId() {
             return advisorId;
         }
 
         /**
-         * setAdvisorId。
+         * 设置顾问策略 ID。
          *
-         * @param advisorId 参数
+         * @param advisorId 顾问策略 ID。
          */
         public void setAdvisorId(Long advisorId) {
             this.advisorId = advisorId;
         }
 
         /**
-         * getOrderNo。
+         * 获取绑定排序号。
          *
-         * @return 返回结果
+         * @return 返回绑定排序号。
          */
         public Integer getOrderNo() {
             return orderNo;
         }
 
         /**
-         * setOrderNo。
+         * 设置绑定排序号。
          *
-         * @param orderNo 参数
+         * @param orderNo 排序号。
          */
         public void setOrderNo(Integer orderNo) {
             this.orderNo = orderNo;
         }
 
         /**
-         * getEnabled。
+         * 获取绑定启用状态。
          *
-         * @return 返回结果
+         * @return 返回是否启用。
          */
         public Boolean getEnabled() {
             return enabled;
         }
 
         /**
-         * setEnabled。
+         * 设置绑定启用状态。
          *
-         * @param enabled 参数
+         * @param enabled 启用状态
          */
         public void setEnabled(Boolean enabled) {
             this.enabled = enabled;
         }
     }
 }
-

@@ -45,7 +45,7 @@
         <el-table-column prop="description" label="描述" min-width="220" show-overflow-tooltip />
         <el-table-column prop="cron" label="CRON" min-width="180" />
         <el-table-column prop="xxlJobId" label="xxlJobId" width="120" />
-        <el-table-column prop="enabled" label="启用" width="110">
+        <el-table-column prop="enabled" label="启用" width="110" align="center" header-align="center">
           <template #default="{ row }">
             <el-tag size="small" effect="dark" :type="row.enabled ? 'success' : 'info'">
               {{ row.enabled ? '启用' : '禁用' }}
@@ -55,7 +55,7 @@
         <el-table-column label="更新时间" width="180">
           <template #default="{ row }">{{ formatDateTime(row.updatedAt) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="260" align="right">
+        <el-table-column label="操作" width="260" align="center" header-align="center">
           <template #default="{ row }">
             <div class="action-buttons">
               <el-button link type="primary" class="action-btn" @click="openPayload(row)">

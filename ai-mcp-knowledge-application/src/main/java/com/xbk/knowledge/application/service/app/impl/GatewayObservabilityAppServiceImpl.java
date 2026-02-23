@@ -68,10 +68,10 @@ public class GatewayObservabilityAppServiceImpl implements GatewayObservabilityA
     }
 
     /**
-     * queryMetrics。
+     * 查询网关可观测性。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 GatewayMetricsReport 数据。
      */
     @Override
     public GatewayMetricsReport queryMetrics(MetricsQuery query) {

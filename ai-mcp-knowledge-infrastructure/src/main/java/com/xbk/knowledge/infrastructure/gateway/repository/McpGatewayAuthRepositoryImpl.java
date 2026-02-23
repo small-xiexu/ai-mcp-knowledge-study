@@ -25,10 +25,10 @@ public class McpGatewayAuthRepositoryImpl implements McpGatewayAuthRepository {
     private final IMcpGatewayAuthDao mapper;
 
     /**
-     * findById。
+     * 查询MCP 网关鉴权。
      *
-     * @param id 参数
-     * @return 返回结果
+     * @param id 主键 ID
+     * @return 返回 McpGatewayAuth 查询结果（可能为空）。
      */
     @Override
     public Optional<McpGatewayAuth> findById(Long id) {
@@ -40,10 +40,10 @@ public class McpGatewayAuthRepositoryImpl implements McpGatewayAuthRepository {
     }
 
     /**
-     * findByApiKey。
+     * 查询MCP 网关鉴权。
      *
-     * @param apiKey 参数
-     * @return 返回结果
+     * @param apiKey API Key。
+     * @return 返回 McpGatewayAuth 查询结果（可能为空）。
      */
     @Override
     public Optional<McpGatewayAuth> findByApiKey(String apiKey) {
@@ -55,10 +55,10 @@ public class McpGatewayAuthRepositoryImpl implements McpGatewayAuthRepository {
     }
 
     /**
-     * findByGatewayId。
+     * 查询MCP 网关鉴权。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 McpGatewayAuth 列表数据。
      */
     @Override
     public List<McpGatewayAuth> findByGatewayId(GatewayIdQuery query) {
@@ -69,10 +69,10 @@ public class McpGatewayAuthRepositoryImpl implements McpGatewayAuthRepository {
     }
 
     /**
-     * save。
+     * 创建或更新MCP 网关鉴权数据。
      *
-     * @param auth 参数
-     * @return 返回结果
+     * @param auth 鉴权配置。
+     * @return 返回 McpGatewayAuth 数据。
      */
     @Override
     public McpGatewayAuth save(McpGatewayAuth auth) {
@@ -88,9 +88,9 @@ public class McpGatewayAuthRepositoryImpl implements McpGatewayAuthRepository {
     }
 
     /**
-     * deleteById。
+     * 删除MCP 网关鉴权数据。
      *
-     * @param id 参数
+     * @param id 主键 ID
      */
     @Override
     public void deleteById(Long id) {
@@ -101,9 +101,9 @@ public class McpGatewayAuthRepositoryImpl implements McpGatewayAuthRepository {
     }
 
     /**
-     * deleteByGatewayId。
+     * 删除MCP 网关鉴权数据。
      *
-     * @param query 参数
+     * @param query 查询条件
      */
     @Override
     public void deleteByGatewayId(GatewayIdQuery query) {

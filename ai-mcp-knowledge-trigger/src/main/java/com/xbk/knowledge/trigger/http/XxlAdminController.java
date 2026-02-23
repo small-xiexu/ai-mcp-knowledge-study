@@ -59,7 +59,7 @@ public class XxlAdminController implements IXxlAdminService {
      *
      * 为什么：统一入口管理任务分页，便于权限与 appName 约束集中处理。
      *
-     * @param request 分页查询请求
+     * @param request 分页查询参数
      * @return 分页结果
      */
     @PostMapping("/jobs/list")
@@ -81,7 +81,7 @@ public class XxlAdminController implements IXxlAdminService {
      *
      * 为什么：通过缓存统一任务选项，避免前端反复分页拉取。
      *
-     * @param request 查询请求
+     * @param request 查询参数
      * @return 任务列表
      */
     @PostMapping("/jobs/options")
@@ -103,7 +103,7 @@ public class XxlAdminController implements IXxlAdminService {
      *
      * 为什么：编辑/查看需要完整详情，统一从后端校验与转换。
      *
-     * @param request 查询请求
+     * @param request 查询参数
      * @return 任务详情
      */
     @PostMapping("/jobs/detail")
@@ -120,8 +120,8 @@ public class XxlAdminController implements IXxlAdminService {
      *
      * 为什么：创建前统一校验与字段白名单控制，避免越权字段写入。
      *
-     * @param request 创建请求
-     * @return 创建结果
+     * @param request 任务创建参数
+     * @return 返回任务创建结果标识。
      */
     @PostMapping("/jobs/create")
     @Override
@@ -137,8 +137,8 @@ public class XxlAdminController implements IXxlAdminService {
      *
      * 为什么：更新需要保持字段一致性，统一从后端对接 xxl-admin。
      *
-     * @param request 更新请求
-     * @return 更新结果
+     * @param request 任务更新参数
+     * @return 返回任务更新状态。
      */
     @PostMapping("/jobs/update")
     @Override
@@ -155,8 +155,8 @@ public class XxlAdminController implements IXxlAdminService {
      *
      * 为什么：删除属高风险操作，集中权限与操作日志入口。
      *
-     * @param request 删除请求
-     * @return 删除结果
+     * @param request 任务删除参数
+     * @return 返回任务删除状态。
      */
     @PostMapping("/jobs/remove")
     @Override
@@ -171,7 +171,7 @@ public class XxlAdminController implements IXxlAdminService {
      *
      * 为什么：启动任务需校验权限并统一调用调度中心接口。
      *
-     * @param request 启动请求
+     * @param request 启动参数
      * @return 启动结果
      */
     @PostMapping("/jobs/start")
@@ -187,7 +187,7 @@ public class XxlAdminController implements IXxlAdminService {
      *
      * 为什么：停止任务避免误触发，统一走后端校验与调用链。
      *
-     * @param request 停止请求
+     * @param request 停止参数
      * @return 停止结果
      */
     @PostMapping("/jobs/stop")
@@ -203,7 +203,7 @@ public class XxlAdminController implements IXxlAdminService {
      *
      * 为什么：手动触发需审计与权限控制，避免绕过调度策略。
      *
-     * @param request 触发请求
+     * @param request 触发参数
      * @return 触发结果
      */
     @PostMapping("/jobs/trigger")
@@ -219,7 +219,7 @@ public class XxlAdminController implements IXxlAdminService {
      *
      * 为什么：日志查询统一由后端过滤 appName，避免越权查看。
      *
-     * @param request 分页查询请求
+     * @param request 分页查询参数
      * @return 分页结果
      */
     @PostMapping("/logs/list")
@@ -246,7 +246,7 @@ public class XxlAdminController implements IXxlAdminService {
      *
      * 为什么：日志内容需按行拉取，统一由后端做参数校验与调用。
      *
-     * @param request 查询请求
+     * @param request 查询参数
      * @return 日志详情
      */
     @PostMapping("/logs/detail")

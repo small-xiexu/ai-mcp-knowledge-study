@@ -17,12 +17,12 @@ public class ApprovalRequiredException extends RuntimeException {
     private final String riskLevel;
 
     /**
-     * ApprovalRequiredException。
+     * ApprovalRequired 异常定义。
      *
-     * @param approvalRequestId 参数
-     * @param toolKey 参数
-     * @param riskLevel 参数
-     * @param message 参数
+     * @param approvalRequestId 审批单 ID。
+     * @param toolKey 工具标识
+     * @param riskLevel 风险等级。
+     * @param message 异常消息。
      */
     public ApprovalRequiredException(Long approvalRequestId, String toolKey, String riskLevel, String message) {
         super(message);

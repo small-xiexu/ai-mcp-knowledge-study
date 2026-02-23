@@ -13,17 +13,17 @@ import java.util.Optional;
 public interface AgentRunRepository {
 
     /**
-     * 方法：insert。
+     * 新增记录。
      */
     void insert(AgentRun run);
 
     /**
-     * 方法：updateStatusAndMetrics。
+     * 更新执行状态与指标数据。
      */
     void updateStatusAndMetrics(AgentRun run);
 
     /**
-     * 方法：findByRunId。
+     * 按运行 ID 查询记录。
      */
     Optional<AgentRun> findByRunId(String runId);
 
@@ -49,7 +49,7 @@ public interface AgentRunRepository {
     int incrementToolDeniedCount(String runId, int delta);
 
     /**
-     * 方法：deleteByAgentId。
+     * 删除指定 Agent 关联记录。
      */
     int deleteByAgentId(Long agentId);
 }

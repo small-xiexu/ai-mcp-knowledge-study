@@ -28,10 +28,10 @@ public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository 
     private final IMcpToolRegistryDao mapper;
 
     /**
-     * findById。
+     * 查询MCP 工具注册。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 McpToolRegistry 查询结果（可能为空）。
      */
     @Override
     public Optional<McpToolRegistry> findById(IdQuery query) {
@@ -43,10 +43,10 @@ public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository 
     }
 
     /**
-     * findByGatewayIdAndToolName。
+     * 查询MCP 工具注册。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 McpToolRegistry 查询结果（可能为空）。
      */
     @Override
     public Optional<McpToolRegistry> findByGatewayIdAndToolName(ToolNameQuery query) {
@@ -58,10 +58,10 @@ public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository 
     }
 
     /**
-     * findByGatewayId。
+     * 查询MCP 工具注册。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 McpToolRegistry 列表数据。
      */
     @Override
     public List<McpToolRegistry> findByGatewayId(GatewayIdQuery query) {
@@ -72,10 +72,10 @@ public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository 
     }
 
     /**
-     * findEnabledByGatewayId。
+     * 查询MCP 工具注册。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 McpToolRegistry 列表数据。
      */
     @Override
     public List<McpToolRegistry> findEnabledByGatewayId(GatewayIdQuery query) {
@@ -86,10 +86,10 @@ public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository 
     }
 
     /**
-     * findPage。
+     * 查询MCP 工具注册。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 McpToolRegistry 列表数据。
      */
     @Override
     public List<McpToolRegistry> findPage(ToolRegistryPageQuery query) {
@@ -100,10 +100,10 @@ public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository 
     }
 
     /**
-     * save。
+     * 创建或更新MCP 工具注册数据。
      *
-     * @param registry 参数
-     * @return 返回结果
+     * @param registry 工具注册配置。
+     * @return 返回 McpToolRegistry 数据。
      */
     @Override
     public McpToolRegistry save(McpToolRegistry registry) {
@@ -133,9 +133,9 @@ public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository 
     }
 
     /**
-     * deleteById。
+     * 删除MCP 工具注册数据。
      *
-     * @param query 参数
+     * @param query 查询条件
      */
     @Override
     public void deleteById(IdQuery query) {
@@ -146,10 +146,10 @@ public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository 
     }
 
     /**
-     * countByGatewayId。
+     * 按条件统计业务数量。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 统计数量
      */
     @Override
     public long countByGatewayId(GatewayIdQuery query) {

@@ -28,13 +28,13 @@
       <el-table :data="rows" stripe class="gemini-table" v-loading="loading">
         <el-table-column prop="workflowCode" label="Code" min-width="180" />
         <el-table-column prop="workflowName" label="名称" min-width="200" />
-        <el-table-column prop="status" label="状态" width="140">
+        <el-table-column prop="status" label="状态" width="140" align="center" header-align="center">
           <template #default="{ row }">
             <el-tag size="small" :type="row.status === 'ENABLED' ? 'success' : 'info'">{{ row.status }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="currentPublishedVersionId" label="已发布版本" width="140" />
-        <el-table-column label="操作" min-width="340" fixed="right">
+        <el-table-column label="操作" min-width="340" fixed="right" align="center" header-align="center">
           <template #default="{ row }">
             <el-button link type="primary" @click="goVersions(row)">版本</el-button>
             <el-button link type="primary" @click="goEditor(row)">画布</el-button>
@@ -57,27 +57,32 @@
       </div>
     </div>
 
-    <el-dialog v-model="dlg.visible" :title="dlg.mode === 'create' ? '新建 Workflow' : '编辑 Workflow'" width="520px">
-      <el-form :model="dlg.form" label-width="120px">
-        <el-form-item label="workflowCode" v-if="dlg.mode === 'create'">
-          <el-input v-model="dlg.form.workflowCode" placeholder="例如: order_flow" />
+    <el-dialog
+      v-model="dlg.visible"
+      :title="dlg.mode === 'create' ? '新建 Workflow' : '编辑 Workflow'"
+      width="560px"
+      class="gemini-dialog workflow-dialog"
+    >
+      <el-form :model="dlg.form" label-width="128px" class="workflow-form">
+        <el-form-item label="Workflow Code" v-if="dlg.mode === 'create'">
+          <el-input v-model="dlg.form.workflowCode" class="gemini-input" placeholder="例如: order_flow" />
         </el-form-item>
-        <el-form-item label="workflowName">
-          <el-input v-model="dlg.form.workflowName" placeholder="名称" />
+        <el-form-item label="Workflow 名称">
+          <el-input v-model="dlg.form.workflowName" class="gemini-input" placeholder="请输入名称" />
         </el-form-item>
-        <el-form-item label="description">
-          <el-input v-model="dlg.form.description" type="textarea" :rows="3" placeholder="描述" />
+        <el-form-item label="描述">
+          <el-input v-model="dlg.form.description" class="gemini-input" type="textarea" :rows="3" placeholder="请输入描述" />
         </el-form-item>
-        <el-form-item label="status" v-if="dlg.mode === 'update'">
-          <el-select v-model="dlg.form.status" style="width: 100%">
+        <el-form-item label="状态" v-if="dlg.mode === 'update'">
+          <el-select v-model="dlg.form.status" class="gemini-select" style="width: 100%">
             <el-option label="ENABLED" value="ENABLED" />
             <el-option label="DISABLED" value="DISABLED" />
           </el-select>
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="dlg.visible = false">取消</el-button>
-        <el-button type="primary" :loading="dlg.saving" @click="saveDlg">保存</el-button>
+        <el-button class="gemini-btn-secondary" @click="dlg.visible = false">取消</el-button>
+        <el-button type="primary" class="gemini-btn-primary" :loading="dlg.saving" @click="saveDlg">保存</el-button>
       </template>
     </el-dialog>
   </div>
@@ -227,5 +232,12 @@ load()
   justify-content: flex-end;
   margin-top: 12px;
 }
-</style>
 
+.workflow-form :deep(.el-form-item) {
+  margin-bottom: 16px;
+}
+
+.workflow-dialog :deep(.el-dialog__body) {
+  padding-top: 10px;
+}
+</style>

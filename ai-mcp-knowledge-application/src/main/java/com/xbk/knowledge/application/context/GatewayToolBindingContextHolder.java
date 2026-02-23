@@ -20,8 +20,10 @@ public final class GatewayToolBindingContextHolder {
     private GatewayToolBindingContextHolder() {
     }
 
-    /** 设置当前线程的绑定上下文 */
-    public static void set(Long modelId, Long sessionId) {
+    /**
+     * 设置当前线程的绑定上下文
+     */
+     public static void set(Long modelId, Long sessionId) {
         CONTEXT.set(new BindingContext(modelId, sessionId, null, null, null, null, null, null));
     }
 
@@ -77,18 +79,24 @@ public final class GatewayToolBindingContextHolder {
         CONTEXT.set(new BindingContext(modelId, sessionId, null, workflowId, workflowVersionId, nodeKey, runId, safeKeys));
     }
 
-    /** 获取当前线程的绑定上下文 */
-    public static BindingContext get() {
+    /**
+     * 获取当前线程的绑定上下文
+     */
+     public static BindingContext get() {
         return CONTEXT.get();
     }
 
-    /** 清除当前线程的绑定上下文（必须在 finally 中调用，防止内存泄漏） */
-    public static void clear() {
+    /**
+     * 清除当前线程的绑定上下文（必须在 finally 中调用，防止内存泄漏）
+     */
+     public static void clear() {
         CONTEXT.remove();
     }
 
-    /** 绑定上下文，承载模型 ID 和会话 ID */
-    public static final class BindingContext {
+    /**
+     * 绑定上下文，承载模型 ID 和会话 ID
+     */
+     public static final class BindingContext {
 
         private final Long modelId;
         private final Long sessionId;
@@ -118,72 +126,72 @@ public final class GatewayToolBindingContextHolder {
         }
 
         /**
-         * getModelId。
+         * 获取当前绑定上下文中的模型 ID。
          *
-         * @return 返回结果
+         * @return 返回模型 ID。
          */
         public Long getModelId() {
             return modelId;
         }
 
         /**
-         * getSessionId。
+         * 获取当前绑定上下文中的会话 ID。
          *
-         * @return 返回结果
+         * @return 返回会话 ID。
          */
         public Long getSessionId() {
             return sessionId;
         }
 
         /**
-         * getAgentVersionId。
+         * 获取当前绑定上下文中的 Agent 版本 ID。
          *
-         * @return 返回结果
+         * @return 返回 Agent 版本 ID。
          */
         public Long getAgentVersionId() {
             return agentVersionId;
         }
 
         /**
-         * getWorkflowId。
+         * 获取当前绑定上下文中的 Workflow ID。
          *
-         * @return 返回结果
+         * @return 返回 Workflow ID。
          */
         public Long getWorkflowId() {
             return workflowId;
         }
 
         /**
-         * getWorkflowVersionId。
+         * 获取当前绑定上下文中的 Workflow 版本 ID。
          *
-         * @return 返回结果
+         * @return 返回 Workflow 版本 ID。
          */
         public Long getWorkflowVersionId() {
             return workflowVersionId;
         }
 
         /**
-         * getWorkflowNodeKey。
+         * 获取当前执行节点标识。
          *
-         * @return 返回结果
+         * @return 返回 Workflow 节点标识。
          */
         public String getWorkflowNodeKey() {
             return workflowNodeKey;
         }
 
         /**
-         * getRunId。
+         * 获取本次执行链路的运行 ID。
          *
-         * @return 返回结果
+         * @return 返回运行 ID。
          */
         public String getRunId() {
             return runId;
         }
 
         /**
-         * getAllowedToolKeys。
+         * 获取当前上下文允许调用的工具集合。
          *
-         * @return 返回结果
+         * @return 返回 Set<String> 数据。
          */
         public Set<String> getAllowedToolKeys() {
             return allowedToolKeys;

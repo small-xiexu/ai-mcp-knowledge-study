@@ -32,7 +32,7 @@ public class WorkflowRunCleanupJob {
     private final WorkflowRunContextRepository workflowRunContextRepository;
 
     /**
-     * execute。
+     * 执行定时任务处理。
      *
      */
     @XxlJob("workflowRunCleanupHandler")

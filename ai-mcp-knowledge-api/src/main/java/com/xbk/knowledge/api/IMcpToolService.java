@@ -17,7 +17,7 @@ public interface IMcpToolService {
     /**
      * 分页查询工具列表。
      *
-     * @return 列表结果
+     * @return 返回 McpToolResponse 列表数据。
      */
     Result<List<McpToolResponse>> listTools();
 }

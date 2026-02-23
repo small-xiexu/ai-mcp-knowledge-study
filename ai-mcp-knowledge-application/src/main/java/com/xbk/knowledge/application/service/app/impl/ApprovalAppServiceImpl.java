@@ -1,6 +1,5 @@
 package com.xbk.knowledge.application.service.app.impl;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xbk.knowledge.application.service.app.ApprovalAppService;
 import com.xbk.knowledge.application.service.app.ChatClientAssemblyService;
@@ -28,6 +27,7 @@ import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.contract.PlatformContractV1;
 import com.xbk.knowledge.types.exception.BusinessException;
 import com.xbk.knowledge.types.exception.NotFoundException;
+import com.xbk.knowledge.types.json.JsonMapUtils;
 import com.xbk.knowledge.types.trace.TraceIdUtils;
 import com.xbk.knowledge.types.tool.ToolKeyAware;
 import com.xbk.knowledge.types.tool.ToolInvokeBypassContextHolder;
@@ -87,12 +87,12 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
     private final WorkflowRunContextRepository workflowRunContextRepository;
 
     /**
-     * list。
+     * 根据筛选条件查询审批列表。
      *
-     * @param status 参数
-     * @param offset 参数
-     * @param pageSize 参数
-     * @return 返回结果
+     * @param status 状态值
+     * @param offset 分页偏移量
+     * @param pageSize 分页大小
+     * @return 返回 ApprovalRequest 分页数据。
      */
     @Override
     public PageResult<ApprovalRequest> list(String status, int offset, int pageSize) {
@@ -105,10 +105,10 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
     }
 
     /**
-     * get。
+     * 查询审批。
      *
-     * @param id 参数
-     * @return 返回结果
+     * @param id 主键 ID
+     * @return 返回 ApprovalRequest 数据。
      */
     @Override
     public ApprovalRequest get(Long id) {
@@ -117,11 +117,11 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
     }
 
     /**
-     * approve。
+     * 审批通过并触发续跑。
      *
-     * @param id 参数
-     * @param decisionComment 参数
-     * @return 返回结果
+     * @param id 主键 ID
+     * @param decisionComment 审批意见。
+     * @return 返回 PlatformContractV1 数据。
      */
     @Override
     public PlatformContractV1 approve(Long id, String decisionComment) {
@@ -218,11 +218,11 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
     }
 
     /**
-     * reject。
+     * 拒绝审批请求并更新状态。
      *
-     * @param id 参数
-     * @param decisionComment 参数
-     * @return 返回结果
+     * @param id 主键 ID
+     * @param decisionComment 审批意见。
+     * @return 返回 ApprovalRequest 数据。
      */
     @Override
     public ApprovalRequest reject(Long id, String decisionComment) {
@@ -534,7 +534,7 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
                         return null;
                     }
                     try {
-                        Map<String, Object> map = objectMapper.readValue(ctx.getSnapshotJson(), new TypeReference<Map<String, Object>>() {});
+                        Map<String, Object> map = JsonMapUtils.readMap(objectMapper, ctx.getSnapshotJson());
                         String content = map == null ? null : String.valueOf(map.get("content"));
                         String ragTagsJson = map == null ? null : (map.get("ragTagsJson") == null ? null : String.valueOf(map.get("ragTagsJson")));
                         return new AgentRunContextSnapshot(content, ragTagsJson);

@@ -13,37 +13,37 @@ import java.util.Optional;
 public interface WorkflowNodeRunRepository {
 
     /**
-     * 方法：insert。
+     * 新增记录。
      */
     void insert(WorkflowNodeRun nodeRun);
 
     /**
-     * 方法：updateById。
+     * 按主键更新记录。
      */
     void updateById(WorkflowNodeRun nodeRun);
 
     /**
-     * 方法：findByRunIdAndNodeKey。
+     * 按运行 ID 与节点键查询节点运行记录。
      */
     Optional<WorkflowNodeRun> findByRunIdAndNodeKey(String runId, String nodeKey);
 
     /**
-     * 方法：listByRunId。
+     * 查询指定运行下的节点执行列表。
      */
     List<WorkflowNodeRun> listByRunId(String runId);
 
     /**
-     * 方法：incrementToolCallCount。
+     * 累加节点工具调用次数。
      */
     int incrementToolCallCount(String runId, String nodeKey, int delta);
 
     /**
-     * 方法：incrementToolDeniedCount。
+     * 累加节点工具拒绝次数。
      */
     int incrementToolDeniedCount(String runId, String nodeKey, int delta);
 
     /**
-     * 方法：deleteByRunIds。
+     * 批量删除运行记录。
      */
     int deleteByRunIds(List<String> runIds);
 }

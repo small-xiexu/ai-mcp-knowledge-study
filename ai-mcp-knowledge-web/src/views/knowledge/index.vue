@@ -95,7 +95,8 @@
           <el-table-column
             label="操作"
             width="120"
-            fixed="right"
+            align="center"
+            header-align="center"
           >
             <template #default="{ row }">
               <el-button
@@ -218,9 +219,7 @@ onMounted(() => {
 
 <style scoped>
 .knowledge-page {
-  padding: 32px 40px;
-  max-width: 1200px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 .content-body {

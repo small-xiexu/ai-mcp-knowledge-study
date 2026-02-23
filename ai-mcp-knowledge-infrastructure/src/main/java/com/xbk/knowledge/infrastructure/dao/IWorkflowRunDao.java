@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * IWorkflowRunDao。
+ * IWorkflowRun 数据访问接口定义。
  *
  * @author sxie
  */

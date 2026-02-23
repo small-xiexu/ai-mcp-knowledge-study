@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * Advisor 分页查询请求。
+ * Advisor 分页查询参数。
  *
  * @author sxie
  */

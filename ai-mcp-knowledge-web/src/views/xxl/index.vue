@@ -79,6 +79,8 @@
               prop="triggerStatus"
               label="状态"
               width="120"
+              align="center"
+              header-align="center"
             >
               <template #default="{ row }">
                 <div class="status-indicator-v2" :class="{ active: row.triggerStatus === 1 }">
@@ -103,8 +105,8 @@
             <el-table-column
               label="操作"
               width="160"
-              fixed="right"
-              align="right"
+              align="center"
+              header-align="center"
             >
               <template #default="{ row }">
                 <div class="action-buttons">
@@ -271,8 +273,8 @@
             <el-table-column
               label="操作"
               width="100"
-              fixed="right"
-              align="right"
+              align="center"
+              header-align="center"
             >
               <template #default="{ row }">
                 <el-button
@@ -1148,7 +1150,7 @@ const loadAllJobs = async (forceRefresh = false) => {
 
 .action-buttons {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   align-items: center;
   gap: 8px;
 }
@@ -1195,4 +1197,3 @@ const loadAllJobs = async (forceRefresh = false) => {
   }
 }
 </style>
-

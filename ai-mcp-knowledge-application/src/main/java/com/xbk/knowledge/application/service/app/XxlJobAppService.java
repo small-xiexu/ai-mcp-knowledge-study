@@ -48,7 +48,7 @@ public interface XxlJobAppService {
      * 创建 XXL 任务
      *
      * @param jobInfo 任务信息
-     * @return 创建结果内容
+     * @return 任务创建返回内容
      */
     String createJob(XxlJobInfo jobInfo);
 
@@ -84,7 +84,7 @@ public interface XxlJobAppService {
      * 手动触发 XXL 任务
      *
      * @param jobId 任务 ID
-     * @param executorParam 执行参数
+     * @param executorParam 执行器参数。
      * @param addressList 指定机器列表
      */
     String triggerJob(Long jobId, String executorParam, String addressList);

@@ -35,9 +35,9 @@ public class XxlJobConfig {
     private String accessToken;
 
     /**
-     * xxlJobExecutor。
+     * 构建并注册 XXL-Job 执行器。
      *
-     * @return 返回结果
+     * @return 返回 XxlJobSpringExecutor 数据。
      */
     @Bean
     public XxlJobSpringExecutor xxlJobExecutor() {

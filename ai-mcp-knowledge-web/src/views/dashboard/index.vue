@@ -447,13 +447,6 @@ onUnmounted(() => {
   min-height: 100vh;
 }
 
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: 32px;
-}
-
 .header-subtitle {
   color: var(--gemini-text-secondary);
   font-size: 14px;
@@ -568,4 +561,3 @@ onUnmounted(() => {
   height: 450px;
 }
 </style>
-

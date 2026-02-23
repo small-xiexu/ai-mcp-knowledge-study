@@ -26,10 +26,10 @@ public class AdvisorRepositoryImpl implements AdvisorRepository {
     private final IAdvisorDao mapper;
 
     /**
-     * findById。
+     * 按主键查询 Advisor 配置。
      *
-     * @param id 参数
-     * @return 返回结果
+     * @param id Advisor 主键
+     * @return Advisor 配置（不存在时返回空）
      */
     @Override
     public Optional<Advisor> findById(Long id) {
@@ -41,10 +41,10 @@ public class AdvisorRepositoryImpl implements AdvisorRepository {
     }
 
     /**
-     * findByCode。
+     * 按编码查询 Advisor 配置。
      *
-     * @param advisorCode 参数
-     * @return 返回结果
+     * @param advisorCode Advisor 业务编码
+     * @return Advisor 配置（不存在时返回空）
      */
     @Override
     public Optional<Advisor> findByCode(String advisorCode) {
@@ -56,10 +56,10 @@ public class AdvisorRepositoryImpl implements AdvisorRepository {
     }
 
     /**
-     * findPage。
+     * 分页查询 Advisor 列表。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 分页与筛选条件
+     * @return Advisor 分页数据列表
      */
     @Override
     public List<Advisor> findPage(AdvisorPageQuery query) {
@@ -70,10 +70,10 @@ public class AdvisorRepositoryImpl implements AdvisorRepository {
     }
 
     /**
-     * count。
+     * 统计 Advisor 查询结果总数。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 分页与筛选条件
+     * @return 命中总数
      */
     @Override
     public long count(AdvisorPageQuery query) {
@@ -84,10 +84,10 @@ public class AdvisorRepositoryImpl implements AdvisorRepository {
     }
 
     /**
-     * insert。
+     * 新增 Advisor 配置。
      *
-     * @param advisor 参数
-     * @return 返回结果
+     * @param advisor Advisor 领域实体
+     * @return 新增后的 Advisor 领域实体
      */
     @Override
     public Advisor insert(Advisor advisor) {
@@ -99,10 +99,10 @@ public class AdvisorRepositoryImpl implements AdvisorRepository {
     }
 
     /**
-     * update。
+     * 更新 Advisor 配置。
      *
-     * @param advisor 参数
-     * @return 返回结果
+     * @param advisor Advisor 领域实体
+     * @return 更新影响行数
      */
     @Override
     public int update(Advisor advisor) {
@@ -113,11 +113,11 @@ public class AdvisorRepositoryImpl implements AdvisorRepository {
     }
 
     /**
-     * updateEnabled。
+     * 更新 Advisor 启用状态。
      *
-     * @param id 参数
-     * @param enabled 参数
-     * @return 返回结果
+     * @param id Advisor 主键
+     * @param enabled 启用状态（1 启用，0 禁用）
+     * @return 更新影响行数
      */
     @Override
     public int updateEnabled(Long id, Integer enabled) {
@@ -128,10 +128,10 @@ public class AdvisorRepositoryImpl implements AdvisorRepository {
     }
 
     /**
-     * deleteById。
+     * 按主键删除 Advisor 配置。
      *
-     * @param id 参数
-     * @return 返回结果
+     * @param id Advisor 主键
+     * @return 删除影响行数
      */
     @Override
     public int deleteById(Long id) {

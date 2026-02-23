@@ -19,33 +19,33 @@ import com.xbk.knowledge.types.common.Result;
 public interface IAgentVersionService {
 
     /**
-     * 分页查询数据列表。
+     * 按筛选条件分页查询Agent 版本数据。
      *
-     * @param request 请求参数
-     * @return 列表结果
+     * @param request Agent 版本分页查询条件。
+     * @return 返回 AgentVersionResponse 分页数据。
      */
     Result<PageResult<AgentVersionResponse>> list(AgentVersionQueryRequest request);
 
     /**
-     * 查询详情信息。
+     * 查询Agent 版本详情。
      *
-     * @param request 请求参数
-     * @return 查询结果
+     * @param request Agent 版本详情查询参数。
+     * @return 返回 AgentVersionResponse 数据。
      */
     Result<AgentVersionResponse> get(IdRequest request);
 
     /**
      * 保存草稿版本。
      *
-     * @param request 请求参数
-     * @return 保存结果
+     * @param request Agent 版本草稿保存参数。
+     * @return 返回 AgentVersionResponse 数据。
      */
     Result<AgentVersionResponse> saveDraft(AgentVersionDraftRequest request);
 
     /**
      * 发布版本。
      *
-     * @param request 请求参数
+     * @param request Agent 版本发布参数。
      * @return 发布结果
      */
     Result<AgentVersionResponse> publish(AgentVersionPublishRequest request);
@@ -53,7 +53,7 @@ public interface IAgentVersionService {
     /**
      * 回滚到指定版本。
      *
-     * @param request 请求参数
+     * @param request Agent 版本回滚参数。
      * @return 回滚结果
      */
     Result<AgentVersionResponse> rollback(AgentVersionRollbackRequest request);

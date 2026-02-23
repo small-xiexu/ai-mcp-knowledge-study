@@ -1,5 +1,5 @@
 <template>
-  <div class="model-management-container">
+  <div class="gemini-container model-management-container">
     <div class="page-header">
       <h2 class="page-title">LLM 模型配置</h2>
       <div class="header-actions">
@@ -44,7 +44,7 @@
         <el-table-column
           prop="modelName"
           label="模型名称"
-          min-width="150"
+          min-width="220"
         >
           <template #default="{ row }">
             <span class="model-name-text">{{ row.modelName }}</span>
@@ -62,7 +62,8 @@
         <el-table-column
           prop="baseUrl"
           label="Base URL"
-          min-width="200"
+          min-width="280"
+          show-overflow-tooltip
 
         >
           <template #default="{ row }">
@@ -73,28 +74,27 @@
         <!-- 状态列合并展示 -->
         <el-table-column
           label="功能状态"
-          min-width="240"
+          width="210"
+          align="center"
+          header-align="center"
         >
           <template #default="{ row }">
             <div class="status-group">
               <span 
                 class="status-dot-item" 
                 :class="{ active: row.activeChat }"
-                v-if="row.activeChat"
               >
                 <span class="dot"></span>对话
               </span>
               <span 
                 class="status-dot-item" 
                 :class="{ active: row.activeEmbedding }"
-                v-if="row.activeEmbedding"
               >
                 <span class="dot"></span>嵌入
               </span>
               <span 
                 class="status-dot-item" 
                 :class="{ active: row.toolEnabled }"
-                v-if="row.toolEnabled"
               >
                 <span class="dot"></span>工具
               </span>
@@ -105,6 +105,8 @@
         <el-table-column
           label="全局状态"
           width="100"
+          align="center"
+          header-align="center"
         >
           <template #default="{ row }">
             <el-switch
@@ -120,8 +122,8 @@
         <el-table-column
           label="操作"
           width="120"
-          fixed="right"
-          align="right"
+          align="center"
+          header-align="center"
         >
           <template #default="{ row }">
             <div class="action-buttons">
@@ -359,55 +361,40 @@ onMounted(() => {
   width: 100%;
   min-height: 100%;
   padding: 24px;
-  background-color: #131314; /* Gemini Dark Background */
+  background-color: transparent;
   color: #e8eaed;
   box-sizing: border-box;
 }
 
-/* 顶部标题区 */
-.page-header {
+.add-btn {
+  background: #8ab4f8;
+  border: none;
+  border-radius: 24px;
+  padding: 10px 24px;
+  font-weight: 500;
+  color: #202124;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #aecbfa;
+    transform: translateY(-1px);
+  }
+}
+
+.header-actions {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  gap: 12px;
+}
 
-  .page-title {
-    font-size: 24px;
-    font-weight: 500;
+.refresh-btn {
+  background: transparent;
+  border: 1px solid #5f6368;
+  color: #9aa0a6;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
     color: #e8eaed;
-    margin: 0;
-  }
-
-  .add-btn {
-    background: #8ab4f8;
-    border: none;
-    border-radius: 24px;
-    padding: 10px 24px;
-    font-weight: 500;
-    color: #202124;
-    transition: all 0.2s;
-
-    &:hover {
-      background: #aecbfa;
-      transform: translateY(-1px);
-    }
-  }
-
-  .header-actions {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .refresh-btn {
-    background: transparent;
-    border: 1px solid #5f6368;
-    color: #9aa0a6;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.1);
-      color: #e8eaed;
-    }
   }
 }
 
@@ -469,16 +456,20 @@ onMounted(() => {
 /* 状态样式 */
 .status-group {
   display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: nowrap;
 }
 
 .status-dot-item {
   display: flex;
   align-items: center;
+  justify-content: center;
+  min-width: 46px;
   font-size: 12px;
   color: #9aa0a6;
   gap: 6px;
+  opacity: 0.42;
   
   .dot {
     width: 6px;
@@ -488,6 +479,7 @@ onMounted(() => {
   }
   
   &.active {
+    opacity: 1;
     color: #e8eaed;
     .dot {
       background-color: #81c995;
@@ -507,7 +499,7 @@ onMounted(() => {
 /* 操作按钮 */
 .action-buttons {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 8px;
   
   .action-btn {

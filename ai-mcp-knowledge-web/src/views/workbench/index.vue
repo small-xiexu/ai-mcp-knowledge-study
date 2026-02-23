@@ -154,7 +154,7 @@
       <template #header>
         <div class="guide-header">
           <el-icon><Connection /></el-icon>
-          <span>知识库与集成（补充）</span>
+          <span>知识库与集成</span>
         </div>
       </template>
 

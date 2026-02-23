@@ -86,7 +86,7 @@ public class AuthAppServiceImpl implements AuthAppService {
     }
 
     /**
-     * 查询用户角色编码列表。
+     * 查询用户角色编码集合。
      *
      * @param userId 用户ID
      * @return 角色编码列表
@@ -100,7 +100,7 @@ public class AuthAppServiceImpl implements AuthAppService {
     }
 
     /**
-     * 查询用户权限编码列表。
+     * 查询用户权限编码集合。
      *
      * @param userId 用户ID
      * @return 权限编码列表

@@ -17,57 +17,57 @@ import java.util.Optional;
 public interface AgentScheduleRepository {
 
     /**
-     * 方法：findById。
+     * 按主键查询记录。
      */
     Optional<AgentSchedule> findById(AgentScheduleIdQuery query);
 
     /**
-     * 方法：listByAgentId。
+     * 查询 Agent 关联记录列表。
      */
     List<AgentSchedule> listByAgentId(Long agentId);
 
     /**
-     * 方法：existsByAgentIdAndScheduleName。
+     * 判断 Agent 下调度名称是否已存在。
      */
     boolean existsByAgentIdAndScheduleName(Long agentId, String scheduleName, Long excludeId);
 
     /**
-     * 方法：insert。
+     * 新增记录。
      */
     AgentSchedule insert(AgentSchedule schedule);
 
     /**
-     * 方法：update。
+     * 更新记录。
      */
     int update(AgentSchedule schedule);
 
     /**
-     * 方法：updateEnabled。
+     * 更新启用状态。
      */
     int updateEnabled(Long id, Boolean enabled, Long updatedBy);
 
     /**
-     * 方法：updateXxlJobId。
+     * 更新调度关联的 XXL-JOB ID。
      */
     int updateXxlJobId(Long id, Long xxlJobId, Long updatedBy);
 
     /**
-     * 方法：deleteById。
+     * 按主键删除记录。
      */
     int deleteById(Long id);
 
     /**
-     * 方法：deleteByAgentId。
+     * 删除指定 Agent 关联记录。
      */
     int deleteByAgentId(Long agentId);
 
     /**
-     * 方法：count。
+     * 统计符合条件的记录数量。
      */
     long count(AgentSchedulePageQuery query);
 
     /**
-     * 方法：findPage。
+     * 按条件分页查询记录。
      */
     List<AgentSchedule> findPage(AgentSchedulePageQuery query);
 }

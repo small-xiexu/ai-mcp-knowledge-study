@@ -14,32 +14,32 @@ import java.util.Optional;
 public interface WorkflowRunRepository {
 
     /**
-     * 方法：insert。
+     * 新增记录。
      */
     void insert(WorkflowRun run);
 
     /**
-     * 方法：updateStatus。
+     * 更新执行状态及异常信息。
      */
     int updateStatus(String runId, String status, String errorMessage, LocalDateTime endedAt);
 
     /**
-     * 方法：updateStatusAndMetrics。
+     * 更新执行状态与指标数据。
      */
     void updateStatusAndMetrics(WorkflowRun run);
 
     /**
-     * 方法：findByRunId。
+     * 按运行 ID 查询记录。
      */
     Optional<WorkflowRun> findByRunId(String runId);
 
     /**
-     * 方法：list。
+     * 按条件查询列表。
      */
     List<WorkflowRun> list(String status, int offset, int pageSize);
 
     /**
-     * 方法：count。
+     * 统计符合条件的记录数量。
      */
     long count(String status);
 
@@ -50,12 +50,12 @@ public interface WorkflowRunRepository {
     int deleteBefore(LocalDateTime cutOff, int limit);
 
     /**
-     * 方法：listRunIdsBefore。
+     * 查询截止时间之前的运行 ID 列表。
      */
     List<String> listRunIdsBefore(LocalDateTime cutOff, int limit);
 
     /**
-     * 方法：deleteByRunIds。
+     * 批量删除运行记录。
      */
     int deleteByRunIds(List<String> runIds);
 }

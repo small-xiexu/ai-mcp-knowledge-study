@@ -15,42 +15,42 @@ import java.util.Optional;
 public interface PromptTemplateRepository {
 
     /**
-     * 方法：findById。
+     * 按主键查询记录。
      */
     Optional<PromptTemplate> findById(PromptTemplateIdQuery query);
 
     /**
-     * 方法：existsByCode。
+     * 判断编码是否已存在。
      */
     boolean existsByCode(String templateCode);
 
     /**
-     * 方法：insert。
+     * 新增记录。
      */
     PromptTemplate insert(PromptTemplate template);
 
     /**
-     * 方法：updateDraft。
+     * 更新草稿版本内容。
      */
     int updateDraft(PromptTemplate template);
 
     /**
-     * 方法：publish。
+     * 发布版本并写入快照信息。
      */
     int publish(Long id, Long updatedBy);
 
     /**
-     * 方法：archive。
+     * 归档模板版本。
      */
     int archive(Long id, Long updatedBy);
 
     /**
-     * 方法：findPage。
+     * 按条件分页查询记录。
      */
     List<PromptTemplate> findPage(PromptTemplatePageQuery query);
 
     /**
-     * 方法：count。
+     * 统计符合条件的记录数量。
      */
     long count(PromptTemplatePageQuery query);
 }

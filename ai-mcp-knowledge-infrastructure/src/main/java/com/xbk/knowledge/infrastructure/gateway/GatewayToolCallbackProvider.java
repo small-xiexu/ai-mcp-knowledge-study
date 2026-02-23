@@ -1,6 +1,5 @@
 package com.xbk.knowledge.infrastructure.gateway;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xbk.knowledge.application.context.GatewayToolBindingContextHolder;
 import com.xbk.knowledge.application.context.GatewayToolBindingContextHolder.BindingContext;
@@ -23,6 +22,7 @@ import com.xbk.knowledge.infrastructure.audit.IdentityAuditLogService;
 import com.xbk.knowledge.domain.audit.model.entity.SysAuditEvent;
 import com.xbk.knowledge.types.exception.ApprovalRequiredException;
 import com.xbk.knowledge.types.exception.BusinessException;
+import com.xbk.knowledge.types.json.JsonMapUtils;
 import com.xbk.knowledge.types.tool.ToolNameUtils;
 import com.xbk.knowledge.types.tool.ToolKeyAware;
 import com.xbk.knowledge.types.tool.ToolInvokeBypassContextHolder;
@@ -146,8 +146,10 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
         return callbacks.toArray(new ToolCallback[0]);
     }
 
-    /** 批量加载所有网关的工具定义，返回 gatewayId → (toolName → ToolDefinition) 映射 */
-    private Map<String, Map<String, GatewayToolService.ToolDefinition>> loadToolDefinitions(List<McpGateway> gateways) {
+    /**
+     * 批量加载所有网关的工具定义，返回 gatewayId → (toolName → ToolDefinition) 映射
+     */
+     private Map<String, Map<String, GatewayToolService.ToolDefinition>> loadToolDefinitions(List<McpGateway> gateways) {
         Map<String, Map<String, GatewayToolService.ToolDefinition>> result = new HashMap<>();
         for (McpGateway gateway : gateways) {
             if (gateway == null || !StringUtils.hasText(gateway.getGatewayId())) {
@@ -261,8 +263,10 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
         return filtered;
     }
 
-    /** 从绑定列表中收集已启用的工具 ID */
-    private void appendEnabledToolIds(Set<Long> collector, List<McpToolBinding> bindings) {
+    /**
+     * 从绑定列表中收集已启用的工具 ID
+     */
+     private void appendEnabledToolIds(Set<Long> collector, List<McpToolBinding> bindings) {
         for (McpToolBinding binding : bindings) {
             if (binding == null || binding.getToolId() == null) {
                 continue;
@@ -274,8 +278,10 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
         }
     }
 
-    /** 将工具注册信息和定义组装为候选对象 */
-    private ToolCandidate buildToolCandidate(String gatewayId,
+    /**
+     * 将工具注册信息和定义组装为候选对象
+     */
+     private ToolCandidate buildToolCandidate(String gatewayId,
                                              McpToolRegistry registry,
                                              GatewayToolService.ToolDefinition definition) {
         String inputSchema = "";
@@ -300,8 +306,10 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
         return new ToolCandidate(registry.getId(), gatewayId, registry.getToolName(), toolKey, functionName, description, inputSchema, riskLevel);
     }
 
-    /** 将候选对象构建为 FunctionToolCallback，内部封装工具调用逻辑和链路追踪 */
-    private ToolCallback buildToolCallback(ToolCandidate candidate) {
+    /**
+     * 将候选对象构建为 FunctionToolCallback，内部封装工具调用逻辑和链路追踪
+     */
+     private ToolCallback buildToolCallback(ToolCandidate candidate) {
         String inputSchema = candidate.inputSchema;
         if (!StringUtils.hasText(inputSchema)) {
             inputSchema = "{\"type\":\"object\",\"properties\":{}}";
@@ -445,13 +453,7 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
             return;
         }
         String riskLevel = StringUtils.hasText(candidate.riskLevel) ? candidate.riskLevel : "MEDIUM";
-        boolean approvalRequired = "HIGH".equalsIgnoreCase(riskLevel);
-
-        riskLevel = StringUtils.hasText(riskLevel) ? riskLevel : "MEDIUM";
-        if (!approvalRequired && "HIGH".equalsIgnoreCase(riskLevel)) {
-            approvalRequired = true;
-        }
-        if (!approvalRequired || approvalRequestRepository == null) {
+        if (!"HIGH".equalsIgnoreCase(riskLevel) || approvalRequestRepository == null) {
             return;
         }
 
@@ -555,15 +557,12 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
         try {
             Map<String, Object> map = new LinkedHashMap<>();
             agentRunContextRepository.findByRunId(runId).ifPresent(ctx -> {
-                if (ctx != null && StringUtils.hasText(ctx.getSnapshotJson())) {
-                    try {
-                        Map<String, Object> existed = objectMapper.readValue(
-                                ctx.getSnapshotJson(),
-                                new TypeReference<Map<String, Object>>() {}
-                        );
-                        if (existed != null) {
-                            map.putAll(existed);
-                        }
+                    if (ctx != null && StringUtils.hasText(ctx.getSnapshotJson())) {
+                        try {
+                            Map<String, Object> existed = JsonMapUtils.readMap(objectMapper, ctx.getSnapshotJson());
+                            if (existed != null) {
+                                map.putAll(existed);
+                            }
                     } catch (Exception ignore) {
                         // 忽略旧快照解析失败，直接覆盖最小字段
                     }
@@ -693,8 +692,10 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
         }
     }
 
-    /** 工具候选对象，承载构建 ToolCallback 所需的中间数据 */
-    private static class ToolCandidate {
+    /**
+     * 工具候选对象，承载构建 ToolCallback 所需的中间数据
+     */
+     private static class ToolCandidate {
 
         private final Long toolId;
         private final String gatewayId;
@@ -742,9 +743,9 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
         }
 
         /**
-         * getToolDefinition。
+         * 获取底层工具定义。
          *
-         * @return 返回结果
+         * @return 返回 ToolDefinition 数据。
          */
         @Override
         public ToolDefinition getToolDefinition() {
@@ -752,9 +753,9 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
         }
 
         /**
-         * getToolMetadata。
+         * 获取底层工具元数据。
          *
-         * @return 返回结果
+         * @return 返回 ToolMetadata 数据。
          */
         @Override
         public ToolMetadata getToolMetadata() {
@@ -762,10 +763,10 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
         }
 
         /**
-         * call。
+         * 调用底层工具（无上下文）。
          *
-         * @param toolInput 参数
-         * @return 返回结果
+         * @param toolInput 工具输入参数。
+         * @return 返回工具执行结果文本。
          */
         @Override
         public String call(String toolInput) {
@@ -773,11 +774,11 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
         }
 
         /**
-         * call。
+         * 调用底层工具（带上下文）。
          *
-         * @param toolInput 参数
-         * @param toolContext 参数
-         * @return 返回结果
+         * @param toolInput 工具输入参数。
+         * @param toolContext 工具上下文。
+         * @return 返回工具执行结果文本。
          */
         @Override
         public String call(String toolInput, ToolContext toolContext) {
@@ -785,9 +786,9 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
         }
 
         /**
-         * toolKey。
+         * 返回治理后的工具标识。
          *
-         * @return 返回结果
+         * @return 返回工具唯一标识。
          */
         @Override
         public String toolKey() {
@@ -795,9 +796,9 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
         }
 
         /**
-         * toolSource。
+         * 返回工具来源标识。
          *
-         * @return 返回结果
+         * @return 返回工具来源。
          */
         @Override
         public String toolSource() {

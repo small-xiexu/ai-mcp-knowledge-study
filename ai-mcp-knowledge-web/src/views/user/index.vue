@@ -1,5 +1,12 @@
 <template>
   <div class="gemini-container">
+    <div class="page-header">
+      <div>
+        <h2 class="page-title">用户管理</h2>
+        <p class="subtitle">管理平台用户账号、状态与角色分配。</p>
+      </div>
+    </div>
+
     <el-card class="gemini-card">
       <el-form :inline="true" :model="searchForm" class="search-form">
         <el-form-item label="用户名">
@@ -55,14 +62,14 @@
             {{ row.mobile || '-' }}
           </template>
         </el-table-column>
-        <el-table-column label="状态" width="100">
+        <el-table-column label="状态" width="100" align="center" header-align="center">
           <template #default="{ row }">
             <el-tag :type="statusTagType(row.status)" effect="dark" style="border: none">
               {{ statusText(row.status) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="超管" width="90">
+        <el-table-column label="超管" width="90" align="center" header-align="center">
           <template #default="{ row }">
             <el-tag :type="row.superAdmin ? 'warning' : 'info'" effect="dark" style="border: none">
               {{ row.superAdmin ? '是' : '否' }}
@@ -79,7 +86,7 @@
             {{ formatDateTime(row.createdAt) }}
           </template>
         </el-table-column>
-        <el-table-column v-if="canWrite" label="操作" width="260" fixed="right">
+        <el-table-column v-if="canWrite" label="操作" width="260" align="center" header-align="center">
           <template #default="{ row }">
             <div class="action-buttons">
               <el-button text class="action-btn" @click="handleEdit(row)">编辑</el-button>

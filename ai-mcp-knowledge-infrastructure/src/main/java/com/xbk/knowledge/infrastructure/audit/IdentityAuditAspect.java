@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xbk.knowledge.domain.audit.model.entity.SysAuditEvent;
 import com.xbk.knowledge.types.common.Result;
+import com.xbk.knowledge.types.json.JsonMapUtils;
 import com.xbk.knowledge.types.trace.TraceIdUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -73,10 +74,10 @@ public class IdentityAuditAspect {
             "execution(* com.xbk.knowledge.trigger.http.RoleController.grantPermissions(..))"
     )
     /**
-     * aroundIdentityWriteOperations。
+     * 拦截身份与权限写操作并记录审计日志。
      *
-     * @param joinPoint 参数
-     * @return 返回结果
+     * @param joinPoint 切点上下文。
+     * @return 返回 Object 数据。
      */
     public Object aroundIdentityWriteOperations(ProceedingJoinPoint joinPoint) throws Throwable {
         long start = System.currentTimeMillis();
@@ -424,19 +425,11 @@ public class IdentityAuditAspect {
      * @param value 原对象
      * @return Map
      */
-    @SuppressWarnings("unchecked")
     private Map<String, Object> convertToMap(Object value) {
         if (value == null) {
             return new HashMap<>();
         }
-        if (value instanceof Map<?, ?> sourceMap) {
-            Map<String, Object> targetMap = new HashMap<>();
-            for (Map.Entry<?, ?> entry : sourceMap.entrySet()) {
-                targetMap.put(String.valueOf(entry.getKey()), entry.getValue());
-            }
-            return targetMap;
-        }
-        return objectMapper.convertValue(value, Map.class);
+        return new HashMap<>(JsonMapUtils.convertToMap(objectMapper, value));
     }
 
     /**

@@ -34,7 +34,7 @@
 
       <el-table v-loading="loading" :data="tableData" class="gemini-table" style="width: 100%">
         <el-table-column prop="versionNo" label="版本号" width="110" />
-        <el-table-column prop="state" label="状态" width="140">
+        <el-table-column prop="state" label="状态" width="140" align="center" header-align="center">
           <template #default="{ row }">
             <el-tag size="small" effect="dark" :type="row.state === 'PUBLISHED' ? 'success' : (row.state === 'DRAFT' ? 'warning' : 'info')">
               {{ row.state }}
@@ -59,7 +59,7 @@
         <el-table-column label="更新时间" width="180">
           <template #default="{ row }">{{ formatDateTime(row.updatedAt) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="280" align="right">
+        <el-table-column label="操作" width="280" align="center" header-align="center">
           <template #default="{ row }">
             <div class="action-buttons">
               <el-button link type="primary" class="action-btn" @click="openSnapshot(row)">
@@ -682,7 +682,7 @@ fetchData()
 }
 .action-buttons {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 8px;
 }
 .snapshot-pre {

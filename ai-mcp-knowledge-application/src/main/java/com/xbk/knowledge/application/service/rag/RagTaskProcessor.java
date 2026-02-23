@@ -83,9 +83,11 @@ public class RagTaskProcessor {
      */
     @Async
     public void processGitRepository(String taskId, String repoUrl, String userName, String token, String ragTag) {
+        // 每次任务使用独立的临时目录，避免并发任务之间互相干扰。
         String localPath = "./git-cloned-repo/" + UUID.randomUUID();
         Git git = null;
         try {
+            // 阶段 1：准备本地工作目录并克隆仓库。
             updateTask(taskId, RagTaskStatus.PROCESSING, 5, "正在连接远程仓库...");
 
             File repoDir = new File(localPath);
@@ -99,6 +101,7 @@ public class RagTaskProcessor {
                 return;
             }
 
+            // 只有在提供了用户名或令牌时才注入认证信息，兼容公开仓库场景。
             CloneCommand cloneCommand = Git.cloneRepository()
                     .setURI(repoUrl)
                     .setDirectory(repoDir);
@@ -109,14 +112,15 @@ public class RagTaskProcessor {
 
             updateTask(taskId, RagTaskStatus.PROCESSING, 30, "克隆完成，开始扫描文件...");
 
+            // 阶段 2：先统计可处理文件数量，用于后续进度计算更平滑准确。
             AtomicInteger totalFiles = new AtomicInteger(0);
             Files.walkFileTree(repoDir.toPath(), new SimpleFileVisitor<Path>() {
                 /**
-                 * visitFile。
+                 * 遍历仓库文件并统计可处理文件数。
                  *
-                 * @param file 参数
-                 * @param attrs 参数
-                 * @return 返回结果
+                 * @param file 文件对象。
+                 * @param attrs 文件属性。
+                 * @return 返回 FileVisitResult 数据。
                  */
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
@@ -138,6 +142,7 @@ public class RagTaskProcessor {
             int total = totalFiles.get() > 0 ? totalFiles.get() : 1;
             updateTask(taskId, RagTaskStatus.PROCESSING, 35, "扫描完成，共 " + total + " 个文件，开始解析...");
 
+            // 阶段 3：二次遍历执行解析入库，进度区间控制在 35%~95%。
             AtomicInteger current = new AtomicInteger(0);
             Files.walkFileTree(repoDir.toPath(), new SimpleFileVisitor<Path>() {
                 /**
@@ -168,6 +173,7 @@ public class RagTaskProcessor {
                         if (CollectionUtils.isEmpty(documents)) {
                             return FileVisitResult.CONTINUE;
                         }
+                        // 原文档和切分文档都带上知识库标签，方便后续检索按库过滤。
                         List<Document> splitDocuments = tokenTextSplitter.apply(documents);
                         documents.forEach(doc -> doc.getMetadata().put("knowledge", ragTag));
                         splitDocuments.forEach(doc -> doc.getMetadata().put("knowledge", ragTag));
@@ -189,6 +195,7 @@ public class RagTaskProcessor {
             log.error("Git 仓库解析失败, taskId: {}", taskId, e);
             updateTask(taskId, RagTaskStatus.FAILED, 0, "任务失败: " + e.getMessage());
         } finally {
+            // 无论成功或失败都要释放 Git 句柄并清理临时目录，避免文件句柄和磁盘空间泄露。
             if (git != null) {
                 git.close();
             }

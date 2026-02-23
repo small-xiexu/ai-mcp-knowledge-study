@@ -1,5 +1,12 @@
 <template>
   <div class="gemini-container">
+    <div class="page-header">
+      <div>
+        <h2 class="page-title">凭证管理</h2>
+        <p class="subtitle">管理网关访问凭证，外部调用方鉴权使用。</p>
+      </div>
+    </div>
+
     <el-card class="gemini-card">
       <el-alert
         title="用途说明"
@@ -78,7 +85,7 @@
             <span class="mono-text">{{ row.apiKey }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="状态" width="100">
+        <el-table-column label="状态" width="100" align="center" header-align="center">
           <template #default="{ row }">
             <el-tag :type="row.status === 1 ? 'success' : 'info'" effect="dark" style="border: none">
               {{ row.status === 1 ? '启用' : '禁用' }}
@@ -96,7 +103,7 @@
             {{ formatDateTime(row.createdAt) }}
           </template>
         </el-table-column>
-        <el-table-column v-if="canManageCredentials" label="操作" width="120" fixed="right">
+        <el-table-column v-if="canManageCredentials" label="操作" width="120" align="center" header-align="center">
           <template #default="{ row }">
             <el-button
               text

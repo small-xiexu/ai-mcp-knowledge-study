@@ -40,7 +40,7 @@ public interface RoleAppService {
     SysRole updateRole(SysRole role);
 
     /**
-     * 查询角色已分配权限ID列表。
+     * 查询角色已绑定的权限 ID 列表。
      *
      * @param roleId 角色ID
      * @return 权限ID列表

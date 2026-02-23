@@ -35,7 +35,7 @@ public class AuditEventController implements IAuditEventService {
     /**
      * 分页查询审计事件。
      *
-     * @param request 查询请求
+     * @param request 查询参数
      * @return 分页结果
      */
     @SaCheckPermission("audit:read")

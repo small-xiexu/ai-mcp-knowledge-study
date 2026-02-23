@@ -9,7 +9,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
- * AgentSchedule 创建请求。
+ * AgentSchedule 创建参数。
  *
  * @author sxie
  */

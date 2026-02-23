@@ -31,10 +31,10 @@ public class AdvisorAppServiceImpl implements AdvisorAppService {
     private final AdvisorRuntimeService advisorRuntimeService;
 
     /**
-     * queryPage。
+     * 查询顾问策略。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 Advisor 分页数据。
      */
     @Override
     public PageResult<Advisor> queryPage(AdvisorPageQuery query) {
@@ -57,10 +57,10 @@ public class AdvisorAppServiceImpl implements AdvisorAppService {
     }
 
     /**
-     * get。
+     * 查询顾问策略。
      *
-     * @param id 参数
-     * @return 返回结果
+     * @param id 主键 ID
+     * @return 返回 Advisor 数据。
      */
     @Override
     public Advisor get(Long id) {
@@ -72,10 +72,10 @@ public class AdvisorAppServiceImpl implements AdvisorAppService {
     }
 
     /**
-     * save。
+     * 创建或更新顾问策略数据。
      *
-     * @param advisor 参数
-     * @return 返回结果
+     * @param advisor 顾问策略实体。
+     * @return 顾问策略保存结果。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -128,10 +128,10 @@ public class AdvisorAppServiceImpl implements AdvisorAppService {
     }
 
     /**
-     * enable。
+     * 启用业务配置。
      *
-     * @param id 参数
-     * @return 返回结果
+     * @param id 主键 ID
+     * @return 返回 Advisor 数据。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -146,10 +146,10 @@ public class AdvisorAppServiceImpl implements AdvisorAppService {
     }
 
     /**
-     * disable。
+     * 禁用业务配置。
      *
-     * @param id 参数
-     * @return 返回结果
+     * @param id 主键 ID
+     * @return 返回 Advisor 数据。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -164,9 +164,9 @@ public class AdvisorAppServiceImpl implements AdvisorAppService {
     }
 
     /**
-     * remove。
+     * 删除顾问策略数据。
      *
-     * @param id 参数
+     * @param id 主键 ID
      */
     @Override
     @Transactional(rollbackFor = Exception.class)

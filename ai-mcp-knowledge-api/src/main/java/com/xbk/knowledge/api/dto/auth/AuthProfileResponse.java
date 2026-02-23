@@ -54,12 +54,12 @@ public class AuthProfileResponse implements Serializable {
     private Boolean superAdmin;
 
     /**
-     * 角色编码列表。
+     * 角色编码集合。
      */
     private List<String> roles;
 
     /**
-     * 权限编码列表。
+     * 权限编码集合。
      */
     private List<String> permissions;
 }

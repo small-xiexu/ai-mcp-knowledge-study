@@ -21,13 +21,13 @@
         <el-table-column prop="toolName" label="工具名称" min-width="180" />
         <el-table-column prop="httpMethod" label="方法" width="90" />
         <el-table-column prop="httpUrl" label="URL" min-width="240" />
-        <el-table-column label="状态" width="90">
+        <el-table-column label="状态" width="90" align="center" header-align="center">
           <template #default="{ row }">
             <el-tag :type="row.status === 1 ? 'success' : 'info'">{{ row.status === 1 ? '启用' : '禁用' }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="lastCallSummary" label="最近调用" min-width="120" />
-        <el-table-column label="操作" width="380" fixed="right">
+        <el-table-column label="操作" width="380" fixed="right" align="center" header-align="center">
           <template #default="{ row }">
             <el-button type="primary" text @click="openEdit(row)">编辑</el-button>
             <el-button type="primary" text @click="openDebug(row)">测试</el-button>

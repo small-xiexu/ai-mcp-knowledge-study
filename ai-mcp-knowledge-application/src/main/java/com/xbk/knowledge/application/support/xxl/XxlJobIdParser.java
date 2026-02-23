@@ -16,10 +16,10 @@ public final class XxlJobIdParser {
     }
 
     /**
-     * parseJobIdOrNull。
+     * 解析业务数据。
      *
-     * @param content 参数
-     * @return 返回结果
+     * @param content 输入内容
+     * @return 处理后的结果
      */
     public static Long parseJobIdOrNull(String content) {
         if (!StringUtils.hasText(content)) {

@@ -1,5 +1,12 @@
 <template>
   <div class="gemini-container">
+    <div class="page-header">
+      <div>
+        <h2 class="page-title">身份审计</h2>
+        <p class="subtitle">追踪身份相关操作记录，用于审计与排查。</p>
+      </div>
+    </div>
+
     <el-card class="gemini-card">
       <el-form :inline="true" :model="searchForm" class="search-form">
         <el-form-item label="操作人">
@@ -48,7 +55,7 @@
             {{ formatAction(row.action) }}
           </template>
         </el-table-column>
-        <el-table-column label="结果" width="100">
+        <el-table-column label="结果" width="100" align="center" header-align="center">
           <template #default="{ row }">
             <el-tag :type="row.result === 1 ? 'success' : 'danger'" effect="dark" style="border: none">
               {{ row.result === 1 ? '成功' : '失败' }}
@@ -70,7 +77,7 @@
             {{ formatDateTime(row.occurredAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="120" fixed="right">
+        <el-table-column label="操作" width="120" align="center" header-align="center">
           <template #default="{ row }">
             <el-button text class="action-btn" @click="handleViewDetail(row)">详情</el-button>
           </template>

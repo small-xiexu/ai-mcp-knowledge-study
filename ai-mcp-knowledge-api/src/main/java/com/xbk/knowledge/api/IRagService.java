@@ -22,7 +22,7 @@ public interface IRagService {
     /**
      * 查询知识库标签列表。
      *
-     * @return 列表结果
+     * @return 返回 String 列表数据。
      */
     Result<List<String>> listTags();
 
@@ -30,7 +30,7 @@ public interface IRagService {
      * 删除知识库标签。
      *
      * @param ragTag 知识库标签
-     * @return 处理结果
+     * @return 返回标签删除结果。
      */
     Result<Boolean> deleteTag(String ragTag);
 
@@ -38,7 +38,7 @@ public interface IRagService {
      * 统计标签数据量。
      *
      * @param ragTag 知识库标签
-     * @return 统计结果
+     * @return 返回数量统计结果。
      */
     Result<Long> countTag(String ragTag);
 
@@ -47,7 +47,7 @@ public interface IRagService {
      *
      * @param ragTag 知识库标签
      * @param files 文件列表
-     * @return 处理结果
+     * @return 返回文件上传结果。
      */
     Result<Boolean> uploadFile(String ragTag, List<MultipartFile> files);
 
@@ -56,47 +56,47 @@ public interface IRagService {
      *
      * @param ragTag 知识库标签
      * @param files 文件列表
-     * @return 任务结果
+     * @return 返回异步任务 ID。
      */
     Result<String> uploadFileAsync(String ragTag, List<MultipartFile> files);
 
     /**
      * 分析 Git 仓库并创建任务。
      *
-     * @param request 请求参数
-     * @return 任务结果
+     * @param request Git 仓库分析参数。
+     * @return 返回分析任务 ID。
      */
     Result<String> analyzeGitRepository(RagGitAnalyzeRequest request);
 
     /**
      * 查询任务进度。
      *
-     * @param request 请求参数
-     * @return 查询结果
+     * @param request 任务查询参数。
+     * @return 返回 RagTaskResponse 数据。
      */
     Result<RagTaskResponse> queryTask(RagTaskIdRequest request);
 
     /**
      * 取消任务。
      *
-     * @param request 请求参数
-     * @return 处理结果
+     * @param request 任务取消参数。
+     * @return 取消结果
      */
     Result<Boolean> cancelTask(RagTaskIdRequest request);
 
     /**
      * 重试任务。
      *
-     * @param request 请求参数
-     * @return 任务结果
+     * @param request 任务重试参数。
+     * @return 返回重试任务 ID。
      */
     Result<String> retryTask(RagTaskIdRequest request);
 
     /**
      * 分页查询任务列表。
      *
-     * @param request 请求参数
-     * @return 列表结果
+     * @param request 任务分页查询条件。
+     * @return 返回 RagTaskResponse 分页数据。
      */
     Result<PageResult<RagTaskResponse>> listTasks(RagTaskQueryRequest request);
 }

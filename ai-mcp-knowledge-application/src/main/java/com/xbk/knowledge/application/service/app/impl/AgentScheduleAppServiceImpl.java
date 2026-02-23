@@ -46,10 +46,10 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
     private final ObjectMapper objectMapper;
 
     /**
-     * queryPage。
+     * 查询Agent 调度。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 AgentSchedule 分页数据。
      */
     @Override
     public PageResult<AgentSchedule> queryPage(AgentSchedulePageQuery query) {
@@ -57,10 +57,10 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
     }
 
     /**
-     * queryById。
+     * 查询Agent 调度。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 AgentSchedule 数据。
      */
     @Override
     public AgentSchedule queryById(AgentScheduleIdQuery query) {
@@ -68,11 +68,11 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
     }
 
     /**
-     * create。
+     * 创建并持久化Agent 调度数据。
      *
-     * @param schedule 参数
-     * @param agentCode 参数
-     * @return 返回结果
+     * @param schedule 调度配置。
+     * @param agentCode Agent 编码
+     * @return 返回 AgentSchedule 数据。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -101,11 +101,11 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
     }
 
     /**
-     * update。
+     * 更新Agent 调度数据。
      *
-     * @param schedule 参数
-     * @param agentCode 参数
-     * @return 返回结果
+     * @param schedule 调度配置。
+     * @param agentCode Agent 编码
+     * @return 返回 AgentSchedule 数据。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -132,10 +132,10 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
     }
 
     /**
-     * enable。
+     * 启用业务配置。
      *
-     * @param id 参数
-     * @return 返回结果
+     * @param id 主键 ID
+     * @return 返回 AgentSchedule 数据。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -154,10 +154,10 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
     }
 
     /**
-     * disable。
+     * 禁用业务配置。
      *
-     * @param id 参数
-     * @return 返回结果
+     * @param id 主键 ID
+     * @return 返回 AgentSchedule 数据。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -171,9 +171,9 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
     }
 
     /**
-     * remove。
+     * 删除Agent 调度数据。
      *
-     * @param id 参数
+     * @param id 主键 ID
      */
     @Override
     @Transactional(rollbackFor = Exception.class)

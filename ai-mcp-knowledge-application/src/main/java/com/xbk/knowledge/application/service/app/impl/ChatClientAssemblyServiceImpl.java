@@ -57,12 +57,12 @@ public class ChatClientAssemblyServiceImpl implements ChatClientAssemblyService 
     }
 
     /**
-     * buildChatClient。
+     * 构建业务数据。
      *
-     * @param modelConfig 参数
-     * @param enableTools 参数
-     * @param extraAdvisors 参数
-     * @return 返回结果
+     * @param modelConfig 模型配置。
+     * @param enableTools 是否启用工具。
+     * @param extraAdvisors 额外 Advisor 列表。
+     * @return 处理后的结果
      */
     @Override
     public ChatClient buildChatClient(ModelConfig modelConfig, boolean enableTools, CallAdvisor... extraAdvisors) {

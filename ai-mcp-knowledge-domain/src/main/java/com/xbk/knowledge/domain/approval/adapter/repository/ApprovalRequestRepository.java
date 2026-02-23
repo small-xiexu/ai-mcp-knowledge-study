@@ -16,12 +16,12 @@ import java.util.Optional;
 public interface ApprovalRequestRepository {
 
     /**
-     * 方法：insert。
+     * 新增记录。
      */
     ApprovalRequest insert(ApprovalRequest request);
 
     /**
-     * 方法：findById。
+     * 按主键查询记录。
      */
     Optional<ApprovalRequest> findById(Long id);
 
@@ -57,7 +57,7 @@ public interface ApprovalRequestRepository {
     List<ApprovalRequest> list(String status, int offset, int pageSize);
 
     /**
-     * 方法：count。
+     * 统计符合条件的记录数量。
      */
     long count(String status);
 
@@ -76,7 +76,7 @@ public interface ApprovalRequestRepository {
     int markExpired(Long id, String decisionComment, LocalDateTime decidedAt);
 
     /**
-     * 方法：deleteByAgentId。
+     * 删除指定 Agent 关联记录。
      */
     int deleteByAgentId(Long agentId);
 }

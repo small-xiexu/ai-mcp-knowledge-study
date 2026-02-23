@@ -95,13 +95,13 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
     private final ClientProfileRepository clientProfileRepository;
 
     /**
-     * chat。
+     * 执行 Agent 对话调用。
      *
-     * @param agentCode 参数
-     * @param sessionId 参数
-     * @param content 参数
-     * @param ragTagsJson 参数
-     * @return 返回结果
+     * @param agentCode Agent 编码
+     * @param sessionId 会话 ID
+     * @param content 输入内容
+     * @param ragTagsJson RAG 标签 JSON。
+     * @return 返回 PlatformContractV1 数据。
      */
     @Override
     public PlatformContractV1 chat(String agentCode, Long sessionId, String content, String ragTagsJson) {
@@ -528,13 +528,13 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
     }
 
     /**
-     * stream。
+     * 执行 Agent 流式调用。
      *
-     * @param agentCode 参数
-     * @param sessionId 参数
-     * @param content 参数
-     * @param ragTagsJson 参数
-     * @return 返回结果
+     * @param agentCode Agent 编码
+     * @param sessionId 会话 ID
+     * @param content 输入内容
+     * @param ragTagsJson RAG 标签 JSON。
+     * @return 返回 Flux<PlatformStreamEvent> 数据。
      */
     @Override
     public Flux<PlatformStreamEvent> stream(String agentCode, Long sessionId, String content, String ragTagsJson) {
@@ -720,13 +720,13 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
     }
 
     /**
-     * invoke。
+     * 执行业务调用。
      *
-     * @param agentCode 参数
-     * @param sessionId 参数
-     * @param content 参数
-     * @param ragTagsJson 参数
-     * @return 返回结果
+     * @param agentCode Agent 编码
+     * @param sessionId 会话 ID
+     * @param content 输入内容
+     * @param ragTagsJson RAG 标签 JSON。
+     * @return 返回 PlatformContractV1 数据。
      */
     @Override
     public PlatformContractV1 invoke(String agentCode, Long sessionId, String content, String ragTagsJson) {
@@ -735,12 +735,12 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
     }
 
     /**
-     * runJob。
+     * 执行业务流程。
      *
-     * @param agentCode 参数
-     * @param content 参数
-     * @param ragTagsJson 参数
-     * @return 返回结果
+     * @param agentCode Agent 编码
+     * @param content 输入内容
+     * @param ragTagsJson RAG 标签 JSON。
+     * @return 返回 PlatformContractV1 数据。
      */
     @Override
     public PlatformContractV1 runJob(String agentCode, String content, String ragTagsJson) {

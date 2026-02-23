@@ -27,10 +27,10 @@ public class PromptTemplateRepositoryImpl implements PromptTemplateRepository {
     private final IPromptTemplateDao promptTemplateMapper;
 
     /**
-     * findById。
+     * 查询提示词模板。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 PromptTemplate 查询结果（可能为空）。
      */
     @Override
     public Optional<PromptTemplate> findById(PromptTemplateIdQuery query) {
@@ -42,10 +42,10 @@ public class PromptTemplateRepositoryImpl implements PromptTemplateRepository {
     }
 
     /**
-     * existsByCode。
+     * 判断模板编码是否已存在。
      *
-     * @param templateCode 参数
-     * @return 返回结果
+     * @param templateCode 模板编码。
+     * @return 返回是否存在。
      */
     @Override
     public boolean existsByCode(String templateCode) {
@@ -56,10 +56,10 @@ public class PromptTemplateRepositoryImpl implements PromptTemplateRepository {
     }
 
     /**
-     * insert。
+     * 创建并持久化提示词模板数据。
      *
-     * @param template 参数
-     * @return 返回结果
+     * @param template 模板实体。
+     * @return 返回 PromptTemplate 数据。
      */
     @Override
     public PromptTemplate insert(PromptTemplate template) {
@@ -78,10 +78,10 @@ public class PromptTemplateRepositoryImpl implements PromptTemplateRepository {
     }
 
     /**
-     * updateDraft。
+     * 更新提示词模板数据。
      *
-     * @param template 参数
-     * @return 返回结果
+     * @param template 模板实体。
+     * @return 返回模板草稿更新条数。
      */
     @Override
     public int updateDraft(PromptTemplate template) {
@@ -95,11 +95,11 @@ public class PromptTemplateRepositoryImpl implements PromptTemplateRepository {
     }
 
     /**
-     * publish。
+     * 发布业务配置。
      *
-     * @param id 参数
-     * @param updatedBy 参数
-     * @return 返回结果
+     * @param id 主键 ID
+     * @param updatedBy 更新人 ID
+     * @return 返回模板发布更新条数。
      */
     @Override
     public int publish(Long id, Long updatedBy) {
@@ -110,11 +110,11 @@ public class PromptTemplateRepositoryImpl implements PromptTemplateRepository {
     }
 
     /**
-     * archive。
+     * 归档业务配置。
      *
-     * @param id 参数
-     * @param updatedBy 参数
-     * @return 返回结果
+     * @param id 主键 ID
+     * @param updatedBy 更新人 ID
+     * @return 返回模板归档更新条数。
      */
     @Override
     public int archive(Long id, Long updatedBy) {
@@ -125,10 +125,10 @@ public class PromptTemplateRepositoryImpl implements PromptTemplateRepository {
     }
 
     /**
-     * findPage。
+     * 查询提示词模板。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 PromptTemplate 列表数据。
      */
     @Override
     public List<PromptTemplate> findPage(PromptTemplatePageQuery query) {
@@ -139,10 +139,10 @@ public class PromptTemplateRepositoryImpl implements PromptTemplateRepository {
     }
 
     /**
-     * count。
+     * 按条件统计业务数量。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 统计数量
      */
     @Override
     public long count(PromptTemplatePageQuery query) {

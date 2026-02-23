@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
- * WorkflowRunNodeListRequest。
+ * WorkflowRunNodeList 请求参数模型。
  *
  * @author sxie
  */

@@ -46,7 +46,7 @@
         <el-table-column label="步骤数" width="100">
           <template #default="{ row }">{{ row.steps?.length || 0 }}</template>
         </el-table-column>
-        <el-table-column prop="status" label="状态" width="130">
+        <el-table-column prop="status" label="状态" width="130" align="center" header-align="center">
           <template #default="{ row }">
             <el-tag size="small" effect="dark" :type="row.status === 'ENABLED' ? 'success' : 'info'">
               {{ row.status }}
@@ -56,7 +56,7 @@
         <el-table-column label="更新时间" width="180">
           <template #default="{ row }">{{ formatDateTime(row.updatedAt) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="300" align="right">
+        <el-table-column label="操作" width="300" align="center" header-align="center">
           <template #default="{ row }">
             <div class="action-buttons">
               <el-button link type="primary" class="action-btn" @click="openEdit(row.id)">
@@ -149,7 +149,7 @@
                   <el-input v-model="row.allowedToolKeysJson" placeholder='例如：["mcp:publish"]' />
                 </template>
               </el-table-column>
-              <el-table-column label="操作" width="100" align="right">
+              <el-table-column label="操作" width="100" align="center" header-align="center">
                 <template #default="{ $index }">
                   <el-button link type="danger" @click="removeStep($index)">删除</el-button>
                 </template>
@@ -369,7 +369,7 @@ fetchData()
 
 .action-buttons {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 8px;
 }
 </style>

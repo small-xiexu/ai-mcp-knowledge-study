@@ -22,8 +22,10 @@ import java.util.Map;
 @Service
 public class GatewayMessageService {
 
-    /** Handler 注册表，key 为 Bean 名称，由 Spring 自动注入 */
-    @Resource
+    /**
+     * Handler 注册表，key 为 Bean 名称，由 Spring 自动注入
+     */
+     @Resource
     private Map<String, IRequestHandler> requestHandlerMap;
 
     /**

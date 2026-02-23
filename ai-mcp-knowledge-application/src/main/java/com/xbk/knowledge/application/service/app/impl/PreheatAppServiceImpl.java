@@ -63,11 +63,11 @@ public class PreheatAppServiceImpl implements PreheatAppService {
     private final ClientProfileRepository clientProfileRepository;
 
     /**
-     * preheatAgentVersion。
+     * 预热 Agent 版本运行资源。
      *
-     * @param agentVersionId 参数
-     * @param refreshMcp 参数
-     * @return 返回结果
+     * @param agentVersionId Agent 版本 ID。
+     * @param refreshMcp 是否刷新 MCP 客户端。
+     * @return 返回 PreheatResult 数据。
      */
     @Override
     public PreheatResult preheatAgentVersion(Long agentVersionId, boolean refreshMcp) {
@@ -113,11 +113,11 @@ public class PreheatAppServiceImpl implements PreheatAppService {
     }
 
     /**
-     * preheatWorkflowVersion。
+     * 预热 Workflow 版本运行资源。
      *
-     * @param workflowVersionId 参数
-     * @param refreshMcp 参数
-     * @return 返回结果
+     * @param workflowVersionId 工作流版本 ID。
+     * @param refreshMcp 是否刷新 MCP 客户端。
+     * @return 返回 PreheatResult 数据。
      */
     @Override
     public PreheatResult preheatWorkflowVersion(Long workflowVersionId, boolean refreshMcp) {

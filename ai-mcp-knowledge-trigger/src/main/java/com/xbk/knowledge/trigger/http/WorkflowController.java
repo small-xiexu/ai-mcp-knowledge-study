@@ -35,10 +35,10 @@ public class WorkflowController implements IWorkflowService {
     private final WorkflowAppService workflowAppService;
 
     /**
-     * list。
+     * 根据筛选条件查询工作流列表。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 工作流分页查询参数。
+     * @return 返回 WorkflowResponse 分页数据。
      */
     @PostMapping("/list")
     @SaCheckPermission("workflow:read")
@@ -53,10 +53,10 @@ public class WorkflowController implements IWorkflowService {
     }
 
     /**
-     * get。
+     * 查询工作流。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 工作流查询参数。
+     * @return 返回 WorkflowResponse 数据。
      */
     @PostMapping("/get")
     @SaCheckPermission("workflow:read")
@@ -67,10 +67,10 @@ public class WorkflowController implements IWorkflowService {
     }
 
     /**
-     * create。
+     * 创建并持久化工作流数据。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 工作流创建参数。
+     * @return 返回 WorkflowResponse 数据。
      */
     @PostMapping("/create")
     @SaCheckPermission("workflow:write")
@@ -87,10 +87,10 @@ public class WorkflowController implements IWorkflowService {
     }
 
     /**
-     * update。
+     * 更新工作流数据。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 工作流更新参数。
+     * @return 返回 WorkflowResponse 数据。
      */
     @PostMapping("/update")
     @SaCheckPermission("workflow:write")
@@ -107,10 +107,10 @@ public class WorkflowController implements IWorkflowService {
     }
 
     /**
-     * createVersion。
+     * 创建并持久化工作流数据。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 工作流创建参数。
+     * @return 返回 WorkflowVersionResponse 数据。
      */
     @PostMapping("/versions/create")
     @SaCheckPermission("workflow:write")
@@ -121,10 +121,10 @@ public class WorkflowController implements IWorkflowService {
     }
 
     /**
-     * listVersions。
+     * 根据筛选条件查询工作流列表。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 工作流分页查询参数。
+     * @return 返回 WorkflowVersionResponse 列表数据。
      */
     @PostMapping("/versions/list")
     @SaCheckPermission("workflow:read")
@@ -141,10 +141,10 @@ public class WorkflowController implements IWorkflowService {
     }
 
     /**
-     * getVersion。
+     * 查询工作流。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 工作流查询参数。
+     * @return 返回 WorkflowVersionResponse 数据。
      */
     @PostMapping("/versions/get")
     @SaCheckPermission("workflow:read")
@@ -155,10 +155,10 @@ public class WorkflowController implements IWorkflowService {
     }
 
     /**
-     * publish。
+     * 发布业务配置。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 工作流发布参数。
+     * @return 返回 WorkflowVersionResponse 数据。
      */
     @PostMapping("/versions/publish")
     @SaCheckPermission("workflow:publish")
@@ -169,10 +169,10 @@ public class WorkflowController implements IWorkflowService {
     }
 
     /**
-     * saveGraph。
+     * 创建或更新工作流数据。
      *
-     * @param request 参数
-     * @return 返回结果
+     * @param request 工作流保存参数。
+     * @return 返回 WorkflowVersionResponse 数据。
      */
     @PostMapping("/versions/save-graph")
     @SaCheckPermission("workflow:write")

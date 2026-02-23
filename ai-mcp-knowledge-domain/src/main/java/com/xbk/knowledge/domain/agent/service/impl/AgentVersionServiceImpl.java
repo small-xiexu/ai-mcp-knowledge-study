@@ -25,6 +25,7 @@ import com.xbk.knowledge.domain.agent.service.IAgentVersionService;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.exception.BusinessException;
 import com.xbk.knowledge.types.exception.NotFoundException;
+import com.xbk.knowledge.types.json.JsonMapUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -64,10 +65,10 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
     private final ObjectMapper objectMapper;
 
     /**
-     * queryPage。
+     * 查询Agent 版本。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 AgentVersion 分页数据。
      */
     @Override
     public PageResult<AgentVersion> queryPage(AgentVersionPageQuery query) {
@@ -88,10 +89,10 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
     }
 
     /**
-     * queryById。
+     * 查询Agent 版本。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 AgentVersion 数据。
      */
     @Override
     public AgentVersion queryById(AgentVersionIdQuery query) {
@@ -104,10 +105,10 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
     }
 
     /**
-     * createDraft。
+     * 创建并持久化Agent 版本数据。
      *
-     * @param draft 参数
-     * @return 返回结果
+     * @param draft 草稿版本实体。
+     * @return Agent 版本保存结果。
      */
     @Override
     public AgentVersion createDraft(AgentVersion draft) {
@@ -151,10 +152,10 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
     }
 
     /**
-     * updateDraft。
+     * 更新Agent 版本数据。
      *
-     * @param draft 参数
-     * @return 返回结果
+     * @param draft 草稿版本实体。
+     * @return Agent 版本更新结果。
      */
     @Override
     public AgentVersion updateDraft(AgentVersion draft) {
@@ -192,12 +193,12 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
     }
 
     /**
-     * publish。
+     * 发布业务配置。
      *
-     * @param agentCode 参数
-     * @param versionId 参数
-     * @param operatorId 参数
-     * @return 返回结果
+     * @param agentCode Agent 编码
+     * @param versionId 版本 ID
+     * @param operatorId 操作人 ID
+     * @return 返回 AgentVersion 数据。
      */
     @Override
     public AgentVersion publish(String agentCode, Long versionId, Long operatorId) {
@@ -278,12 +279,12 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
     }
 
     /**
-     * rollback。
+     * 回滚业务配置。
      *
-     * @param agentCode 参数
-     * @param targetVersionId 参数
-     * @param operatorId 参数
-     * @return 返回结果
+     * @param agentCode Agent 编码
+     * @param targetVersionId 目标版本 ID。
+     * @param operatorId 操作人 ID
+     * @return 返回 AgentVersion 数据。
      */
     @Override
     public AgentVersion rollback(String agentCode, Long targetVersionId, Long operatorId) {
@@ -364,7 +365,7 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
             return Map.of();
         }
         try {
-            return objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {});
+            return JsonMapUtils.readMap(objectMapper, json);
         } catch (Exception e) {
             log.warn("解析 templateParamsJson 失败，将按空对象处理");
             return Map.of();

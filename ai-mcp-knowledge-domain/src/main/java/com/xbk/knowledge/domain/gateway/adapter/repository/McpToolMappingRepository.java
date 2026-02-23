@@ -15,22 +15,22 @@ import java.util.List;
 public interface McpToolMappingRepository {
 
     /**
-     * 方法：findByToolIdAndMappingType。
+     * 按工具 ID 与映射类型查询映射配置。
      */
     List<McpToolMapping> findByToolIdAndMappingType(ToolMappingQuery query);
 
     /**
-     * 方法：save。
+     * 保存或更新记录。
      */
     McpToolMapping save(McpToolMapping mapping);
 
     /**
-     * 方法：deleteById。
+     * 按主键删除记录。
      */
     void deleteById(IdQuery query);
 
     /**
-     * 方法：deleteByToolId。
+     * 删除指定工具的映射配置。
      */
     void deleteByToolId(Long toolId);
 }

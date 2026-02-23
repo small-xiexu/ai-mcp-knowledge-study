@@ -16,9 +16,9 @@ import org.springframework.stereotype.Service;
 public class SaTokenIdentityContextService implements IdentityContextService {
 
     /**
-     * login。
+     * 执行用户登录并写入会话。
      *
-     * @param userId 参数
+     * @param userId 用户 ID
      */
     @Override
     public void login(Long userId) {
@@ -26,7 +26,7 @@ public class SaTokenIdentityContextService implements IdentityContextService {
     }
 
     /**
-     * logout。
+     * 执行用户登出并清理会话。
      *
      */
     @Override
@@ -35,9 +35,9 @@ public class SaTokenIdentityContextService implements IdentityContextService {
     }
 
     /**
-     * getCurrentUserId。
+     * 获取当前登录用户 ID。
      *
-     * @return 返回结果
+     * @return 返回用户 ID。
      */
     @Override
     public Long getCurrentUserId() {
@@ -45,9 +45,9 @@ public class SaTokenIdentityContextService implements IdentityContextService {
     }
 
     /**
-     * isLogin。
+     * 判断当前请求是否已登录。
      *
-     * @return 返回结果
+     * @return 返回是否已登录。
      */
     @Override
     public boolean isLogin() {
@@ -55,9 +55,9 @@ public class SaTokenIdentityContextService implements IdentityContextService {
     }
 
     /**
-     * getTokenName。
+     * 获取 Token 名称。
      *
-     * @return 返回结果
+     * @return 返回 Token 名称。
      */
     @Override
     public String getTokenName() {
@@ -65,9 +65,9 @@ public class SaTokenIdentityContextService implements IdentityContextService {
     }
 
     /**
-     * getTokenValue。
+     * 获取当前 Token 值。
      *
-     * @return 返回结果
+     * @return 返回 Token 值。
      */
     @Override
     public String getTokenValue() {
@@ -75,9 +75,9 @@ public class SaTokenIdentityContextService implements IdentityContextService {
     }
 
     /**
-     * getTokenTimeout。
+     * 获取当前 Token 过期剩余时间。
      *
-     * @return 返回结果
+     * @return 返回剩余秒数。
      */
     @Override
     public long getTokenTimeout() {

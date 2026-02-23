@@ -18,7 +18,7 @@ public interface AiChatAppService {
      * 同步对话
      *
      * @param command 请求
-     * @return 结果
+     * @return 返回 AICallResult 数据。
      */
     AICallResult chat(AICallCommand command);
 

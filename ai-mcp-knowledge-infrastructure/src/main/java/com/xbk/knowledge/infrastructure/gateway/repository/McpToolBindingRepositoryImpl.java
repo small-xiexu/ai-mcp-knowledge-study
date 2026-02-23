@@ -26,10 +26,10 @@ public class McpToolBindingRepositoryImpl implements McpToolBindingRepository {
     private final IMcpToolBindingDao mapper;
 
     /**
-     * findByBindTypeAndTargetId。
+     * 查询MCP 工具绑定。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 McpToolBinding 列表数据。
      */
     @Override
     public List<McpToolBinding> findByBindTypeAndTargetId(ToolBindingQuery query) {
@@ -40,10 +40,10 @@ public class McpToolBindingRepositoryImpl implements McpToolBindingRepository {
     }
 
     /**
-     * findByToolId。
+     * 查询MCP 工具绑定。
      *
-     * @param toolId 参数
-     * @return 返回结果
+     * @param toolId 工具 ID
+     * @return 返回 McpToolBinding 列表数据。
      */
     @Override
     public List<McpToolBinding> findByToolId(Long toolId) {
@@ -55,10 +55,10 @@ public class McpToolBindingRepositoryImpl implements McpToolBindingRepository {
     }
 
     /**
-     * save。
+     * 创建或更新MCP 工具绑定数据。
      *
-     * @param binding 参数
-     * @return 返回结果
+     * @param binding 绑定实体。
+     * @return 返回 McpToolBinding 数据。
      */
     @Override
     public McpToolBinding save(McpToolBinding binding) {
@@ -74,9 +74,9 @@ public class McpToolBindingRepositoryImpl implements McpToolBindingRepository {
     }
 
     /**
-     * deleteById。
+     * 删除MCP 工具绑定数据。
      *
-     * @param id 参数
+     * @param id 主键 ID
      */
     @Override
     public void deleteById(Long id) {
@@ -87,9 +87,9 @@ public class McpToolBindingRepositoryImpl implements McpToolBindingRepository {
     }
 
     /**
-     * deleteByToolId。
+     * 删除MCP 工具绑定数据。
      *
-     * @param toolId 参数
+     * @param toolId 工具 ID
      */
     @Override
     public void deleteByToolId(Long toolId) {
@@ -100,9 +100,9 @@ public class McpToolBindingRepositoryImpl implements McpToolBindingRepository {
     }
 
     /**
-     * deleteByBindTypeAndTargetId。
+     * 删除MCP 工具绑定数据。
      *
-     * @param query 参数
+     * @param query 查询条件
      */
     @Override
     public void deleteByBindTypeAndTargetId(ToolBindingQuery query) {

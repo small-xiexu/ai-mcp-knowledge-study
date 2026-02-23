@@ -41,9 +41,9 @@ public class WorkbenchAppServiceImpl implements WorkbenchAppService {
     private final ModelActivationRepository modelActivationRepository;
 
     /**
-     * summary。
+     * 汇总工作台首页关键指标数据。
      *
-     * @return 返回结果
+     * @return 返回 WorkbenchSummary 数据。
      */
     @Override
     public WorkbenchSummary summary() {

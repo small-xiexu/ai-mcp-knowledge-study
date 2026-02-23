@@ -25,7 +25,7 @@ public interface IMcpGatewayService {
      * @param gatewayId 网关 ID
      * @param sessionId 会话 ID
      * @param body 请求报文
-     * @return 消息处理结果
+     * @return 消息响应结果
      */
     Object handleMessage(String gatewayId, String sessionId, String body);
 }

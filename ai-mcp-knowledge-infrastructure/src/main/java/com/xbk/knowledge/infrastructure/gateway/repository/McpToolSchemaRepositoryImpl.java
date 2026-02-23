@@ -23,11 +23,11 @@ public class McpToolSchemaRepositoryImpl implements McpToolSchemaRepository {
     private final IMcpToolSchemaDao mapper;
 
     /**
-     * findActiveByGatewayIdAndToolId。
+     * 查询MCP 工具 Schema。
      *
-     * @param gatewayId 参数
-     * @param toolId 参数
-     * @return 返回结果
+     * @param gatewayId 网关 ID
+     * @param toolId 工具 ID
+     * @return 返回 McpToolSchema 查询结果（可能为空）。
      */
     @Override
     public Optional<McpToolSchema> findActiveByGatewayIdAndToolId(String gatewayId, Long toolId) {
@@ -39,10 +39,10 @@ public class McpToolSchemaRepositoryImpl implements McpToolSchemaRepository {
     }
 
     /**
-     * save。
+     * 创建或更新MCP 工具 Schema数据。
      *
-     * @param schema 参数
-     * @return 返回结果
+     * @param schema 工具 Schema 配置。
+     * @return 返回 McpToolSchema 数据。
      */
     @Override
     public McpToolSchema save(McpToolSchema schema) {
@@ -58,9 +58,9 @@ public class McpToolSchemaRepositoryImpl implements McpToolSchemaRepository {
     }
 
     /**
-     * deleteByToolId。
+     * 删除MCP 工具 Schema数据。
      *
-     * @param toolId 参数
+     * @param toolId 工具 ID
      */
     @Override
     public void deleteByToolId(Long toolId) {

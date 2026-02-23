@@ -18,42 +18,42 @@ import com.xbk.knowledge.types.common.Result;
 public interface IAgentService {
 
     /**
-     * 分页查询数据列表。
+     * 按筛选条件分页查询智能体数据。
      *
-     * @param request 请求参数
-     * @return 列表结果
+     * @param request 智能体分页查询条件。
+     * @return 返回 AgentResponse 分页数据。
      */
     Result<PageResult<AgentResponse>> list(AgentQueryRequest request);
 
     /**
-     * 查询详情信息。
+     * 查询智能体详情。
      *
-     * @param request 请求参数
-     * @return 查询结果
+     * @param request 智能体详情查询参数。
+     * @return 返回 AgentResponse 数据。
      */
     Result<AgentResponse> get(AgentCodeRequest request);
 
     /**
-     * 创建数据。
+     * 创建智能体数据。
      *
-     * @param request 请求参数
-     * @return 创建结果
+     * @param request 智能体创建参数。
+     * @return 返回 AgentResponse 数据。
      */
     Result<AgentResponse> create(AgentCreateRequest request);
 
     /**
-     * 更新数据。
+     * 更新智能体数据。
      *
-     * @param request 请求参数
-     * @return 更新结果
+     * @param request 智能体更新参数。
+     * @return 返回 AgentResponse 数据。
      */
     Result<AgentResponse> update(AgentUpdateRequest request);
 
     /**
-     * 删除目标对象。
+     * 删除智能体。
      *
-     * @param request 请求参数
-     * @return 处理结果
+     * @param request 智能体删除参数。
+     * @return 返回删除状态。
      */
     Result<Void> remove(AgentCodeRequest request);
 }

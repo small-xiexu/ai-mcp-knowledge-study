@@ -15,10 +15,10 @@ import com.xbk.knowledge.types.common.Result;
 public interface IAuditEventService {
 
     /**
-     * 分页查询数据列表。
+     * 按筛选条件分页查询审计事件数据。
      *
-     * @param request 请求参数
-     * @return 列表结果
+     * @param request 审计事件分页查询参数。
+     * @return 返回 AuditEventResponse 分页数据。
      */
     Result<PageResult<AuditEventResponse>> list(AuditEventQueryRequest request);
 }

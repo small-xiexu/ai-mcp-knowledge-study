@@ -58,7 +58,7 @@ public class IdentityRepositoryImpl implements IdentityRepository {
     }
 
     /**
-     * 查询用户的角色编码列表。
+     * 查询用户的角色编码集合。
      *
      * @param userId 用户ID
      * @return 角色编码列表
@@ -69,7 +69,7 @@ public class IdentityRepositoryImpl implements IdentityRepository {
     }
 
     /**
-     * 查询用户的权限编码列表。
+     * 查询用户的权限编码集合。
      *
      * @param userId 用户ID
      * @return 权限编码列表
@@ -241,7 +241,7 @@ public class IdentityRepositoryImpl implements IdentityRepository {
     }
 
     /**
-     * 查询角色权限ID列表。
+     * 查询角色绑定的权限 ID 列表。
      *
      * @param roleId 角色ID
      * @return 权限ID列表
@@ -306,7 +306,7 @@ public class IdentityRepositoryImpl implements IdentityRepository {
     }
 
     /**
-     * 查询用户角色ID列表。
+     * 查询用户绑定的角色 ID 列表。
      *
      * @param userId 用户ID
      * @return 角色ID列表

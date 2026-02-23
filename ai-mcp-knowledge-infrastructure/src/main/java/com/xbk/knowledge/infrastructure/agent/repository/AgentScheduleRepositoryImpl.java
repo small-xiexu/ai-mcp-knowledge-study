@@ -27,10 +27,10 @@ public class AgentScheduleRepositoryImpl implements AgentScheduleRepository {
     private final IAgentScheduleDao agentScheduleDao;
 
     /**
-     * findById。
+     * 查询Agent 调度。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 AgentSchedule 查询结果（可能为空）。
      */
     @Override
     public Optional<AgentSchedule> findById(AgentScheduleIdQuery query) {
@@ -60,10 +60,10 @@ public class AgentScheduleRepositoryImpl implements AgentScheduleRepository {
     }
 
     /**
-     * insert。
+     * 创建并持久化Agent 调度数据。
      *
-     * @param schedule 参数
-     * @return 返回结果
+     * @param schedule 调度配置。
+     * @return 返回 AgentSchedule 数据。
      */
     @Override
     public AgentSchedule insert(AgentSchedule schedule) {
@@ -84,10 +84,10 @@ public class AgentScheduleRepositoryImpl implements AgentScheduleRepository {
     }
 
     /**
-     * update。
+     * 更新Agent 调度数据。
      *
-     * @param schedule 参数
-     * @return 返回结果
+     * @param schedule 调度配置。
+     * @return 返回调度更新条数。
      */
     @Override
     public int update(AgentSchedule schedule) {
@@ -101,12 +101,12 @@ public class AgentScheduleRepositoryImpl implements AgentScheduleRepository {
     }
 
     /**
-     * updateEnabled。
+     * 更新Agent 调度数据。
      *
-     * @param id 参数
-     * @param enabled 参数
-     * @param updatedBy 参数
-     * @return 返回结果
+     * @param id 主键 ID
+     * @param enabled 启用状态
+     * @param updatedBy 更新人 ID
+     * @return 返回调度启停更新条数。
      */
     @Override
     public int updateEnabled(Long id, Boolean enabled, Long updatedBy) {
@@ -117,12 +117,12 @@ public class AgentScheduleRepositoryImpl implements AgentScheduleRepository {
     }
 
     /**
-     * updateXxlJobId。
+     * 更新Agent 调度数据。
      *
-     * @param id 参数
-     * @param xxlJobId 参数
-     * @param updatedBy 参数
-     * @return 返回结果
+     * @param id 主键 ID
+     * @param xxlJobId XXL-JOB 任务 ID。
+     * @param updatedBy 更新人 ID
+     * @return 返回调度绑定更新条数。
      */
     @Override
     public int updateXxlJobId(Long id, Long xxlJobId, Long updatedBy) {
@@ -133,10 +133,10 @@ public class AgentScheduleRepositoryImpl implements AgentScheduleRepository {
     }
 
     /**
-     * deleteById。
+     * 删除Agent 调度数据。
      *
-     * @param id 参数
-     * @return 返回结果
+     * @param id 主键 ID
+     * @return 返回调度删除条数。
      */
     @Override
     public int deleteById(Long id) {
@@ -147,10 +147,10 @@ public class AgentScheduleRepositoryImpl implements AgentScheduleRepository {
     }
 
     /**
-     * deleteByAgentId。
+     * 删除Agent 调度数据。
      *
-     * @param agentId 参数
-     * @return 返回结果
+     * @param agentId Agent ID
+     * @return 返回调度删除条数。
      */
     @Override
     public int deleteByAgentId(Long agentId) {
@@ -161,10 +161,10 @@ public class AgentScheduleRepositoryImpl implements AgentScheduleRepository {
     }
 
     /**
-     * count。
+     * 按条件统计业务数量。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 统计数量
      */
     @Override
     public long count(AgentSchedulePageQuery query) {
@@ -175,10 +175,10 @@ public class AgentScheduleRepositoryImpl implements AgentScheduleRepository {
     }
 
     /**
-     * findPage。
+     * 查询Agent 调度。
      *
-     * @param query 参数
-     * @return 返回结果
+     * @param query 查询条件
+     * @return 返回 AgentSchedule 列表数据。
      */
     @Override
     public List<AgentSchedule> findPage(AgentSchedulePageQuery query) {
