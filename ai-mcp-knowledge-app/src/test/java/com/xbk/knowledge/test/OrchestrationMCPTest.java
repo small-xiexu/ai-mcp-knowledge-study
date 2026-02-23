@@ -21,7 +21,7 @@ import java.util.function.Consumer;
 
 /**
  * 编排层 MCP 工具集成测试
- * 验证通过 ModelProviderFactory 创建的 ChatClient 自动支持 MCP 工具和 Advisors
+ * 验证通过 ModelProviderFactory 创建的 ChatClient 自动支持 MCP 工具和 AgentEnhancers
  *
  * @author xiexu
  */
@@ -53,7 +53,7 @@ public class OrchestrationMCPTest {
      * 验证点：
      * 1. ChatClient 创建成功
      * 2. 自动注入 ToolCallbackProvider（MCP 工具）
-     * 3. 自动注入 TraceIdAdvisor（链路追踪）
+     * 3. 自动注入 TraceIdAgentEnhancer（链路追踪）
      * 4. 工具调用功能正常
      */
     @Test
@@ -69,7 +69,7 @@ public class OrchestrationMCPTest {
         config.setApiKey("test-key");
         config.setEnabled(true);
 
-        // 通过编排层创建 ChatClient（自动注入工具和 Advisors）
+        // 通过编排层创建 ChatClient（自动注入工具和 AgentEnhancers）
         ChatClient chatClient = modelProviderFactory.createChatClient(config);
 
         // 调试：打印 ChatClient 信息
@@ -93,7 +93,7 @@ public class OrchestrationMCPTest {
                 .content();
 
         log.info(">>> ASSISTANT: {}", response);
-        log.info(">>> 测试完成：ChatClient 已自动注入 MCP 工具和 Advisors");
+        log.info(">>> 测试完成：ChatClient 已自动注入 MCP 工具和 AgentEnhancers");
     }
 
     /**
@@ -101,7 +101,7 @@ public class OrchestrationMCPTest {
      *
      * 验证点：
      * 1. 通过编排层创建的 ChatClient 可以调用 MCP 工具
-     * 2. TraceIdAdvisor 自动注入并生效
+     * 2. TraceIdAgentEnhancer 自动注入并生效
      */
     @Test
     public void test_orchestration_weixin_notice_tool() {
@@ -145,7 +145,7 @@ public class OrchestrationMCPTest {
      * 对比测试：验证编排层和直接调用的区别
      *
      * 说明：
-     * - 编排层方式：自动注入工具和 Advisors，代码简洁
+     * - 编排层方式：自动注入工具和 AgentEnhancers，代码简洁
      * - 直接调用方式：需要手动注入，容易遗漏
      */
     @Test
@@ -161,10 +161,10 @@ public class OrchestrationMCPTest {
         config.setEnabled(true);
 
         ChatClient orchestrationClient = modelProviderFactory.createChatClient(config);
-        log.info(">>> 编排层方式：自动注入工具和 Advisors，代码简洁");
+        log.info(">>> 编排层方式：自动注入工具和 AgentEnhancers，代码简洁");
 
         // 方式 2：直接调用（不推荐）
-        // 需要手动注入 ToolCallbackProvider 和 Advisors
+        // 需要手动注入 ToolCallbackProvider 和 AgentEnhancers
         // 容易遗漏，导致功能不完整
         log.info(">>> 直接调用方式：需要手动注入，容易遗漏");
 
@@ -177,7 +177,7 @@ public class OrchestrationMCPTest {
      * 验证点：
      * 1. 通过编排层创建的 ChatClient 可以调用 CSDN 发布工具
      * 2. AI 自动生成文章内容并发布到 CSDN
-     * 3. TraceIdAdvisor 自动注入并生效
+     * 3. TraceIdAgentEnhancer 自动注入并生效
      */
     @Test
     public void test_orchestration_csdn_publish_tool() {
@@ -191,7 +191,7 @@ public class OrchestrationMCPTest {
         config.setApiKey("test-key");
         config.setEnabled(true);
 
-        // 通过编排层创建 ChatClient（自动注入工具和 Advisors）
+        // 通过编排层创建 ChatClient（自动注入工具和 AgentEnhancers）
         ChatClient chatClient = modelProviderFactory.createChatClient(config);
 
         // 测试 CSDN 文章发布
@@ -293,7 +293,7 @@ public class OrchestrationMCPTest {
                 .maxMessages(100)
                 .build();
 
-        // 通过编排层创建 ChatClient，并添加聊天记忆 Advisor
+        // 通过编排层创建 ChatClient，并添加聊天记忆 AgentEnhancer
         PromptChatMemoryAdvisor memoryAdvisor = PromptChatMemoryAdvisor.builder(chatMemory)
                 .build();
         ChatClient chatClient = modelProviderFactory.createChatClient(config)

@@ -33,7 +33,7 @@ public interface ChatClientAssemblyService {
      *
      * @param modelConfig 模型配置
      * @param enableTools 是否启用工具注入
-     * @param extraAdvisors 额外 Advisors
+     * @param extraAdvisors 额外 AgentEnhancers
      * @return ChatClient
      */
     ChatClient buildChatClient(ModelConfig modelConfig, boolean enableTools, CallAdvisor... extraAdvisors);

@@ -7,7 +7,7 @@ import com.xbk.knowledge.application.service.app.ModelConfigAppService;
 import com.xbk.knowledge.application.service.app.McpServerConfigAppService;
 import com.xbk.knowledge.application.service.app.PreheatAppService;
 import com.xbk.knowledge.application.service.armory.factory.DefaultAiClientArmoryStrategyFactory;
-import com.xbk.knowledge.application.service.runtime.AdvisorRuntimeService;
+import com.xbk.knowledge.application.service.runtime.AgentEnhancerRuntimeService;
 import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.agent.model.entity.AgentVersion;
 import com.xbk.knowledge.domain.agent.model.valobj.AgentClientProfileStep;
@@ -52,7 +52,7 @@ public class PreheatAppServiceImpl implements PreheatAppService {
 
     private final McpServerConfigAppService mcpServerConfigAppService;
     private final ToolCallbackProvider toolCallbackProvider;
-    private final AdvisorRuntimeService advisorRuntimeService;
+    private final AgentEnhancerRuntimeService agentEnhancerRuntimeService;
     private final ObjectMapper objectMapper;
     private final ModelConfigAppService modelConfigAppService;
     private final DefaultAiClientArmoryStrategyFactory armoryStrategyFactory;
@@ -88,17 +88,17 @@ public class PreheatAppServiceImpl implements PreheatAppService {
         boolean toolsWarmed = warmToolCallbacks(warnings);
         warmChatClient(resolveAgentVersionModelIds(v), warnings);
 
-        boolean advisorsWarmed;
+        boolean agentEnhancersWarmed;
         try {
-            advisorRuntimeService.resolveForAgentVersion(v.getId(), "preheat-agent-" + System.nanoTime(), null);
-            advisorsWarmed = true;
+            agentEnhancerRuntimeService.resolveForAgentVersion(v.getId(), "preheat-agent-" + System.nanoTime(), null);
+            agentEnhancersWarmed = true;
         } catch (Exception e) {
-            advisorsWarmed = false;
-            warnings.add("Advisor 装配失败: " + safeMsg(e));
+            agentEnhancersWarmed = false;
+            warnings.add("AgentEnhancer 装配失败: " + safeMsg(e));
         }
 
         if (v.getWorkflowVersionId() != null) {
-            warnings.add("该 AgentVersion 绑定了 WorkflowVersion，实际运行以 WorkflowVersion 绑定 Advisors 为准");
+            warnings.add("该 AgentVersion 绑定了 WorkflowVersion，实际运行以 WorkflowVersion 绑定 AgentEnhancers 为准");
         }
 
         return PreheatResult.builder()
@@ -106,7 +106,7 @@ public class PreheatAppServiceImpl implements PreheatAppService {
                 .targetId(agentVersionId)
                 .mcpRefreshed(mcpRefreshed)
                 .toolCallbacksWarmed(toolsWarmed)
-                .advisorsWarmed(advisorsWarmed)
+                .agentEnhancersWarmed(agentEnhancersWarmed)
                 .workflowValidated(false)
                 .warnings(warnings)
                 .build();
@@ -138,13 +138,13 @@ public class PreheatAppServiceImpl implements PreheatAppService {
         boolean toolsWarmed = warmToolCallbacks(warnings);
         warmChatClient(warnings);
 
-        boolean advisorsWarmed;
+        boolean agentEnhancersWarmed;
         try {
-            advisorRuntimeService.resolveForWorkflowVersion(v.getId(), "preheat-wf-" + System.nanoTime(), null);
-            advisorsWarmed = true;
+            agentEnhancerRuntimeService.resolveForWorkflowVersion(v.getId(), "preheat-wf-" + System.nanoTime(), null);
+            agentEnhancersWarmed = true;
         } catch (Exception e) {
-            advisorsWarmed = false;
-            warnings.add("Advisor 装配失败: " + safeMsg(e));
+            agentEnhancersWarmed = false;
+            warnings.add("AgentEnhancer 装配失败: " + safeMsg(e));
         }
 
         boolean validated = validateWorkflow(workflowVersionId, toolsWarmed, warnings);
@@ -154,7 +154,7 @@ public class PreheatAppServiceImpl implements PreheatAppService {
                 .targetId(workflowVersionId)
                 .mcpRefreshed(mcpRefreshed)
                 .toolCallbacksWarmed(toolsWarmed)
-                .advisorsWarmed(advisorsWarmed)
+                .agentEnhancersWarmed(agentEnhancersWarmed)
                 .workflowValidated(validated)
                 .warnings(warnings)
                 .build();

@@ -126,10 +126,10 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '导入任务', icon: 'Clock', permission: 'agent:read', group: 'knowledge', order: 20 }
       },
       {
-        path: 'advisors',
-        name: 'Advisors',
-        component: () => import('@/views/advisor/index.vue'),
-        meta: { title: 'Agent 增强器配置', icon: 'Tools', permission: 'advisor:read', group: 'integration', order: 25 }
+        path: 'agent-enhancers',
+        name: 'AgentEnhancers',
+        component: () => import('@/views/agent-enhancer/index.vue'),
+        meta: { title: 'Agent 增强器配置', icon: 'Tools', permission: 'agent-enhancer:read', group: 'integration', order: 25 }
       },
       {
         path: 'xxl',

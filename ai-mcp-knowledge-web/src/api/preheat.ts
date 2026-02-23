@@ -5,7 +5,7 @@ export interface PreheatResponse {
   targetId: number
   mcpRefreshed: boolean
   toolCallbacksWarmed: boolean
-  advisorsWarmed: boolean
+  agentEnhancersWarmed: boolean
   workflowValidated: boolean
   warnings?: string[]
 }

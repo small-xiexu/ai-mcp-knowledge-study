@@ -230,40 +230,40 @@
           <el-input-number v-model="form.temperature" :min="0" :max="2" :step="0.1" />
         </el-form-item>
 
-        <el-divider content-position="left">Agent 增强器（Advisors）</el-divider>
+        <el-divider content-position="left">Agent 增强器（AgentEnhancers）</el-divider>
         <el-form-item label="Agent 增强器绑定">
           <div style="width: 100%">
             <div v-if="runMode === 'WORKFLOW'" class="muted">
-              当前为 <span class="mono">Workflow</span> 运行模式：请在对应 <span class="mono">WorkflowVersion</span> 上绑定 Agent 增强器（Advisors）（此处不生效）。
+              当前为 <span class="mono">Workflow</span> 运行模式：请在对应 <span class="mono">WorkflowVersion</span> 上绑定 Agent 增强器（AgentEnhancers）（此处不生效）。
             </div>
             <template v-else>
               <div class="bind-row">
-                <el-select v-model="advisorPickerId" filterable clearable placeholder="选择 Agent 增强器" style="width: 100%">
+                <el-select v-model="agentEnhancerPickerId" filterable clearable placeholder="选择 Agent 增强器" style="width: 100%">
                   <el-option
                     v-for="a in advisorOptions"
                     :key="a.id"
-                    :label="`${a.advisorCode} | ${a.advisorType} | ${a.advisorName}`"
+                    :label="`${a.agentEnhancerCode} | ${a.agentEnhancerType} | ${a.agentEnhancerName}`"
                     :value="a.id"
                   />
                 </el-select>
-                <el-button class="gemini-btn-secondary" style="margin-left: 10px" @click="addAdvisorBinding">添加</el-button>
+                <el-button class="gemini-btn-secondary" style="margin-left: 10px" @click="addAgentEnhancerBinding">添加</el-button>
               </div>
 
-              <div class="bind-list" v-if="boundAdvisors.length">
-                <div v-for="(it, idx) in boundAdvisors" :key="it.advisorId" class="bind-item">
+              <div class="bind-list" v-if="boundAgentEnhancers.length">
+                <div v-for="(it, idx) in boundAgentEnhancers" :key="it.agentEnhancerId" class="bind-item">
                   <div class="bind-left">
-                    <div class="bind-title">{{ advisorLabel(it.advisorId) }}</div>
+                    <div class="bind-title">{{ agentEnhancerLabel(it.agentEnhancerId) }}</div>
                     <div class="bind-sub muted">order={{ idx }}</div>
                   </div>
                   <div class="bind-right">
                     <el-switch v-model="it.enabled" active-text="启用" inactive-text="禁用" />
-                    <el-button class="gemini-btn-secondary" @click="moveAdvisorUp(idx)">上移</el-button>
-                    <el-button class="gemini-btn-secondary" @click="moveAdvisorDown(idx)">下移</el-button>
-                    <el-button class="gemini-btn-danger" @click="removeAdvisorBinding(idx)">移除</el-button>
+                    <el-button class="gemini-btn-secondary" @click="moveAgentEnhancerUp(idx)">上移</el-button>
+                    <el-button class="gemini-btn-secondary" @click="moveAgentEnhancerDown(idx)">下移</el-button>
+                    <el-button class="gemini-btn-danger" @click="removeAgentEnhancerBinding(idx)">移除</el-button>
                   </div>
                 </div>
               </div>
-              <div v-else class="muted">未绑定 Agent 增强器（默认仅注入全局 TraceIdAdvisor）。</div>
+              <div v-else class="muted">未绑定 Agent 增强器（默认仅注入全局 TraceIdAgentEnhancer）。</div>
             </template>
           </div>
         </el-form-item>
@@ -298,7 +298,7 @@ import {
   type AgentVersion,
   type PromptTemplate
 } from '@/api/agent-platform'
-import { listAdvisorBindings, listAdvisors, saveAdvisorBindings, type Advisor } from '@/api/advisor'
+import { listAgentEnhancerBindings, listAgentEnhancers, saveAgentEnhancerBindings, type AgentEnhancer } from '@/api/agent-enhancer'
 import { preheatAgentVersion } from '@/api/preheat'
 import { listMcpTools } from '@/api/mcp'
 import { listRagTags } from '@/api/rag'
@@ -323,9 +323,9 @@ const workflowOptions = ref<Workflow[]>([])
 const workflowVersionOptions = ref<WorkflowVersion[]>([])
 const clientProfileOptions = ref<ClientProfile[]>([])
 const selectedWorkflowId = ref<number | undefined>(undefined)
-const advisorOptions = ref<Advisor[]>([])
-const advisorPickerId = ref<number | undefined>(undefined)
-const boundAdvisors = ref<Array<{ advisorId: number; enabled: boolean }>>([])
+const advisorOptions = ref<AgentEnhancer[]>([])
+const agentEnhancerPickerId = ref<number | undefined>(undefined)
+const boundAgentEnhancers = ref<Array<{ agentEnhancerId: number; enabled: boolean }>>([])
 const preheating = ref(false)
 
 const editVisible = ref(false)
@@ -392,7 +392,7 @@ const loadOptions = async () => {
     clientProfileOptions.value = []
   }
   try {
-    const res = await listAdvisors({ pageNum: 1, pageSize: 200, enabled: true })
+    const res = await listAgentEnhancers({ pageNum: 1, pageSize: 200, enabled: true })
     advisorOptions.value = res.data?.records || []
   } catch {
     advisorOptions.value = []
@@ -419,8 +419,8 @@ const openCreateDraft = async () => {
   defaultRagTags.value = []
   allowedRagTags.value = []
   allowedToolKeys.value = []
-  boundAdvisors.value = []
-  advisorPickerId.value = undefined
+  boundAgentEnhancers.value = []
+  agentEnhancerPickerId.value = undefined
   await loadOptions()
   editVisible.value = true
 }
@@ -460,11 +460,11 @@ const openEditDraft = async (row: AgentVersion) => {
         workflowVersionOptions.value = (versions.data || []).slice().sort((a, b) => (b.versionNo || 0) - (a.versionNo || 0))
       } catch {}
     }
-    advisorPickerId.value = undefined
+    agentEnhancerPickerId.value = undefined
     if (runMode.value !== 'WORKFLOW' && form.id) {
       await loadBindings(Number(form.id))
     } else {
-      boundAdvisors.value = []
+      boundAgentEnhancers.value = []
     }
     editVisible.value = true
   } finally {
@@ -484,51 +484,51 @@ const onWorkflowChange = async () => {
 
 const loadBindings = async (agentVersionId: number) => {
   try {
-    const res = await listAdvisorBindings({ bindType: 'AGENT_VERSION', bindTargetId: agentVersionId })
+    const res = await listAgentEnhancerBindings({ bindType: 'AGENT_VERSION', bindTargetId: agentVersionId })
     const list = res.data || []
-    boundAdvisors.value = list
+    boundAgentEnhancers.value = list
       .slice()
       .sort((a, b) => (a.orderNo || 0) - (b.orderNo || 0))
-      .map(v => ({ advisorId: v.advisorId, enabled: v.bindingEnabled === 1 }))
+      .map(v => ({ agentEnhancerId: v.agentEnhancerId, enabled: v.bindingEnabled === 1 }))
   } catch {
-    boundAdvisors.value = []
+    boundAgentEnhancers.value = []
   }
 }
 
-const advisorLabel = (advisorId: number) => {
-  const a = advisorOptions.value.find(x => x.id === advisorId)
-  if (!a) return `#${advisorId}`
-  return `${a.advisorCode} | ${a.advisorType} | ${a.advisorName}`
+const agentEnhancerLabel = (agentEnhancerId: number) => {
+  const a = advisorOptions.value.find(x => x.id === agentEnhancerId)
+  if (!a) return `#${agentEnhancerId}`
+  return `${a.agentEnhancerCode} | ${a.agentEnhancerType} | ${a.agentEnhancerName}`
 }
 
-const addAdvisorBinding = () => {
-  if (!advisorPickerId.value) {
-    ElMessage.warning('请选择 Agent 增强器（Advisor）')
+const addAgentEnhancerBinding = () => {
+  if (!agentEnhancerPickerId.value) {
+    ElMessage.warning('请选择 Agent 增强器（AgentEnhancer）')
     return
   }
-  const exists = boundAdvisors.value.some(x => x.advisorId === advisorPickerId.value)
+  const exists = boundAgentEnhancers.value.some(x => x.agentEnhancerId === agentEnhancerPickerId.value)
   if (exists) {
-    ElMessage.warning('已绑定该 Agent 增强器（Advisor）')
+    ElMessage.warning('已绑定该 Agent 增强器（AgentEnhancer）')
     return
   }
-  boundAdvisors.value.push({ advisorId: advisorPickerId.value, enabled: true })
-  advisorPickerId.value = undefined
+  boundAgentEnhancers.value.push({ agentEnhancerId: agentEnhancerPickerId.value, enabled: true })
+  agentEnhancerPickerId.value = undefined
 }
 
-const removeAdvisorBinding = (idx: number) => {
-  boundAdvisors.value.splice(idx, 1)
+const removeAgentEnhancerBinding = (idx: number) => {
+  boundAgentEnhancers.value.splice(idx, 1)
 }
 
-const moveAdvisorUp = (idx: number) => {
+const moveAgentEnhancerUp = (idx: number) => {
   if (idx <= 0) return
-  const arr = boundAdvisors.value
+  const arr = boundAgentEnhancers.value
   const tmp = arr[idx - 1]
   arr[idx - 1] = arr[idx]
   arr[idx] = tmp
 }
 
-const moveAdvisorDown = (idx: number) => {
-  const arr = boundAdvisors.value
+const moveAgentEnhancerDown = (idx: number) => {
+  const arr = boundAgentEnhancers.value
   if (idx < 0 || idx >= arr.length - 1) return
   const tmp = arr[idx + 1]
   arr[idx + 1] = arr[idx]
@@ -596,11 +596,11 @@ const saveDraft = async () => {
     })
     const savedId = saved.data?.id
     if (runMode.value !== 'WORKFLOW' && savedId) {
-      await saveAdvisorBindings({
+      await saveAgentEnhancerBindings({
         bindType: 'AGENT_VERSION',
         bindTargetId: Number(savedId),
-        items: (boundAdvisors.value || []).map((it, idx) => ({
-          advisorId: it.advisorId,
+        items: (boundAgentEnhancers.value || []).map((it, idx) => ({
+          agentEnhancerId: it.agentEnhancerId,
           orderNo: idx,
           enabled: it.enabled
         }))

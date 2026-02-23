@@ -9,7 +9,7 @@
         <el-button class="gemini-btn-secondary" @click="load">
           <el-icon><Refresh /></el-icon>
         </el-button>
-        <el-button class="gemini-btn-secondary" @click="openAdvisorDlg">
+        <el-button class="gemini-btn-secondary" @click="openAgentEnhancerDlg">
           <el-icon><Setting /></el-icon>
           Agent 增强器
         </el-button>
@@ -226,42 +226,42 @@
       </div>
     </div>
 
-    <el-dialog v-model="advisorDlg.visible" title="Workflow Agent 增强器绑定" width="860px" class="gemini-dialog">
+    <el-dialog v-model="agentEnhancerDlg.visible" title="Workflow Agent 增强器绑定" width="860px" class="gemini-dialog">
       <div class="muted" style="margin-bottom: 10px">
         bindType=<span class="mono">WORKFLOW_VERSION</span>, bindTargetId=<span class="mono">#{{ workflowVersionId }}</span>
       </div>
       <div class="bind-row">
-        <el-select v-model="advisorDlg.pickerId" filterable clearable placeholder="选择 Agent 增强器" style="width: 100%">
+        <el-select v-model="agentEnhancerDlg.pickerId" filterable clearable placeholder="选择 Agent 增强器" style="width: 100%">
           <el-option
-            v-for="a in advisorDlg.options"
+            v-for="a in agentEnhancerDlg.options"
             :key="a.id"
-            :label="`${a.advisorCode} | ${a.advisorType} | ${a.advisorName}`"
+            :label="`${a.agentEnhancerCode} | ${a.agentEnhancerType} | ${a.agentEnhancerName}`"
             :value="a.id"
           />
         </el-select>
-        <el-button class="gemini-btn-secondary" style="margin-left: 10px" @click="advisorAdd">添加</el-button>
+        <el-button class="gemini-btn-secondary" style="margin-left: 10px" @click="agentEnhancerAdd">添加</el-button>
       </div>
 
-      <div class="bind-list" v-if="advisorDlg.items.length">
-        <div v-for="(it, idx) in advisorDlg.items" :key="it.advisorId" class="bind-item">
+      <div class="bind-list" v-if="agentEnhancerDlg.items.length">
+        <div v-for="(it, idx) in agentEnhancerDlg.items" :key="it.agentEnhancerId" class="bind-item">
           <div class="bind-left">
-            <div class="bind-title">{{ advisorLabel(it.advisorId) }}</div>
+            <div class="bind-title">{{ agentEnhancerLabel(it.agentEnhancerId) }}</div>
             <div class="bind-sub muted">order={{ idx }}</div>
           </div>
           <div class="bind-right">
             <el-switch v-model="it.enabled" active-text="启用" inactive-text="禁用" />
-            <el-button class="gemini-btn-secondary" @click="advisorMoveUp(idx)">上移</el-button>
-            <el-button class="gemini-btn-secondary" @click="advisorMoveDown(idx)">下移</el-button>
-            <el-button class="gemini-btn-danger" @click="advisorRemove(idx)">移除</el-button>
+            <el-button class="gemini-btn-secondary" @click="agentEnhancerMoveUp(idx)">上移</el-button>
+            <el-button class="gemini-btn-secondary" @click="agentEnhancerMoveDown(idx)">下移</el-button>
+            <el-button class="gemini-btn-danger" @click="agentEnhancerRemove(idx)">移除</el-button>
           </div>
         </div>
       </div>
-      <div v-else class="muted" style="margin-top: 10px">未绑定 Agent 增强器（默认仅注入全局 TraceIdAdvisor）。</div>
+      <div v-else class="muted" style="margin-top: 10px">未绑定 Agent 增强器（默认仅注入全局 TraceIdAgentEnhancer）。</div>
 
       <template #footer>
-        <el-button class="gemini-btn-secondary" @click="advisorDlg.visible = false">关闭</el-button>
-        <el-button class="gemini-btn-secondary" :loading="advisorDlg.preheating" @click="preheatWorkflow">预热</el-button>
-        <el-button type="primary" class="gemini-btn-primary" :loading="advisorDlg.saving" @click="advisorSave">保存绑定</el-button>
+        <el-button class="gemini-btn-secondary" @click="agentEnhancerDlg.visible = false">关闭</el-button>
+        <el-button class="gemini-btn-secondary" :loading="agentEnhancerDlg.preheating" @click="preheatWorkflow">预热</el-button>
+        <el-button type="primary" class="gemini-btn-primary" :loading="agentEnhancerDlg.saving" @click="advisorSave">保存绑定</el-button>
       </template>
     </el-dialog>
   </div>
@@ -272,7 +272,7 @@ import { computed, reactive, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useRoute } from 'vue-router'
 import { getWorkflow, listWorkflowVersions, saveWorkflowGraph, type Workflow, type WorkflowGraphEdge, type WorkflowGraphNode, type WorkflowVersion } from '@/api/workflow'
-import { listAdvisorBindings, listAdvisors, saveAdvisorBindings, type Advisor } from '@/api/advisor'
+import { listAgentEnhancerBindings, listAgentEnhancers, saveAgentEnhancerBindings, type AgentEnhancer } from '@/api/agent-enhancer'
 import { preheatWorkflowVersion } from '@/api/preheat'
 import { Download, Refresh, Setting } from '@element-plus/icons-vue'
 
@@ -302,75 +302,75 @@ const titleText = computed(() => {
   return `${left} | ${right}`
 })
 
-const advisorDlg = reactive({
+const agentEnhancerDlg = reactive({
   visible: false,
   saving: false,
   preheating: false,
-  options: [] as Advisor[],
+  options: [] as AgentEnhancer[],
   pickerId: undefined as number | undefined,
-  items: [] as Array<{ advisorId: number; enabled: boolean }>
+  items: [] as Array<{ agentEnhancerId: number; enabled: boolean }>
 })
 
-const advisorLabel = (advisorId: number) => {
-  const a = advisorDlg.options.find(x => x.id === advisorId)
-  if (!a) return `#${advisorId}`
-  return `${a.advisorCode} | ${a.advisorType} | ${a.advisorName}`
+const agentEnhancerLabel = (agentEnhancerId: number) => {
+  const a = agentEnhancerDlg.options.find(x => x.id === agentEnhancerId)
+  if (!a) return `#${agentEnhancerId}`
+  return `${a.agentEnhancerCode} | ${a.agentEnhancerType} | ${a.agentEnhancerName}`
 }
 
-const openAdvisorDlg = async () => {
+const openAgentEnhancerDlg = async () => {
   if (!workflowVersionId.value) {
     ElMessage.error('缺少 workflowVersionId')
     return
   }
-  advisorDlg.visible = true
-  advisorDlg.pickerId = undefined
-  advisorDlg.saving = false
+  agentEnhancerDlg.visible = true
+  agentEnhancerDlg.pickerId = undefined
+  agentEnhancerDlg.saving = false
   try {
-    const res = await listAdvisors({ pageNum: 1, pageSize: 200, enabled: true })
-    advisorDlg.options = res.data?.records || []
+    const res = await listAgentEnhancers({ pageNum: 1, pageSize: 200, enabled: true })
+    agentEnhancerDlg.options = res.data?.records || []
   } catch {
-    advisorDlg.options = []
+    agentEnhancerDlg.options = []
   }
   try {
-    const res = await listAdvisorBindings({ bindType: 'WORKFLOW_VERSION', bindTargetId: workflowVersionId.value })
+    const res = await listAgentEnhancerBindings({ bindType: 'WORKFLOW_VERSION', bindTargetId: workflowVersionId.value })
     const list = res.data || []
-    advisorDlg.items = list
+    agentEnhancerDlg.items = list
       .slice()
       .sort((a, b) => (a.orderNo || 0) - (b.orderNo || 0))
-      .map(v => ({ advisorId: v.advisorId, enabled: v.bindingEnabled === 1 }))
+      .map(v => ({ agentEnhancerId: v.agentEnhancerId, enabled: v.bindingEnabled === 1 }))
   } catch {
-    advisorDlg.items = []
+    agentEnhancerDlg.items = []
   }
 }
 
-const advisorAdd = () => {
-  if (!advisorDlg.pickerId) {
-    ElMessage.warning('请选择 Agent 增强器（Advisor）')
+const agentEnhancerAdd = () => {
+  if (!agentEnhancerDlg.pickerId) {
+    ElMessage.warning('请选择 Agent 增强器（AgentEnhancer）')
     return
   }
-  const exists = advisorDlg.items.some(x => x.advisorId === advisorDlg.pickerId)
+  const exists = agentEnhancerDlg.items.some(x => x.agentEnhancerId === agentEnhancerDlg.pickerId)
   if (exists) {
-    ElMessage.warning('已绑定该 Agent 增强器（Advisor）')
+    ElMessage.warning('已绑定该 Agent 增强器（AgentEnhancer）')
     return
   }
-  advisorDlg.items.push({ advisorId: advisorDlg.pickerId, enabled: true })
-  advisorDlg.pickerId = undefined
+  agentEnhancerDlg.items.push({ agentEnhancerId: agentEnhancerDlg.pickerId, enabled: true })
+  agentEnhancerDlg.pickerId = undefined
 }
 
-const advisorRemove = (idx: number) => {
-  advisorDlg.items.splice(idx, 1)
+const agentEnhancerRemove = (idx: number) => {
+  agentEnhancerDlg.items.splice(idx, 1)
 }
 
-const advisorMoveUp = (idx: number) => {
+const agentEnhancerMoveUp = (idx: number) => {
   if (idx <= 0) return
-  const arr = advisorDlg.items
+  const arr = agentEnhancerDlg.items
   const tmp = arr[idx - 1]
   arr[idx - 1] = arr[idx]
   arr[idx] = tmp
 }
 
-const advisorMoveDown = (idx: number) => {
-  const arr = advisorDlg.items
+const agentEnhancerMoveDown = (idx: number) => {
+  const arr = agentEnhancerDlg.items
   if (idx < 0 || idx >= arr.length - 1) return
   const tmp = arr[idx + 1]
   arr[idx + 1] = arr[idx]
@@ -379,22 +379,22 @@ const advisorMoveDown = (idx: number) => {
 
 const advisorSave = async () => {
   if (!workflowVersionId.value) return
-  advisorDlg.saving = true
+  agentEnhancerDlg.saving = true
   try {
-    await saveAdvisorBindings({
+    await saveAgentEnhancerBindings({
       bindType: 'WORKFLOW_VERSION',
       bindTargetId: workflowVersionId.value,
-      items: (advisorDlg.items || []).map((it, idx) => ({ advisorId: it.advisorId, orderNo: idx, enabled: it.enabled }))
+      items: (agentEnhancerDlg.items || []).map((it, idx) => ({ agentEnhancerId: it.agentEnhancerId, orderNo: idx, enabled: it.enabled }))
     })
     ElMessage.success('保存成功')
   } finally {
-    advisorDlg.saving = false
+    agentEnhancerDlg.saving = false
   }
 }
 
 const preheatWorkflow = async () => {
   if (!workflowVersionId.value) return
-  advisorDlg.preheating = true
+  agentEnhancerDlg.preheating = true
   try {
     const res = await preheatWorkflowVersion({ workflowVersionId: workflowVersionId.value, refreshMcp: false })
     const warnings = res.data?.warnings || []
@@ -404,7 +404,7 @@ const preheatWorkflow = async () => {
       ElMessage.success('预热完成')
     }
   } finally {
-    advisorDlg.preheating = false
+    agentEnhancerDlg.preheating = false
   }
 }
 

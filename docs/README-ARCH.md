@@ -5,7 +5,7 @@
 ## 1. 架构目标
 - 以 DDD 分层承载复杂业务（模型中心、Agent、Workflow、工具治理、审批）。
 - 以 Spring AI 统一模型调用与工具调用，降低多模型接入复杂度。
-- 以“配置驱动 + 运行时装配”支持动态工具、动态 MCP Server、动态 Advisor。
+- 以“配置驱动 + 运行时装配”支持动态工具、动态 MCP Server、动态 AgentEnhancer。
 - 以审计与 trace 贯穿关键链路，支持回放、排障、治理与合规。
 
 ## 2. 分层与包结构
@@ -74,7 +74,7 @@ sequenceDiagram
 节点顺序：
 1. `RootNode`
 2. `AiClientToolNode`
-3. `AiClientAdvisorNode`
+3. `AiClientAgentEnhancerNode`
 4. `AiClientModelNode`
 5. `AiClientNode`
 
@@ -82,7 +82,7 @@ sequenceDiagram
 flowchart LR
   A[ModelConfig + enableTools + extraAdvisors] --> B[RootNode]
   B --> C[AiClientToolNode]
-  C --> D[AiClientAdvisorNode]
+  C --> D[AiClientAgentEnhancerNode]
   D --> E[AiClientModelNode]
   E --> F[AiClientNode]
   F --> G[ChatClient]
@@ -91,7 +91,7 @@ flowchart LR
 关键点：
 - 标准装配（同模型 ID + 无额外 advisor）会进入 `ChatClient` 缓存。
 - 工具回调不存在时自动降级为“无工具调用”。
-- 全局 Advisor 与运行时 Advisor 合并并排序。
+- 全局 AgentEnhancer 与运行时 AgentEnhancer 合并并排序。
 
 ## 5. 工具体系（MCP + Gateway）
 
@@ -220,7 +220,7 @@ sequenceDiagram
 
 ### 10.1 Trace
 - HTTP：`TraceIdFilter` 注入/透传 `X-Trace-Id`。
-- AI 调用：`TraceIdAdvisor` 保障模型调用链 trace 连续。
+- AI 调用：`TraceIdAgentEnhancer` 保障模型调用链 trace 连续。
 - 异步：`AsyncTraceConfig` + `TaskDecorator` 透传 MDC。
 
 ### 10.2 审计

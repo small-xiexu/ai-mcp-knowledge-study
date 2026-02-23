@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbk.knowledge.infrastructure.dao.IAgentEnhancerDao">
+
+    <resultMap id="AgentEnhancerMap" type="com.xbk.knowledge.infrastructure.dao.po.AgentEnhancerPO">
+        <id column="id" property="id"/>
+        <result column="agent_enhancer_code" property="agentEnhancerCode"/>
+        <result column="agent_enhancer_name" property="agentEnhancerName"/>
+        <result column="agent_enhancer_type" property="agentEnhancerType"/>
+        <result column="enabled" property="enabled"/>
+        <result column="config_json" property="configJson"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <sql id="AgentEnhancerColumns">
+        id,
+        agent_enhancer_code,
+        agent_enhancer_name,
+        agent_enhancer_type,
+        enabled,
+        config_json,
+        created_at,
+        updated_at
+    </sql>
+
+    <select id="findById" resultMap="AgentEnhancerMap">
+        select
+        <include refid="AgentEnhancerColumns"/>
+        from agent_enhancer
+        where 1 = 1
+          and id = #{id}
+        limit 1
+    </select>
+
+    <select id="findByCode" resultMap="AgentEnhancerMap">
+        select
+        <include refid="AgentEnhancerColumns"/>
+        from agent_enhancer
+        where 1 = 1
+          and agent_enhancer_code = #{agentEnhancerCode}
+        limit 1
+    </select>
+
+    <select id="findPage" resultMap="AgentEnhancerMap">
+        select
+        <include refid="AgentEnhancerColumns"/>
+        from agent_enhancer
+        where 1 = 1
+        <if test="q.keyword != null and q.keyword != ''">
+            and (
+                agent_enhancer_code like concat('%', #{q.keyword}, '%')
+                or agent_enhancer_name like concat('%', #{q.keyword}, '%')
+                or agent_enhancer_type like concat('%', #{q.keyword}, '%')
+            )
+        </if>
+        <if test="q.enabled != null">
+            and enabled = #{q.enabled}
+        </if>
+        <if test="q.agentEnhancerType != null and q.agentEnhancerType != ''">
+            and agent_enhancer_type = #{q.agentEnhancerType}
+        </if>
+        order by updated_at desc, id desc
+        limit #{q.offset}, #{q.pageSize}
+    </select>
+
+    <select id="count" resultType="long">
+        select count(1)
+        from agent_enhancer
+        where 1 = 1
+        <if test="q.keyword != null and q.keyword != ''">
+            and (
+                agent_enhancer_code like concat('%', #{q.keyword}, '%')
+                or agent_enhancer_name like concat('%', #{q.keyword}, '%')
+                or agent_enhancer_type like concat('%', #{q.keyword}, '%')
+            )
+        </if>
+        <if test="q.enabled != null">
+            and enabled = #{q.enabled}
+        </if>
+        <if test="q.agentEnhancerType != null and q.agentEnhancerType != ''">
+            and agent_enhancer_type = #{q.agentEnhancerType}
+        </if>
+    </select>
+
+    <insert id="insertAgentEnhancer" useGeneratedKeys="true" keyProperty="id">
+        insert into agent_enhancer (
+            agent_enhancer_code,
+            agent_enhancer_name,
+            agent_enhancer_type,
+            enabled,
+            config_json,
+            created_at,
+            updated_at
+        ) values (
+            #{agentEnhancerCode},
+            #{agentEnhancerName},
+            #{agentEnhancerType},
+            #{enabled},
+            #{configJson},
+            now(),
+            now()
+        )
+    </insert>
+
+    <update id="updateAgentEnhancer">
+        update agent_enhancer
+        set
+            agent_enhancer_code = #{agentEnhancerCode},
+            agent_enhancer_name = #{agentEnhancerName},
+            agent_enhancer_type = #{agentEnhancerType},
+            enabled = #{enabled},
+            config_json = #{configJson},
+            updated_at = now()
+        where 1 = 1
+          and id = #{id}
+    </update>
+
+    <update id="updateEnabled">
+        update agent_enhancer
+        set
+            enabled = #{enabled},
+            updated_at = now()
+        where 1 = 1
+          and id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        delete from agent_enhancer
+        where 1 = 1
+          and id = #{id}
+    </delete>
+
+</mapper>

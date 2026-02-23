@@ -18,7 +18,7 @@ public class PreheatResult {
     private final Long targetId;
     private final boolean mcpRefreshed;
     private final boolean toolCallbacksWarmed;
-    private final boolean advisorsWarmed;
+    private final boolean agentEnhancersWarmed;
     private final boolean workflowValidated;
     private final List<String> warnings;
 }

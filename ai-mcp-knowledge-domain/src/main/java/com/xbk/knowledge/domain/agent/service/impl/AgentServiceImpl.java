@@ -9,8 +9,8 @@ import com.xbk.knowledge.domain.agent.adapter.repository.AgentRunContextReposito
 import com.xbk.knowledge.domain.agent.adapter.repository.AgentRunRepository;
 import com.xbk.knowledge.domain.agent.adapter.repository.AgentScheduleRepository;
 import com.xbk.knowledge.domain.agent.adapter.repository.AgentVersionRepository;
-import com.xbk.knowledge.domain.advisor.adapter.repository.AdvisorBindingRepository;
-import com.xbk.knowledge.domain.advisor.model.valobj.AdvisorBindingQuery;
+import com.xbk.knowledge.domain.agentenhancer.adapter.repository.AgentEnhancerBindingRepository;
+import com.xbk.knowledge.domain.agentenhancer.model.valobj.AgentEnhancerBindingQuery;
 import com.xbk.knowledge.domain.approval.adapter.repository.ApprovalRequestRepository;
 import com.xbk.knowledge.domain.agent.service.IAgentService;
 import com.xbk.knowledge.types.common.PageResult;
@@ -37,7 +37,7 @@ public class AgentServiceImpl implements IAgentService {
     private final AgentRunContextRepository agentRunContextRepository;
     private final AgentRunRepository agentRunRepository;
     private final ApprovalRequestRepository approvalRequestRepository;
-    private final AdvisorBindingRepository advisorBindingRepository;
+    private final AgentEnhancerBindingRepository agentEnhancerBindingRepository;
 
     /**
      * 查询智能体。
@@ -164,14 +164,14 @@ public class AgentServiceImpl implements IAgentService {
         // 1) 删除调度配置
         agentScheduleRepository.deleteByAgentId(agentId);
 
-        // 2) 删除版本级 Advisor 绑定
+        // 2) 删除版本级 AgentEnhancer 绑定
         List<AgentVersion> versions = agentVersionRepository.listByAgentId(agentId);
         if (versions != null && !versions.isEmpty()) {
             for (AgentVersion version : versions) {
                 if (version == null || version.getId() == null) {
                     continue;
                 }
-                advisorBindingRepository.deleteByTarget(new AdvisorBindingQuery("AGENT_VERSION", version.getId()));
+                agentEnhancerBindingRepository.deleteByTarget(new AgentEnhancerBindingQuery("AGENT_VERSION", version.getId()));
             }
         }
 

@@ -6,7 +6,7 @@ import com.xbk.knowledge.application.context.GatewayToolBindingContextHolder;
 import com.xbk.knowledge.application.service.app.AgentRuntimeAppService;
 import com.xbk.knowledge.application.service.app.ChatClientAssemblyService;
 import com.xbk.knowledge.application.service.app.WorkflowRuntimeAppService;
-import com.xbk.knowledge.application.service.runtime.AdvisorRuntimeService;
+import com.xbk.knowledge.application.service.runtime.AgentEnhancerRuntimeService;
 import com.xbk.knowledge.application.support.contract.PlatformContractV1OutputSupport;
 import com.xbk.knowledge.application.support.rag.AgentRagGovernanceSupport;
 import com.xbk.knowledge.application.support.rag.AgentRagGovernanceSupport.ResolvedRag;
@@ -85,7 +85,7 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
     private final AgentRunContextRepository agentRunContextRepository;
     private final IModelConfigService modelConfigService;
     private final ChatClientAssemblyService chatClientAssemblyService;
-    private final AdvisorRuntimeService advisorRuntimeService;
+    private final AgentEnhancerRuntimeService agentEnhancerRuntimeService;
     private final ObjectMapper objectMapper;
     private final PlatformContractV1OutputSupport outputSupport;
     private final AgentRagGovernanceSupport ragGovernanceSupport;
@@ -955,7 +955,7 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         Long agentVersionId = version == null ? null : version.getId();
         CallAdvisor[] extra = agentVersionId == null
                 ? new CallAdvisor[0]
-                : advisorRuntimeService.resolveForAgentVersion(agentVersionId, runId, sessionId);
+                : agentEnhancerRuntimeService.resolveForAgentVersion(agentVersionId, runId, sessionId);
         return chatClientAssemblyService.buildChatClient(modelConfig, resolvedEnableTools, extra);
     }
 

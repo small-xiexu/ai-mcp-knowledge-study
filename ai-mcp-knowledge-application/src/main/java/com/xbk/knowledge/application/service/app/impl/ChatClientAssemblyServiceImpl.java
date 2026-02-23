@@ -29,7 +29,7 @@ public class ChatClientAssemblyServiceImpl implements ChatClientAssemblyService 
      * 构建默认 ChatClient（使用激活的对话模型）
      *
      * 为什么：统一入口，避免各业务自行拼装模型与增强器
-     * 入参：可选的额外 Advisor
+     * 入参：可选的额外 AgentEnhancer
      * 出参：可直接调用的 ChatClient
      */
     @Override
@@ -48,7 +48,7 @@ public class ChatClientAssemblyServiceImpl implements ChatClientAssemblyService 
      * 基于指定模型配置构建 ChatClient
      *
      * 为什么：支持任务或配置指定模型时复用统一装配逻辑
-     * 入参：模型配置 + 可选 Advisor
+     * 入参：模型配置 + 可选 AgentEnhancer
      * 出参：可直接调用的 ChatClient
      */
     @Override
@@ -61,7 +61,7 @@ public class ChatClientAssemblyServiceImpl implements ChatClientAssemblyService 
      *
      * @param modelConfig 模型配置。
      * @param enableTools 是否启用工具。
-     * @param extraAdvisors 额外 Advisor 列表。
+     * @param extraAdvisors 额外 AgentEnhancer 列表。
      * @return 处理后的结果
      */
     @Override

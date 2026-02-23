@@ -2,7 +2,7 @@ package com.xbk.knowledge.application.service.armory.factory;
 
 import com.xbk.knowledge.application.service.armory.node.AiClientModelNode;
 import com.xbk.knowledge.application.service.armory.node.AiClientNode;
-import com.xbk.knowledge.application.service.armory.node.AiClientAdvisorNode;
+import com.xbk.knowledge.application.service.armory.node.AiClientAgentEnhancerNode;
 import com.xbk.knowledge.application.service.armory.node.AiClientToolNode;
 import com.xbk.knowledge.application.service.armory.node.RootNode;
 import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
@@ -26,7 +26,7 @@ public class DefaultAiClientArmoryStrategyFactory {
     private final RootNode rootNode;
     private final ConcurrentMap<String, ChatClient> standardChatClientRegistry = new ConcurrentHashMap<>();
 
-    public DefaultAiClientArmoryStrategyFactory(RootNode rootNode, AiClientToolNode aiClientToolNode, AiClientAdvisorNode aiClientAdvisorNode, AiClientModelNode aiClientModelNode, AiClientNode aiClientNode) {
+    public DefaultAiClientArmoryStrategyFactory(RootNode rootNode, AiClientToolNode aiClientToolNode, AiClientAgentEnhancerNode aiClientAdvisorNode, AiClientModelNode aiClientModelNode, AiClientNode aiClientNode) {
         rootNode.setNext(aiClientToolNode);
         aiClientToolNode.setNext(aiClientAdvisorNode);
         aiClientAdvisorNode.setNext(aiClientModelNode);
@@ -39,7 +39,7 @@ public class DefaultAiClientArmoryStrategyFactory {
      *
      * @param modelConfig   模型配置
      * @param enableTools   工具开关
-     * @param extraAdvisors 额外 Advisor
+     * @param extraAdvisors 额外 AgentEnhancer
      * @return 装配完成的 ChatClient
      */
     public ChatClient chatClient(ModelConfig modelConfig, boolean enableTools, CallAdvisor... extraAdvisors) {
@@ -51,7 +51,7 @@ public class DefaultAiClientArmoryStrategyFactory {
     }
 
     /**
-     * 主动预热标准 ChatClient（无额外 Advisor）。
+     * 主动预热标准 ChatClient（无额外 AgentEnhancer）。
      *
      * @param modelConfig 模型配置
      * @param enableTools 工具开关

@@ -20,7 +20,7 @@ import jakarta.validation.Valid;
 /**
  * 显式 Preheat 接口。
  *
- * 说明：用于提前装配工具/Advisor/Workflow 校验等，降低首次调用延迟。
+ * 说明：用于提前装配工具/AgentEnhancer/Workflow 校验等，降低首次调用延迟。
  *
  * @author sxie
  */
@@ -76,7 +76,7 @@ public class PreheatController implements IPreheatService {
         resp.setTargetId(r.getTargetId());
         resp.setMcpRefreshed(r.isMcpRefreshed());
         resp.setToolCallbacksWarmed(r.isToolCallbacksWarmed());
-        resp.setAdvisorsWarmed(r.isAdvisorsWarmed());
+        resp.setAgentEnhancersWarmed(r.isAgentEnhancersWarmed());
         resp.setWorkflowValidated(r.isWorkflowValidated());
         resp.setWarnings(r.getWarnings());
         return resp;

@@ -14,7 +14,7 @@
 - 用户与角色：`user:read` `user:write` `role:read` `role:write`
 - Agent：`agent:read` `agent:write` `agent:publish` `agent:invoke`
 - Workflow：`workflow:read` `workflow:write` `workflow:publish` `workflow:invoke`
-- Advisor：`advisor:read` `advisor:write`
+- AgentEnhancer：`agent-enhancer:read` `agent-enhancer:write`
 - 工具：`tool:read` `tool:write` `tool:invoke` `tool:approve`
 - 审计：`audit:read`
 
@@ -31,17 +31,17 @@
 | `chat` | `POST` | `/api/ai/chat` | `agent:read` |
 | `getAvailableModels` | `POST` | `/api/ai/models` | `agent:read` |
 
-### AdvisorController.java
+### AgentEnhancerController.java
 | 方法名 | HTTP | 路径 | 权限 |
 |---|---|---|---|
-| `disable` | `POST` | `/api/advisors/disable` | `advisor:write` |
-| `enable` | `POST` | `/api/advisors/enable` | `advisor:write` |
-| `get` | `POST` | `/api/advisors/get` | `advisor:read` |
-| `list` | `POST` | `/api/advisors/list` | `advisor:read` |
-| `listBindings` | `POST` | `/api/advisors/bindings/list` | `advisor:read` |
-| `remove` | `POST` | `/api/advisors/remove` | `advisor:write` |
-| `save` | `POST` | `/api/advisors/save` | `advisor:write` |
-| `saveBindings` | `POST` | `/api/advisors/bindings/save` | `advisor:write` |
+| `disable` | `POST` | `/api/agent-enhancers/disable` | `agent-enhancer:write` |
+| `enable` | `POST` | `/api/agent-enhancers/enable` | `agent-enhancer:write` |
+| `get` | `POST` | `/api/agent-enhancers/get` | `agent-enhancer:read` |
+| `list` | `POST` | `/api/agent-enhancers/list` | `agent-enhancer:read` |
+| `listBindings` | `POST` | `/api/agent-enhancers/bindings/list` | `agent-enhancer:read` |
+| `remove` | `POST` | `/api/agent-enhancers/remove` | `agent-enhancer:write` |
+| `save` | `POST` | `/api/agent-enhancers/save` | `agent-enhancer:write` |
+| `saveBindings` | `POST` | `/api/agent-enhancers/bindings/save` | `agent-enhancer:write` |
 
 ### AgentController.java
 | 方法名 | HTTP | 路径 | 权限 |

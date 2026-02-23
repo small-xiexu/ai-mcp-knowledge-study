@@ -167,7 +167,7 @@ graph LR
 - Agent 运行：`/api/agents/{agentCode}/chat|stream|invoke`
 - Agent 调度：`/api/schedules/*`
 - Prompt 模板：`/api/templates/*`
-- Advisor 绑定：`/api/advisors/*`
+- AgentEnhancer 绑定：`/api/agent-enhancers/*`
 
 ### 6.5 Workflow 平台
 - Workflow 与版本管理：`/api/workflows/*`
@@ -219,7 +219,7 @@ sequenceDiagram
     A->>A: 解析模型 + 会话模型一致性校验
     A->>A: 构建 Prompt(历史/RAG/工具提示)
     A->>S: buildChatClient(model, toolEnabled)
-    S->>ARM: Root->Tool->Advisor->Model->Client
+    S->>ARM: Root->Tool->AgentEnhancer->Model->Client
     ARM->>TOOL: 获取工具回调(可选)
     ARM->>M: 构建 ChatModel
     A->>M: prompt.call()/stream()
@@ -273,7 +273,7 @@ sequenceDiagram
 | 身份与审计 | 6 | `sys_user`, `sys_role`, `sys_permission`, `sys_audit_event` |
 | 模型/对话/RAG | 7 | `ai_model_config`, `ai_call_log`, `ai_chat_session`, `ai_rag_task` |
 | Gateway/工具 | 6 | `mcp_gateway`, `mcp_gateway_auth`, `mcp_tool_registry` |
-| Client/Advisor/Agent/Prompt | 10 | `advisor`, `ai_client_profile`, `agent`, `agent_version`, `prompt_template` |
+| Client/AgentEnhancer/Agent/Prompt | 10 | `advisor`, `ai_client_profile`, `agent`, `agent_version`, `prompt_template` |
 | Workflow/运行 | 7 | `workflow`, `workflow_version`, `workflow_node`, `workflow_run` |
 | 审批 | 1 | `approval_request` |
 
@@ -370,7 +370,7 @@ npm run build
 - Agent：Agent 管理、版本、调度、调用、Prompt、工具审批
 - Workflow：管理、版本、编辑器、调用、运行记录、详情
 - 知识库：知识库管理、导入任务
-- 集成：LLM 配置、Client 配置、Advisor、MCP 配置、网关工具、凭证管理
+- 集成：LLM 配置、Client 配置、AgentEnhancer、MCP 配置、网关工具、凭证管理
 - 安全：用户、角色、身份审计
 
 ## 13. 任务与运维（XXL）
@@ -387,7 +387,7 @@ npm run build
 ## 14. 可观测性与排障
 ### 14.1 Trace 机制
 - HTTP 请求入口由 `TraceIdFilter` 注入/透传 `X-Trace-Id`
-- AI 调用链由 `TraceIdAdvisor` 贯穿
+- AI 调用链由 `TraceIdAgentEnhancer` 贯穿
 - 异步线程池通过 `TaskDecorator` 透传 MDC
 
 ### 14.2 日志目录

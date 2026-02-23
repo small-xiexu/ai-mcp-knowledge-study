@@ -1,6 +1,6 @@
 package com.xbk.knowledge.test;
 
-import com.xbk.knowledge.config.trace.TraceIdAdvisor;
+import com.xbk.knowledge.config.trace.TraceIdAgentEnhancer;
 import com.xbk.knowledge.trigger.job.MCPServerCSDNJob;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Tag;
@@ -24,7 +24,7 @@ import java.util.function.Consumer;
  * ⚠️ 警告：本测试类使用的是过时的实现方式！
  *
  * 问题：
- * 1. 直接使用底层 ChatModel，手动注入工具和 Advisors
+ * 1. 直接使用底层 ChatModel，手动注入工具和 AgentEnhancers
  * 2. 绕过了编排层，无法享受以下能力：
  * - 模型自动选择（基于运行策略）
  * - 模型降级和故障转移
@@ -36,7 +36,7 @@ import java.util.function.Consumer;
  * ✅ 推荐方式：使用编排层
  * - 测试类：OrchestrationMCPTest.java
  * - 核心类：ModelProviderFactory（ai-mcp-knowledge-application 模块）
- * - 优势：自动注入 MCP 工具和 Advisors，享受完整的编排能力
+ * - 优势：自动注入 MCP 工具和 AgentEnhancers，享受完整的编排能力
  *
  * 📝 保留原因：
  * - 作为"如何不应该做"的反面教材
@@ -68,15 +68,15 @@ public class MCPTest {
     private final MCPServerCSDNJob mcpServerCSDNJob;
 
     /**
-     * TraceId 链路追踪 Advisor
+     * TraceId 链路追踪 AgentEnhancer
      */
-    private final TraceIdAdvisor traceIdAdvisor;
+    private final TraceIdAgentEnhancer traceIdAdvisor;
 
     @Autowired
     public MCPTest(ToolCallbackProvider tools,
                    OpenAiChatModel openAiChatModel,
                    MCPServerCSDNJob mcpServerCSDNJob,
-                   TraceIdAdvisor traceIdAdvisor) {
+                   TraceIdAgentEnhancer traceIdAdvisor) {
         this.tools = tools;
         this.openAiChatModel = openAiChatModel;
         this.mcpServerCSDNJob = mcpServerCSDNJob;
@@ -104,9 +104,9 @@ public class MCPTest {
     @Deprecated
     public void test_gemini_tool() {
         String userInput = "有哪些工具可以使用";
-        String traceId = TraceIdAdvisor.getCurrentTraceId();
+        String traceId = TraceIdAgentEnhancer.getCurrentTraceId();
 
-        // 使用 Gemini 模型创建 ChatClient，注入 TraceIdAdvisor
+        // 使用 Gemini 模型创建 ChatClient，注入 TraceIdAgentEnhancer
         ChatClient chatClient = ChatClient.builder(openAiChatModel)
                 .defaultToolCallbacks(tools)
                 .defaultAdvisors(traceIdAdvisor)
@@ -139,7 +139,7 @@ public class MCPTest {
                 description=这是一条用于验证 MCP 工具调用的测试消息
                 jumpUrl=https://example.com/mcp-test
                 """;
-        String traceId = TraceIdAdvisor.getCurrentTraceId();
+        String traceId = TraceIdAgentEnhancer.getCurrentTraceId();
 
         ChatClient chatClient = ChatClient.builder(openAiChatModel)
                 .defaultToolCallbacks(tools)
@@ -176,7 +176,7 @@ public class MCPTest {
                 根据以上内容，不要阐述其他信息，请直接提供：文章标题、文章内容、文章标签（最多7个，用英文逗号隔开）、文章简述（100字）
                 将以上内容发布文章到CSDN。
                 """;
-        String traceId = TraceIdAdvisor.getCurrentTraceId();
+        String traceId = TraceIdAgentEnhancer.getCurrentTraceId();
 
         ChatClient chatClient = ChatClient.builder(openAiChatModel)
                 .defaultToolCallbacks(tools)
@@ -215,7 +215,7 @@ public class MCPTest {
                 
                 之后进行微信公众号消息通知，平台：CSDN、主题：为文章标题、描述：为文章简述、跳转地址：从发布文章到CSDN获取 url
                 """;
-        String traceId = TraceIdAdvisor.getCurrentTraceId();
+        String traceId = TraceIdAgentEnhancer.getCurrentTraceId();
 
         ChatClient chatClient = ChatClient.builder(openAiChatModel)
                 .defaultToolCallbacks(tools)
@@ -253,7 +253,7 @@ public class MCPTest {
                 根据以上内容，不要阐述其他信息，请直接提供：文章标题、文章内容、文章标签（最多7个，用英文逗号隔开）、文章简述（100字）
                 将以上内容发布文章到CSDN。
                 """;
-        String traceId = TraceIdAdvisor.getCurrentTraceId();
+        String traceId = TraceIdAgentEnhancer.getCurrentTraceId();
 
         InMemoryChatMemoryRepository chatMemoryRepository = new InMemoryChatMemoryRepository();
         MessageWindowChatMemory chatMemory = MessageWindowChatMemory.builder()

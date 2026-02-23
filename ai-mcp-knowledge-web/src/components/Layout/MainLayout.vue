@@ -198,8 +198,8 @@ const featureGuideMap: Record<string, FeatureGuide> = {
     summary: '维护可复用的 Client 调用链，供 Agent/Workflow 统一引用。',
     steps: ['先新建 Profile 与基础信息', '配置步骤链并保存', '在上游 Agent 或 Workflow 中引用']
   },
-  Advisors: {
-    summary: '配置 Agent 增强器（Advisor）处理链，用于统一扩展请求前后处理逻辑。',
+  AgentEnhancers: {
+    summary: '配置 Agent 增强器（AgentEnhancer）处理链，用于统一扩展请求前后处理逻辑。',
     steps: ['先定义 Agent 增强器参数', '按顺序组织处理链路', '在 Client Profile 中挂载并验证']
   },
   McpServers: {

@@ -16,7 +16,7 @@ public class PreheatResponse {
     private Long targetId;
     private Boolean mcpRefreshed;
     private Boolean toolCallbacksWarmed;
-    private Boolean advisorsWarmed;
+    private Boolean agentEnhancersWarmed;
     private Boolean workflowValidated;
     private List<String> warnings;
 }

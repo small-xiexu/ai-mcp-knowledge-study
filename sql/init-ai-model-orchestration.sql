@@ -31,8 +31,8 @@ DROP TABLE IF EXISTS agent_version;
 DROP TABLE IF EXISTS agent;
 DROP TABLE IF EXISTS ai_client_profile_step;
 DROP TABLE IF EXISTS ai_client_profile;
-DROP TABLE IF EXISTS advisor_binding;
-DROP TABLE IF EXISTS advisor;
+DROP TABLE IF EXISTS agent_enhancer_binding;
+DROP TABLE IF EXISTS agent_enhancer;
 DROP TABLE IF EXISTS mcp_tool_binding;
 DROP TABLE IF EXISTS mcp_tool_schema;
 DROP TABLE IF EXISTS mcp_tool_mapping;
@@ -168,8 +168,8 @@ VALUES
 ('workflow:write', '编辑 Workflow', 'workflow', 'write', 1, @now, @now),
 ('workflow:publish', '发布 Workflow', 'workflow', 'publish', 1, @now, @now),
 ('workflow:invoke', '调用 Workflow', 'workflow', 'invoke', 1, @now, @now),
-('advisor:read', '读取 Advisor', 'advisor', 'read', 1, @now, @now),
-('advisor:write', '编辑 Advisor', 'advisor', 'write', 1, @now, @now),
+('agent-enhancer:read', '读取 AgentEnhancer', 'agent-enhancer', 'read', 1, @now, @now),
+('agent-enhancer:write', '编辑 AgentEnhancer', 'agent-enhancer', 'write', 1, @now, @now),
 ('tool:read', '读取工具', 'tool', 'read', 1, @now, @now),
 ('tool:write', '编辑工具', 'tool', 'write', 1, @now, @now),
 ('tool:invoke', '调用工具', 'tool', 'invoke', 1, @now, @now),
@@ -246,7 +246,7 @@ WHERE p.permission_code IN (
     'user:read', 'user:write', 'role:read', 'role:write', 'audit:read',
     'agent:read', 'agent:write', 'agent:publish', 'agent:invoke',
     'workflow:read', 'workflow:write', 'workflow:publish', 'workflow:invoke',
-    'advisor:read', 'advisor:write',
+    'agent-enhancer:read', 'agent-enhancer:write',
     'tool:read', 'tool:write', 'tool:invoke', 'tool:approve',
     'release:approve'
 )
@@ -261,7 +261,7 @@ FROM sys_permission p
 WHERE p.permission_code IN (
     'agent:read', 'agent:write', 'agent:publish', 'agent:invoke',
     'workflow:read', 'workflow:write', 'workflow:publish', 'workflow:invoke',
-    'advisor:read', 'advisor:write',
+    'agent-enhancer:read', 'agent-enhancer:write',
     'tool:read', 'tool:invoke',
     'audit:read'
 )
@@ -273,7 +273,7 @@ granted_at = VALUES(granted_at);
 INSERT INTO sys_role_permission (role_id, permission_id, granted_by, granted_at)
 SELECT @auditor_role_id, p.id, @admin_user_id, @now
 FROM sys_permission p
-WHERE p.permission_code IN ('audit:read', 'agent:read', 'workflow:read', 'advisor:read', 'tool:read')
+WHERE p.permission_code IN ('audit:read', 'agent:read', 'workflow:read', 'agent-enhancer:read', 'tool:read')
 ON DUPLICATE KEY UPDATE
 granted_by = VALUES(granted_by),
 granted_at = VALUES(granted_at);
@@ -282,7 +282,7 @@ granted_at = VALUES(granted_at);
 INSERT INTO sys_role_permission (role_id, permission_id, granted_by, granted_at)
 SELECT @viewer_role_id, p.id, @admin_user_id, @now
 FROM sys_permission p
-WHERE p.permission_code IN ('agent:read', 'workflow:read', 'advisor:read', 'tool:read')
+WHERE p.permission_code IN ('agent:read', 'workflow:read', 'agent-enhancer:read', 'tool:read')
 ON DUPLICATE KEY UPDATE
 granted_by = VALUES(granted_by),
 granted_at = VALUES(granted_at);
@@ -516,35 +516,35 @@ CREATE TABLE mcp_tool_binding (
     INDEX idx_gateway_id (gateway_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='MCP 工具绑定关系表';
 
--- 14) Advisor 资产表
-CREATE TABLE advisor (
+-- 14) AgentEnhancer 资产表
+CREATE TABLE agent_enhancer (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
-    advisor_code VARCHAR(64) NOT NULL COMMENT 'Advisor 唯一编码（单组织内唯一）',
-    advisor_name VARCHAR(100) NOT NULL COMMENT 'Advisor 名称',
-    advisor_type VARCHAR(30) NOT NULL COMMENT 'Advisor 类型（CHAT_MEMORY/REQUEST_RESPONSE_LOG/TOOL_CALL_LOG）',
+    agent_enhancer_code VARCHAR(64) NOT NULL COMMENT 'AgentEnhancer 唯一编码（单组织内唯一）',
+    agent_enhancer_name VARCHAR(100) NOT NULL COMMENT 'AgentEnhancer 名称',
+    agent_enhancer_type VARCHAR(30) NOT NULL COMMENT 'AgentEnhancer 类型（CHAT_MEMORY/REQUEST_RESPONSE_LOG/TOOL_CALL_LOG）',
     enabled TINYINT(1) NOT NULL DEFAULT 1 COMMENT '是否启用(0:禁用 1:启用)',
     config_json JSON DEFAULT NULL COMMENT '类型配置（JSON）',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    UNIQUE KEY uk_advisor_code (advisor_code),
-    INDEX idx_advisor_type (advisor_type),
-    INDEX idx_advisor_enabled (enabled)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Advisor 资产表';
+    UNIQUE KEY uk_agent_enhancer_code (agent_enhancer_code),
+    INDEX idx_agent_enhancer_type (agent_enhancer_type),
+    INDEX idx_agent_enhancer_enabled (enabled)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AgentEnhancer 资产表';
 
--- 15) Advisor 绑定关系表
-CREATE TABLE advisor_binding (
+-- 15) AgentEnhancer 绑定关系表
+CREATE TABLE agent_enhancer_binding (
     id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     bind_type VARCHAR(20) NOT NULL COMMENT '绑定类型：AGENT_VERSION/WORKFLOW_VERSION',
     bind_target_id BIGINT NOT NULL COMMENT '绑定目标ID',
-    advisor_id BIGINT NOT NULL COMMENT 'Advisor ID',
+    agent_enhancer_id BIGINT NOT NULL COMMENT 'AgentEnhancer ID',
     order_no INT DEFAULT 0 COMMENT '排序序号（越小越先执行）',
     enabled TINYINT(1) NOT NULL DEFAULT 1 COMMENT '是否启用(0:禁用 1:启用)',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    UNIQUE KEY uk_bind (bind_type, bind_target_id, advisor_id),
+    UNIQUE KEY uk_bind (bind_type, bind_target_id, agent_enhancer_id),
     INDEX idx_bind_target (bind_type, bind_target_id),
-    INDEX idx_advisor (advisor_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Advisor 绑定关系表';
+    INDEX idx_agent_enhancer (agent_enhancer_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='AgentEnhancer 绑定关系表';
 
 -- =====================================================
 -- C. 多 Agent 平台（控制面 + 运行面 + 审批）
@@ -909,15 +909,15 @@ chat_model_id = VALUES(chat_model_id),
 embedding_model_id = VALUES(embedding_model_id),
 updated_at = VALUES(updated_at);
 
--- 初始化数据：Advisor 资产
-INSERT INTO advisor (advisor_code, advisor_name, advisor_type, enabled, config_json)
+-- 初始化数据：AgentEnhancer 资产
+INSERT INTO agent_enhancer(agent_enhancer_code, agent_enhancer_name, agent_enhancer_type, enabled, config_json)
 VALUES
 ('chat_memory', '对话记忆', 'CHAT_MEMORY', 1, JSON_OBJECT('maxMessages', 20, 'conversationIdFrom', 'SESSION_ID')),
 ('request_response_log', '请求响应日志', 'REQUEST_RESPONSE_LOG', 1, NULL),
 ('tool_call_log', '工具调用日志', 'TOOL_CALL_LOG', 1, NULL)
 ON DUPLICATE KEY UPDATE
-advisor_name = VALUES(advisor_name),
-advisor_type = VALUES(advisor_type),
+agent_enhancer_name = VALUES(agent_enhancer_name),
+agent_enhancer_type = VALUES(agent_enhancer_type),
 enabled = VALUES(enabled),
 config_json = VALUES(config_json),
 updated_at = VALUES(updated_at);

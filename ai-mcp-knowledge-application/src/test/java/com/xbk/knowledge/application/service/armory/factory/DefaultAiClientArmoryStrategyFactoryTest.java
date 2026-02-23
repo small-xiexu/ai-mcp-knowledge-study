@@ -2,12 +2,12 @@ package com.xbk.knowledge.application.service.armory.factory;
 
 import com.xbk.knowledge.application.provider.ModelProvider;
 import com.xbk.knowledge.application.provider.ModelProviderFactory;
-import com.xbk.knowledge.application.service.armory.node.AiClientAdvisorNode;
+import com.xbk.knowledge.application.service.armory.node.AiClientAgentEnhancerNode;
 import com.xbk.knowledge.application.service.armory.node.AiClientModelNode;
 import com.xbk.knowledge.application.service.armory.node.AiClientNode;
 import com.xbk.knowledge.application.service.armory.node.AiClientToolNode;
 import com.xbk.knowledge.application.service.armory.node.RootNode;
-import com.xbk.knowledge.config.ai.GlobalChatAdvisor;
+import com.xbk.knowledge.config.ai.GlobalChatAgentEnhancer;
 import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import com.xbk.knowledge.types.enums.ModelType;
 import org.junit.jupiter.api.Test;
@@ -53,7 +53,7 @@ public class DefaultAiClientArmoryStrategyFactoryTest {
 
         RootNode rootNode = new RootNode();
         AiClientToolNode toolNode = new AiClientToolNode(toolProviderObjectProvider);
-        AiClientAdvisorNode advisorNode = new AiClientAdvisorNode(List.of(globalAdvisor));
+        AiClientAgentEnhancerNode advisorNode = new AiClientAgentEnhancerNode(List.of(globalAdvisor));
         AiClientModelNode modelNode = new AiClientModelNode(providerFactory);
         AiClientNode aiClientNode = new AiClientNode();
         DefaultAiClientArmoryStrategyFactory factory =
@@ -72,7 +72,7 @@ public class DefaultAiClientArmoryStrategyFactoryTest {
         ObjectProvider<ToolCallbackProvider> toolProviderObjectProvider = mockObjectProvider(null);
         RootNode rootNode = new RootNode();
         AiClientToolNode toolNode = new AiClientToolNode(toolProviderObjectProvider);
-        AiClientAdvisorNode advisorNode = new AiClientAdvisorNode(List.of());
+        AiClientAgentEnhancerNode advisorNode = new AiClientAgentEnhancerNode(List.of());
         AiClientModelNode modelNode = new AiClientModelNode(providerFactory);
         AiClientNode aiClientNode = new AiClientNode();
         DefaultAiClientArmoryStrategyFactory factory =
@@ -89,7 +89,7 @@ public class DefaultAiClientArmoryStrategyFactoryTest {
         return objectProvider;
     }
 
-    @GlobalChatAdvisor
+    @GlobalChatAgentEnhancer
     private static class GlobalAdvisor implements CallAdvisor {
         @Override
         public ChatClientResponse adviseCall(ChatClientRequest request, CallAdvisorChain chain) {

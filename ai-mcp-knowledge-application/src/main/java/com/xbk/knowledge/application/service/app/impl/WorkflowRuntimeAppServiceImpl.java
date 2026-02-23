@@ -6,7 +6,7 @@ import com.xbk.knowledge.application.context.GatewayToolBindingContextHolder;
 import com.xbk.knowledge.application.service.app.ChatClientAssemblyService;
 import com.xbk.knowledge.application.service.app.IdentityContextService;
 import com.xbk.knowledge.application.service.app.WorkflowRuntimeAppService;
-import com.xbk.knowledge.application.service.runtime.AdvisorRuntimeService;
+import com.xbk.knowledge.application.service.runtime.AgentEnhancerRuntimeService;
 import com.xbk.knowledge.application.support.contract.PlatformContractV1OutputSupport;
 import com.xbk.knowledge.application.service.rag.RagVectorStoreService;
 import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
@@ -96,7 +96,7 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
 
     private final IModelConfigService modelConfigService;
     private final ChatClientAssemblyService chatClientAssemblyService;
-    private final AdvisorRuntimeService advisorRuntimeService;
+    private final AgentEnhancerRuntimeService agentEnhancerRuntimeService;
     private final ToolCallbackProvider toolCallbackProvider;
     private final ObjectMapper objectMapper;
     private final PlatformContractV1OutputSupport outputSupport;
@@ -417,7 +417,7 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
                                                 String approvedToolResult) {
         CallAdvisor[] workflowAdvisors = version == null || version.getId() == null
                 ? new CallAdvisor[0]
-                : advisorRuntimeService.resolveForWorkflowVersion(version.getId(), runId, sessionId);
+                : agentEnhancerRuntimeService.resolveForWorkflowVersion(version.getId(), runId, sessionId);
 
         Map<String, WorkflowNode> nodeMap = new HashMap<>();
         Map<String, List<WorkflowEdge>> out = new HashMap<>();

@@ -43,12 +43,12 @@ public class AiClientArmoryContext {
     private boolean resolvedEnableTools;
 
     /**
-     * 调用方传入的额外 Advisor 列表（可为空）。
+     * 调用方传入的额外 AgentEnhancer 列表（可为空）。
      */
     private CallAdvisor[] extraAdvisors;
 
     /**
-     * 框架内置 Advisor 与额外 Advisor 合并后的结果。
+     * 框架内置 AgentEnhancer 与额外 AgentEnhancer 合并后的结果。
      */
     private List<CallAdvisor> mergedAdvisors;
 
@@ -68,7 +68,7 @@ public class AiClientArmoryContext {
     private ChatClient chatClient;
 
     /**
-     * 归一化 Advisor 数组，避免下游空指针与 null 元素。
+     * 归一化 AgentEnhancer 数组，避免下游空指针与 null 元素。
      */
     public void normalizeExtraAdvisors() {
         if (extraAdvisors == null || extraAdvisors.length == 0) {

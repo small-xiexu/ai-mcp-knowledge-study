@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xbk.knowledge.infrastructure.dao.IAgentEnhancerBindingDao">
+
+    <resultMap id="AgentEnhancerBindingMap" type="com.xbk.knowledge.infrastructure.dao.po.AgentEnhancerBindingPO">
+        <id column="id" property="id"/>
+        <result column="bind_type" property="bindType"/>
+        <result column="bind_target_id" property="bindTargetId"/>
+        <result column="agent_enhancer_id" property="agentEnhancerId"/>
+        <result column="order_no" property="orderNo"/>
+        <result column="enabled" property="enabled"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <resultMap id="AgentEnhancerBindingViewMap" type="com.xbk.knowledge.domain.agentenhancer.model.valobj.AgentEnhancerBindingView">
+        <id column="binding_id" property="bindingId"/>
+        <result column="bind_type" property="bindType"/>
+        <result column="bind_target_id" property="bindTargetId"/>
+        <result column="agent_enhancer_id" property="agentEnhancerId"/>
+        <result column="order_no" property="orderNo"/>
+        <result column="binding_enabled" property="bindingEnabled"/>
+        <result column="binding_created_at" property="bindingCreatedAt"/>
+        <result column="binding_updated_at" property="bindingUpdatedAt"/>
+
+        <result column="agent_enhancer_code" property="agentEnhancerCode"/>
+        <result column="agent_enhancer_name" property="agentEnhancerName"/>
+        <result column="agent_enhancer_type" property="agentEnhancerType"/>
+        <result column="agent_enhancer_enabled" property="agentEnhancerEnabled"/>
+        <result column="agent_enhancer_config_json" property="agentEnhancerConfigJson"/>
+        <result column="agent_enhancer_created_at" property="agentEnhancerCreatedAt"/>
+        <result column="agent_enhancer_updated_at" property="agentEnhancerUpdatedAt"/>
+    </resultMap>
+
+    <select id="listBindings" resultMap="AgentEnhancerBindingMap">
+        select
+            id,
+            bind_type,
+            bind_target_id,
+            agent_enhancer_id,
+            order_no,
+            enabled,
+            created_at,
+            updated_at
+        from agent_enhancer_binding
+        where bind_type = #{q.bindType}
+          and bind_target_id = #{q.bindTargetId}
+        order by order_no asc, id asc
+    </select>
+
+    <select id="listBindingViews" resultMap="AgentEnhancerBindingViewMap">
+        select
+            b.id as binding_id,
+            b.bind_type,
+            b.bind_target_id,
+            b.agent_enhancer_id,
+            b.order_no,
+            b.enabled as binding_enabled,
+            b.created_at as binding_created_at,
+            b.updated_at as binding_updated_at,
+            a.agent_enhancer_code,
+            a.agent_enhancer_name,
+            a.agent_enhancer_type,
+            a.enabled as agent_enhancer_enabled,
+            a.config_json as agent_enhancer_config_json,
+            a.created_at as agent_enhancer_created_at,
+            a.updated_at as agent_enhancer_updated_at
+        from agent_enhancer_binding b
+        inner join agent_enhancer a on a.id = b.agent_enhancer_id
+        where b.bind_type = #{q.bindType}
+          and b.bind_target_id = #{q.bindTargetId}
+        order by b.order_no asc, b.id asc
+    </select>
+
+    <delete id="deleteByTarget">
+        delete from agent_enhancer_binding
+        where bind_type = #{q.bindType}
+          and bind_target_id = #{q.bindTargetId}
+    </delete>
+
+    <insert id="insertBinding" useGeneratedKeys="true" keyProperty="id">
+        insert into agent_enhancer_binding (
+            bind_type,
+            bind_target_id,
+            agent_enhancer_id,
+            order_no,
+            enabled,
+            created_at,
+            updated_at
+        ) values (
+            #{bindType},
+            #{bindTargetId},
+            #{agentEnhancerId},
+            #{orderNo},
+            #{enabled},
+            now(),
+            now()
+        )
+    </insert>
+
+    <delete id="deleteByAgentEnhancerId">
+        delete from agent_enhancer_binding
+        where agent_enhancer_id = #{agentEnhancerId}
+    </delete>
+
+</mapper>
