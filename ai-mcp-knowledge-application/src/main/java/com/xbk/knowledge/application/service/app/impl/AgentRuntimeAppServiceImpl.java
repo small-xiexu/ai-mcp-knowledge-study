@@ -15,7 +15,9 @@ import com.xbk.knowledge.domain.agent.model.entity.Agent;
 import com.xbk.knowledge.domain.agent.model.entity.AgentRun;
 import com.xbk.knowledge.domain.agent.model.entity.AgentRunContext;
 import com.xbk.knowledge.domain.agent.model.entity.AgentVersion;
+import com.xbk.knowledge.domain.agent.model.valobj.AgentPlanningConfig;
 import com.xbk.knowledge.domain.client.model.entity.ClientProfileStep;
+import com.xbk.knowledge.domain.approval.model.entity.ApprovalRequest;
 import com.xbk.knowledge.domain.workflow.model.entity.Workflow;
 import com.xbk.knowledge.domain.workflow.model.entity.WorkflowVersion;
 import com.xbk.knowledge.domain.agent.model.valobj.AgentCodeQuery;
@@ -29,6 +31,7 @@ import com.xbk.knowledge.domain.agent.adapter.repository.AgentRunRepository;
 import com.xbk.knowledge.domain.agent.adapter.repository.AgentRunContextRepository;
 import com.xbk.knowledge.domain.agent.adapter.repository.AgentVersionRepository;
 import com.xbk.knowledge.domain.client.adapter.repository.ClientProfileRepository;
+import com.xbk.knowledge.domain.approval.adapter.repository.ApprovalRequestRepository;
 import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowRepository;
 import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowVersionRepository;
 import com.xbk.knowledge.domain.llm.service.IModelConfigService;
@@ -79,10 +82,16 @@ import org.slf4j.MDC;
 @RequiredArgsConstructor
 public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
 
+    private static final String PLAN_APPROVAL_TYPE = "PLAN_EXECUTE";
+    private static final String PLAN_APPROVAL_TOOL_KEY = "agent.plan.execute";
+    private static final String PLANNING_STATE_READY = "PLANNING_READY";
+    private static final String PLANNING_STATE_RESUMED = "PLANNING_RESUMED";
+
     private final AgentRepository agentRepository;
     private final AgentVersionRepository agentVersionRepository;
     private final AgentRunRepository agentRunRepository;
     private final AgentRunContextRepository agentRunContextRepository;
+    private final ApprovalRequestRepository approvalRequestRepository;
     private final IModelConfigService modelConfigService;
     private final ChatClientAssemblyService chatClientAssemblyService;
     private final AgentEnhancerRuntimeService agentEnhancerRuntimeService;
@@ -110,6 +119,24 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
 
         Agent agent = loadAgent(agentCode);
         AgentVersion version = loadPublishedVersion(agent);
+        AgentPlanningConfig planningConfig = parsePlanningConfig(version);
+        if (Boolean.TRUE.equals(planningConfig.getEnabled())) {
+            return planAndMaybeExecute(
+                    agentCode,
+                    agent,
+                    version,
+                    sessionId,
+                    content,
+                    ragTagsJson,
+                    start,
+                    runId,
+                    "CHAT_SYNC",
+                    "HTTP",
+                    null,
+                    "system",
+                    planningConfig
+            );
+        }
         List<AgentClientProfileStep> chainSteps = parseClientChainSteps(version);
 
         // Agent 绑定 Workflow：直接走 WorkflowRuntime（并返回 steps 明细）
@@ -543,7 +570,10 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
 
         Agent agent = loadAgent(agentCode);
         AgentVersion version = loadPublishedVersion(agent);
-        if (version != null && (version.getWorkflowVersionId() != null || hasClientChain(version))) {
+        AgentPlanningConfig planningConfig = parsePlanningConfig(version);
+        if (version != null && (Boolean.TRUE.equals(planningConfig.getEnabled())
+                || version.getWorkflowVersionId() != null
+                || hasClientChain(version))) {
             PlatformContractV1 contract = chat(agentCode, sessionId, content, ragTagsJson);
             if (contract == null || contract.getSteps() == null || contract.getSteps().isEmpty()) {
                 return Flux.just(PlatformStreamEvent.builder().name("final").data(contract).build());
@@ -735,6 +765,71 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
     }
 
     /**
+     * 审批通过后继续执行 Planning 任务。
+     *
+     * @param runId             运行ID
+     * @param approvalRequestId 审批单ID
+     * @return 平台标准结构化结果
+     */
+    @Override
+    public PlatformContractV1 resumePlannedRun(String runId, Long approvalRequestId) {
+        if (!StringUtils.hasText(runId)) {
+            throw new IllegalArgumentException("runId 不能为空");
+        }
+        AgentRun run = agentRunRepository.findByRunId(runId)
+                .orElseThrow(() -> new NotFoundException("run 不存在，runId=" + runId));
+        AgentVersion version = agentVersionRepository.findById(new AgentVersionIdQuery(run.getAgentVersionId()))
+                .orElseThrow(() -> new NotFoundException("AgentVersion 不存在，id=" + run.getAgentVersionId()));
+        Agent agent = agentRepository.findByCode(new AgentCodeQuery(run.getAgentCode()))
+                .orElseThrow(() -> new NotFoundException("Agent 不存在，agentCode=" + run.getAgentCode()));
+        AgentRunContext runContext = agentRunContextRepository.findByRunId(runId)
+                .orElseThrow(() -> new NotFoundException("未找到 planning 运行上下文，runId=" + runId));
+
+        Map<String, Object> snapshot = readJsonMap(runContext.getSnapshotJson());
+        AgentExecutionPlan plan = readPlanFromSnapshot(snapshot);
+        String content = asString(snapshot.get("content"));
+        String ragTagsJson = asString(snapshot.get("ragTagsJson"));
+        Long sessionId = run.getSessionId();
+        if (sessionId == null) {
+            sessionId = asLong(snapshot.get("sessionId"));
+        }
+
+        agentRunRepository.updateStatus(runId, "RUNNING", null, null);
+        long start = System.currentTimeMillis();
+        PlatformContractV1 result = executePlannedRun(
+                runId,
+                agent.getAgentCode(),
+                agent,
+                version,
+                sessionId,
+                content,
+                ragTagsJson,
+                start,
+                plan
+        );
+        try {
+            Map<String, Object> extras = new HashMap<>();
+            extras.put("planningState", PLANNING_STATE_RESUMED);
+            extras.put("planApprovalRequestId", approvalRequestId);
+            extras.put("resumeAt", LocalDateTime.now().toString());
+            saveRunContextSnapshot(
+                    runId,
+                    agent.getAgentCode(),
+                    agent.getId(),
+                    version,
+                    null,
+                    sessionId,
+                    content,
+                    ragTagsJson,
+                    extras
+            );
+            agentRunContextRepository.updateStatus(runId, "RESUMED");
+        } catch (Exception ignore) {
+        }
+        return result;
+    }
+
+    /**
      * 执行业务流程。
      *
      * @param agentCode Agent 编码
@@ -750,6 +845,24 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
 
         Agent agent = loadAgent(agentCode);
         AgentVersion version = loadPublishedVersion(agent);
+        AgentPlanningConfig planningConfig = parsePlanningConfig(version);
+        if (Boolean.TRUE.equals(planningConfig.getEnabled())) {
+            return planAndMaybeExecute(
+                    agentCode,
+                    agent,
+                    version,
+                    null,
+                    content,
+                    ragTagsJson,
+                    start,
+                    runId,
+                    "XXL_JOB",
+                    "XXL",
+                    null,
+                    "system",
+                    planningConfig
+            );
+        }
         List<AgentClientProfileStep> chainSteps = parseClientChainSteps(version);
         if (!chainSteps.isEmpty()) {
             return chatByClientChain(
@@ -856,6 +969,568 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                     .endedAt(LocalDateTime.now())
                     .build());
             return buildFailedContract(runId,  agentCode, version, model, costMs, msg, 0);
+        }
+    }
+
+    private PlatformContractV1 planAndMaybeExecute(String agentCode,
+                                                   Agent agent,
+                                                   AgentVersion version,
+                                                   Long sessionId,
+                                                   String content,
+                                                   String ragTagsJson,
+                                                   long start,
+                                                   String runId,
+                                                   String runType,
+                                                   String triggerSource,
+                                                   Long operatorId,
+                                                   String operatorType,
+                                                   AgentPlanningConfig planningConfig) {
+        ModelConfig plannerModel = resolvePlannerModel(planningConfig);
+        AgentRun run = AgentRun.builder()
+                .runId(runId)
+                .agentId(agent == null ? null : agent.getId())
+                .agentCode(agentCode)
+                .agentVersionId(version == null ? null : version.getId())
+                .runType(runType)
+                .triggerSource(triggerSource)
+                .operatorId(operatorId)
+                .operatorType(operatorType)
+                .sessionId(sessionId)
+                .status("RUNNING")
+                .modelIdUsed(plannerModel == null ? null : plannerModel.getId())
+                .modelNameUsed(plannerModel == null ? null : plannerModel.getModelName())
+                .promptTokens(0)
+                .completionTokens(0)
+                .totalTokens(0)
+                .toolCallCount(0)
+                .toolDeniedCount(0)
+                .repairAttempts(0)
+                .startedAt(LocalDateTime.now())
+                .build();
+        agentRunRepository.insert(run);
+
+        AgentExecutionPlan plan = generateExecutionPlan(runId, plannerModel, version, content, planningConfig);
+        Map<String, Object> extras = new HashMap<>();
+        extras.put("planningState", PLANNING_STATE_READY);
+        extras.put("plan", plan);
+        saveRunContextSnapshot(runId, agentCode, agent == null ? null : agent.getId(), version, plannerModel, sessionId, content, ragTagsJson, extras);
+
+        if (planningConfig == null || !Boolean.TRUE.equals(planningConfig.getRequireHumanConfirm())) {
+            return executePlannedRun(runId, agentCode, agent, version, sessionId, content, ragTagsJson, start, plan);
+        }
+
+        ApprovalRequest approvalRequest = createPlanApproval(run, plan, planningConfig);
+        String riskLevel = approvalRequest == null ? "HIGH" : approvalRequest.getRiskLevel();
+        ApprovalRequiredException pendingApproval = new ApprovalRequiredException(
+                approvalRequest == null ? null : approvalRequest.getId(),
+                PLAN_APPROVAL_TOOL_KEY,
+                riskLevel,
+                "Planning 计划待人工确认后执行"
+        );
+        agentRunRepository.updateStatus(runId, "PENDING_APPROVAL", null, null);
+        extras.put("planApprovalRequestId", approvalRequest == null ? null : approvalRequest.getId());
+        saveRunContextSnapshot(runId, agentCode, agent == null ? null : agent.getId(), version, plannerModel, sessionId, content, ragTagsJson, extras);
+
+        long costMs = System.currentTimeMillis() - start;
+        List<PlatformContractV1.StepTrace> plannedSteps = buildPlannedStepTraces(plan, approvalRequest == null ? null : approvalRequest.getId());
+        return buildPendingApprovalContractWithSteps(
+                runId,
+                agentCode,
+                version,
+                plannerModel,
+                costMs,
+                pendingApproval,
+                plannedSteps
+        );
+    }
+
+    private PlatformContractV1 executePlannedRun(String runId,
+                                                 String agentCode,
+                                                 Agent agent,
+                                                 AgentVersion version,
+                                                 Long sessionId,
+                                                 String content,
+                                                 String ragTagsJson,
+                                                 long start,
+                                                 AgentExecutionPlan plan) {
+        if (plan == null || plan.getSteps() == null || plan.getSteps().isEmpty()) {
+            throw new BusinessException("Planning 计划为空，无法执行");
+        }
+        List<PlatformContractV1.StepTrace> stepTraces = new ArrayList<>();
+        ModelConfig lastModel = null;
+        ParsedOutput lastParsed = null;
+        int totalRepairAttempts = 0;
+        String stepInput = content == null ? "" : content;
+        ResolvedRag rag = ragGovernanceSupport.resolve(version, ragTagsJson, content);
+        if (rag != null && rag.requiredMiss()) {
+            long costMs = System.currentTimeMillis() - start;
+            agentRunRepository.updateStatusAndMetrics(AgentRun.builder()
+                    .runId(runId)
+                    .status("SUCCESS")
+                    .modelIdUsed(null)
+                    .modelNameUsed(null)
+                    .totalTokens(0)
+                    .toolCallCount(null)
+                    .toolDeniedCount(null)
+                    .repairAttempts(0)
+                    .costMs(costMs)
+                    .endedAt(LocalDateTime.now())
+                    .build());
+            return buildRagRequiredNoHitContract(runId, agentCode, version, costMs, rag);
+        }
+
+        for (int i = 0; i < plan.getSteps().size(); i++) {
+            PlanStep step = plan.getSteps().get(i);
+            long stepStart = System.currentTimeMillis();
+            ModelConfig stepModel = resolvePlanningStepModel(step);
+            Set<String> allowedToolKeys = parseAllowedToolKeys(step == null ? null : step.getAllowedToolKeys());
+            boolean enableTools = step != null && Boolean.TRUE.equals(step.getEnableTools());
+            String userInput = buildPlanningStepInput(plan, stepInput, step, i + 1);
+            try {
+                ParsedOutput parsed = callOnce(
+                        runId,
+                        stepModel,
+                        version,
+                        sessionId,
+                        userInput,
+                        i == 0 ? rag : null,
+                        step == null ? null : step.getInstruction(),
+                        allowedToolKeys,
+                        enableTools
+                );
+                long stepCost = System.currentTimeMillis() - stepStart;
+                totalRepairAttempts += parsed == null ? 0 : parsed.repairAttempts;
+                stepTraces.add(buildPlanningExecutionStepTrace(step, i + 1, "SUCCESS", stepCost, parsed == null ? null : parsed.contract, null, null));
+                lastModel = stepModel;
+                lastParsed = parsed;
+                stepInput = parsed == null || parsed.contract == null ? "" : parsed.contract.getAnswer();
+            } catch (ApprovalRequiredException approval) {
+                long stepCost = System.currentTimeMillis() - stepStart;
+                stepTraces.add(buildPlanningExecutionStepTrace(step, i + 1, "PENDING_APPROVAL", stepCost, null, approval.getApprovalRequestId(), approval.getMessage()));
+                long costMs = System.currentTimeMillis() - start;
+                agentRunRepository.updateStatus(runId, "PENDING_APPROVAL", null, null);
+                return buildPendingApprovalContractWithSteps(runId, agentCode, version, stepModel, costMs, approval, stepTraces);
+            } catch (OutputParseFailedException parseFailed) {
+                long stepCost = System.currentTimeMillis() - stepStart;
+                int currentRepair = totalRepairAttempts + parseFailed.repairAttempts;
+                stepTraces.add(buildPlanningExecutionStepTrace(step, i + 1, "FAILED", stepCost, null, null, parseFailed.getMessage()));
+                long costMs = System.currentTimeMillis() - start;
+                agentRunRepository.updateStatusAndMetrics(AgentRun.builder()
+                        .runId(runId)
+                        .status("FAILED")
+                        .errorMessage(truncate(parseFailed.getMessage(), 1000))
+                        .repairAttempts(currentRepair)
+                        .costMs(costMs)
+                        .endedAt(LocalDateTime.now())
+                        .build());
+                return buildFailedContractWithSteps(runId, agentCode, version, stepModel, costMs, parseFailed.getMessage(), currentRepair, stepTraces);
+            } catch (Exception e) {
+                long stepCost = System.currentTimeMillis() - stepStart;
+                String message = e.getMessage();
+                stepTraces.add(buildPlanningExecutionStepTrace(step, i + 1, "FAILED", stepCost, null, null, message));
+                long costMs = System.currentTimeMillis() - start;
+                agentRunRepository.updateStatusAndMetrics(AgentRun.builder()
+                        .runId(runId)
+                        .status("FAILED")
+                        .errorMessage(truncate(message, 1000))
+                        .repairAttempts(totalRepairAttempts)
+                        .costMs(costMs)
+                        .endedAt(LocalDateTime.now())
+                        .build());
+                return buildFailedContractWithSteps(runId, agentCode, version, stepModel, costMs, message, totalRepairAttempts, stepTraces);
+            }
+        }
+
+        if (lastParsed == null) {
+            throw new BusinessException("Planning 执行失败：未产出有效结果");
+        }
+        long costMs = System.currentTimeMillis() - start;
+        agentRunRepository.updateStatusAndMetrics(AgentRun.builder()
+                .runId(runId)
+                .status("SUCCESS")
+                .modelIdUsed(lastModel == null ? null : lastModel.getId())
+                .modelNameUsed(lastModel == null ? null : lastModel.getModelName())
+                .totalTokens(null)
+                .toolCallCount(null)
+                .toolDeniedCount(null)
+                .repairAttempts(totalRepairAttempts)
+                .costMs(costMs)
+                .endedAt(LocalDateTime.now())
+                .build());
+        return buildSuccessContractWithSteps(runId, agentCode, version, lastModel, lastParsed, costMs, totalRepairAttempts, stepTraces);
+    }
+
+    private AgentExecutionPlan generateExecutionPlan(String runId,
+                                                     ModelConfig plannerModel,
+                                                     AgentVersion version,
+                                                     String content,
+                                                     AgentPlanningConfig planningConfig) {
+        String plannerSystem = """
+                你是企业级 Agent 规划器。你必须把任务拆成可执行步骤，并严格输出 JSON。
+                约束：
+                1) 只输出 JSON，不输出 markdown 或解释
+                2) steps 至少 1 步，最多 maxPlanSteps 步
+                3) 风险等级只能是 LOW/MEDIUM/HIGH
+                4) 当步骤涉及外部写操作时，riskLevel 至少为 MEDIUM
+                JSON 结构：
+                {
+                  "goal": "任务目标",
+                  "summary": "计划摘要",
+                  "steps": [
+                    {
+                      "stepNo": 1,
+                      "stepName": "步骤名",
+                      "instruction": "该步骤执行指令（给模型）",
+                      "modelId": 1,
+                      "enableTools": false,
+                      "allowedToolKeys": ["tool.a","tool.b"],
+                      "riskLevel": "LOW",
+                      "expectedOutput": "该步骤期望产物"
+                    }
+                  ]
+                }
+                """;
+        String baseSystem = version == null ? null : version.getSystemPromptSnapshot();
+        Prompt prompt = new Prompt(
+                new SystemMessage(StringUtils.hasText(baseSystem) ? baseSystem : ""),
+                new SystemMessage(plannerSystem),
+                new UserMessage("maxPlanSteps=" + safeMaxPlanSteps(planningConfig) + "\n任务输入:\n" + (content == null ? "" : content))
+        );
+        ChatClient plannerClient = buildChatClient(runId, plannerModel, version, null, false);
+        ChatResponse response = plannerClient.prompt(prompt).call().chatResponse();
+        String raw = extractText(response);
+        AgentExecutionPlan plan = parseExecutionPlan(raw, content, planningConfig);
+        if (plan.getSteps().isEmpty()) {
+            throw new BusinessException("Planner 未生成可执行步骤");
+        }
+        return plan;
+    }
+
+    private AgentExecutionPlan parseExecutionPlan(String raw, String content, AgentPlanningConfig planningConfig) {
+        String clean = stripCodeFence(raw);
+        try {
+            AgentExecutionPlan plan = objectMapper.readValue(clean, AgentExecutionPlan.class);
+            if (plan == null) {
+                throw new BusinessException("Planner 返回空计划");
+            }
+            if (!StringUtils.hasText(plan.getGoal())) {
+                plan.setGoal(content == null ? "" : content);
+            }
+            if (!StringUtils.hasText(plan.getSummary())) {
+                plan.setSummary("自动规划执行");
+            }
+            List<PlanStep> source = plan.getSteps();
+            List<PlanStep> normalized = new ArrayList<>();
+            int max = safeMaxPlanSteps(planningConfig);
+            if (source != null) {
+                for (int i = 0; i < source.size() && i < max; i++) {
+                    PlanStep step = source.get(i);
+                    if (step == null) {
+                        continue;
+                    }
+                    if (step.getStepNo() == null || step.getStepNo() <= 0) {
+                        step.setStepNo(i + 1);
+                    }
+                    if (!StringUtils.hasText(step.getStepName())) {
+                        step.setStepName("规划步骤-" + (i + 1));
+                    }
+                    if (!StringUtils.hasText(step.getRiskLevel())) {
+                        step.setRiskLevel("LOW");
+                    } else {
+                        String risk = step.getRiskLevel().trim().toUpperCase();
+                        if (!"LOW".equals(risk) && !"MEDIUM".equals(risk) && !"HIGH".equals(risk)) {
+                            risk = "LOW";
+                        }
+                        step.setRiskLevel(risk);
+                    }
+                    if (step.getEnableTools() == null) {
+                        step.setEnableTools(false);
+                    }
+                    if (step.getAllowedToolKeys() == null) {
+                        step.setAllowedToolKeys(List.of());
+                    }
+                    normalized.add(step);
+                }
+            }
+            if (normalized.isEmpty()) {
+                throw new BusinessException("Planner 未生成有效步骤");
+            }
+            plan.setSteps(normalized);
+            return plan;
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new BusinessException("Planner 输出解析失败，请检查规划模型与提示词");
+        }
+    }
+
+    private ApprovalRequest createPlanApproval(AgentRun run, AgentExecutionPlan plan, AgentPlanningConfig planningConfig) {
+        if (approvalRequestRepository == null || run == null || plan == null) {
+            return null;
+        }
+        LocalDateTime now = LocalDateTime.now();
+        int expireMinutes = planningConfig == null || planningConfig.getApprovalExpireMinutes() == null
+                ? 120 : planningConfig.getApprovalExpireMinutes();
+        String riskLevel = resolvePlanRiskLevel(plan);
+        String summary = StringUtils.hasText(plan.getSummary()) ? plan.getSummary() : "自动规划待确认";
+        String snapshotJson;
+        try {
+            Map<String, Object> snapshot = new HashMap<>();
+            snapshot.put("plan", plan);
+            snapshot.put("summary", summary);
+            snapshot.put("stepCount", plan.getSteps() == null ? 0 : plan.getSteps().size());
+            snapshotJson = objectMapper.writeValueAsString(snapshot);
+        } catch (Exception e) {
+            snapshotJson = "{}";
+        }
+        ApprovalRequest request = ApprovalRequest.builder()
+                .approvalType(PLAN_APPROVAL_TYPE)
+                .status("PENDING")
+                .runId(run.getRunId())
+                .agentId(run.getAgentId())
+                .agentVersionId(run.getAgentVersionId())
+                .requesterId(run.getOperatorId())
+                .requesterType(StringUtils.hasText(run.getOperatorType()) ? run.getOperatorType() : "system")
+                .requestReason("Planning 计划待确认: " + summary)
+                .toolKey(PLAN_APPROVAL_TOOL_KEY)
+                .riskLevel(riskLevel)
+                .argumentsSnapshotJson(snapshotJson)
+                .argumentsDigest("steps=" + (plan.getSteps() == null ? 0 : plan.getSteps().size()))
+                .expireAt(now.plusMinutes(Math.max(expireMinutes, 5)))
+                .createdAt(now)
+                .updatedAt(now)
+                .build();
+        return approvalRequestRepository.insert(request);
+    }
+
+    private String resolvePlanRiskLevel(AgentExecutionPlan plan) {
+        if (plan == null || plan.getSteps() == null || plan.getSteps().isEmpty()) {
+            return "HIGH";
+        }
+        int score = 1;
+        for (PlanStep step : plan.getSteps()) {
+            if (step == null || !StringUtils.hasText(step.getRiskLevel())) {
+                continue;
+            }
+            String risk = step.getRiskLevel().trim().toUpperCase();
+            if ("HIGH".equals(risk)) {
+                score = Math.max(score, 3);
+            } else if ("MEDIUM".equals(risk)) {
+                score = Math.max(score, 2);
+            } else {
+                score = Math.max(score, 1);
+            }
+        }
+        return score >= 3 ? "HIGH" : (score == 2 ? "MEDIUM" : "LOW");
+    }
+
+    private List<PlatformContractV1.StepTrace> buildPlannedStepTraces(AgentExecutionPlan plan, Long approvalRequestId) {
+        if (plan == null || plan.getSteps() == null || plan.getSteps().isEmpty()) {
+            return List.of();
+        }
+        List<PlatformContractV1.StepTrace> traces = new ArrayList<>();
+        for (int i = 0; i < plan.getSteps().size(); i++) {
+            PlanStep step = plan.getSteps().get(i);
+            traces.add(PlatformContractV1.StepTrace.builder()
+                    .nodeKey("agent.plan." + (i + 1))
+                    .nodeType("PLAN_STEP")
+                    .nodeName(normalizePlanningStepName(step, i + 1))
+                    .status("PENDING_APPROVAL")
+                    .approvalRequestId(approvalRequestId)
+                    .outputText(step == null ? "" : truncate(step.getExpectedOutput(), 500))
+                    .outputTruncated(step != null && step.getExpectedOutput() != null && step.getExpectedOutput().length() > 500)
+                    .build());
+        }
+        return traces;
+    }
+
+    private PlatformContractV1.StepTrace buildPlanningExecutionStepTrace(PlanStep step,
+                                                                         int index,
+                                                                         String status,
+                                                                         long costMs,
+                                                                         PlatformContractV1 contract,
+                                                                         Long approvalRequestId,
+                                                                         String errorMessage) {
+        String output = contract == null ? "" : (contract.getAnswer() == null ? "" : contract.getAnswer());
+        boolean truncated = output != null && output.length() > 16000;
+        if (truncated) {
+            output = output.substring(0, 16000);
+        }
+        return PlatformContractV1.StepTrace.builder()
+                .nodeKey("agent.plan." + index)
+                .nodeType("PLAN_STEP")
+                .nodeName(normalizePlanningStepName(step, index))
+                .status(status)
+                .costMs(costMs)
+                .approvalRequestId(approvalRequestId)
+                .errorMessage(errorMessage == null ? null : truncate(errorMessage, 1000))
+                .outputText(output)
+                .outputTruncated(truncated)
+                .build();
+    }
+
+    private String normalizePlanningStepName(PlanStep step, int fallbackIndex) {
+        if (step == null || !StringUtils.hasText(step.getStepName())) {
+            return "规划步骤-" + fallbackIndex;
+        }
+        return step.getStepName().trim();
+    }
+
+    private String buildPlanningStepInput(AgentExecutionPlan plan, String previousOutput, PlanStep step, int index) {
+        StringBuilder sb = new StringBuilder();
+        if (plan != null && StringUtils.hasText(plan.getGoal())) {
+            sb.append("任务目标：").append(plan.getGoal()).append('\n');
+        }
+        if (step != null && StringUtils.hasText(step.getExpectedOutput())) {
+            sb.append("本步期望：").append(step.getExpectedOutput()).append('\n');
+        }
+        sb.append("步骤序号：").append(index).append('\n');
+        sb.append("当前可用输入：").append(previousOutput == null ? "" : previousOutput);
+        return sb.toString();
+    }
+
+    private ModelConfig resolvePlannerModel(AgentPlanningConfig planningConfig) {
+        if (planningConfig != null && planningConfig.getPlannerModelId() != null) {
+            ModelConfig model = modelConfigService.queryModelConfigById(new IdQuery(planningConfig.getPlannerModelId()));
+            if (model == null) {
+                throw new BusinessException("planning.plannerModelId 不存在，id=" + planningConfig.getPlannerModelId());
+            }
+            if (!Boolean.TRUE.equals(model.getEnabled())) {
+                throw new BusinessException("planning.plannerModelId 未启用，id=" + planningConfig.getPlannerModelId());
+            }
+            return model;
+        }
+        List<ModelConfig> enabled = modelConfigService.queryEnabledModels(new EnabledQuery(true));
+        if (enabled == null || enabled.isEmpty()) {
+            throw new BusinessException("未配置可用模型");
+        }
+        return enabled.stream()
+                .filter(item -> item != null && item.getId() != null)
+                .sorted(Comparator.comparingLong(ModelConfig::getId))
+                .findFirst()
+                .orElseThrow(() -> new BusinessException("未配置可用模型"));
+    }
+
+    private ModelConfig resolvePlanningStepModel(PlanStep step) {
+        if (step != null && step.getModelId() != null) {
+            ModelConfig model = modelConfigService.queryModelConfigById(new IdQuery(step.getModelId()));
+            if (model == null) {
+                throw new BusinessException("Planning 步骤模型不存在，modelId=" + step.getModelId());
+            }
+            if (!Boolean.TRUE.equals(model.getEnabled())) {
+                throw new BusinessException("Planning 步骤模型未启用，modelId=" + step.getModelId());
+            }
+            return model;
+        }
+        List<ModelConfig> enabled = modelConfigService.queryEnabledModels(new EnabledQuery(true));
+        if (enabled == null || enabled.isEmpty()) {
+            throw new BusinessException("未配置可用模型");
+        }
+        return enabled.stream()
+                .filter(item -> item != null && item.getId() != null)
+                .sorted(Comparator.comparingLong(ModelConfig::getId))
+                .findFirst()
+                .orElseThrow(() -> new BusinessException("未配置可用模型"));
+    }
+
+    private AgentPlanningConfig parsePlanningConfig(AgentVersion version) {
+        if (version == null || !StringUtils.hasText(version.getPlanningConfigJson())) {
+            return AgentPlanningConfig.builder().enabled(false).build();
+        }
+        try {
+            AgentPlanningConfig config = objectMapper.readValue(version.getPlanningConfigJson(), AgentPlanningConfig.class);
+            if (config == null) {
+                return AgentPlanningConfig.builder().enabled(false).build();
+            }
+            if (config.getEnabled() == null) {
+                config.setEnabled(false);
+            }
+            if (config.getRequireHumanConfirm() == null) {
+                config.setRequireHumanConfirm(true);
+            }
+            if (config.getMaxPlanSteps() == null) {
+                config.setMaxPlanSteps(6);
+            }
+            if (config.getReplanMaxTimes() == null) {
+                config.setReplanMaxTimes(1);
+            }
+            if (config.getStepTimeoutMs() == null) {
+                config.setStepTimeoutMs(60000);
+            }
+            if (config.getApprovalExpireMinutes() == null) {
+                config.setApprovalExpireMinutes(120);
+            }
+            return config;
+        } catch (Exception e) {
+            throw new BusinessException("planningConfigJson 解析失败，请检查配置");
+        }
+    }
+
+    private int safeMaxPlanSteps(AgentPlanningConfig planningConfig) {
+        if (planningConfig == null || planningConfig.getMaxPlanSteps() == null) {
+            return 6;
+        }
+        return Math.max(1, Math.min(planningConfig.getMaxPlanSteps(), 20));
+    }
+
+    private AgentExecutionPlan readPlanFromSnapshot(Map<String, Object> snapshot) {
+        if (snapshot == null || snapshot.isEmpty()) {
+            throw new BusinessException("planning 快照为空");
+        }
+        Object planValue = snapshot.get("plan");
+        if (planValue == null) {
+            throw new BusinessException("planning 快照缺少 plan");
+        }
+        AgentExecutionPlan plan = objectMapper.convertValue(planValue, AgentExecutionPlan.class);
+        if (plan == null || plan.getSteps() == null || plan.getSteps().isEmpty()) {
+            throw new BusinessException("planning 快照中的 plan 无效");
+        }
+        return plan;
+    }
+
+    private Map<String, Object> readJsonMap(String json) {
+        if (!StringUtils.hasText(json)) {
+            return Map.of();
+        }
+        try {
+            return objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {});
+        } catch (Exception e) {
+            return Map.of();
+        }
+    }
+
+    private String stripCodeFence(String text) {
+        if (!StringUtils.hasText(text)) {
+            return "";
+        }
+        String trimmed = text.trim();
+        if (trimmed.startsWith("```")) {
+            int firstBreak = trimmed.indexOf('\n');
+            if (firstBreak > -1) {
+                trimmed = trimmed.substring(firstBreak + 1);
+            }
+            if (trimmed.endsWith("```")) {
+                trimmed = trimmed.substring(0, trimmed.length() - 3);
+            }
+        }
+        return trimmed.trim();
+    }
+
+    private String asString(Object value) {
+        return value == null ? null : String.valueOf(value);
+    }
+
+    private Long asLong(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Number number) {
+            return number.longValue();
+        }
+        try {
+            return Long.parseLong(String.valueOf(value));
+        } catch (Exception e) {
+            return null;
         }
     }
 
@@ -1453,6 +2128,18 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                                        Long sessionId,
                                        String content,
                                        String ragTagsJson) {
+        saveRunContextSnapshot(runId, agentCode, agentId, version, model, sessionId, content, ragTagsJson, null);
+    }
+
+    private void saveRunContextSnapshot(String runId,
+                                       String agentCode,
+                                       Long agentId,
+                                       AgentVersion version,
+                                       ModelConfig model,
+                                       Long sessionId,
+                                       String content,
+                                       String ragTagsJson,
+                                       Map<String, Object> extras) {
         if (agentRunContextRepository == null || runId == null) {
             return;
         }
@@ -1468,6 +2155,9 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
             snapshot.put("sessionId", sessionId);
             snapshot.put("content", content == null ? "" : content);
             snapshot.put("ragTagsJson", ragTagsJson);
+            if (extras != null && !extras.isEmpty()) {
+                snapshot.putAll(extras);
+            }
 
             String json = objectMapper.writeValueAsString(snapshot);
             AgentRunContext ctx = AgentRunContext.builder()
@@ -1581,6 +2271,29 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
             }
         }
         return set;
+    }
+
+    @lombok.Data
+    @lombok.NoArgsConstructor
+    @lombok.AllArgsConstructor
+    private static class AgentExecutionPlan {
+        private String goal;
+        private String summary;
+        private List<PlanStep> steps;
+    }
+
+    @lombok.Data
+    @lombok.NoArgsConstructor
+    @lombok.AllArgsConstructor
+    private static class PlanStep {
+        private Integer stepNo;
+        private String stepName;
+        private String instruction;
+        private Long modelId;
+        private Boolean enableTools;
+        private List<String> allowedToolKeys;
+        private String riskLevel;
+        private String expectedOutput;
     }
 
     private static final class ParsedOutput {

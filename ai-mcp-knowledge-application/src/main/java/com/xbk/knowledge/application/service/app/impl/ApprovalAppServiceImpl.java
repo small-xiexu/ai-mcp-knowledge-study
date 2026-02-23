@@ -2,6 +2,7 @@ package com.xbk.knowledge.application.service.app.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xbk.knowledge.application.service.app.ApprovalAppService;
+import com.xbk.knowledge.application.service.app.AgentRuntimeAppService;
 import com.xbk.knowledge.application.service.app.ChatClientAssemblyService;
 import com.xbk.knowledge.application.service.app.IdentityContextService;
 import com.xbk.knowledge.application.service.app.WorkflowRuntimeAppService;
@@ -85,6 +86,7 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
     private final WorkflowRuntimeAppService workflowRuntimeAppService;
     private final WorkflowRunRepository workflowRunRepository;
     private final WorkflowRunContextRepository workflowRunContextRepository;
+    private final AgentRuntimeAppService agentRuntimeAppService;
 
     /**
      * 根据筛选条件查询审批列表。
@@ -150,6 +152,13 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
             throw new BusinessException("审批状态更新失败（可能已被处理），id=" + id);
         }
         recordApprovalAudit(req.getRunId(), id, "APPROVED", now, null);
+
+        if ("PLAN_EXECUTE".equalsIgnoreCase(req.getApprovalType())) {
+            if (!StringUtils.hasText(req.getRunId())) {
+                throw new BusinessException("PLAN_EXECUTE 缺少 runId，无法续跑");
+            }
+            return agentRuntimeAppService.resumePlannedRun(req.getRunId(), req.getId());
+        }
 
         // 分支：Agent 场景沿用旧逻辑；Workflow 场景交给 WorkflowRuntime 续跑
         if (req.getAgentVersionId() != null) {

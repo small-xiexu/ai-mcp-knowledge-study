@@ -23,6 +23,9 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 public class AgentVersionDraftRequest extends BaseRequest {
 
+    /**
+     * 序列化版本号
+     */
     private static final long serialVersionUID = 1L;
 
     /**
@@ -30,6 +33,9 @@ public class AgentVersionDraftRequest extends BaseRequest {
      */
     private Long id;
 
+    /**
+     * Agent 编码
+     */
     @NotBlank(message = "agentCode 不能为空")
     private String agentCode;
 
@@ -59,8 +65,14 @@ public class AgentVersionDraftRequest extends BaseRequest {
     @Builder.Default
     private String ragMode = "OPTIONAL";
 
+    /**
+     * 默认RAG标签JSON
+     */
     private String defaultRagTagsJson;
 
+    /**
+     * 允许的RAG标签JSON
+     */
     private String allowedRagTagsJson;
 
     /**
@@ -81,17 +93,40 @@ public class AgentVersionDraftRequest extends BaseRequest {
      */
     private String clientChainJson;
 
+    /**
+     * Planning 配置 JSON（对象）。
+     */
+    private String planningConfigJson;
+
+    /**
+     * outputContract版本
+     */
     @Builder.Default
     private String outputContractVersion = "v1";
 
+    /**
+     * outputContractOptions JSON
+     */
     private String outputContractOptionsJson;
 
+    /**
+     * 超时时间（毫秒）
+     */
     private Integer timeoutMs;
 
+    /**
+     * 最大Turns
+     */
     private Integer maxTurns;
 
+    /**
+     * 温度
+     */
     private Double temperature;
 
+    /**
+     * repair重试Times
+     */
     private Integer repairRetryTimes;
 
     /**

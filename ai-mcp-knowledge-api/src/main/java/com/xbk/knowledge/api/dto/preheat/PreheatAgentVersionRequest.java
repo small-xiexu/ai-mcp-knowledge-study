@@ -12,6 +12,9 @@ import jakarta.validation.constraints.NotNull;
 @Data
 public class PreheatAgentVersionRequest {
 
+    /**
+     * Agent 版本ID
+     */
     @NotNull(message = "agentVersionId 不能为空")
     private Long agentVersionId;
 

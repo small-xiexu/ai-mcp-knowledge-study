@@ -15,9 +15,21 @@ import java.util.Map;
 @EqualsAndHashCode(callSuper = true)
 public class ToolDebugRequest extends BaseRequest {
 
+    /**
+     * 序列化版本号
+     */
     private static final long serialVersionUID = 1L;
 
+    /**
+     * 网关ID
+     */
     private String gatewayId;
+    /**
+     * 工具名称
+     */
     private String toolName;
+    /**
+     * arguments
+     */
     private Map<String, Object> arguments;
 }

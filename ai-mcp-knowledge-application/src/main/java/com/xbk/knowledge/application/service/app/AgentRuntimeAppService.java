@@ -18,6 +18,15 @@ public interface AgentRuntimeAppService {
     PlatformContractV1 invoke(String agentCode, Long sessionId, String content, String ragTagsJson);
 
     /**
+     * 审批通过后继续执行 Planning 任务。
+     *
+     * @param runId             运行ID
+     * @param approvalRequestId 审批单ID
+     * @return Platform Contract v1
+     */
+    PlatformContractV1 resumePlannedRun(String runId, Long approvalRequestId);
+
+    /**
      * XXL 调度执行入口（run_type=XXL_JOB, trigger_source=XXL）。
      *
      * @param agentCode   Agent 对外编码

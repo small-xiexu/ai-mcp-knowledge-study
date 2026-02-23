@@ -21,11 +21,20 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 public class AgentVersionPublishRequest extends BaseRequest {
 
+    /**
+     * 序列化版本号
+     */
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Agent 编码
+     */
     @NotBlank(message = "agentCode 不能为空")
     private String agentCode;
 
+    /**
+     * 版本ID
+     */
     @NotNull(message = "versionId 不能为空")
     private Long versionId;
 }

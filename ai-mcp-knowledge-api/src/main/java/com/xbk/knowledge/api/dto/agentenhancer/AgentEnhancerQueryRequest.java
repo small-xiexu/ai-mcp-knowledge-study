@@ -13,12 +13,24 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class AgentEnhancerQueryRequest extends PageRequest {
 
+    /**
+     * 序列化版本号
+     */
     private static final long serialVersionUID = 1L;
 
+    /**
+     * 关键字
+     */
     private String keyword;
 
+    /**
+     * 启用状态
+     */
     private Boolean enabled;
 
+    /**
+     * AgentEnhancer类型
+     */
     private String agentEnhancerType;
 }
 

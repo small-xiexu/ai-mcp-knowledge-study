@@ -11,6 +11,9 @@ import lombok.Data;
 @Data
 public class WorkflowVersionPublishRequest {
 
+    /**
+     * Workflow 版本ID
+     */
     @NotNull(message = "workflowVersionId 不能为空")
     private Long workflowVersionId;
 }

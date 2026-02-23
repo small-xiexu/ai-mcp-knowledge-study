@@ -21,11 +21,20 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 public class AgentVersionRollbackRequest extends BaseRequest {
 
+    /**
+     * 序列化版本号
+     */
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Agent 编码
+     */
     @NotBlank(message = "agentCode 不能为空")
     private String agentCode;
 
+    /**
+     * 目标版本 ID
+     */
     @NotNull(message = "targetVersionId 不能为空")
     private Long targetVersionId;
 }

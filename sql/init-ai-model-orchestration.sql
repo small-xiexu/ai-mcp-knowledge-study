@@ -619,6 +619,7 @@ CREATE TABLE agent_version (
     allowed_tool_keys_json JSON DEFAULT NULL COMMENT '允许工具集合（toolKey JSON数组）',
     client_profile_id BIGINT DEFAULT NULL COMMENT 'Client Profile ID（优先于 client_chain_json）',
     client_chain_json JSON DEFAULT NULL COMMENT '客户端串联步骤配置（JSON数组，按 sequence 顺序执行）',
+    planning_config_json JSON DEFAULT NULL COMMENT 'Planning 配置（JSON对象）',
     timeout_ms INT DEFAULT 60000 COMMENT '超时毫秒',
     max_turns INT DEFAULT 20 COMMENT '最大轮次',
     temperature DECIMAL(4,2) DEFAULT 0.70 COMMENT '温度',

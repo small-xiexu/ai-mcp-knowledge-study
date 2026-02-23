@@ -33,6 +33,7 @@ export interface AgentVersion {
   allowedToolKeysJson?: string
   clientProfileId?: number
   clientChainJson?: string
+  planningConfigJson?: string
   timeoutMs?: number
   maxTurns?: number
   temperature?: number

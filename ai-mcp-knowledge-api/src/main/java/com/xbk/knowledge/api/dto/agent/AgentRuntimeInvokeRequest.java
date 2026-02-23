@@ -20,12 +20,24 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 public class AgentRuntimeInvokeRequest extends BaseRequest {
 
+    /**
+     * 序列化版本号
+     */
     private static final long serialVersionUID = 1L;
 
+    /**
+     * 输入内容
+     */
     @NotBlank(message = "content 不能为空")
     private String content;
 
+    /**
+     * 会话ID
+     */
     private Long sessionId;
 
+    /**
+     * RAG标签JSON
+     */
     private String ragTagsJson;
 }

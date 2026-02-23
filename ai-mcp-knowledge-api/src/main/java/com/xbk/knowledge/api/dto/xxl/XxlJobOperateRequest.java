@@ -14,6 +14,9 @@ import jakarta.validation.constraints.NotNull;
 @Data
 public class XxlJobOperateRequest {
 
+    /**
+     * 序列化版本号
+     */
     private static final long serialVersionUID = 1L;
 
     /**

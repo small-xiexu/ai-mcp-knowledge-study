@@ -15,19 +15,37 @@ import java.util.List;
 @Data
 public class AgentEnhancerBindingSaveRequest {
 
+    /**
+     * 绑定类型
+     */
     @NotBlank(message = "bindType 不能为空")
     private String bindType;
 
+    /**
+     * 绑定目标ID
+     */
     @NotNull(message = "bindTargetId 不能为空")
     private Long bindTargetId;
 
+    /**
+     * items
+     */
     private List<AgentEnhancerBindingSaveItem> items;
 
     @Data
     public static class AgentEnhancerBindingSaveItem {
+        /**
+         * AgentEnhancer ID
+         */
         @NotNull(message = "agentEnhancerId 不能为空")
         private Long agentEnhancerId;
+        /**
+         * 顺序号
+         */
         private Integer orderNo;
+        /**
+         * 启用状态
+         */
         private Boolean enabled;
     }
 }

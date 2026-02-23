@@ -13,9 +13,15 @@ import jakarta.validation.constraints.NotNull;
 @Data
 public class AgentEnhancerBindingGetRequest {
 
+    /**
+     * 绑定类型
+     */
     @NotBlank(message = "bindType 不能为空")
     private String bindType;
 
+    /**
+     * 绑定目标ID
+     */
     @NotNull(message = "bindTargetId 不能为空")
     private Long bindTargetId;
 }

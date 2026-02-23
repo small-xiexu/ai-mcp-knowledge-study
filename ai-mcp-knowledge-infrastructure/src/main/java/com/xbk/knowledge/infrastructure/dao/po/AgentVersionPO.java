@@ -64,6 +64,8 @@ public class AgentVersionPO {
 
     private String clientChainJson;
 
+    private String planningConfigJson;
+
     private Integer timeoutMs;
 
     private Integer maxTurns;

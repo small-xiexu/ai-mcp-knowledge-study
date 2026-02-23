@@ -77,6 +77,15 @@ public class AgentVersion {
      */
     private String clientChainJson;
 
+    /**
+     * Planning 配置（JSON 对象）。
+     *
+     * 说明：
+     * - enabled=true 时，运行时先自动生成执行计划
+     * - 可配置是否要求人工确认后再执行
+     */
+    private String planningConfigJson;
+
     private Integer timeoutMs;
 
     private Integer maxTurns;

@@ -16,6 +16,9 @@ public class WorkflowRunRequest {
      */
     private Long sessionId;
 
+    /**
+     * 输入内容
+     */
     @NotBlank(message = "content 不能为空")
     private String content;
 

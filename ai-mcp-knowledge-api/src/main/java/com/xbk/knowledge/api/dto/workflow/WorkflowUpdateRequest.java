@@ -12,12 +12,21 @@ import lombok.Data;
 @Data
 public class WorkflowUpdateRequest {
 
+    /**
+     * 主键ID
+     */
     @NotNull(message = "id 不能为空")
     private Long id;
 
+    /**
+     * Workflow 名称
+     */
     @NotBlank(message = "workflowName 不能为空")
     private String workflowName;
 
+    /**
+     * 描述
+     */
     private String description;
 
     /**

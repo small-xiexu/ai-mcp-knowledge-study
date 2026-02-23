@@ -11,6 +11,9 @@ import lombok.Data;
 @Data
 public class WorkflowRunNodeListRequest {
 
+    /**
+     * 运行ID
+     */
     @NotBlank(message = "runId 不能为空")
     private String runId;
 }

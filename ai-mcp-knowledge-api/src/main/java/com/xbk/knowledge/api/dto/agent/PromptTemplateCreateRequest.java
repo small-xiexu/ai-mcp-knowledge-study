@@ -20,14 +20,26 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 public class PromptTemplateCreateRequest extends BaseRequest {
 
+    /**
+     * 序列化版本号
+     */
     private static final long serialVersionUID = 1L;
 
+    /**
+     * 模板编码
+     */
     @NotBlank(message = "templateCode 不能为空")
     private String templateCode;
 
+    /**
+     * 模板名称
+     */
     @NotBlank(message = "templateName 不能为空")
     private String templateName;
 
+    /**
+     * 输入内容
+     */
     @NotBlank(message = "content 不能为空")
     private String content;
 

@@ -129,10 +129,11 @@
           <el-radio-group v-model="runMode">
             <el-radio-button label="PROMPT">Prompt 模板</el-radio-button>
             <el-radio-button label="CHAIN">Client 链</el-radio-button>
+            <el-radio-button label="PLANNING">Planning</el-radio-button>
             <el-radio-button label="WORKFLOW">Workflow</el-radio-button>
           </el-radio-group>
           <div class="form-hint">
-            <span class="mono">CHAIN</span> 支持串联多个模型步骤；<span class="mono">Workflow</span> 则转发到可视化 DAG 编排执行。
+            <span class="mono">CHAIN</span> 支持串联多个模型步骤；<span class="mono">PLANNING</span> 支持“自动规划 + 人工确认执行”；<span class="mono">Workflow</span> 则转发到可视化 DAG 编排执行。
           </div>
         </el-form-item>
 
@@ -169,6 +170,29 @@
               type="textarea"
               :rows="6"
               placeholder='可选：直接填写步骤 JSON；例如 [{"sequence":1,"stepName":"重写","modelId":1}]'
+            />
+          </el-form-item>
+        </template>
+        <template v-else-if="runMode === 'PLANNING'">
+          <el-form-item label="Prompt 模板(可选)">
+            <el-select v-model="form.promptTemplateId" filterable clearable placeholder="可选：作为 Planner 角色提示词" style="width: 100%">
+              <el-option
+                v-for="t in templateOptions"
+                :key="t.id"
+                :label="`${t.templateName} (${t.templateCode})`"
+                :value="t.id"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="模板参数(JSON)">
+            <el-input v-model="form.templateParamsJson" type="textarea" :rows="3" placeholder='例如：{"scene":"金融风控"}' />
+          </el-form-item>
+          <el-form-item label="planningConfigJson">
+            <el-input
+              v-model="form.planningConfigJson"
+              type="textarea"
+              :rows="7"
+              placeholder='例如：{"enabled":true,"requireHumanConfirm":true,"plannerModelId":1,"maxPlanSteps":6,"replanMaxTimes":1,"stepTimeoutMs":60000,"approvalExpireMinutes":120}'
             />
           </el-form-item>
         </template>
@@ -338,7 +362,7 @@ const currentSnapshot = ref('')
 const defaultRagTags = ref<string[]>([])
 const allowedRagTags = ref<string[]>([])
 const allowedToolKeys = ref<string[]>([])
-const runMode = ref<'PROMPT' | 'CHAIN' | 'WORKFLOW'>('PROMPT')
+const runMode = ref<'PROMPT' | 'CHAIN' | 'PLANNING' | 'WORKFLOW'>('PROMPT')
 
 const form = reactive<any>({
   id: undefined,
@@ -347,6 +371,7 @@ const form = reactive<any>({
   templateParamsJson: '{}',
   clientProfileId: undefined,
   clientChainJson: '',
+  planningConfigJson: '{"enabled":true,"requireHumanConfirm":true,"maxPlanSteps":6,"replanMaxTimes":1,"stepTimeoutMs":60000,"approvalExpireMinutes":120}',
   workflowVersionId: undefined,
   ragMode: 'OPTIONAL',
   repairRetryTimes: 2,
@@ -407,6 +432,7 @@ const openCreateDraft = async () => {
   form.templateParamsJson = '{}'
   form.clientProfileId = undefined
   form.clientChainJson = ''
+  form.planningConfigJson = '{"enabled":true,"requireHumanConfirm":true,"maxPlanSteps":6,"replanMaxTimes":1,"stepTimeoutMs":60000,"approvalExpireMinutes":120}'
   form.workflowVersionId = undefined
   runMode.value = 'PROMPT'
   selectedWorkflowId.value = undefined
@@ -438,7 +464,10 @@ const openEditDraft = async (row: AgentVersion) => {
     form.clientProfileId = v.clientProfileId
     form.clientChainJson = v.clientChainJson || ''
     form.workflowVersionId = v.workflowVersionId
-    runMode.value = v.workflowVersionId ? 'WORKFLOW' : ((v.clientProfileId || v.clientChainJson) ? 'CHAIN' : 'PROMPT')
+    form.planningConfigJson = v.planningConfigJson || ''
+    runMode.value = planningEnabledFromJson(v.planningConfigJson)
+      ? 'PLANNING'
+      : (v.workflowVersionId ? 'WORKFLOW' : ((v.clientProfileId || v.clientChainJson) ? 'CHAIN' : 'PROMPT'))
     form.ragMode = v.ragMode || 'OPTIONAL'
     form.repairRetryTimes = v.repairRetryTimes ?? 2
     form.timeoutMs = v.timeoutMs ?? 60000
@@ -560,6 +589,14 @@ const saveDraft = async () => {
     form.clientProfileId = undefined
     form.clientChainJson = ''
     form.promptTemplateId = undefined
+    form.planningConfigJson = ''
+  } else if (runMode.value === 'PLANNING') {
+    form.workflowVersionId = undefined
+    form.clientProfileId = undefined
+    form.clientChainJson = ''
+    if (!String(form.planningConfigJson || '').trim()) {
+      form.planningConfigJson = '{"enabled":true,"requireHumanConfirm":true,"maxPlanSteps":6,"replanMaxTimes":1,"stepTimeoutMs":60000,"approvalExpireMinutes":120}'
+    }
   } else if (runMode.value === 'CHAIN') {
     if (!form.clientProfileId && !String(form.clientChainJson || '').trim()) {
       ElMessage.error('请选择 Client Profile 或填写 clientChainJson')
@@ -567,10 +604,12 @@ const saveDraft = async () => {
     }
     form.workflowVersionId = undefined
     form.promptTemplateId = undefined
+    form.planningConfigJson = ''
   } else {
     form.workflowVersionId = undefined
     form.clientProfileId = undefined
     form.clientChainJson = ''
+    form.planningConfigJson = ''
   }
 
   saving.value = true
@@ -583,6 +622,7 @@ const saveDraft = async () => {
       templateParamsJson: form.templateParamsJson || undefined,
       clientProfileId: form.clientProfileId || undefined,
       clientChainJson: form.clientChainJson || undefined,
+      planningConfigJson: form.planningConfigJson || undefined,
       workflowVersionId: form.workflowVersionId || undefined,
       ragMode: form.ragMode,
       defaultRagTagsJson: JSON.stringify(defaultRagTags.value || []),
@@ -655,6 +695,16 @@ const safeParseList = (json?: string) => {
     return Array.isArray(v) ? v : []
   } catch {
     return []
+  }
+}
+
+const planningEnabledFromJson = (json?: string) => {
+  if (!json) return false
+  try {
+    const v = JSON.parse(json)
+    return !!v?.enabled
+  } catch {
+    return false
   }
 }
 

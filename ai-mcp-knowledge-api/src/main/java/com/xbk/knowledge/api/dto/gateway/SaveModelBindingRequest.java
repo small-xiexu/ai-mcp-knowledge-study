@@ -15,8 +15,17 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 public class SaveModelBindingRequest extends BaseRequest {
 
+    /**
+     * 序列化版本号
+     */
     private static final long serialVersionUID = 1L;
 
+    /**
+     * 模型ID
+     */
     private Long modelId;
+    /**
+     * 工具列表
+     */
     private List<Long> toolIds;
 }

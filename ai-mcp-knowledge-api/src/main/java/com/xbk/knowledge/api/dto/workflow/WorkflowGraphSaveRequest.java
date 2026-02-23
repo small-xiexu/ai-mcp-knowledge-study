@@ -15,6 +15,9 @@ import java.util.List;
 @Data
 public class WorkflowGraphSaveRequest {
 
+    /**
+     * Workflow 版本ID
+     */
     @NotNull(message = "workflowVersionId 不能为空")
     private Long workflowVersionId;
 
@@ -23,6 +26,9 @@ public class WorkflowGraphSaveRequest {
      */
     private String graphJson;
 
+    /**
+     * 默认Config JSON
+     */
     private String defaultConfigJson;
 
     private List<Node> nodes = new ArrayList<>();
@@ -31,23 +37,53 @@ public class WorkflowGraphSaveRequest {
 
     @Data
     public static class Node {
+        /**
+         * 节点Key
+         */
         @NotBlank(message = "nodeKey 不能为空")
         private String nodeKey;
+        /**
+         * 节点类型
+         */
         @NotBlank(message = "nodeType 不能为空")
         private String nodeType;
+        /**
+         * 节点名称
+         */
         private String nodeName;
+        /**
+         * config JSON
+         */
         private String configJson;
+        /**
+         * positionX
+         */
         private Integer positionX;
+        /**
+         * positionY
+         */
         private Integer positionY;
     }
 
     @Data
     public static class Edge {
+        /**
+         * 来源键
+         */
         @NotBlank(message = "sourceKey 不能为空")
         private String sourceKey;
+        /**
+         * 目标键
+         */
         @NotBlank(message = "targetKey 不能为空")
         private String targetKey;
+        /**
+         * 连线类型
+         */
         private String edgeType;
+        /**
+         * conditionExpr
+         */
         private String conditionExpr;
     }
 }

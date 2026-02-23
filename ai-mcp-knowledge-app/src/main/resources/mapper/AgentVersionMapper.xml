@@ -23,6 +23,7 @@
         <result column="allowed_tool_keys_json" property="allowedToolKeysJson"/>
         <result column="client_profile_id" property="clientProfileId"/>
         <result column="client_chain_json" property="clientChainJson"/>
+        <result column="planning_config_json" property="planningConfigJson"/>
         <result column="timeout_ms" property="timeoutMs"/>
         <result column="max_turns" property="maxTurns"/>
         <result column="temperature" property="temperature"/>
@@ -53,6 +54,7 @@
             allowed_tool_keys_json,
             client_profile_id,
             client_chain_json,
+            planning_config_json,
             timeout_ms,
             max_turns,
             temperature,
@@ -79,6 +81,7 @@
             #{allowedToolKeysJson},
             #{clientProfileId},
             #{clientChainJson},
+            #{planningConfigJson},
             #{timeoutMs},
             #{maxTurns},
             #{temperature},
@@ -104,6 +107,7 @@
             allowed_tool_keys_json = #{allowedToolKeysJson},
             client_profile_id = #{clientProfileId},
             client_chain_json = #{clientChainJson},
+            planning_config_json = #{planningConfigJson},
             timeout_ms = #{timeoutMs},
             max_turns = #{maxTurns},
             temperature = #{temperature},
@@ -135,6 +139,7 @@
             allowed_tool_keys_json,
             client_profile_id,
             client_chain_json,
+            planning_config_json,
             timeout_ms,
             max_turns,
             temperature,
@@ -169,6 +174,7 @@
             allowed_tool_keys_json,
             client_profile_id,
             client_chain_json,
+            planning_config_json,
             timeout_ms,
             max_turns,
             temperature,
@@ -204,6 +210,7 @@
             allowed_tool_keys_json,
             client_profile_id,
             client_chain_json,
+            planning_config_json,
             timeout_ms,
             max_turns,
             temperature,

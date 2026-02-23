@@ -12,6 +12,9 @@ import jakarta.validation.constraints.NotNull;
 @Data
 public class PreheatWorkflowVersionRequest {
 
+    /**
+     * Workflow 版本ID
+     */
     @NotNull(message = "workflowVersionId 不能为空")
     private Long workflowVersionId;
 

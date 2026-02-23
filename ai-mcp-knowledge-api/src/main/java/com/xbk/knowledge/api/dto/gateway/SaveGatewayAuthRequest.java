@@ -15,12 +15,33 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = true)
 public class SaveGatewayAuthRequest extends BaseRequest {
 
+    /**
+     * 序列化版本号
+     */
     private static final long serialVersionUID = 1L;
 
+    /**
+     * 主键ID
+     */
     private Long id;
+    /**
+     * 网关ID
+     */
     private String gatewayId;
+    /**
+     * API Key
+     */
     private String apiKey;
+    /**
+     * rateLimit
+     */
     private Integer rateLimit;
+    /**
+     * 过期时间
+     */
     private LocalDateTime expireTime;
+    /**
+     * 状态
+     */
     private Integer status;
 }

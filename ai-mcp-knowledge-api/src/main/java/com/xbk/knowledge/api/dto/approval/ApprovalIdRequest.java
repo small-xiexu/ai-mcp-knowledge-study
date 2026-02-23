@@ -11,6 +11,9 @@ import lombok.Data;
 @Data
 public class ApprovalIdRequest {
 
+    /**
+     * 主键ID
+     */
     @NotNull(message = "id 不能为空")
     private Long id;
 }

@@ -11,9 +11,15 @@ import lombok.Data;
 @Data
 public class WorkflowVersionCreateRequest {
 
+    /**
+     * Workflow ID
+     */
     @NotNull(message = "workflowId 不能为空")
     private Long workflowId;
 
+    /**
+     * 变更说明
+     */
     private String changeSummary;
 }
 

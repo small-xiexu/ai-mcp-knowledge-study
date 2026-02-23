@@ -21,6 +21,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class AuditEventResponse implements Serializable {
 
+    /**
+     * 序列化版本号
+     */
     private static final long serialVersionUID = 1L;
 
     /**

@@ -7,6 +7,7 @@ import com.xbk.knowledge.domain.agent.model.entity.AgentVersion;
 import com.xbk.knowledge.domain.agent.model.entity.PromptTemplate;
 import com.xbk.knowledge.domain.agent.model.valobj.AgentClientProfileStep;
 import com.xbk.knowledge.domain.agent.model.valobj.AgentCodeQuery;
+import com.xbk.knowledge.domain.agent.model.valobj.AgentPlanningConfig;
 import com.xbk.knowledge.domain.agent.model.valobj.AgentVersionIdQuery;
 import com.xbk.knowledge.domain.agent.model.valobj.AgentVersionPageQuery;
 import com.xbk.knowledge.domain.agent.model.valobj.PromptTemplateIdQuery;
@@ -178,6 +179,7 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
         existed.setAllowedToolKeysJson(draft.getAllowedToolKeysJson());
         existed.setClientProfileId(draft.getClientProfileId());
         existed.setClientChainJson(draft.getClientChainJson());
+        existed.setPlanningConfigJson(draft.getPlanningConfigJson());
         existed.setTimeoutMs(draft.getTimeoutMs());
         existed.setMaxTurns(draft.getMaxTurns());
         existed.setTemperature(draft.getTemperature());
@@ -222,8 +224,27 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
         }
 
         // 1) 校验发布前置
+        AgentPlanningConfig planningConfig = parsePlanningConfig(version.getPlanningConfigJson());
+        if (Boolean.TRUE.equals(planningConfig.getEnabled())) {
+            validatePlanningConfig(planningConfig);
+            if (version.getWorkflowVersionId() != null
+                    || version.getClientProfileId() != null
+                    || StringUtils.hasText(version.getClientChainJson())) {
+                throw new BusinessException("Planning 模式与 Workflow/ClientChain 互斥，请仅保留一种运行模式");
+            }
+            // Planning 可选绑定 Prompt 模板，作为规划阶段系统提示词。
+            if (version.getPromptTemplateId() != null) {
+                PromptTemplate template = resolveTemplateForPublish(version.getPromptTemplateId());
+                String rendered = renderTemplate(template.getContent(), version.getTemplateParamsJson());
+                version.setPromptTemplateVersionNo(template.getVersionNo());
+                version.setSystemPromptSnapshot(rendered);
+            } else {
+                version.setPromptTemplateVersionNo(null);
+                version.setSystemPromptSnapshot(null);
+            }
+        }
         // 优先：Workflow 绑定模式（不要求 promptTemplate）
-        if (version.getWorkflowVersionId() != null) {
+        else if (version.getWorkflowVersionId() != null) {
             // P0：仅要求 workflowVersionId 非空；状态校验放宽（允许先发布 Agent，再逐步完善 Workflow 发布流程）
             // 若你希望更严格：可在这里要求 workflowVersion.state == PUBLISHED
             workflowVersionRepository.findById(
@@ -448,6 +469,70 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
             return normalized;
         } catch (Exception e) {
             throw new BusinessException("clientChainJson 解析失败，请检查 JSON 结构");
+        }
+    }
+
+    private AgentPlanningConfig parsePlanningConfig(String json) {
+        if (!StringUtils.hasText(json)) {
+            return AgentPlanningConfig.builder().build();
+        }
+        try {
+            AgentPlanningConfig config = objectMapper.readValue(json, AgentPlanningConfig.class);
+            if (config == null) {
+                return AgentPlanningConfig.builder().build();
+            }
+            if (config.getEnabled() == null) {
+                config.setEnabled(false);
+            }
+            if (config.getRequireHumanConfirm() == null) {
+                config.setRequireHumanConfirm(true);
+            }
+            if (config.getMaxPlanSteps() == null) {
+                config.setMaxPlanSteps(6);
+            }
+            if (config.getReplanMaxTimes() == null) {
+                config.setReplanMaxTimes(1);
+            }
+            if (config.getStepTimeoutMs() == null) {
+                config.setStepTimeoutMs(60000);
+            }
+            if (config.getApprovalExpireMinutes() == null) {
+                config.setApprovalExpireMinutes(120);
+            }
+            return config;
+        } catch (Exception e) {
+            throw new BusinessException("planningConfigJson 解析失败，请检查 JSON 结构");
+        }
+    }
+
+    private void validatePlanningConfig(AgentPlanningConfig config) {
+        if (config == null || !Boolean.TRUE.equals(config.getEnabled())) {
+            return;
+        }
+        int maxPlanSteps = config.getMaxPlanSteps() == null ? 6 : config.getMaxPlanSteps();
+        if (maxPlanSteps < 1 || maxPlanSteps > 20) {
+            throw new BusinessException("planning.maxPlanSteps 取值范围为 [1,20]");
+        }
+        int replanMaxTimes = config.getReplanMaxTimes() == null ? 1 : config.getReplanMaxTimes();
+        if (replanMaxTimes < 0 || replanMaxTimes > 3) {
+            throw new BusinessException("planning.replanMaxTimes 取值范围为 [0,3]");
+        }
+        int stepTimeoutMs = config.getStepTimeoutMs() == null ? 60000 : config.getStepTimeoutMs();
+        if (stepTimeoutMs < 1000 || stepTimeoutMs > 600000) {
+            throw new BusinessException("planning.stepTimeoutMs 取值范围为 [1000,600000]");
+        }
+        int approvalExpireMinutes = config.getApprovalExpireMinutes() == null ? 120 : config.getApprovalExpireMinutes();
+        if (approvalExpireMinutes < 5 || approvalExpireMinutes > 1440) {
+            throw new BusinessException("planning.approvalExpireMinutes 取值范围为 [5,1440]");
+        }
+        if (config.getPlannerModelId() != null) {
+            ModelConfig model = modelConfigService.queryModelConfigById(new IdQuery(config.getPlannerModelId()));
+            if (model == null) {
+                throw new BusinessException("planning.plannerModelId 不存在，id=" + config.getPlannerModelId());
+            }
+            if (!Boolean.TRUE.equals(model.getEnabled())) {
+                throw new BusinessException("planning.plannerModelId 未启用，id=" + config.getPlannerModelId());
+            }
         }
     }
 }

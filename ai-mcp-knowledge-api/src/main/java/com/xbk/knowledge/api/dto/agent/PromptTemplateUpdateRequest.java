@@ -20,15 +20,30 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 public class PromptTemplateUpdateRequest extends BaseRequest {
 
+    /**
+     * 序列化版本号
+     */
     private static final long serialVersionUID = 1L;
 
+    /**
+     * 主键ID
+     */
     @NotNull(message = "id 不能为空")
     private Long id;
 
+    /**
+     * 模板名称
+     */
     private String templateName;
 
+    /**
+     * 输入内容
+     */
     private String content;
 
+    /**
+     * variableSpec JSON
+     */
     private String variableSpecJson;
 }
 

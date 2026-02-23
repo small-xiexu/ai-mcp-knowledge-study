@@ -20,14 +20,26 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 public class AgentUpdateRequest extends BaseRequest {
 
+    /**
+     * 序列化版本号
+     */
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Agent 编码
+     */
     @NotBlank(message = "agentCode 不能为空")
     private String agentCode;
 
+    /**
+     * Agent 名称
+     */
     @NotBlank(message = "agentName 不能为空")
     private String agentName;
 
+    /**
+     * 描述
+     */
     private String description;
 
     /**

@@ -42,7 +42,9 @@ public class ApprovalRequestRepositoryImpl implements ApprovalRequestRepository 
         if (request.getUpdatedAt() == null) {
             request.setUpdatedAt(LocalDateTime.now());
         }
-        mapper.insertRequest(BeanMappingUtils.map(request, ApprovalRequestPO.class));
+        ApprovalRequestPO po = BeanMappingUtils.map(request, ApprovalRequestPO.class);
+        mapper.insertRequest(po);
+        request.setId(po == null ? null : po.getId());
         return request;
     }
 

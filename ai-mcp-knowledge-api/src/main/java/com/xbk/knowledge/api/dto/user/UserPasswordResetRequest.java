@@ -25,6 +25,9 @@ import jakarta.validation.constraints.Size;
 @EqualsAndHashCode(callSuper = true)
 public class UserPasswordResetRequest extends BaseRequest {
 
+    /**
+     * 序列化版本号
+     */
     private static final long serialVersionUID = 1L;
 
     /**

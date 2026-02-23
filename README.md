@@ -16,7 +16,7 @@
 - 身份权限（Sa-Token）
 - 模型中心（OpenAI / Anthropic / Gemini / Ollama / DeepSeek）
 - AI 对话（同步 + SSE）
-- Agent 资产与运行（Prompt / Client Chain / Workflow）
+- Agent 资产与运行（Prompt / Client Chain / Planning / Workflow）
 - Workflow 图编排与运行时
 - MCP Server 动态接入
 - Gateway HTTP 工具治理
@@ -169,6 +169,62 @@ graph LR
 - Prompt 模板：`/api/templates/*`
 - AgentEnhancer 绑定：`/api/agent-enhancers/*`
 
+#### 6.4.1 Planning 配置示例（AgentVersion）
+- 字段位置：`agent_version.planning_config_json`
+- 含义：开启后走“自动规划 ->（可选）人工确认 -> 按计划执行”
+
+```json
+{
+  "enabled": true,
+  "requireHumanConfirm": true,
+  "plannerModelId": 1,
+  "maxPlanSteps": 6,
+  "replanMaxTimes": 1,
+  "stepTimeoutMs": 60000,
+  "approvalExpireMinutes": 120
+}
+```
+
+- `enabled=true`：启用 Planning 运行模式
+- `requireHumanConfirm=true`：先生成计划并创建 `PLAN_EXECUTE` 审批单，审批通过后续跑
+- `plannerModelId`：规划阶段模型 ID（为空则自动选择可用模型）
+- `maxPlanSteps`：最大规划步骤数（建议 `3~8`）
+- `replanMaxTimes`：失败后最大重规划次数
+- `stepTimeoutMs`：单步骤超时毫秒
+- `approvalExpireMinutes`：计划确认审批过期时间（分钟）
+
+AgentVersion 草稿保存示例：
+
+```json
+{
+  "agentCode": "payment_diagnosis_agent",
+  "changeSummary": "启用 planning 执行模式",
+  "promptTemplateId": 12,
+  "templateParamsJson": "{\"scene\":\"支付故障诊断\"}",
+  "planningConfigJson": "{\"enabled\":true,\"requireHumanConfirm\":true,\"plannerModelId\":1,\"maxPlanSteps\":6,\"replanMaxTimes\":1,\"stepTimeoutMs\":60000,\"approvalExpireMinutes\":120}",
+  "ragMode": "OPTIONAL",
+  "allowedToolKeysJson": "[\"order.query\",\"transaction.query\"]",
+  "outputContractVersion": "v1"
+}
+```
+
+无人值守（不需要人工确认）示例：
+
+```json
+{
+  "enabled": true,
+  "requireHumanConfirm": false,
+  "plannerModelId": 1,
+  "maxPlanSteps": 4,
+  "replanMaxTimes": 0,
+  "stepTimeoutMs": 45000,
+  "approvalExpireMinutes": 60
+}
+```
+
+- 适用场景：低风险只读工具编排（如订单查询、券状态查询）。
+- 风险建议：依然要配置 `allowedToolKeysJson`，并将高风险写操作工具保持 `HIGH` 风险审批策略。
+
 ### 6.5 Workflow 平台
 - Workflow 与版本管理：`/api/workflows/*`
 - 图编辑保存：`/api/workflows/versions/save-graph`
@@ -186,8 +242,12 @@ graph LR
 ### 6.7 工具审批
 - 审批接口：`/api/approvals/list|get|approve|reject`
 - 风险等级：`HIGH` 工具触发审批单（`approval_request`）
+- 审批类型：
+  - `TOOL_INVOKE`：高风险工具调用审批
+  - `PLAN_EXECUTE`：Planning 计划确认审批（自动规划后人工确认执行）
 - 审批通过后自动续跑：
   - Agent：执行审批工具后继续模型生成
+  - Agent Planning：按 `agent_run_context.snapshot_json` 中计划继续执行（`resumePlannedRun`）
   - Workflow：从挂起节点恢复 DAG
 
 ### 6.8 RAG
@@ -273,7 +333,7 @@ sequenceDiagram
 | 身份与审计 | 6 | `sys_user`, `sys_role`, `sys_permission`, `sys_audit_event` |
 | 模型/对话/RAG | 7 | `ai_model_config`, `ai_call_log`, `ai_chat_session`, `ai_rag_task` |
 | Gateway/工具 | 6 | `mcp_gateway`, `mcp_gateway_auth`, `mcp_tool_registry` |
-| Client/AgentEnhancer/Agent/Prompt | 10 | `advisor`, `ai_client_profile`, `agent`, `agent_version`, `prompt_template` |
+| Client/AgentEnhancer/Agent/Prompt | 10 | `agent_enhancer`, `ai_client_profile`, `agent`, `agent_version`, `prompt_template` |
 | Workflow/运行 | 7 | `workflow`, `workflow_version`, `workflow_node`, `workflow_run` |
 | 审批 | 1 | `approval_request` |
 

@@ -15,8 +15,14 @@ public class ApprovalListRequest {
      */
     private String status;
 
+    /**
+     * 偏移量
+     */
     private Integer offset = 0;
 
+    /**
+     * 每页条数
+     */
     private Integer pageSize = 20;
 }
 
