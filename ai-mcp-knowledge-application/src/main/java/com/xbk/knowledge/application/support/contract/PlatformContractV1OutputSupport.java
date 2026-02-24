@@ -16,8 +16,8 @@ import java.util.List;
  * PlatformContractV1 输出解析与修复支持。
  *
  * 职责：
- * 1) 从模型输出的 JSON 文本解析为 PlatformContractV1（仅使用 answer/uncertainty/citations/toolCalls/actionsNext）
- * 2) 容错：支持从代码块或夹杂文本中提取 JSON
+ * 1、 从模型输出的 JSON 文本解析为 PlatformContractV1（仅使用 answer/uncertainty/citations/toolCalls/actionsNext）
+ * 2、 容错：支持从代码块或夹杂文本中提取 JSON
  *
  * 说明：meta/status/error 由平台补齐，模型输出不可信。
  *

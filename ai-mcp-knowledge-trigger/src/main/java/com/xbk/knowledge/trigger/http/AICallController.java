@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -65,25 +66,39 @@ public class AICallController implements IAICallService {
     @SaCheckPermission("agent:read")
     @Override
     public SseEmitter stream(@Valid @RequestBody AIRequest request, HttpServletResponse httpResponse) {
+        // SSE 响应基础设置：
+        // 1、UTF-8 防止中文分片乱码
+        // 2、no-cache/keep-alive 让连接保持长连
+        // 3、X-Accel-Buffering=no 禁止反向代理缓冲，确保分片实时推送
         httpResponse.setCharacterEncoding("UTF-8");
         httpResponse.setHeader("Cache-Control", "no-cache");
         httpResponse.setHeader("Connection", "keep-alive");
         httpResponse.setHeader("X-Accel-Buffering", "no");
+
+        // 0L 表示不设置超时，由业务自行在 onComplete/onError 显式结束连接
         SseEmitter emitter = new SseEmitter(0L);
         AICallCommand command = DTOConverter.toAppAICallCommand(request);
+
+        // 记录整次流式会话的 token 统计，最终在结束阶段一次性回传 usage 事件
         UsageStats usageStats = new UsageStats();
 
-        aiChatAppService.streamChat(command).subscribe(
-                chatResponse -> {
-                    captureUsage(chatResponse, usageStats);
-                    sendChunk(emitter, chatResponse);
-                },
-                emitter::completeWithError,
-                () -> {
-                    sendUsage(emitter, usageStats);
-                    emitter.complete();
-                }
-        );
+        // subscribe 三段回调语义：
+        // onNext(每个分片)、onError(异常终止)、onComplete(正常结束)
+        Consumer<ChatResponse> onChunk = chatResponse -> {
+            // 每收到一个分片先提取 usage 快照（若当前分片不含 usage，方法内部会安全忽略）
+            captureUsage(chatResponse, usageStats);
+            // 将当前分片文本通过 SSE 发送给前端，前端可实时拼接渲染
+            sendChunk(emitter, chatResponse);
+        };
+        Consumer<Throwable> onError = emitter::completeWithError;
+        Runnable onComplete = () -> {
+            // 流结束时回传累计 usage，便于前端展示 token 消耗
+            sendUsage(emitter, usageStats);
+            // 明确关闭 SSE 连接，通知前端“已完成”
+            emitter.complete();
+        };
+
+        aiChatAppService.streamChat(command).subscribe(onChunk, onError, onComplete);
         return emitter;
     }
 

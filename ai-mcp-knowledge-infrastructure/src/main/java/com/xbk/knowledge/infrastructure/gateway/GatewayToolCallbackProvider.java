@@ -176,8 +176,8 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
      * 根据 ThreadLocal 中的绑定上下文过滤工具候选列表（无上下文时不过滤）。
      *
      * 过滤顺序：
-     * 1) allowlist（toolKey）优先且强制（当上下文显式携带 allowedToolKeys 时）
-     * 2) legacy 绑定过滤（MODEL/SESSION/AGENT_VERSION），当存在绑定记录时生效
+     * 1、 allowlist（toolKey）优先且强制（当上下文显式携带 allowedToolKeys 时）
+     * 2、 legacy 绑定过滤（MODEL/SESSION/AGENT_VERSION），当存在绑定记录时生效
      */
     private List<ToolCandidate> applyVisibilityFilter(List<ToolCandidate> candidates) {
         BindingContext context = GatewayToolBindingContextHolder.get();
@@ -446,9 +446,9 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
      * 高风险审批门禁（方式B）。
      *
      * 规则：
-     * 1) 风险等级取工具注册 risk_level，缺省 MEDIUM
-     * 2) riskLevel=HIGH 时触发审批
-     * 3) 已存在 APPROVED 且未过期则放行；否则创建或复用 PENDING 审批单并中断执行
+     * 1、 风险等级取工具注册 risk_level，缺省 MEDIUM
+     * 2、 riskLevel=HIGH 时触发审批
+     * 3、 已存在 APPROVED 且未过期则放行；否则创建或复用 PENDING 审批单并中断执行
      */
     private void maybeRequireApproval(String runId, 
                                       ToolCandidate candidate,

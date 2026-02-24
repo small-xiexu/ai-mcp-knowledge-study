@@ -223,7 +223,7 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
             throw new BusinessException("仅 DRAFT 版本允许发布");
         }
 
-        // 1) 校验发布前置
+        // 1、 校验发布前置
         AgentPlanningConfig planningConfig = parsePlanningConfig(version.getPlanningConfigJson());
         if (Boolean.TRUE.equals(planningConfig.getEnabled())) {
             validatePlanningConfig(planningConfig);
@@ -274,7 +274,7 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
             version.setSystemPromptSnapshot(rendered);
         }
 
-        // 2) 固化模板版本号与快照，并将状态切换为 PUBLISHED
+        // 2、 固化模板版本号与快照，并将状态切换为 PUBLISHED
         int affected = agentVersionRepository.publish(version.getId(),
                 version.getPromptTemplateVersionNo(),
                 version.getTemplateParamsJson(),

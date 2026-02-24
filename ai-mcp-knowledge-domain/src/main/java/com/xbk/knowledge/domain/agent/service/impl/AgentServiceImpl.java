@@ -161,10 +161,10 @@ public class AgentServiceImpl implements IAgentService {
             throw new BusinessException("Agent 缺少有效 ID，无法删除");
         }
 
-        // 1) 删除调度配置
+        // 1、 删除调度配置
         agentScheduleRepository.deleteByAgentId(agentId);
 
-        // 2) 删除版本级 AgentEnhancer 绑定
+        // 2、 删除版本级 AgentEnhancer 绑定
         List<AgentVersion> versions = agentVersionRepository.listByAgentId(agentId);
         if (versions != null && !versions.isEmpty()) {
             for (AgentVersion version : versions) {
@@ -175,13 +175,13 @@ public class AgentServiceImpl implements IAgentService {
             }
         }
 
-        // 3) 删除审批单 / 运行上下文 / 运行记录 / 版本
+        // 3、 删除审批单 / 运行上下文 / 运行记录 / 版本
         approvalRequestRepository.deleteByAgentId(agentId);
         agentRunContextRepository.deleteByAgentId(agentId);
         agentRunRepository.deleteByAgentId(agentId);
         agentVersionRepository.removeByAgentId(agentId);
 
-        // 4) 删除 Agent 主记录
+        // 4、 删除 Agent 主记录
         int affected = agentRepository.deleteByCode(query);
         if (affected <= 0) {
             throw new BusinessException("Agent 删除失败，agentCode: " + query.getAgentCode());

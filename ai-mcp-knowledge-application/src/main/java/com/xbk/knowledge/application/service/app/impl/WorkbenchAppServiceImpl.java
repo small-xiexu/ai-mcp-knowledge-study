@@ -135,44 +135,44 @@ public class WorkbenchAppServiceImpl implements WorkbenchAppService {
                                                              long scheduleEnabled) {
         List<WorkbenchSummary.GuideStep> steps = new ArrayList<>();
 
-        // 1) 模型
+        // 1、 模型
         boolean modelOk = modelEnabled > 0 && activeChatModelId != null;
         steps.add(step("models", "配置并激活模型", modelOk ? "DONE" : "TODO",
                 modelOk ? null : "需至少启用 1 个模型并激活对话模型",
                 "/models", "去配置", false));
 
-        // 2) Prompt
+        // 2、 Prompt
         boolean promptOk = true;
         String promptMsg = null;
         steps.add(step("templates", "准备 Prompt 模板", promptOk ? "DONE" : "TODO",
                 promptMsg,
                 "/templates", "去管理", true));
 
-        // 3) 知识库
+        // 3、 知识库
         boolean knowledgeOk = ragTagCount > 0;
         steps.add(step("knowledge", "导入知识库资料（可选）", knowledgeOk ? "DONE" : "TODO",
                 knowledgeOk ? null : "未发现知识库标签，可先导入资料",
                 "/knowledge", "去导入", true));
 
-        // 4) Agent
+        // 4、 Agent
         boolean agentOk = agentTotal > 0;
         steps.add(step("agents", "创建 Agent", agentOk ? "DONE" : "TODO",
                 agentOk ? null : "还没有 Agent，先创建一个最小可用 Agent",
                 "/agents", "去创建", true));
 
-        // 5) 发布
+        // 5、 发布
         boolean publishOk = agentPublished > 0;
         steps.add(step("publish", "发布 Agent 版本", publishOk ? "DONE" : (agentOk ? "TODO" : "BLOCKED"),
                 publishOk ? null : (agentOk ? "至少发布 1 个版本，调度/调用默认取当前发布版本" : "先创建 Agent 再发布"),
                 "/agents", "去发布", true));
 
-        // 6) 审批
+        // 6、 审批
         boolean approvalOk = approvalsPending == 0;
         steps.add(step("approvals", "处理工具审批单", approvalOk ? "DONE" : "TODO",
                 approvalOk ? null : ("有待审批单：" + approvalsPending),
                 "/approvals", "去处理", false));
 
-        // 7) 调度
+        // 7、 调度
         boolean scheduleOk = scheduleEnabled > 0;
         steps.add(step("schedules", "配置调度并运行", scheduleOk ? "DONE" : "TODO",
                 scheduleOk ? null : "暂无启用调度，可配置 CRON 定时运行",

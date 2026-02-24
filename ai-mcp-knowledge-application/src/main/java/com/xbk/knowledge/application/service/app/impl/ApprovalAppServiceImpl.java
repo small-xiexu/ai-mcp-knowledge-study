@@ -60,9 +60,9 @@ import java.util.Optional;
  * 审批应用服务实现。
  *
  * 实现要点（方式B）：
- * 1) 审批通过后平台执行一次已审批的工具调用（使用审批单快照 arguments）
- * 2) 将工具结果注入到模型上下文中，继续生成 PlatformContractV1 最终结果
- * 3) 更新 approval_request/agent_run/agent_run_context 状态，并写审计（工具调用审计由工具回调侧写入）
+ * 1、 审批通过后平台执行一次已审批的工具调用（使用审批单快照 arguments）
+ * 2、 将工具结果注入到模型上下文中，继续生成 PlatformContractV1 最终结果
+ * 3、 更新 approval_request/agent_run/agent_run_context 状态，并写审计（工具调用审计由工具回调侧写入）
  *
  * @author sxie
  */

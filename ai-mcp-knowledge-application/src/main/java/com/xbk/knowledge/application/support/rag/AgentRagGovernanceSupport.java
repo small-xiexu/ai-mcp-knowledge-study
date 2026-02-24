@@ -22,8 +22,8 @@ import java.util.Set;
  * Agent 运行时 RAG 治理支持。
  *
  * 职责：
- * 1) 按 AgentVersion.rag_mode/default/allowed 对请求 ragTags 做规范化与白名单过滤
- * 2) 在需要时执行向量检索，返回文档与平台可控的 citations
+ * 1、 按 AgentVersion.rag_mode/default/allowed 对请求 ragTags 做规范化与白名单过滤
+ * 2、 在需要时执行向量检索，返回文档与平台可控的 citations
  *
  * 说明：
  * - allowedRagTagsJson 为空：视为“不限”（允许任意 tag），避免误伤存量；若需要严格白名单，请显式配置 allowed

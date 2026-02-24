@@ -24,9 +24,9 @@ import jakarta.validation.Valid;
  * 审批控制面接口。
  *
  * 职责：
- * 1) 审批单查询（列表/详情）
- * 2) 审批通过/拒绝
- * 3) 支撑“方式B”：审批通过后自动继续运行产出 PlatformContractV1
+ * 1、 审批单查询（列表/详情）
+ * 2、 审批通过/拒绝
+ * 3、 支撑“方式B”：审批通过后自动继续运行产出 PlatformContractV1
  *
  * @author sxie
  */
