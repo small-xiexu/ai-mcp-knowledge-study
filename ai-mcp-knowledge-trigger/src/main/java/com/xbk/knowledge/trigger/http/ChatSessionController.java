@@ -270,12 +270,18 @@ public class ChatSessionController implements IChatSessionService {
         return response;
     }
 
+    /**
+     * 解析RAGTags。
+     *
+     * @param rawTags 原始标签字符串。
+     * @return 返回标签集合。
+     */
     private List<String> parseRagTags(String rawTags) {
         if (rawTags == null || rawTags.isEmpty()) {
             return Collections.emptyList();
         }
         // 将存储的 JSON 字符串还原为标签列表，前端无需自行解析
-         * 约束：解析失败时回退为空列表，避免影响主流程
+         // 约束：解析失败时回退为空列表，避免影响主流程
         try {
             return objectMapper.readValue(rawTags, new TypeReference<List<String>>() {});
         } catch (JsonProcessingException e) {
@@ -283,12 +289,18 @@ public class ChatSessionController implements IChatSessionService {
         }
     }
 
+    /**
+     * 将输入数据转换为RAGTagsJSON。
+     *
+     * @param tags 标签列表。
+     * @return 返回 JSON 字符串。
+     */
     private String toRagTagsJson(List<String> tags) {
         if (tags == null || tags.isEmpty()) {
             return "[]";
         }
         // 存储时统一序列化为 JSON，便于数据库索引与查询
-         * 约束：序列化失败时回退为空数组，保持字段结构稳定
+         // 约束：序列化失败时回退为空数组，保持字段结构稳定
         try {
             return objectMapper.writeValueAsString(tags);
         } catch (JsonProcessingException e) {

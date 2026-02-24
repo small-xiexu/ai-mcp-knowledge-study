@@ -239,6 +239,13 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
         return filtered;
     }
 
+    /**
+     * 按 allowlist 规则过滤工具候选列表。
+     *
+     * @param candidates 候选工具列表。
+     * @param context 执行上下文。
+     * @return 返回过滤后的候选工具列表。
+     */
     private List<ToolCandidate> applyAllowlistIfPresent(List<ToolCandidate> candidates,
                                                        BindingContext context) {
         if (context == null) {
@@ -545,6 +552,16 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
         throw new ApprovalRequiredException(req.getId(), candidate.toolKey, riskLevel, "工具调用需要审批（已生成审批单）");
     }
 
+    /**
+     * 更新待审批工具快照。
+     *
+     * @param runId 运行ID。
+     * @param toolKey 工具标识。
+     * @param riskLevel 风险级别。
+     * @param argsDigest 参数摘要。
+     * @param approvalRequestId 审批申请ID。
+     * @param now 当前时间。
+     */
     private void upsertPendingToolSnapshot(String runId,
                                           String toolKey,
                                           String riskLevel,
@@ -706,6 +723,19 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
         private final String inputSchema;
         private final String riskLevel;
 
+        /**
+         * 将输入数据转换为Candidate。
+         *
+         * @param toolId 工具ID。
+         * @param gatewayId 网关ID。
+         * @param toolName 工具名称。
+         * @param toolKey 工具标识。
+         * @param functionName 函数名称。
+         * @param description 描述文本。
+         * @param inputSchema 输入Schema定义。
+         * @param riskLevel 风险级别。
+         * @return 返回当前对象实例。
+         */
         private ToolCandidate(Long toolId,
                               String gatewayId,
                               String toolName,

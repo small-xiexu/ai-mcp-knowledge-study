@@ -49,6 +49,12 @@ public class McpToolController implements IMcpToolService {
         return Result.success(responses);
     }
 
+    /**
+     * 将输入数据转换为响应。
+     *
+     * @param info 工具信息。
+     * @return 返回McpToolResponse对象。
+     */
     private McpToolResponse toResponse(McpToolInfo info) {
         if (info == null) {
             return null;

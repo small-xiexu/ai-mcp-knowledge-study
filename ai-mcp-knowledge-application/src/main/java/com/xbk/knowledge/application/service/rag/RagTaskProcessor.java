@@ -59,6 +59,14 @@ public class RagTaskProcessor {
     private final ThreadPoolTaskExecutor ragTaskExecutor;
     private final ObjectMapper objectMapper;
 
+    /**
+     * 创建 RAG 任务处理器并注入依赖组件。
+     *
+     * @param ragVectorStoreService RAG向量存储服务。
+     * @param ragTaskRepository RAG任务仓储。
+     * @param tokenTextSplitter 文本切分器。
+     * @param ragTaskExecutor RAG任务执行器。
+     */
     public RagTaskProcessor(
             RagVectorStoreService ragVectorStoreService,
             RagTaskRepository ragTaskRepository,
@@ -481,6 +489,11 @@ public class RagTaskProcessor {
                 path.endsWith(".ts");
     }
 
+    /**
+     * 递归删除目录。
+     *
+     * @param directory 目录路径。
+     */
     private void deleteDirectory(File directory) throws IOException {
         if (directory == null || !directory.exists()) {
             return;

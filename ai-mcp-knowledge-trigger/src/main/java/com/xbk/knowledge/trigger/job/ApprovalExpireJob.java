@@ -89,6 +89,12 @@ public class ApprovalExpireJob {
         recordExpireAudit(req, now);
     }
 
+    /**
+     * 记录审批过期审计日志。
+     *
+     * @param req 请求对象。
+     * @param now 当前时间。
+     */
     private void recordExpireAudit(ApprovalRequest req, LocalDateTime now) {
         if (sysAuditEventRepository == null || req == null || req.getId() == null) {
             return;

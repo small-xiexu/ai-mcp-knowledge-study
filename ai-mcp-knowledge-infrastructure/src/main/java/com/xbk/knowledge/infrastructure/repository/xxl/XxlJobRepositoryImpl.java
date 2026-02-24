@@ -79,7 +79,6 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
         Integer pageNum = query.getPageNum();
         Integer pageSize = query.getPageSize();
         // 规范化分页参数，避免异常分页导致接口报错
- */
         int safePageNum = pageNum == null ? 1 : pageNum;
         int safePageSize = pageSize == null ? DEFAULT_PAGE_SIZE : pageSize;
         int start = (safePageNum - 1) * safePageSize;
@@ -928,6 +927,7 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
 
         /**
          * 返回响应状态码。
+         */
         private HttpStatusCode status() {
             return status;
         }

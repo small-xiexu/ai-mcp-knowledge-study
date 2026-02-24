@@ -79,12 +79,13 @@ public class AiChatAppServiceImpl implements AiChatAppService {
     @Override
     public AICallResult chat(AICallCommand command) {
         long startTime = System.currentTimeMillis();
-        // 1、统一准备调用上下文：模型、工具开关、提示词与日志骨架
-        ModelConfig modelConfig = resolveChatModel(command);
-        boolean toolEnabled = resolveToolEnabled(modelConfig);
-        Prompt prompt = buildPrompt(command, toolEnabled);
-        CallLog callLog = buildCallLog(modelConfig, command);
-        String conversationId = resolveConversationId(command);
+        // 1、顺序准备调用上下文：模型、工具开关、提示词与日志骨架
+        ChatCallContext context = prepareChatContext(command);
+        ModelConfig modelConfig = context.modelConfig;
+        boolean toolEnabled = context.toolEnabled;
+        Prompt prompt = context.prompt;
+        CallLog callLog = context.callLog;
+        String conversationId = context.conversationId;
         // 2、绑定网关工具上下文，保证工具回调能感知 runId/sessionId
         String runId = TraceIdUtils.getOrCreateTraceId();
         GatewayToolBindingContextHolder.set(modelConfig.getId(), command.getSessionId(), null, runId, null);
@@ -138,13 +139,14 @@ public class AiChatAppServiceImpl implements AiChatAppService {
     @Override
     public Flux<ChatResponse> streamChat(AICallCommand command) {
         long startTime = System.currentTimeMillis();
-        // 1、与同步调用保持同一套准备流程，避免行为漂移
-        ModelConfig modelConfig = resolveChatModel(command);
-        boolean toolEnabled = resolveToolEnabled(modelConfig);
-        Prompt prompt = buildPrompt(command, toolEnabled);
-        CallLog callLog = buildCallLog(modelConfig, command);
+        // 1、与同步调用复用同一套顺序准备逻辑，避免两条链路行为漂移
+        ChatCallContext context = prepareChatContext(command);
+        ModelConfig modelConfig = context.modelConfig;
+        boolean toolEnabled = context.toolEnabled;
+        Prompt prompt = context.prompt;
+        CallLog callLog = context.callLog;
         UsageStats usageStats = new UsageStats();
-        String conversationId = resolveConversationId(command);
+        String conversationId = context.conversationId;
         StringBuilder assistantBuffer = new StringBuilder();
         return Flux.defer(() -> {
             // 2、每次订阅都创建独立 runId，确保并发流请求隔离
@@ -181,6 +183,20 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         });
     }
 
+    private ChatCallContext prepareChatContext(AICallCommand command) {
+        // 步骤 1：确定本次调用使用的模型
+        ModelConfig modelConfig = resolveChatModel(command);
+        // 步骤 2：根据模型配置计算工具开关
+        boolean toolEnabled = resolveToolEnabled(modelConfig);
+        // 步骤 3：基于用户输入 + 历史记忆 + RAG 组装 Prompt
+        Prompt prompt = buildPrompt(command, toolEnabled);
+        // 步骤 4：创建调用日志骨架，后续只补充结果字段
+        CallLog callLog = buildCallLog(modelConfig, command);
+        // 步骤 5：计算会话 ID，供记忆读写使用
+        String conversationId = resolveConversationId(command);
+        return new ChatCallContext(modelConfig, toolEnabled, prompt, callLog, conversationId);
+    }
+
     /**
      * 解析对话模型
      * <p>
@@ -204,6 +220,11 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         return activeChat;
     }
 
+    /**
+     * 校验并绑定会话模型一致性。
+     *
+     * @param command 对话调用指令。
+     */
     private void enforceSessionModelBinding(AICallCommand command) {
         if (command == null) {
             return;
@@ -237,6 +258,12 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         return "该会话已绑定模型【" + displayName + "】，为保证对话一致性不可切换模型。如需切换，请新建会话。";
     }
 
+    /**
+     * 解析模型名称。
+     *
+     * @param modelId 模型ID。
+     * @return 返回名称文本。
+     */
     private String resolveModelName(Long modelId) {
         if (modelId == null) {
             return null;
@@ -523,6 +550,36 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         return String.valueOf(command.getSessionId());
     }
 
+    private static final class ChatCallContext {
+        private final ModelConfig modelConfig;
+        private final boolean toolEnabled;
+        private final Prompt prompt;
+        private final CallLog callLog;
+        private final String conversationId;
+
+        /**
+         * 构建对话调用上下文。
+         *
+         * @param modelConfig 模型配置。
+         * @param toolEnabled 工具开关。
+         * @param prompt 提示词。
+         * @param callLog 调用日志。
+         * @param conversationId 会话上下文ID。
+         * @return 返回当前对象实例。
+         */
+        private ChatCallContext(ModelConfig modelConfig,
+                                boolean toolEnabled,
+                                Prompt prompt,
+                                CallLog callLog,
+                                String conversationId) {
+            this.modelConfig = modelConfig;
+            this.toolEnabled = toolEnabled;
+            this.prompt = prompt;
+            this.callLog = callLog;
+            this.conversationId = conversationId;
+        }
+    }
+
     /**
      * 流式 token 使用统计
      * <p>
@@ -533,7 +590,13 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         private Integer completionTokens;
         private Integer totalTokens;
 
-
+        /**
+         * 更新业务数据。
+         *
+         * @param promptTokens 输入Token数。
+         * @param completionTokens 输出Token数。
+         * @param totalTokens 总Token数。
+         */
         private void update(Integer promptTokens, Integer completionTokens, Integer totalTokens) {
             // 流式分片会重复回调，保留最近一次非空 usage 视图
             if (promptTokens != null) {
@@ -547,7 +610,11 @@ public class AiChatAppServiceImpl implements AiChatAppService {
             }
         }
 
-
+        /**
+         * 计算本次响应的总 Token 数。
+         *
+         * @return 返回总 Token 数。
+         */
         private Integer getTotalTokens() {
             if (totalTokens != null) {
                 return totalTokens;

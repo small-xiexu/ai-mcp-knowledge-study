@@ -45,7 +45,7 @@ public class AuthController implements IAuthService {
      * 5. 组装 `AuthLoginResponse` 并通过 `Result.success` 返回。
      *
      * @param request     登录请求
-     * @param httpRequest HTTP请求
+     * @param httpRequest HTTP 请求
      * @return 登录响应
      */
     @PostMapping("/login")

@@ -181,6 +181,12 @@ public class ClientProfileController implements IClientProfileService {
         return Result.success();
     }
 
+    /**
+     * 将输入数据转换为步骤列表。
+     *
+     * @param requestSteps 请求步骤列表。
+     * @return 返回步骤集合。
+     */
     private List<ClientProfileStep> toSteps(List<ClientProfileSaveRequest.ClientProfileStepItem> requestSteps) {
         if (requestSteps == null || requestSteps.isEmpty()) {
             return List.of();
@@ -206,6 +212,13 @@ public class ClientProfileController implements IClientProfileService {
         return toResponse(profile, null);
     }
 
+    /**
+     * 将输入数据转换为响应。
+     *
+     * @param profile 画像对象。
+     * @param steps 步骤列表。
+     * @return 返回ClientProfileResponse对象。
+     */
     private ClientProfileResponse toResponse(ClientProfile profile, List<ClientProfileStep> steps) {
         if (profile == null) {
             return null;
@@ -222,6 +235,12 @@ public class ClientProfileController implements IClientProfileService {
                 .build();
     }
 
+    /**
+     * 将输入数据转换为步骤响应列表。
+     *
+     * @param steps 步骤列表。
+     * @return 返回步骤集合。
+     */
     private List<ClientProfileResponse.ClientProfileStepResponse> toStepResponses(List<ClientProfileStep> steps) {
         if (steps == null || steps.isEmpty()) {
             return List.of();

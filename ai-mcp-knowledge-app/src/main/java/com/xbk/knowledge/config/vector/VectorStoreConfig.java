@@ -41,6 +41,13 @@ public class VectorStoreConfig {
     private final ModelConfigAppService modelConfigAppService;
     private final VectorStoreProperties vectorStoreProperties;
 
+    /**
+     * 创建向量存储配置并注入依赖组件。
+     *
+     * @param pgvectorJdbcTemplate PgVector JDBC模板。
+     * @param modelConfigAppService 模型配置应用服务。
+     * @param vectorStoreProperties 向量库配置。
+     */
     public VectorStoreConfig(
             @Qualifier("pgvectorJdbcTemplate") JdbcTemplate pgvectorJdbcTemplate,
             ModelConfigAppService modelConfigAppService,

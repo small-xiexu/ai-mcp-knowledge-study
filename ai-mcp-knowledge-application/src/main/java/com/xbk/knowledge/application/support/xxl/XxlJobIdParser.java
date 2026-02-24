@@ -12,6 +12,9 @@ import org.springframework.util.StringUtils;
  */
 public final class XxlJobIdParser {
 
+    /**
+     * 创建 XXL-Job ID 解析器并注入依赖组件。
+     */
     private XxlJobIdParser() {
     }
 

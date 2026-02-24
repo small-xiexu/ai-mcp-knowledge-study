@@ -46,7 +46,7 @@ public class WebLogAspect {
     private final ObjectMapper objectMapper;
 
     /**
-     * 定义切点：拦截 trigger.http 包下所有 Controller 的公共方法
+     * 执行 Web 请求日志切面处理。
      */
     @Pointcut("execution(public * com.xbk.knowledge.trigger.http..*Controller.*(..))")
     public void webLog() {
@@ -201,6 +201,13 @@ public class WebLogAspect {
         return truncateJsonString(json, 500);
     }
 
+    /**
+     * 截断过长 JSON 字符串。
+     *
+     * @param json JSON 字符串。
+     * @param maxLength 最大长度。
+     * @return 返回 JSON 字符串。
+     */
     private String truncateJsonString(String json, int maxLength) {
         if (json == null) {
             return "null";
@@ -213,6 +220,12 @@ public class WebLogAspect {
         return toJsonString(payload);
     }
 
+    /**
+     * 构建请求地址。
+     *
+     * @param request 请求参数。
+     * @return 返回构建结果对象。
+     */
     private String buildRequestUrl(HttpServletRequest request) {
         if (request == null) {
             return "UNKNOWN";
@@ -283,6 +296,17 @@ public class WebLogAspect {
         private final String requestUrl;
         private final Object[] args;
 
+        /**
+         * 构建请求上下文快照对象。
+         *
+         * @param traceId 链路追踪ID。
+         * @param controller 控制器名称。
+         * @param method 方法名称。
+         * @param requestUri 请求URI。
+         * @param requestUrl 请求URL。
+         * @param args 方法参数数组。
+         * @return 返回当前对象实例。
+         */
         private RequestContext(String traceId, String controller, String method, String requestUri, String requestUrl,
                                Object[] args) {
             this.traceId = traceId;

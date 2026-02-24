@@ -83,6 +83,12 @@ public class PlatformContractV1OutputSupport {
         }
     }
 
+    /**
+     * 提取 JSON 对象。
+     *
+     * @param text 原始文本。
+     * @return 返回 JSON 字符串。
+     */
     private String extractJsonObject(String text) {
         if (!StringUtils.hasText(text)) {
             return null;
@@ -108,6 +114,12 @@ public class PlatformContractV1OutputSupport {
         return t.substring(start, end + 1);
     }
 
+    /**
+     * 返回文本或空字符串。
+     *
+     * @param node 节点定义。
+     * @return 返回处理后的文本内容。
+     */
     private String textOrEmpty(JsonNode node) {
         if (node == null || node.isNull()) {
             return "";

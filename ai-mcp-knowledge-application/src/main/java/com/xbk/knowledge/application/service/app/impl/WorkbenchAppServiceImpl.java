@@ -114,6 +114,18 @@ public class WorkbenchAppServiceImpl implements WorkbenchAppService {
                 .build();
     }
 
+    /**
+     * 构建引导步骤列表。
+     *
+     * @param modelEnabled 模型可用数量。
+     * @param activeChatModelId 当前激活对话模型ID。
+     * @param ragTagCount RAG标签数量。
+     * @param agentTotal 智能体总数。
+     * @param agentPublished 已发布智能体数量。
+     * @param approvalsPending 待审批数量。
+     * @param scheduleEnabled 启用调度数量。
+     * @return 返回步骤集合。
+     */
     private List<WorkbenchSummary.GuideStep> buildGuideSteps(long modelEnabled,
                                                              Long activeChatModelId,
                                                              long ragTagCount,
@@ -169,6 +181,18 @@ public class WorkbenchAppServiceImpl implements WorkbenchAppService {
         return steps;
     }
 
+    /**
+     * 构建工作台引导步骤对象。
+     *
+     * @param key 步骤标识。
+     * @param title 步骤标题。
+     * @param status 状态值。
+     * @param message 提示信息。
+     * @param actionPath 跳转路径。
+     * @param actionLabel 操作文案。
+     * @param writeAction 是否可写操作。
+     * @return 返回GuideStep对象。
+     */
     private WorkbenchSummary.GuideStep step(String key,
                                             String title,
                                             String status,

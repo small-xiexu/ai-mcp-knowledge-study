@@ -219,6 +219,12 @@ public class PreheatAppServiceImpl implements PreheatAppService {
         }
     }
 
+    /**
+     * 解析Agent版本模型ID列表。
+     *
+     * @param version 工作流版本。
+     * @return 返回解析后的模型配置。
+     */
     private List<Long> resolveAgentVersionModelIds(AgentVersion version) {
         if (version == null) {
             return List.of();
@@ -310,6 +316,12 @@ public class PreheatAppServiceImpl implements PreheatAppService {
         }
     }
 
+    /**
+     * 提取工具 Key。
+     *
+     * @param cfgJson 配置JSON。
+     * @return 返回标识Key。
+     */
     private String extractToolKey(String cfgJson) {
         if (!StringUtils.hasText(cfgJson)) {
             return null;

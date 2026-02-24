@@ -81,6 +81,16 @@ public class OpenAiTest {
      */
     private final OpenAiApi openAiApi;
 
+    /**
+     * 创建 OpenAI 测试实例并注入依赖组件。
+     *
+     * @param openAiChatModel OpenAI对话模型。
+     * @param imageResource 测试图片资源。
+     * @param simpleVectorStore 内存向量库。
+     * @param pgVectorStore PgVector向量库。
+     * @param tokenTextSplitter 文本切分器。
+     * @param openAiApi OpenAI API客户端。
+     */
     @Autowired
     public OpenAiTest(OpenAiChatModel openAiChatModel,
                       @Value("classpath:data/dog.png") Resource imageResource,

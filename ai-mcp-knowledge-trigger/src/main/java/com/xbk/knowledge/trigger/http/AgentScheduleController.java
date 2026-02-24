@@ -207,6 +207,12 @@ public class AgentScheduleController implements IAgentScheduleService {
         return Result.success();
     }
 
+    /**
+     * 将输入数据转换为响应。
+     *
+     * @param schedule 调度配置。
+     * @return 返回AgentScheduleResponse对象。
+     */
     private AgentScheduleResponse toResponse(AgentSchedule schedule) {
         if (schedule == null) {
             return null;

@@ -109,7 +109,7 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
      * 创建并持久化Agent 版本数据。
      *
      * @param draft 草稿版本实体。
-     * @return Agent 版本保存结果。
+     * @return 返回Agent 版本保存结果。
      */
     @Override
     public AgentVersion createDraft(AgentVersion draft) {
@@ -156,7 +156,7 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
      * 更新Agent 版本数据。
      *
      * @param draft 草稿版本实体。
-     * @return Agent 版本更新结果。
+     * @return 返回Agent 版本更新结果。
      */
     @Override
     public AgentVersion updateDraft(AgentVersion draft) {
@@ -348,6 +348,13 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
         return template;
     }
 
+    /**
+     * 按变量参数渲染模板文本。
+     *
+     * @param content 用户输入内容。
+     * @param paramsJson 模板参数JSON。
+     * @return 返回渲染后的模板文本。
+     */
     private String renderTemplate(String content, String paramsJson) {
         if (!StringUtils.hasText(content)) {
             return "";
@@ -381,6 +388,12 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
         return keys;
     }
 
+    /**
+     * 解析模板参数。
+     *
+     * @param json JSON 字符串。
+     * @return 返回解析结果。
+     */
     private Map<String, Object> parseParams(String json) {
         if (!StringUtils.hasText(json)) {
             return Map.of();
@@ -441,6 +454,12 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
         }
     }
 
+    /**
+     * 解析客户端链路。
+     *
+     * @param clientChainJson 客户端链路JSON。
+     * @return 返回解析结果。
+     */
     private List<AgentClientProfileStep> parseClientChain(String clientChainJson) {
         if (!StringUtils.hasText(clientChainJson)) {
             return List.of();
@@ -472,6 +491,12 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
         }
     }
 
+    /**
+     * 解析规划配置。
+     *
+     * @param json JSON 字符串。
+     * @return 返回AgentPlanningConfig对象。
+     */
     private AgentPlanningConfig parsePlanningConfig(String json) {
         if (!StringUtils.hasText(json)) {
             return AgentPlanningConfig.builder().build();
@@ -505,6 +530,11 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
         }
     }
 
+    /**
+     * 校验规划配置。
+     *
+     * @param config 配置对象。
+     */
     private void validatePlanningConfig(AgentPlanningConfig config) {
         if (config == null || !Boolean.TRUE.equals(config.getEnabled())) {
             return;

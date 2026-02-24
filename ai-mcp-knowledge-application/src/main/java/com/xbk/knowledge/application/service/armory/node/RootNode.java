@@ -13,6 +13,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class RootNode extends AbstractAiClientArmoryNode {
 
+    /**
+     * 执行节点处理逻辑。
+     *
+     * @param context 执行上下文。
+     */
     @Override
     protected void doHandle(AiClientArmoryContext context) {
         if (context == null) {

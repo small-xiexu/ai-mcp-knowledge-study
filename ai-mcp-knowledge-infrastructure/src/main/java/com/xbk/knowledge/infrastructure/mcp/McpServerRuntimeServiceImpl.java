@@ -51,6 +51,12 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
     private final Map<Long, McpServerMeta> metaRegistry = new ConcurrentHashMap<>();
     private final McpJsonMapper mcpJsonMapper;
 
+    /**
+     * 创建 MCP 服务运行时并注入依赖组件。
+     *
+     * @param objectMapper JSON序列化器。
+     * @param toolCallbackProvider 工具回调提供器。
+     */
     public McpServerRuntimeServiceImpl(ObjectMapper objectMapper,
                                        DynamicMcpToolCallbackProvider toolCallbackProvider) {
         this.objectMapper = objectMapper;

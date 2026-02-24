@@ -32,6 +32,12 @@ public class McpToolCatalogServiceImpl implements McpToolCatalogService {
     private final McpToolProperties properties;
     private volatile ToolSnapshot snapshot;
 
+    /**
+     * 创建 MCP 工具目录服务并注入依赖组件。
+     *
+     * @param toolCallbackProvider 工具回调提供器。
+     * @param properties 配置属性。
+     */
     public McpToolCatalogServiceImpl(ToolCallbackProvider toolCallbackProvider,
                                      McpToolProperties properties) {
         this.toolCallbackProvider = toolCallbackProvider;

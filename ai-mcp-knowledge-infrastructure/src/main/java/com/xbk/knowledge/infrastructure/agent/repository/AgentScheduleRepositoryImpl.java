@@ -40,6 +40,12 @@ public class AgentScheduleRepositoryImpl implements AgentScheduleRepository {
         return Optional.ofNullable(toEntity(agentScheduleDao.findById(query)));
     }
 
+    /**
+     * 按智能体ID查询调度配置列表。
+     *
+     * @param agentId 智能体ID。
+     * @return 返回智能体调度配置列表。
+     */
     @Override
     public List<AgentSchedule> listByAgentId(Long agentId) {
         if (agentId == null) {
@@ -51,6 +57,14 @@ public class AgentScheduleRepositoryImpl implements AgentScheduleRepository {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * 判断智能体下调度名称是否已存在。
+     *
+     * @param agentId 智能体ID。
+     * @param scheduleName 调度名称。
+     * @param excludeId 排除的记录ID。
+     * @return 返回是否满足业务条件。
+     */
     @Override
     public boolean existsByAgentIdAndScheduleName(Long agentId, String scheduleName, Long excludeId) {
         if (agentId == null || scheduleName == null || scheduleName.isBlank()) {

@@ -20,6 +20,11 @@ public class AiClientToolNode extends AbstractAiClientArmoryNode {
         this.toolCallbackProvider = toolCallbackProvider;
     }
 
+    /**
+     * 执行节点处理逻辑。
+     *
+     * @param context 执行上下文。
+     */
     @Override
     protected void doHandle(AiClientArmoryContext context) {
         if (!context.isRequestedEnableTools()) {

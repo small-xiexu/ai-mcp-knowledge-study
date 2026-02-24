@@ -289,6 +289,15 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         return buildObjectSchemaFromNodes(roots, childrenMap, nodeMap, new HashSet<>());
     }
 
+    /**
+     * 根据子节点关系构建对象 Schema。
+     *
+     * @param parentId 父节点ID。
+     * @param childrenMap 子节点映射。
+     * @param nodeMap 节点索引映射。
+     * @param visiting 递归访问链路。
+     * @return 返回构建后的Schema映射。
+     */
     private Map<String, Object> buildObjectSchemaFromChildren(Long parentId,
                                                               Map<Long, List<McpToolMapping>> childrenMap,
                                                               Map<Long, McpToolMapping> nodeMap,
@@ -301,6 +310,15 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         return buildObjectSchemaFromNodes(children, childrenMap, nodeMap, visiting);
     }
 
+    /**
+     * 根据节点集合构建对象 Schema。
+     *
+     * @param nodes 节点列表。
+     * @param childrenMap 子节点映射。
+     * @param nodeMap 节点索引映射。
+     * @param visiting 递归访问链路。
+     * @return 返回构建后的Schema映射。
+     */
     private Map<String, Object> buildObjectSchemaFromNodes(List<McpToolMapping> nodes,
                                                            Map<Long, List<McpToolMapping>> childrenMap,
                                                            Map<Long, McpToolMapping> nodeMap,
@@ -319,6 +337,15 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         return buildObjectSchema(properties, required);
     }
 
+    /**
+     * 构建节点 Schema。
+     *
+     * @param node 节点定义。
+     * @param childrenMap 子节点映射。
+     * @param nodeMap 节点索引映射。
+     * @param visiting 递归访问链路。
+     * @return 返回构建后的Schema映射。
+     */
     private Map<String, Object> buildNodeSchema(McpToolMapping node,
                                                 Map<Long, List<McpToolMapping>> childrenMap,
                                                 Map<Long, McpToolMapping> nodeMap,
@@ -652,6 +679,12 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         return tokens;
     }
 
+    /**
+     * 将 JSON 节点转换为可序列化对象。
+     *
+     * @param node 节点定义。
+     * @return 返回转换后的对象。
+     */
     private Object convertJsonNode(JsonNode node) {
         if (node == null || node.isNull() || node.isMissingNode()) {
             return null;
@@ -860,6 +893,12 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         return builder.build(true).toUriString();
     }
 
+    /**
+     * 合并并应用 HTTP 请求头。
+     *
+     * @param headers 请求头集合。
+     * @param sourceHeaders 原始请求头映射。
+     */
     private void applyHeaders(HttpHeaders headers, Map<String, String> sourceHeaders) {
         if (headers == null || sourceHeaders == null || sourceHeaders.isEmpty()) {
             return;
@@ -907,6 +946,12 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         return HttpMethod.POST.equals(method) || HttpMethod.PUT.equals(method) || HttpMethod.PATCH.equals(method);
     }
 
+    /**
+     * 归一化重试次数。
+     *
+     * @param retryTimes 重试次数。
+     * @return 返回归一化后的重试次数。
+     */
     private int normalizeRetryTimes(Integer retryTimes) {
         if (retryTimes == null || retryTimes < 0) {
             return DEFAULT_RETRY_TIMES;
@@ -914,6 +959,12 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         return retryTimes;
     }
 
+    /**
+     * 归一化超时。
+     *
+     * @param timeout 超时时间。
+     * @return 返回归一化后的超时时间（毫秒）。
+     */
     private int normalizeTimeout(Integer timeout) {
         if (timeout == null || timeout <= 0) {
             return DEFAULT_TIMEOUT_MS;
@@ -921,6 +972,12 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         return timeout;
     }
 
+    /**
+     * 计算安全的排序值。
+     *
+     * @param mapping 字段映射。
+     * @return 返回排序序号（空值时返回 0）。
+     */
     private int safeSortOrder(McpToolMapping mapping) {
         if (mapping == null || mapping.getSortOrder() == null) {
             return 0;
@@ -928,6 +985,12 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         return mapping.getSortOrder();
     }
 
+    /**
+     * 归一化 Schema 类型。
+     *
+     * @param type 类型标识。
+     * @return 返回归一化结果。
+     */
     private String normalizeSchemaType(String type) {
         if (!StringUtils.hasText(type)) {
             return "string";
@@ -952,6 +1015,12 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         return schema;
     }
 
+    /**
+     * 解析 JSON 映射。
+     *
+     * @param text 原始文本。
+     * @return 返回解析后的键值映射。
+     */
     private Map<String, Object> parseJsonMap(String text) {
         if (!StringUtils.hasText(text)) {
             return Collections.emptyMap();
@@ -964,6 +1033,12 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         }
     }
 
+    /**
+     * 将对象序列化为JSON 字符串。
+     *
+     * @param value 输入值。
+     * @return 返回 JSON 字符串。
+     */
     private String toJson(Object value) {
         if (value == null) {
             return "";
@@ -979,6 +1054,18 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         return value == null ? "" : String.valueOf(value);
     }
 
+    /**
+     * 构建工具调用成功结果。
+     *
+     * @param callId 调用ID。
+     * @param gatewayId 网关ID。
+     * @param toolName 工具名称。
+     * @param content 用户输入内容。
+     * @param timeoutMs 超时时间（毫秒）。
+     * @param startAt 开始时间戳。
+     * @param arguments 工具入参。
+     * @return 返回ToolCallResult对象。
+     */
     private ToolCallResult buildSuccessResult(String callId,
                                               String gatewayId,
                                               String toolName,
@@ -998,6 +1085,19 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         return new ToolCallResult(true, content, null);
     }
 
+    /**
+     * 构建工具调用失败结果。
+     *
+     * @param callId 调用ID。
+     * @param gatewayId 网关ID。
+     * @param toolName 工具名称。
+     * @param content 用户输入内容。
+     * @param errorCode 错误码。
+     * @param timeoutMs 超时时间（毫秒）。
+     * @param startAt 开始时间戳。
+     * @param arguments 工具入参。
+     * @return 返回ToolCallResult对象。
+     */
     private ToolCallResult buildFailureResult(String callId,
                                               String gatewayId,
                                               String toolName,

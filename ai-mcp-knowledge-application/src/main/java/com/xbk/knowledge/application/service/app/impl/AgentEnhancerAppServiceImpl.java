@@ -75,7 +75,7 @@ public class AgentEnhancerAppServiceImpl implements AgentEnhancerAppService {
      * 创建或更新 Agent 增强器（AgentEnhancer）数据。
      *
      * @param agentEnhancer Agent 增强器（AgentEnhancer）实体。
-     * @return Agent 增强器（AgentEnhancer）保存结果。
+     * @return 返回 Agent 增强器（AgentEnhancer）保存结果。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)

@@ -98,6 +98,12 @@ public class AgentScheduleJob {
         XxlJobHelper.log("agent schedule done. status={}, runId={}", result.getStatus(), result.getMeta() == null ? null : result.getMeta().getRunId());
     }
 
+    /**
+     * 解析调度任务负载。
+     *
+     * @param payloadTemplateJson 载荷模板JSON。
+     * @return 返回Payload对象。
+     */
     private Payload parsePayload(String payloadTemplateJson) {
         if (!StringUtils.hasText(payloadTemplateJson)) {
             return new Payload("", null);

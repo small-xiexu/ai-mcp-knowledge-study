@@ -121,7 +121,7 @@ public class AgentVersionRepositoryImpl implements AgentVersionRepository {
      * 创建并持久化Agent 版本数据。
      *
      * @param version 版本实体。
-     * @return Agent 版本保存结果。
+     * @return 返回 Agent 版本保存结果。
      */
     @Override
     public AgentVersion insert(AgentVersion version) {
@@ -145,7 +145,7 @@ public class AgentVersionRepositoryImpl implements AgentVersionRepository {
      * 更新Agent 版本数据。
      *
      * @param version 版本实体。
-     * @return Agent 版本处理条数。
+     * @return 返回 Agent 版本处理条数。
      */
     @Override
     public int updateDraft(AgentVersion version) {
@@ -166,7 +166,7 @@ public class AgentVersionRepositoryImpl implements AgentVersionRepository {
      * @param templateParamsJson 模板参数 JSON。
      * @param systemPromptSnapshot 系统提示词快照。
      * @param updatedBy 更新人 ID
-     * @return Agent 版本处理条数。
+     * @return 返回 Agent 版本处理条数。
      */
     @Override
     public int publish(Long id,
@@ -191,7 +191,7 @@ public class AgentVersionRepositoryImpl implements AgentVersionRepository {
      * @param id 主键 ID
      * @param fromState 原状态。
      * @param toState 目标状态。
-     * @return Agent 版本处理条数。
+     * @return 返回 Agent 版本处理条数。
      */
     @Override
     public int updateState(Long id, String fromState, String toState) {
@@ -205,7 +205,7 @@ public class AgentVersionRepositoryImpl implements AgentVersionRepository {
      * 删除Agent 版本数据。
      *
      * @param agentId Agent ID
-     * @return Agent 版本处理条数。
+     * @return 返回 Agent 版本处理条数。
      */
     @Override
     public int removeByAgentId(Long agentId) {

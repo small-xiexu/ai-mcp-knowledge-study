@@ -128,6 +128,12 @@ public class WorkflowRuntimeController implements IWorkflowRuntimeService {
         return Result.success(list.stream().map(this::toNodeRunResponse).toList());
     }
 
+    /**
+     * 将输入数据转换为运行响应。
+     *
+     * @param run 运行记录。
+     * @return 返回WorkflowRunResponse对象。
+     */
     private WorkflowRunResponse toRunResponse(WorkflowRun run) {
         if (run == null) {
             return null;
@@ -152,6 +158,12 @@ public class WorkflowRuntimeController implements IWorkflowRuntimeService {
         return response;
     }
 
+    /**
+     * 将输入数据转换为节点运行响应。
+     *
+     * @param nodeRun 节点运行。
+     * @return 返回WorkflowNodeRunResponse对象。
+     */
     private WorkflowNodeRunResponse toNodeRunResponse(WorkflowNodeRun nodeRun) {
         if (nodeRun == null) {
             return null;

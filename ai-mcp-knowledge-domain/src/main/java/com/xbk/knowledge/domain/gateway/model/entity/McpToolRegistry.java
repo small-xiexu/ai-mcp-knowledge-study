@@ -66,11 +66,6 @@ public class McpToolRegistry {
      */
     private String httpUrl;
 
-    /**
-     * HTTP 请求方法（GET/POST/PUT/DELETE）
-     *
-     * 为什么：不同后端接口需要不同的 HTTP 方法
-     */
     private String httpMethod;
 
     /**

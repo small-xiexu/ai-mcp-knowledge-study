@@ -260,6 +260,18 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         }
     }
 
+    /**
+     * 按工作流模式执行对话请求。
+     *
+     * @param agentCode 智能体编码。
+     * @param agent 智能体。
+     * @param version 工作流版本。
+     * @param sessionId 会话ID。
+     * @param content 用户输入内容。
+     * @param start 开始时间。
+     * @param runId 运行ID。
+     * @return 返回平台协议结果对象。
+     */
     private PlatformContractV1 chatByWorkflow(String agentCode,
                                               Agent agent,
                                               AgentVersion version,
@@ -972,6 +984,24 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         }
     }
 
+    /**
+     * 生成执行计划并按需继续执行。
+     *
+     * @param agentCode 智能体编码。
+     * @param agent 智能体。
+     * @param version 工作流版本。
+     * @param sessionId 会话ID。
+     * @param content 用户输入内容。
+     * @param ragTagsJson RAG标签JSON。
+     * @param start 开始时间。
+     * @param runId 运行ID。
+     * @param runType 运行类型。
+     * @param triggerSource 触发来源。
+     * @param operatorId 操作人ID。
+     * @param operatorType 操作者类型。
+     * @param planningConfig 规划配置。
+     * @return 返回平台协议结果对象。
+     */
     private PlatformContractV1 planAndMaybeExecute(String agentCode,
                                                    Agent agent,
                                                    AgentVersion version,
@@ -1044,6 +1074,20 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         );
     }
 
+    /**
+     * 执行主流程并返回协议结果。
+     *
+     * @param runId 运行ID。
+     * @param agentCode 智能体编码。
+     * @param agent 智能体。
+     * @param version 工作流版本。
+     * @param sessionId 会话ID。
+     * @param content 用户输入内容。
+     * @param ragTagsJson RAG标签JSON。
+     * @param start 开始时间。
+     * @param plan 执行计划。
+     * @return 返回平台协议结果对象。
+     */
     private PlatformContractV1 executePlannedRun(String runId,
                                                  String agentCode,
                                                  Agent agent,
@@ -1160,6 +1204,16 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         return buildSuccessContractWithSteps(runId, agentCode, version, lastModel, lastParsed, costMs, totalRepairAttempts, stepTraces);
     }
 
+    /**
+     * 生成多步骤执行计划。
+     *
+     * @param runId 运行ID。
+     * @param plannerModel 规划模型。
+     * @param version 工作流版本。
+     * @param content 用户输入内容。
+     * @param planningConfig 规划配置。
+     * @return 返回AgentExecutionPlan对象。
+     */
     private AgentExecutionPlan generateExecutionPlan(String runId,
                                                      ModelConfig plannerModel,
                                                      AgentVersion version,
@@ -1264,6 +1318,14 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         }
     }
 
+    /**
+     * 创建计划审批单。
+     *
+     * @param run 运行记录。
+     * @param plan 执行计划。
+     * @param planningConfig 规划配置。
+     * @return 返回ApprovalRequest对象。
+     */
     private ApprovalRequest createPlanApproval(AgentRun run, AgentExecutionPlan plan, AgentPlanningConfig planningConfig) {
         if (approvalRequestRepository == null || run == null || plan == null) {
             return null;
@@ -1303,6 +1365,12 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         return approvalRequestRepository.insert(request);
     }
 
+    /**
+     * 解析计划整体风险等级。
+     *
+     * @param plan 执行计划。
+     * @return 返回计划风险等级（LOW/MEDIUM/HIGH）。
+     */
     private String resolvePlanRiskLevel(AgentExecutionPlan plan) {
         if (plan == null || plan.getSteps() == null || plan.getSteps().isEmpty()) {
             return "HIGH";
@@ -1324,6 +1392,13 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         return score >= 3 ? "HIGH" : (score == 2 ? "MEDIUM" : "LOW");
     }
 
+    /**
+     * 构建待审批阶段的步骤轨迹。
+     *
+     * @param plan 执行计划。
+     * @param approvalRequestId 审批申请ID。
+     * @return 返回步骤集合。
+     */
     private List<PlatformContractV1.StepTrace> buildPlannedStepTraces(AgentExecutionPlan plan, Long approvalRequestId) {
         if (plan == null || plan.getSteps() == null || plan.getSteps().isEmpty()) {
             return List.of();
@@ -1344,6 +1419,18 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         return traces;
     }
 
+    /**
+     * 构建规划执行步骤轨迹。
+     *
+     * @param step 步骤对象。
+     * @param index 步骤序号。
+     * @param status 状态值。
+     * @param costMs 耗时（毫秒）。
+     * @param contract 协议结果。
+     * @param approvalRequestId 审批申请ID。
+     * @param errorMessage 错误信息。
+     * @return 返回步骤轨迹对象。
+     */
     private PlatformContractV1.StepTrace buildPlanningExecutionStepTrace(PlanStep step,
                                                                          int index,
                                                                          String status,
@@ -1369,6 +1456,13 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                 .build();
     }
 
+    /**
+     * 归一化规划步骤名称。
+     *
+     * @param step 步骤对象。
+     * @param fallbackIndex 回退序号。
+     * @return 返回名称文本。
+     */
     private String normalizePlanningStepName(PlanStep step, int fallbackIndex) {
         if (step == null || !StringUtils.hasText(step.getStepName())) {
             return "规划步骤-" + fallbackIndex;
@@ -1389,6 +1483,12 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         return sb.toString();
     }
 
+    /**
+     * 解析规划阶段使用的模型。
+     *
+     * @param planningConfig 规划配置。
+     * @return 返回解析后的模型配置。
+     */
     private ModelConfig resolvePlannerModel(AgentPlanningConfig planningConfig) {
         if (planningConfig != null && planningConfig.getPlannerModelId() != null) {
             ModelConfig model = modelConfigService.queryModelConfigById(new IdQuery(planningConfig.getPlannerModelId()));
@@ -1411,6 +1511,12 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                 .orElseThrow(() -> new BusinessException("未配置可用模型"));
     }
 
+    /**
+     * 解析规划步骤使用的模型。
+     *
+     * @param step 步骤对象。
+     * @return 返回解析后的模型配置。
+     */
     private ModelConfig resolvePlanningStepModel(PlanStep step) {
         if (step != null && step.getModelId() != null) {
             ModelConfig model = modelConfigService.queryModelConfigById(new IdQuery(step.getModelId()));
@@ -1433,6 +1539,12 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                 .orElseThrow(() -> new BusinessException("未配置可用模型"));
     }
 
+    /**
+     * 解析规划配置。
+     *
+     * @param version 工作流版本。
+     * @return 返回AgentPlanningConfig对象。
+     */
     private AgentPlanningConfig parsePlanningConfig(AgentVersion version) {
         if (version == null || !StringUtils.hasText(version.getPlanningConfigJson())) {
             return AgentPlanningConfig.builder().enabled(false).build();
@@ -1466,6 +1578,12 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         }
     }
 
+    /**
+     * 解析安全的最大规划步数。
+     *
+     * @param planningConfig 规划配置。
+     * @return 返回限制后的最大规划步数。
+     */
     private int safeMaxPlanSteps(AgentPlanningConfig planningConfig) {
         if (planningConfig == null || planningConfig.getMaxPlanSteps() == null) {
             return 6;
@@ -1473,6 +1591,12 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         return Math.max(1, Math.min(planningConfig.getMaxPlanSteps(), 20));
     }
 
+    /**
+     * 从运行快照读取执行计划。
+     *
+     * @param snapshot 运行快照。
+     * @return 返回AgentExecutionPlan对象。
+     */
     private AgentExecutionPlan readPlanFromSnapshot(Map<String, Object> snapshot) {
         if (snapshot == null || snapshot.isEmpty()) {
             throw new BusinessException("planning 快照为空");
@@ -1488,6 +1612,12 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         return plan;
     }
 
+    /**
+     * 读取JSON映射数据。
+     *
+     * @param json JSON 字符串。
+     * @return 返回解析后的JSON键值映射。
+     */
     private Map<String, Object> readJsonMap(String json) {
         if (!StringUtils.hasText(json)) {
             return Map.of();
@@ -1499,6 +1629,12 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         }
     }
 
+    /**
+     * 移除代码块围栏标记。
+     *
+     * @param text 原始文本。
+     * @return 返回去除围栏后的文本。
+     */
     private String stripCodeFence(String text) {
         if (!StringUtils.hasText(text)) {
             return "";
@@ -1520,6 +1656,12 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         return value == null ? null : String.valueOf(value);
     }
 
+    /**
+     * 将对象安全转换为Long。
+     *
+     * @param value 输入值。
+     * @return 返回转换后的Long值，无法转换时返回null。
+     */
     private Long asLong(Object value) {
         if (value == null) {
             return null;
@@ -1534,6 +1676,12 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         }
     }
 
+    /**
+     * 加载智能体信息。
+     *
+     * @param agentCode 智能体编码。
+     * @return 返回Agent对象。
+     */
     private Agent loadAgent(String agentCode) {
         if (!StringUtils.hasText(agentCode)) {
             throw new IllegalArgumentException("agentCode 不能为空");
@@ -1560,6 +1708,12 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         return version;
     }
 
+    /**
+     * 解析模型版本。
+     *
+     * @param version 工作流版本。
+     * @return 返回解析后的模型配置。
+     */
     private ModelConfig resolveModelForVersion(AgentVersion version) {
         if (version == null) {
             return null;
@@ -1585,6 +1739,20 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         return callOnce(runId, model, version, sessionId, userContent, rag, null, allowedToolKeys, true);
     }
 
+    /**
+     * 执行单次模型调用。
+     *
+     * @param runId 运行ID。
+     * @param model 模型对象。
+     * @param version 工作流版本。
+     * @param sessionId 会话ID。
+     * @param userContent 用户输入文本。
+     * @param rag RAG配置。
+     * @param systemPromptOverride 系统提示词覆盖文本。
+     * @param allowedToolKeys 允许调用的工具Key列表。
+     * @param enableTools 是否启用工具调用。
+     * @return 返回ParsedOutput对象。
+     */
     private ParsedOutput callOnce(String runId,
                                   ModelConfig model,
                                   AgentVersion version,
@@ -1617,6 +1785,16 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         return buildChatClient(runId, modelConfig, version, sessionId, true);
     }
 
+    /**
+     * 构建对话客户端。
+     *
+     * @param runId 运行ID。
+     * @param modelConfig 模型配置。
+     * @param version 工作流版本。
+     * @param sessionId 会话ID。
+     * @param enableTools 是否启用工具调用。
+     * @return 返回ChatClient对象。
+     */
     private ChatClient buildChatClient(String runId,
                                        ModelConfig modelConfig,
                                        AgentVersion version,
@@ -1634,6 +1812,12 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         return chatClientAssemblyService.buildChatClient(modelConfig, resolvedEnableTools, extra);
     }
 
+    /**
+     * 构建不带工具能力的对话客户端。
+     *
+     * @param modelConfig 模型配置。
+     * @return 返回ChatClient对象。
+     */
     private ChatClient buildChatClientNoTools(ModelConfig modelConfig) {
         if (modelConfig == null) {
             throw new BusinessException("未找到可用模型");
@@ -1677,6 +1861,12 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         );
     }
 
+    /**
+     * 将 RAG 文档拼接为模型可读上下文。
+     *
+     * @param docs 文档列表。
+     * @return 返回拼接后的文档上下文文本。
+     */
     private String formatRagDocuments(List<Document> docs) {
         if (docs == null || docs.isEmpty()) {
             return "";
@@ -1705,6 +1895,12 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         return sb.toString();
     }
 
+    /**
+     * 应用 RAG 覆盖配置。
+     *
+     * @param parsed 解析后的响应对象。
+     * @param rag RAG配置。
+     */
     private void applyRagOverrides(ParsedOutput parsed, ResolvedRag rag) {
         if (parsed == null || parsed.contract == null || rag == null) {
             return;
@@ -1722,6 +1918,16 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         }
     }
 
+    /**
+     * 构建 RAG 必需且未命中的协议结果。
+     *
+     * @param runId 运行ID。
+     * @param agentCode 智能体编码。
+     * @param version 工作流版本。
+     * @param costMs 耗时（毫秒）。
+     * @param rag RAG配置。
+     * @return 返回构建结果对象。
+     */
     private PlatformContractV1 buildRagRequiredNoHitContract(String runId, 
                                                              String agentCode,
                                                              AgentVersion version,
@@ -1756,6 +1962,12 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                 .build();
     }
 
+    /**
+     * 提取文本。
+     *
+     * @param response 响应对象。
+     * @return 返回处理后的文本内容。
+     */
     private String extractText(ChatResponse response) {
         if (response == null || response.getResult() == null || response.getResult().getOutput() == null) {
             return "";
@@ -1768,6 +1980,17 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         return extractText(response);
     }
 
+    /**
+     * 构建成功协议结果。
+     *
+     * @param runId 运行ID。
+     * @param agentCode 智能体编码。
+     * @param version 工作流版本。
+     * @param model 模型对象。
+     * @param parsed 解析后的响应对象。
+     * @param costMs 耗时（毫秒）。
+     * @return 返回成功调用结果对象。
+     */
     private PlatformContractV1 buildSuccessContract(String runId, 
                                                     String agentCode,
                                                     AgentVersion version,
@@ -1795,6 +2018,19 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                 .build();
     }
 
+    /**
+     * 构建Success协议结果Steps。
+     *
+     * @param runId 运行ID。
+     * @param agentCode 智能体编码。
+     * @param version 工作流版本。
+     * @param model 模型对象。
+     * @param parsed 解析后的响应对象。
+     * @param costMs 耗时（毫秒）。
+     * @param repairAttempts 重试次数。
+     * @param stepTraces 步骤轨迹列表。
+     * @return 返回成功调用结果对象。
+     */
     private PlatformContractV1 buildSuccessContractWithSteps(String runId,
                                                              String agentCode,
                                                              AgentVersion version,
@@ -1826,6 +2062,18 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                 .build();
     }
 
+    /**
+     * 构建失败协议结果。
+     *
+     * @param runId 运行ID。
+     * @param agentCode 智能体编码。
+     * @param version 工作流版本。
+     * @param model 模型对象。
+     * @param costMs 耗时（毫秒）。
+     * @param message 提示信息。
+     * @param repairAttempts 重试次数。
+     * @return 返回构建结果对象。
+     */
     private PlatformContractV1 buildFailedContract(String runId, 
                                                    String agentCode,
                                                    AgentVersion version,
@@ -1862,6 +2110,19 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                 .build();
     }
 
+    /**
+     * 构建Failed协议结果Steps。
+     *
+     * @param runId 运行ID。
+     * @param agentCode 智能体编码。
+     * @param version 工作流版本。
+     * @param model 模型对象。
+     * @param costMs 耗时（毫秒）。
+     * @param message 提示信息。
+     * @param repairAttempts 重试次数。
+     * @param stepTraces 步骤轨迹列表。
+     * @return 返回构建结果对象。
+     */
     private PlatformContractV1 buildFailedContractWithSteps(String runId,
                                                             String agentCode,
                                                             AgentVersion version,
@@ -1902,6 +2163,17 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                 .build();
     }
 
+    /**
+     * 构建待审批协议结果。
+     *
+     * @param runId 运行ID。
+     * @param agentCode 智能体编码。
+     * @param version 工作流版本。
+     * @param model 模型对象。
+     * @param costMs 耗时（毫秒）。
+     * @param approval 审批记录。
+     * @return 返回构建结果对象。
+     */
     private PlatformContractV1 buildPendingApprovalContract(String runId, 
                                                             String agentCode,
                                                             AgentVersion version,
@@ -1936,6 +2208,18 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                 .build();
     }
 
+    /**
+     * 构建Pending审批协议结果Steps。
+     *
+     * @param runId 运行ID。
+     * @param agentCode 智能体编码。
+     * @param version 工作流版本。
+     * @param model 模型对象。
+     * @param costMs 耗时（毫秒）。
+     * @param approval 审批记录。
+     * @param stepTraces 步骤轨迹列表。
+     * @return 返回构建结果对象。
+     */
     private PlatformContractV1 buildPendingApprovalContractWithSteps(String runId,
                                                                      String agentCode,
                                                                      AgentVersion version,
@@ -1991,6 +2275,18 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                 .build();
     }
 
+    /**
+     * 构建链路步骤追踪。
+     *
+     * @param step 步骤对象。
+     * @param index 步骤序号。
+     * @param status 状态值。
+     * @param costMs 耗时（毫秒）。
+     * @param contract 协议结果。
+     * @param approvalRequestId 审批申请ID。
+     * @param errorMessage 错误信息。
+     * @return 返回步骤轨迹对象。
+     */
     private PlatformContractV1.StepTrace buildChainStepTrace(AgentClientProfileStep step,
                                                              int index,
                                                              String status,
@@ -2016,6 +2312,13 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                 .build();
     }
 
+    /**
+     * 归一化链路步骤名称。
+     *
+     * @param step 步骤对象。
+     * @param fallbackIndex 回退序号。
+     * @return 返回名称文本。
+     */
     private String normalizeChainStepName(AgentClientProfileStep step, int fallbackIndex) {
         if (step == null || !StringUtils.hasText(step.getStepName())) {
             return "步骤-" + fallbackIndex;
@@ -2023,6 +2326,12 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         return step.getStepName().trim();
     }
 
+    /**
+     * 解析客户端链路步骤。
+     *
+     * @param version 工作流版本。
+     * @return 返回步骤集合。
+     */
     private List<AgentClientProfileStep> parseClientChainSteps(AgentVersion version) {
         if (version == null) {
             return List.of();
@@ -2057,6 +2366,12 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         return !parseClientChainSteps(version).isEmpty();
     }
 
+    /**
+     * 解析客户端链路步骤。
+     *
+     * @param clientChainJson 客户端链路JSON。
+     * @return 返回步骤集合。
+     */
     private List<AgentClientProfileStep> parseClientChainSteps(String clientChainJson) {
         if (!StringUtils.hasText(clientChainJson)) {
             return List.of();
@@ -2093,6 +2408,13 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         }
     }
 
+    /**
+     * 解析启用模型 ID。
+     *
+     * @param modelId 模型ID。
+     * @param stepName 步骤名称。
+     * @return 返回解析后的模型配置。
+     */
     private ModelConfig resolveEnabledModelById(Long modelId, String stepName) {
         if (modelId == null) {
             throw new BusinessException("步骤模型未配置，step=" + stepName);
@@ -2113,6 +2435,13 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         return requestedEnableTools && modelToolEnabled;
     }
 
+    /**
+     * 解析可用工具 Key 列表。
+     *
+     * @param step 步骤对象。
+     * @param version 工作流版本。
+     * @return 返回工具集合。
+     */
     private Set<String> resolveAllowedToolKeys(AgentClientProfileStep step, AgentVersion version) {
         if (step != null && step.getAllowedToolKeys() != null && !step.getAllowedToolKeys().isEmpty()) {
             return parseAllowedToolKeys(step.getAllowedToolKeys());
@@ -2120,6 +2449,18 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         return parseAllowedToolKeys(version == null ? null : version.getAllowedToolKeysJson());
     }
 
+    /**
+     * 保存运行上下文快照。
+     *
+     * @param runId 运行ID。
+     * @param agentCode 智能体编码。
+     * @param agentId 智能体ID。
+     * @param version 工作流版本。
+     * @param model 模型对象。
+     * @param sessionId 会话ID。
+     * @param content 用户输入内容。
+     * @param ragTagsJson RAG标签JSON。
+     */
     private void saveRunContextSnapshot(String runId,
                                        String agentCode,
                                        Long agentId,
@@ -2216,6 +2557,12 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         return extractText(resp);
     }
 
+    /**
+     * 解析可用工具 Key 列表。
+     *
+     * @param json JSON 字符串。
+     * @return 返回工具集合。
+     */
     private Set<String> parseAllowedToolKeys(String json) {
         if (!StringUtils.hasText(json)) {
             return Set.of();
@@ -2238,6 +2585,12 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         }
     }
 
+    /**
+     * 解析可用工具 Key 列表。
+     *
+     * @param json JSON 字符串。
+     * @return 返回工具集合。
+     */
     private List<String> parseAllowedToolKeysList(String json) {
         if (!StringUtils.hasText(json)) {
             return List.of();
@@ -2260,6 +2613,12 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
         }
     }
 
+    /**
+     * 解析可用工具 Key 列表。
+     *
+     * @param toolKeys 工具Key列表。
+     * @return 返回工具集合。
+     */
     private Set<String> parseAllowedToolKeys(List<String> toolKeys) {
         if (toolKeys == null || toolKeys.isEmpty()) {
             return Set.of();

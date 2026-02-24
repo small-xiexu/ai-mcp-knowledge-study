@@ -189,6 +189,12 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
         agentScheduleService.remove(id);
     }
 
+    /**
+     * 解析智能体编码。
+     *
+     * @param schedule 调度配置。
+     * @return 返回解析结果。
+     */
     private String resolveAgentCode(AgentSchedule schedule) {
         if (schedule != null && StringUtils.hasText(schedule.getAgentCode())) {
             return schedule.getAgentCode().trim();
@@ -201,6 +207,14 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
         return "agentId=" + agentId;
     }
 
+    /**
+     * 校验XxlJob。
+     *
+     * @param schedule 调度配置。
+     * @param agentCode 智能体编码。
+     * @param createIfMissing 是否允许自动创建任务。
+     * @return 返回对应的 XXL-Job 任务ID。
+     */
     private Long ensureXxlJob(AgentSchedule schedule, String agentCode, boolean createIfMissing) {
         if (schedule == null || schedule.getId() == null) {
             return null;

@@ -46,6 +46,12 @@ public final class ToolNameUtils {
         return name.substring(0, MAX_NAME_LEN);
     }
 
+    /**
+     * 执行脱敏处理。
+     *
+     * @param input 输入值。
+     * @return 返回清洗后的结果值。
+     */
     private static String sanitize(String input) {
         if (input == null || input.isEmpty()) {
             return "";

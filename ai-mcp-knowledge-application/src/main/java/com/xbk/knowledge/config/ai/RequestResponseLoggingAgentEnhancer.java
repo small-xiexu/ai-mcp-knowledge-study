@@ -88,6 +88,13 @@ public class RequestResponseLoggingAgentEnhancer implements CallAdvisor {
         }
     }
 
+    /**
+     * 截断日志文本，控制单条日志长度。
+     *
+     * @param text 原始文本。
+     * @param maxLength 最大长度。
+     * @return 返回截断后的日志文本。
+     */
     private String truncate(String text, int maxLength) {
         if (text == null) {
             return "null";

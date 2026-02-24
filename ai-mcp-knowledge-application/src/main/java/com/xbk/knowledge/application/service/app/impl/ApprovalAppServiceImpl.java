@@ -272,6 +272,15 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
                 .orElseThrow(() -> new NotFoundException("审批单不存在，id=" + id));
     }
 
+    /**
+     * 记录审批审计日志。
+     *
+     * @param runId 运行ID。
+     * @param approvalId 审批单ID。
+     * @param action 审批动作。
+     * @param occurredAt 发生时间。
+     * @param errorMessage 错误信息。
+     */
     private void recordApprovalAudit(String runId,
                                      Long approvalId,
                                      String action,
@@ -335,6 +344,14 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
         }
     }
 
+    /**
+     * 执行已审批通过的工具调用。
+     *
+     * @param toolKey 工具标识。
+     * @param argumentsSnapshotJson 工具参数快照JSON。
+     * @param runId 运行ID。
+     * @return 返回工具调用返回内容。
+     */
     private String executeApprovedTool(String toolKey, String argumentsSnapshotJson, String runId) {
         if (toolCallbackProvider == null) {
             throw new BusinessException("工具执行能力不可用（toolCallbackProvider 未注入）");
@@ -377,6 +394,18 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
         return Optional.empty();
     }
 
+    /**
+     * 基于模型继续执行审批后的运行流程。
+     *
+     * @param version 工作流版本。
+     * @param model 模型对象。
+     * @param sessionId 会话ID。
+     * @param agentCode 智能体编码。
+     * @param runId 运行ID。
+     * @param agentVersionId 智能体版本ID。
+     * @param toolResult 工具执行结果。
+     * @return 返回ContinuedOutput对象。
+     */
     private ContinuedOutput continueRunByModel(AgentVersion version,
                                               ModelConfig model,
                                               Long sessionId,
@@ -465,6 +494,12 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
         throw new BusinessException("审批续跑输出无法解析为 PlatformContractV1 JSON");
     }
 
+    /**
+     * 将 RAG 文档拼接为模型可读上下文。
+     *
+     * @param docs 文档列表。
+     * @return 返回拼接后的文档上下文文本。
+     */
     private String formatRagDocuments(List<Document> docs) {
         if (docs == null || docs.isEmpty()) {
             return "";
@@ -493,6 +528,12 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
         return sb.toString();
     }
 
+    /**
+     * 应用 RAG 覆盖配置。
+     *
+     * @param contract 协议结果。
+     * @param rag RAG配置。
+     */
     private void applyRagOverrides(PlatformContractV1 contract, ResolvedRag rag) {
         if (contract == null || rag == null) {
             return;
@@ -533,6 +574,12 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
         return "已执行并通过审批的工具调用结果如下（仅供继续推理，不再触发工具调用）:\n" + content;
     }
 
+    /**
+     * 获取Snapshot运行Context。
+     *
+     * @param runId 运行ID。
+     * @return 返回AgentRunContextSnapshot对象。
+     */
     private AgentRunContextSnapshot loadSnapshotFromRunContext(String runId) {
         if (agentRunContextRepository == null || !StringUtils.hasText(runId)) {
             return null;
@@ -554,6 +601,12 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
                 .orElse(null);
     }
 
+    /**
+     * 解析模型版本。
+     *
+     * @param version 工作流版本。
+     * @return 返回解析后的模型配置。
+     */
     private ModelConfig resolveModelForVersion(AgentVersion version) {
         if (version == null) {
             return null;

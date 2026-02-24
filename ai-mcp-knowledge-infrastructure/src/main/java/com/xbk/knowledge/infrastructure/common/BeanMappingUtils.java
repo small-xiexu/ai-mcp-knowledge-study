@@ -14,6 +14,9 @@ import java.util.stream.Collectors;
  */
 public final class BeanMappingUtils {
 
+    /**
+     * 创建对象映射工具并注入依赖组件。
+     */
     private BeanMappingUtils() {
     }
 

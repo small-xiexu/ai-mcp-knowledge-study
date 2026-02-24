@@ -170,6 +170,12 @@ public class AgentRagGovernanceSupport {
                 .build();
     }
 
+    /**
+     * 解析字符串列表（为空时返回空集合）。
+     *
+     * @param json JSON 字符串。
+     * @return 返回解析后的列表结果。
+     */
     private List<String> parseStringListOrEmpty(String json) {
         if (!StringUtils.hasText(json)) {
             return List.of();
@@ -196,6 +202,13 @@ public class AgentRagGovernanceSupport {
         }
     }
 
+    /**
+     * 按白名单过滤标签集合。
+     *
+     * @param base 基础标签集合。
+     * @param allowed 允许标签集合。
+     * @return 返回FilteredTags对象。
+     */
     private FilteredTags filterByAllowList(List<String> base, List<String> allowed) {
         if (CollectionUtils.isEmpty(base)) {
             return new FilteredTags(List.of(), List.of());
@@ -224,6 +237,12 @@ public class AgentRagGovernanceSupport {
         return new FilteredTags(effective, dropped);
     }
 
+    /**
+     * 构建引用信息列表。
+     *
+     * @param docs 文档列表。
+     * @return 返回构建结果对象。
+     */
     private List<PlatformContractV1.Citation> buildCitations(List<Document> docs) {
         if (CollectionUtils.isEmpty(docs)) {
             return List.of();
@@ -254,6 +273,12 @@ public class AgentRagGovernanceSupport {
         return list;
     }
 
+    /**
+     * 将对象安全转换为非空白字符串。
+     *
+     * @param o 输入对象。
+     * @return 返回非空白字符串，空白或空对象返回 null。
+     */
     private String safeToString(Object o) {
         if (o == null) {
             return null;
@@ -262,6 +287,13 @@ public class AgentRagGovernanceSupport {
         return StringUtils.hasText(s) ? s : null;
     }
 
+    /**
+     * 构建过滤后的标签结果对象。
+     *
+     * @param effective 生效标签集合。
+     * @param dropped 未命中标签集合。
+     * @return 返回记录对象。
+     */
     private record FilteredTags(List<String> effective, List<String> dropped) {
     }
 
@@ -284,4 +316,3 @@ public class AgentRagGovernanceSupport {
     ) {
     }
 }
-

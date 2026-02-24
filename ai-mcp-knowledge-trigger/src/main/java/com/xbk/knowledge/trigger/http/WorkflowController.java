@@ -267,6 +267,12 @@ public class WorkflowController implements IWorkflowService {
         return Result.success("保存成功", toVersionResponse(v));
     }
 
+    /**
+     * 将输入数据转换为响应。
+     *
+     * @param wf 工作流定义。
+     * @return 返回WorkflowResponse对象。
+     */
     private WorkflowResponse toResponse(Workflow wf) {
         if (wf == null) {
             return null;
@@ -283,6 +289,12 @@ public class WorkflowController implements IWorkflowService {
                 .build();
     }
 
+    /**
+     * 将输入数据转换为版本响应。
+     *
+     * @param v 版本对象。
+     * @return 返回WorkflowVersionResponse对象。
+     */
     private WorkflowVersionResponse toVersionResponse(WorkflowVersion v) {
         if (v == null) {
             return null;

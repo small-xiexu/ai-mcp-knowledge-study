@@ -10,6 +10,9 @@ import java.util.concurrent.TimeUnit;
  */
 public final class TimeCostUtils {
 
+    /**
+     * 创建耗时工具并注入依赖组件。
+     */
     private TimeCostUtils() {
     }
 

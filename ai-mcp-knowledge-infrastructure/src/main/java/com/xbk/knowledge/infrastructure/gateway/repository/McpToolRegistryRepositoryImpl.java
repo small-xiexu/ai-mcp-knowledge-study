@@ -111,7 +111,7 @@ public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository 
             return null;
         }
         // 补齐 toolKey/riskLevel，保证治理字段稳定。
-         * 约束：Gateway HTTP 工具默认使用 gateway:{gatewayId}:{toolName} 作为 toolKey。
+        // 约束：Gateway HTTP 工具默认使用 gateway:{gatewayId}:{toolName} 作为 toolKey。
         if (registry.getToolKey() == null || registry.getToolKey().isBlank()) {
             String gatewayId = registry.getGatewayId();
             String toolName = registry.getToolName();

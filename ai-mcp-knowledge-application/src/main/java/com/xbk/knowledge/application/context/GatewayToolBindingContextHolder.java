@@ -138,6 +138,19 @@ public final class GatewayToolBindingContextHolder {
          */
         private final Set<String> allowedToolKeys;
 
+        /**
+         * 构建网关工具绑定上下文。
+         *
+         * @param modelId 模型ID。
+         * @param sessionId 会话ID。
+         * @param agentVersionId 智能体版本ID。
+         * @param workflowId 工作流ID。
+         * @param workflowVersionId 工作流版本ID。
+         * @param workflowNodeKey 工作流节点Key。
+         * @param runId 运行ID。
+         * @param allowedToolKeys 允许调用的工具Key列表。
+         * @return 返回当前对象实例。
+         */
         private BindingContext(Long modelId,
                                Long sessionId,
                                Long agentVersionId,

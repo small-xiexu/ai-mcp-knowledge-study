@@ -74,7 +74,7 @@ public class AuditService {
     }
 
     /**
-     * 解析当前登录用户ID。
+     * 解析当前登录用户 ID。
      */
     private Long resolveOperatorId() {
         try {
@@ -106,6 +106,11 @@ public class AuditService {
         return request == null ? null : request.getHeader("User-Agent");
     }
 
+    /**
+     * 获取当前 HTTP 请求上下文。
+     *
+     * @return 返回HttpServletRequest对象。
+     */
     private HttpServletRequest currentRequest() {
         if (RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes servletRequestAttributes) {
             return servletRequestAttributes.getRequest();

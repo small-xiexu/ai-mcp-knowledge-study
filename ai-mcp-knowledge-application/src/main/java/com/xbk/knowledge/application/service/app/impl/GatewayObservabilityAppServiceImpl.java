@@ -106,6 +106,13 @@ public class GatewayObservabilityAppServiceImpl implements GatewayObservabilityA
         return new GatewayMetricsReport(LocalDateTime.now(), recentMinutes, metrics, alerts);
     }
 
+    /**
+     * 判断是否命中筛选条件。
+     *
+     * @param value 输入值。
+     * @param expected 期望值。
+     * @return 返回是否满足业务条件。
+     */
     private boolean match(String value, String expected) {
         if (!StringUtils.hasText(expected)) {
             return true;
@@ -147,6 +154,15 @@ public class GatewayObservabilityAppServiceImpl implements GatewayObservabilityA
         );
     }
 
+    /**
+     * 构建监控告警列表。
+     *
+     * @param metric 指标对象。
+     * @param maxErrorCode 最大错误码。
+     * @param maxErrorCount 最大错误次数。
+     * @param nowMillis 当前时间戳（毫秒）。
+     * @return 返回命中的告警列表。
+     */
     private List<AlertSnapshot> buildAlerts(ToolMetricsSnapshot metric,
                                             String maxErrorCode,
                                             long maxErrorCount,
@@ -190,6 +206,13 @@ public class GatewayObservabilityAppServiceImpl implements GatewayObservabilityA
         return alerts;
     }
 
+    /**
+     * 计算延迟分位值。
+     *
+     * @param sortedLatencies 排序后的延迟列表。
+     * @param percentile 分位点。
+     * @return 返回指定分位点对应的延迟值。
+     */
     private long percentile(List<Long> sortedLatencies, double percentile) {
         if (sortedLatencies == null || sortedLatencies.isEmpty()) {
             return 0L;
@@ -199,6 +222,13 @@ public class GatewayObservabilityAppServiceImpl implements GatewayObservabilityA
         return sortedLatencies.get(index);
     }
 
+    /**
+     * 归一化错误编码。
+     *
+     * @param errorCode 错误码。
+     * @param success 调用是否成功。
+     * @return 返回归一化后的编码字符串。
+     */
     private String normalizeErrorCode(String errorCode, boolean success) {
         if (success) {
             return "";
@@ -209,6 +239,12 @@ public class GatewayObservabilityAppServiceImpl implements GatewayObservabilityA
         return errorCode.trim().toUpperCase(Locale.ROOT);
     }
 
+    /**
+     * 规范化延迟值。
+     *
+     * @param latencyMs 延迟（毫秒）。
+     * @return 返回清洗后的延迟值（毫秒）。
+     */
     private long sanitizeLatency(long latencyMs) {
         if (latencyMs < 0) {
             return 0L;
@@ -216,6 +252,12 @@ public class GatewayObservabilityAppServiceImpl implements GatewayObservabilityA
         return latencyMs;
     }
 
+    /**
+     * 归一化超时。
+     *
+     * @param timeoutMs 超时时间（毫秒）。
+     * @return 返回归一化后的超时时间（毫秒）。
+     */
     private int normalizeTimeout(Integer timeoutMs) {
         if (timeoutMs == null || timeoutMs <= 0) {
             return DEFAULT_TIMEOUT_MS;
@@ -223,6 +265,12 @@ public class GatewayObservabilityAppServiceImpl implements GatewayObservabilityA
         return timeoutMs;
     }
 
+    /**
+     * 归一化最近时间窗口。
+     *
+     * @param recentMinutes 最近时间窗口（分钟）。
+     * @return 返回归一化后的时间窗口（分钟）。
+     */
     private int normalizeRecentMinutes(Integer recentMinutes) {
         if (recentMinutes == null || recentMinutes <= 0) {
             return DEFAULT_RECENT_MINUTES;

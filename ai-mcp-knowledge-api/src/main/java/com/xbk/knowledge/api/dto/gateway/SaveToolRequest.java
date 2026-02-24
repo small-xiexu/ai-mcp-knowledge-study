@@ -45,7 +45,7 @@ public class SaveToolRequest extends BaseRequest {
      */
     private String httpMethod;
     /**
-     * HTTP请求头
+     * HTTP 请求头
      */
     private String httpHeaders;
     /**

@@ -47,7 +47,7 @@ public class AgentVersionAppServiceImpl implements AgentVersionAppService {
      * 创建并持久化Agent 版本数据。
      *
      * @param draft 草稿版本实体。
-     * @return Agent 版本保存结果。
+     * @return 返回 Agent 版本保存结果。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -59,7 +59,7 @@ public class AgentVersionAppServiceImpl implements AgentVersionAppService {
      * 更新Agent 版本数据。
      *
      * @param draft 草稿版本实体。
-     * @return Agent 版本更新结果。
+     * @return 返回 Agent 版本更新结果。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)

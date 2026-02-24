@@ -57,7 +57,7 @@ public class AgentAppServiceImpl implements AgentAppService {
      * 创建并持久化智能体数据。
      *
      * @param agent 智能体实体。
-     * @return 智能体保存结果。
+     * @return 返回智能体保存结果。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -69,7 +69,7 @@ public class AgentAppServiceImpl implements AgentAppService {
      * 更新智能体数据。
      *
      * @param agent 智能体实体。
-     * @return 智能体更新结果。
+     * @return 返回智能体更新结果。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)

@@ -49,6 +49,12 @@ public class WorkbenchController implements IWorkbenchService {
         return Result.success(toResponse(summary));
     }
 
+    /**
+     * 将输入数据转换为响应。
+     *
+     * @param s 源对象。
+     * @return 返回WorkbenchSummaryResponse对象。
+     */
     private WorkbenchSummaryResponse toResponse(WorkbenchSummary s) {
         if (s == null) {
             return WorkbenchSummaryResponse.builder()
@@ -69,6 +75,12 @@ public class WorkbenchController implements IWorkbenchService {
                 .build();
     }
 
+    /**
+     * 将输入数据转换为模型。
+     *
+     * @param m 模型对象。
+     * @return 返回ModelInfo对象。
+     */
     private WorkbenchSummaryResponse.ModelInfo toModel(WorkbenchSummary.ModelInfo m) {
         if (m == null) {
             return null;
@@ -81,6 +93,12 @@ public class WorkbenchController implements IWorkbenchService {
                 .build();
     }
 
+    /**
+     * 将输入数据转换为智能体信息。
+     *
+     * @param a 智能体对象。
+     * @return 返回AgentInfo对象。
+     */
     private WorkbenchSummaryResponse.AgentInfo toAgent(WorkbenchSummary.AgentInfo a) {
         if (a == null) {
             return null;
@@ -91,6 +109,12 @@ public class WorkbenchController implements IWorkbenchService {
                 .build();
     }
 
+    /**
+     * 将输入数据转换为提示词。
+     *
+     * @param p 提示词对象。
+     * @return 返回PromptInfo对象。
+     */
     private WorkbenchSummaryResponse.PromptInfo toPrompt(WorkbenchSummary.PromptInfo p) {
         if (p == null) {
             return null;
@@ -101,6 +125,12 @@ public class WorkbenchController implements IWorkbenchService {
                 .build();
     }
 
+    /**
+     * 将输入数据转换为工具。
+     *
+     * @param t 工具对象。
+     * @return 返回ToolInfo对象。
+     */
     private WorkbenchSummaryResponse.ToolInfo toTool(WorkbenchSummary.ToolInfo t) {
         if (t == null) {
             return null;
@@ -110,6 +140,12 @@ public class WorkbenchController implements IWorkbenchService {
                 .build();
     }
 
+    /**
+     * 将输入数据转换为调度。
+     *
+     * @param s 源对象。
+     * @return 返回ScheduleInfo对象。
+     */
     private WorkbenchSummaryResponse.ScheduleInfo toSchedule(WorkbenchSummary.ScheduleInfo s) {
         if (s == null) {
             return null;
@@ -120,6 +156,12 @@ public class WorkbenchController implements IWorkbenchService {
                 .build();
     }
 
+    /**
+     * 将输入数据转换为知识信息。
+     *
+     * @param k 知识对象。
+     * @return 返回KnowledgeInfo对象。
+     */
     private WorkbenchSummaryResponse.KnowledgeInfo toKnowledge(WorkbenchSummary.KnowledgeInfo k) {
         if (k == null) {
             return null;
@@ -132,6 +174,12 @@ public class WorkbenchController implements IWorkbenchService {
                 .build();
     }
 
+    /**
+     * 将输入数据转换为待办信息。
+     *
+     * @param t 工具对象。
+     * @return 返回TodoInfo对象。
+     */
     private WorkbenchSummaryResponse.TodoInfo toTodo(WorkbenchSummary.TodoInfo t) {
         if (t == null) {
             return null;
@@ -141,6 +189,12 @@ public class WorkbenchController implements IWorkbenchService {
                 .build();
     }
 
+    /**
+     * 将输入数据转换为步骤。
+     *
+     * @param s 源对象。
+     * @return 返回GuideStep对象。
+     */
     private WorkbenchSummaryResponse.GuideStep toStep(WorkbenchSummary.GuideStep s) {
         if (s == null) {
             return null;

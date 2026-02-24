@@ -14,6 +14,9 @@ import java.util.stream.Collectors;
  */
 public final class PageResultConverter {
 
+    /**
+     * 创建分页结果转换器并注入依赖组件。
+     */
     private PageResultConverter() {
     }
 

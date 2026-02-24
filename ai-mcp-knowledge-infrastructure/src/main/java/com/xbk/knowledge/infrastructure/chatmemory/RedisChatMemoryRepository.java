@@ -44,6 +44,13 @@ public class RedisChatMemoryRepository implements ChatMemoryRepository {
      */
     private final Duration ttl;
 
+    /**
+     * 创建 Redis 会话记忆仓储并注入依赖组件。
+     *
+     * @param stringRedisTemplate Redis模板。
+     * @param objectMapper JSON序列化器。
+     * @param ttl 过期时间（秒）。
+     */
     public RedisChatMemoryRepository(StringRedisTemplate stringRedisTemplate,
                                      ObjectMapper objectMapper,
                                      Duration ttl) {

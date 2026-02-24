@@ -224,6 +224,13 @@ public class AICallController implements IAICallService {
         private Integer completionTokens;
         private Integer totalTokens;
 
+        /**
+         * 更新业务数据。
+         *
+         * @param promptTokens 输入Token数。
+         * @param completionTokens 输出Token数。
+         * @param totalTokens 总Token数。
+         */
         private void update(Integer promptTokens, Integer completionTokens, Integer totalTokens) {
             if (promptTokens != null) {
                 this.promptTokens = promptTokens;

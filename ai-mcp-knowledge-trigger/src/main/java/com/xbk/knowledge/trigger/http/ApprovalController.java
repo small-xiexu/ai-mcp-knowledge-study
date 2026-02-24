@@ -121,6 +121,12 @@ public class ApprovalController implements IApprovalService {
         return Result.success("审批已拒绝", toResponse(result));
     }
 
+    /**
+     * 将输入数据转换为响应。
+     *
+     * @param approval 审批记录。
+     * @return 返回ApprovalResponse对象。
+     */
     private ApprovalResponse toResponse(ApprovalRequest approval) {
         if (approval == null) {
             return null;

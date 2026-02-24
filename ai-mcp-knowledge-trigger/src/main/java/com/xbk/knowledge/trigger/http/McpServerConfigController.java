@@ -269,6 +269,12 @@ public class McpServerConfigController implements IMcpServerConfigService {
                 .build();
     }
 
+    /**
+     * 将领域对象转换为响应。
+     *
+     * @param config 配置对象。
+     * @return 返回McpServerConfigResponse对象。
+     */
     private McpServerConfigResponse convertToResponse(McpServerConfig config) {
         if (config == null) {
             return null;
@@ -298,12 +304,18 @@ public class McpServerConfigController implements IMcpServerConfigService {
                 .build();
     }
 
+    /**
+     * 将对象序列化为JSON 字符串。
+     *
+     * @param value 输入值。
+     * @return 返回 JSON 字符串。
+     */
     private String toJson(Object value) {
         if (value == null) {
             return null;
         }
         // 序列化可变结构字段，避免表结构频繁变更
-         * 约束：序列化失败时返回 null，交由应用层处理
+         // 约束：序列化失败时返回 null，交由应用层处理
         try {
             return objectMapper.writeValueAsString(value);
         } catch (Exception e) {
@@ -312,12 +324,18 @@ public class McpServerConfigController implements IMcpServerConfigService {
         }
     }
 
+    /**
+     * 解析字符串列表。
+     *
+     * @param json JSON 字符串。
+     * @return 返回解析后的列表结果。
+     */
     private List<String> parseStringList(String json) {
         if (!StringUtils.hasText(json)) {
             return Collections.emptyList();
         }
         // 将存储的 JSON 数组解析为列表，给前端可直接展示
-         * 约束：解析失败时降级为空列表
+         // 约束：解析失败时降级为空列表
         try {
             return objectMapper.readValue(json, new TypeReference<List<String>>() {});
         } catch (Exception e) {
@@ -326,12 +344,18 @@ public class McpServerConfigController implements IMcpServerConfigService {
         }
     }
 
+    /**
+     * 解析字符串映射。
+     *
+     * @param json JSON 字符串。
+     * @return 返回字符串映射。
+     */
     private Map<String, String> parseStringMap(String json) {
         if (!StringUtils.hasText(json)) {
             return Collections.emptyMap();
         }
         // 将存储的 JSON 对象解析为 Map，确保前端表单可直接回显
-         * 约束：解析失败时降级为空 Map
+         // 约束：解析失败时降级为空 Map
         try {
             return JsonMapUtils.readStringMap(objectMapper, json);
         } catch (Exception e) {

@@ -60,7 +60,7 @@ public class AgentRunContextRepositoryImpl implements AgentRunContextRepository 
      *
      * @param runId 运行 ID
      * @param status 状态值
-     * @return Agent 运行上下文处理条数。
+     * @return 返回 Agent 运行上下文处理条数。
      */
     @Override
     public int updateStatus(String runId, String status) {
@@ -74,7 +74,7 @@ public class AgentRunContextRepositoryImpl implements AgentRunContextRepository 
      * 删除Agent 运行上下文数据。
      *
      * @param agentId Agent ID
-     * @return Agent 运行上下文处理条数。
+     * @return 返回 Agent 运行上下文处理条数。
      */
     @Override
     public int deleteByAgentId(Long agentId) {

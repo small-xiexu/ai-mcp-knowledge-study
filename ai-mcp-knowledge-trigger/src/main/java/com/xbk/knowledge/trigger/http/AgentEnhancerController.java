@@ -48,7 +48,7 @@ public class AgentEnhancerController implements IAgentEnhancerService {
      * 5. 统一封装 `Result.success` 返回。
      *
      * @param request Agent 增强器（AgentEnhancer）查询条件。
-     * @return Agent 增强器（AgentEnhancer）分页查询结果。
+     * @return 返回Agent 增强器（AgentEnhancer）分页查询结果。
      */
     @PostMapping("/list")
     @SaCheckPermission("agent-enhancer:read")
@@ -76,7 +76,7 @@ public class AgentEnhancerController implements IAgentEnhancerService {
      * 5. 统一封装 `Result.success` 返回。
      *
      * @param request Agent 增强器（AgentEnhancer）详情查询参数。
-     * @return Agent 增强器（AgentEnhancer）查询结果。
+     * @return 返回Agent 增强器（AgentEnhancer）查询结果。
      */
     @PostMapping("/get")
     @SaCheckPermission("agent-enhancer:read")
@@ -96,7 +96,7 @@ public class AgentEnhancerController implements IAgentEnhancerService {
      * 5. 转换为 `AgentEnhancerResponse` 并返回“保存成功”。
      *
      * @param request Agent 增强器（AgentEnhancer）保存参数。
-     * @return Agent 增强器（AgentEnhancer）保存结果。
+     * @return 返回Agent 增强器（AgentEnhancer）保存结果。
      */
     @PostMapping("/save")
     @SaCheckPermission("agent-enhancer:write")
@@ -124,7 +124,7 @@ public class AgentEnhancerController implements IAgentEnhancerService {
      * 5. 统一封装 `Result.success` 返回。
      *
      * @param request Agent 增强器（AgentEnhancer）启用参数。
-     * @return Agent 增强器（AgentEnhancer）启用结果。
+     * @return 返回Agent 增强器（AgentEnhancer）启用结果。
      */
     @PostMapping("/enable")
     @SaCheckPermission("agent-enhancer:write")
@@ -144,7 +144,7 @@ public class AgentEnhancerController implements IAgentEnhancerService {
      * 5. 统一封装 `Result.success` 返回。
      *
      * @param request Agent 增强器（AgentEnhancer）禁用参数。
-     * @return Agent 增强器（AgentEnhancer）禁用结果。
+     * @return 返回Agent 增强器（AgentEnhancer）禁用结果。
      */
     @PostMapping("/disable")
     @SaCheckPermission("agent-enhancer:write")
@@ -164,7 +164,7 @@ public class AgentEnhancerController implements IAgentEnhancerService {
      * 5. 统一封装空成功结果返回。
      *
      * @param request Agent 增强器（AgentEnhancer）删除参数。
-     * @return Agent 增强器（AgentEnhancer）删除结果。
+     * @return 返回Agent 增强器（AgentEnhancer）删除结果。
      */
     @PostMapping("/remove")
     @SaCheckPermission("agent-enhancer:write")
@@ -184,7 +184,7 @@ public class AgentEnhancerController implements IAgentEnhancerService {
      * 5. 统一封装 `Result.success` 返回（空列表时返回 `List.of()`）。
      *
      * @param request 绑定关系查询参数。
-     * @return 绑定关系列表查询结果。
+     * @return 返回绑定关系列表查询结果。
      */
     @PostMapping("/bindings/list")
     @SaCheckPermission("agent-enhancer:read")
@@ -212,7 +212,7 @@ public class AgentEnhancerController implements IAgentEnhancerService {
      * 5. 返回“保存成功”的统一结果。
      *
      * @param request 绑定关系保存参数。
-     * @return 绑定关系保存结果。
+     * @return 返回绑定关系保存结果。
      */
     @PostMapping("/bindings/save")
     @SaCheckPermission("agent-enhancer:write")
@@ -235,6 +235,12 @@ public class AgentEnhancerController implements IAgentEnhancerService {
         return Result.success("保存成功", null);
     }
 
+    /**
+     * 将输入数据转换为响应。
+     *
+     * @param a 智能体对象。
+     * @return 返回AgentEnhancerResponse对象。
+     */
     private AgentEnhancerResponse toResponse(AgentEnhancer a) {
         if (a == null) {
             return null;
@@ -251,6 +257,12 @@ public class AgentEnhancerController implements IAgentEnhancerService {
         return resp;
     }
 
+    /**
+     * 将输入数据转换为View响应。
+     *
+     * @param v 版本对象。
+     * @return 返回AgentEnhancerBindingViewResponse对象。
+     */
     private AgentEnhancerBindingViewResponse toViewResponse(AgentEnhancerBindingView v) {
         if (v == null) {
             return null;

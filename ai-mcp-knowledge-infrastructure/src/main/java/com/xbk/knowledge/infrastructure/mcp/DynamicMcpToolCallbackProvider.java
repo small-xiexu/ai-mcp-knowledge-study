@@ -433,6 +433,16 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
             throw new ApprovalRequiredException(req.getId(), toolKey, riskLevel, "工具调用需要审批（已生成审批单）");
         }
 
+        /**
+         * 更新待审批工具快照。
+         *
+         * @param runId 运行ID。
+         * @param toolKey 工具标识。
+         * @param riskLevel 风险级别。
+         * @param argsDigest 参数摘要。
+         * @param approvalRequestId 审批申请ID。
+         * @param now 当前时间。
+         */
         private void upsertPendingToolSnapshot(String runId, String toolKey, String riskLevel, String argsDigest, Long approvalRequestId, LocalDateTime now) {
             if (agentRunContextRepository == null || !StringUtils.hasText(runId)) {
                 return;

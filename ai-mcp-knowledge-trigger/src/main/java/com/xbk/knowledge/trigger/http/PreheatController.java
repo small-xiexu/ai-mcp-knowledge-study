@@ -79,6 +79,12 @@ public class PreheatController implements IPreheatService {
         return Result.success(toResponse(result));
     }
 
+    /**
+     * 将输入数据转换为响应。
+     *
+     * @param r 结果对象。
+     * @return 返回PreheatResponse对象。
+     */
     private PreheatResponse toResponse(PreheatResult r) {
         if (r == null) {
             return null;

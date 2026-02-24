@@ -237,6 +237,16 @@ public class WorkflowAppServiceImpl implements WorkflowAppService {
                 .orElseThrow(() -> new NotFoundException("WorkflowVersion 不存在，id=" + workflowVersionId));
     }
 
+    /**
+     * 保存流程图。
+     *
+     * @param workflowVersionId 工作流版本ID。
+     * @param graphJson 流程图JSON。
+     * @param defaultConfigJson 默认配置JSON。
+     * @param nodes 节点列表。
+     * @param edges 边定义列表。
+     * @return 返回WorkflowVersion对象。
+     */
     @Override
     public WorkflowVersion saveGraph(Long workflowVersionId,
                                     String graphJson,

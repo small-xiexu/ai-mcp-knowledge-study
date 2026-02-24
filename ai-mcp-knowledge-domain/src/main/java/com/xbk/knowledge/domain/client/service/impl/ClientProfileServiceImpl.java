@@ -27,6 +27,12 @@ public class ClientProfileServiceImpl implements IClientProfileService {
 
     private final ClientProfileRepository clientProfileRepository;
 
+    /**
+     * 查询分页数据。
+     *
+     * @param query 查询条件。
+     * @return 返回PageResult对象。
+     */
     @Override
     public PageResult<ClientProfile> queryPage(ClientProfilePageQuery query) {
         if (query == null) {
@@ -46,6 +52,12 @@ public class ClientProfileServiceImpl implements IClientProfileService {
         return PageResult.of(records, total, pageNum, pageSize);
     }
 
+    /**
+     * 获取业务数据。
+     *
+     * @param id 主键ID。
+     * @return 返回ClientProfile对象。
+     */
     @Override
     public ClientProfile get(Long id) {
         if (id == null) {
@@ -55,6 +67,13 @@ public class ClientProfileServiceImpl implements IClientProfileService {
                 .orElseThrow(() -> new NotFoundException("ClientProfile 不存在，id=" + id));
     }
 
+    /**
+     * 保存业务数据。
+     *
+     * @param profile 画像对象。
+     * @param steps 步骤列表。
+     * @return 返回ClientProfile对象。
+     */
     @Override
     public ClientProfile save(ClientProfile profile, List<ClientProfileStep> steps) {
         if (profile == null) {
@@ -132,6 +151,12 @@ public class ClientProfileServiceImpl implements IClientProfileService {
         }
     }
 
+    /**
+     * 查询步骤列表。
+     *
+     * @param clientProfileId 客户端画像ID。
+     * @return 返回步骤集合。
+     */
     @Override
     public List<ClientProfileStep> listSteps(Long clientProfileId) {
         if (clientProfileId == null) {

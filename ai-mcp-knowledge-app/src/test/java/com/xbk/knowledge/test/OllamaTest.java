@@ -89,6 +89,15 @@ public class OllamaTest {
      */
     private final TokenTextSplitter tokenTextSplitter;
 
+    /**
+     * 创建 Ollama 测试实例并注入依赖组件。
+     *
+     * @param ollamaChatModel Ollama对话模型。
+     * @param imageResource 测试图片资源。
+     * @param simpleVectorStore 内存向量库。
+     * @param pgVectorStore PgVector向量库。
+     * @param tokenTextSplitter 文本切分器。
+     */
     @Autowired
     public OllamaTest(OllamaChatModel ollamaChatModel,
                       @Value("classpath:data/dog.png") Resource imageResource,

@@ -102,6 +102,15 @@ public class AgentEnhancerRuntimeServiceImpl implements AgentEnhancerRuntimeServ
         bindingCache.clear();
     }
 
+    /**
+     * 按绑定目标解析可用执行器配置。
+     *
+     * @param bindType 绑定类型。
+     * @param bindTargetId 绑定目标ID。
+     * @param runId 运行ID。
+     * @param sessionId 会话ID。
+     * @return 返回匹配的结果数组。
+     */
     private CallAdvisor[] resolveForTarget(String bindType, Long bindTargetId, String runId, Long sessionId) {
         if (!StringUtils.hasText(bindType) || bindTargetId == null) {
             return new CallAdvisor[0];
@@ -209,6 +218,14 @@ public class AgentEnhancerRuntimeServiceImpl implements AgentEnhancerRuntimeServ
         return prefix + base;
     }
 
+    /**
+     * 读取整型配置项。
+     *
+     * @param json JSON 字符串。
+     * @param field 字段名。
+     * @param defaultVal 默认值。
+     * @return 返回读取到的整型配置值。
+     */
     private int readIntConfig(String json, String field, int defaultVal) {
         if (!StringUtils.hasText(json) || !StringUtils.hasText(field)) {
             return defaultVal;
@@ -225,6 +242,14 @@ public class AgentEnhancerRuntimeServiceImpl implements AgentEnhancerRuntimeServ
         }
     }
 
+    /**
+     * 读取字符串配置项。
+     *
+     * @param json JSON 字符串。
+     * @param field 字段名。
+     * @param defaultVal 默认值。
+     * @return 返回读取到的字符串配置值。
+     */
     private String readStringConfig(String json, String field, String defaultVal) {
         if (!StringUtils.hasText(json) || !StringUtils.hasText(field)) {
             return defaultVal;

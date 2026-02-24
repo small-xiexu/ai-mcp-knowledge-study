@@ -874,6 +874,14 @@ public class GatewayManageController implements IGatewayManageService {
         return row;
     }
 
+    /**
+     * 保存字段映射。
+     *
+     * @param toolId 工具ID。
+     * @param gatewayId 网关ID。
+     * @param mappings 映射定义列表。
+     * @param mappingType 映射类型。
+     */
     private void saveMappings(Long toolId,
                               String gatewayId,
                               List<MappingNodeRequest> mappings,
@@ -954,6 +962,13 @@ public class GatewayManageController implements IGatewayManageService {
         }
     }
 
+    /**
+     * 更新网关鉴权状态。
+     *
+     * @param id 主键ID。
+     * @param status 状态值。
+     * @return 返回Result对象。
+     */
     private Result<Void> updateGatewayAuthStatus(Long id, int status) {
         if (id == null) {
             return Result.error("ID 不能为空");
@@ -968,6 +983,12 @@ public class GatewayManageController implements IGatewayManageService {
         return Result.success();
     }
 
+    /**
+     * 解析限流值。
+     *
+     * @param rateLimit 限流值。
+     * @return 返回解析结果。
+     */
     private int resolveRateLimit(Integer rateLimit) {
         if (rateLimit == null || rateLimit <= 0) {
             return 100;
@@ -975,6 +996,12 @@ public class GatewayManageController implements IGatewayManageService {
         return rateLimit;
     }
 
+    /**
+     * 解析状态。
+     *
+     * @param status 状态值。
+     * @return 返回解析结果。
+     */
     private int resolveStatus(Integer status) {
         if (status == null || (status != 0 && status != 1)) {
             return 1;
@@ -982,6 +1009,14 @@ public class GatewayManageController implements IGatewayManageService {
         return status;
     }
 
+    /**
+     * 解析 API Key。
+     *
+     * @param inputApiKey 输入的API Key。
+     * @param existingApiKey 已存在API Key。
+     * @param createMode 创建模式。
+     * @return 返回标识Key。
+     */
     private String resolveApiKey(String inputApiKey, String existingApiKey, boolean createMode) {
         if (StringUtils.hasText(inputApiKey)) {
             return inputApiKey.trim();

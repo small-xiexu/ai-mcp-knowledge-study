@@ -74,7 +74,7 @@ public class AgentRunRepositoryImpl implements AgentRunRepository {
      * @param status 状态值
      * @param errorMessage 错误信息
      * @param endedAt 结束时间。
-     * @return Agent 运行记录处理条数。
+     * @return 返回 Agent 运行记录处理条数。
      */
     @Override
     public int updateStatus(String runId, String status, String errorMessage, LocalDateTime endedAt) {
@@ -89,7 +89,7 @@ public class AgentRunRepositoryImpl implements AgentRunRepository {
      *
      * @param runId 运行 ID
      * @param delta 增量值
-     * @return Agent 运行记录处理条数。
+     * @return 返回 Agent 运行记录处理条数。
      */
     @Override
     public int incrementToolCallCount(String runId, int delta) {
@@ -104,7 +104,7 @@ public class AgentRunRepositoryImpl implements AgentRunRepository {
      *
      * @param runId 运行 ID
      * @param delta 增量值
-     * @return Agent 运行记录处理条数。
+     * @return 返回 Agent 运行记录处理条数。
      */
     @Override
     public int incrementToolDeniedCount(String runId, int delta) {
@@ -118,7 +118,7 @@ public class AgentRunRepositoryImpl implements AgentRunRepository {
      * 删除Agent 运行记录数据。
      *
      * @param agentId Agent ID
-     * @return Agent 运行记录处理条数。
+     * @return 返回 Agent 运行记录处理条数。
      */
     @Override
     public int deleteByAgentId(Long agentId) {

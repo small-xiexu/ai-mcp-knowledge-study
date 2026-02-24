@@ -55,7 +55,7 @@ public class AgentRepositoryImpl implements AgentRepository {
      * 创建并持久化智能体数据。
      *
      * @param agent 智能体实体。
-     * @return 智能体保存结果。
+     * @return 返回智能体保存结果。
      */
     @Override
     public Agent insert(Agent agent) {
@@ -79,7 +79,7 @@ public class AgentRepositoryImpl implements AgentRepository {
      * 更新智能体数据。
      *
      * @param agent 智能体实体。
-     * @return 智能体处理条数。
+     * @return 返回智能体处理条数。
      */
     @Override
     public int updateByCode(Agent agent) {
@@ -96,7 +96,7 @@ public class AgentRepositoryImpl implements AgentRepository {
      * 删除智能体数据。
      *
      * @param query 查询条件
-     * @return 智能体处理条数。
+     * @return 返回智能体处理条数。
      */
     @Override
     public int deleteByCode(AgentCodeQuery query) {

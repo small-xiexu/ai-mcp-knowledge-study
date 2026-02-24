@@ -22,6 +22,9 @@ public final class JsonMapUtils {
     private static final TypeReference<Map<String, String>> STRING_MAP_TYPE =
             new TypeReference<Map<String, String>>() {};
 
+    /**
+     * 创建 JSON 映射工具并注入依赖组件。
+     */
     private JsonMapUtils() {
     }
 

@@ -102,7 +102,76 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
     private final PlatformContractV1OutputSupport outputSupport;
     private final IdentityContextService identityContextService;
     private final RagVectorStoreService ragVectorStoreService;
+    // 节点执行器注册表：key=节点类型，value=该类型的执行策略
+    // 运行时只做 O(1) 查表，不再走大段 if/else
+    private final Map<String, WorkflowNodeExecutor> nodeExecutors = initNodeExecutors();
 
+    /**
+     * 初始化节点执行器注册表
+     *
+     * @return 不可变的节点类型与执行器映射
+     */
+    private Map<String, WorkflowNodeExecutor> initNodeExecutors() {
+        // 使用 LinkedHashMap 保持注册顺序，排查问题时更直观
+        Map<String, WorkflowNodeExecutor> executors = new LinkedHashMap<>();
+
+        // 1、流程结构节点：只负责图结构控制，不做业务计算
+        registerExecutors(executors, List.of("START", "PARALLEL", "JOIN", "END"), this::executePassThroughNode);
+
+        // 2、业务节点：每个节点类型绑定各自处理函数
+        registerExecutor(executors, "RAG_RETRIEVE", this::executeRagRetrieveNode);
+        registerExecutor(executors, "IF", this::executeIfNode);
+        registerExecutor(executors, "TOOL_CALL", this::executeToolCallNode);
+
+        // 3、模型输出节点：LLM 与 OUTPUT 走同一条执行逻辑
+        registerExecutors(executors, List.of("LLM", "OUTPUT"), this::executeLlmOrOutputNode);
+
+        // 返回只读视图，避免运行中被意外改写
+        return Collections.unmodifiableMap(executors);
+    }
+
+    /**
+     * 批量注册节点执行器。
+     *
+     * @param executors 节点执行器注册表。
+     * @param nodeTypes 节点类型列表。
+     * @param executor 节点执行器。
+     */
+    private void registerExecutors(Map<String, WorkflowNodeExecutor> executors,
+                                   List<String> nodeTypes,
+                                   WorkflowNodeExecutor executor) {
+        for (String nodeType : nodeTypes) {
+            registerExecutor(executors, nodeType, executor);
+        }
+    }
+
+    /**
+     * 注册单个节点执行器。
+     *
+     * @param executors 节点执行器注册表。
+     * @param nodeType 节点类型。
+     * @param executor 节点执行器。
+     */
+    private void registerExecutor(Map<String, WorkflowNodeExecutor> executors,
+                                  String nodeType,
+                                  WorkflowNodeExecutor executor) {
+        WorkflowNodeExecutor previous = executors.put(nodeType, executor);
+        // 同一个节点类型重复注册通常是配置错误，启动时直接失败更安全
+        if (previous != null) {
+            throw new IllegalStateException("节点类型执行器重复注册: " + nodeType);
+        }
+    }
+
+    /**
+     * 执行主流程并返回协议结果。
+     *
+     * @param workflowCode 工作流编码。
+     * @param sessionId 会话ID。
+     * @param content 用户输入内容。
+     * @param variablesJson 运行变量JSON。
+     * @param workflowVersionId 工作流版本ID。
+     * @return 返回平台协议结果对象。
+     */
     @Override
     public PlatformContractV1 run(String workflowCode,
                                   Long sessionId,
@@ -292,8 +361,8 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
     /**
      * 根据筛选条件查询工作流运行列表。
      *
-     * @param status 状态值
-     * @param offset 分页偏移量
+     * @param status   状态值
+     * @param offset   分页偏移量
      * @param pageSize 分页大小
      * @return 返回 WorkflowRun 分页数据。
      */
@@ -336,6 +405,13 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
         return workflowNodeRunRepository.listByRunId(runId);
     }
 
+    /**
+     * 解析版本。
+     *
+     * @param wf 工作流定义。
+     * @param workflowVersionId 工作流版本ID。
+     * @return 返回WorkflowVersion对象。
+     */
     private WorkflowVersion resolveVersion(Workflow wf, Long workflowVersionId) {
         if (workflowVersionId != null) {
             WorkflowVersion v = workflowVersionRepository.findById(WorkflowVersionIdQuery.builder().id(workflowVersionId).build())
@@ -359,6 +435,11 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
         return new Graph(nodes, edges);
     }
 
+    /**
+     * 校验流程图。
+     *
+     * @param graph 流程图。
+     */
     private void validateGraph(Graph graph) {
         if (graph == null || CollectionUtils.isEmpty(graph.nodes)) {
             throw new BusinessException("Workflow 图为空（缺少 nodes）");
@@ -378,43 +459,89 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
         }
     }
 
+    /**
+     * 执行主流程并返回协议结果。
+     *
+     * @param runId 运行ID。
+     * @param wf 工作流定义。
+     * @param version 工作流版本。
+     * @param graph 流程图。
+     * @param sessionId 会话ID。
+     * @param content 用户输入内容。
+     * @param variables 运行变量。
+     * @param stepOutputs 步骤输出映射。
+     * @param nodeRuns 节点运行记录。
+     * @return 返回ExecutionResult对象。
+     */
     private ExecutionResult executeGraph(String runId,
-                                        Workflow wf,
-                                        WorkflowVersion version,
-                                        Graph graph,
-                                        Long sessionId,
-                                        String content,
-                                        Map<String, Object> variables,
-                                        Map<String, Object> stepOutputs,
-                                        List<WorkflowNodeRun> nodeRuns) {
+                                         Workflow wf,
+                                         WorkflowVersion version,
+                                         Graph graph,
+                                         Long sessionId,
+                                         String content,
+                                         Map<String, Object> variables,
+                                         Map<String, Object> stepOutputs,
+                                         List<WorkflowNodeRun> nodeRuns) {
         return executeGraphInternal(runId, wf, version, graph, sessionId, content, variables, stepOutputs, nodeRuns, null, null);
     }
 
+    /**
+     * 执行主流程并返回协议结果。
+     *
+     * @param runId 运行ID。
+     * @param wf 工作流定义。
+     * @param version 工作流版本。
+     * @param graph 流程图。
+     * @param sessionId 会话ID。
+     * @param content 用户输入内容。
+     * @param variables 运行变量。
+     * @param stepOutputs 步骤输出映射。
+     * @param nodeRuns 节点运行记录。
+     * @param startFromNodeKey 起始节点Key。
+     * @param approvedToolResult 审批后的工具结果。
+     * @return 返回ExecutionResult对象。
+     */
     private ExecutionResult executeGraphFromNode(String runId,
-                                                Workflow wf,
-                                                WorkflowVersion version,
-                                                Graph graph,
-                                                Long sessionId,
-                                                String content,
-                                                Map<String, Object> variables,
-                                                Map<String, Object> stepOutputs,
-                                                List<WorkflowNodeRun> nodeRuns,
-                                                String startFromNodeKey,
-                                                String approvedToolResult) {
+                                                 Workflow wf,
+                                                 WorkflowVersion version,
+                                                 Graph graph,
+                                                 Long sessionId,
+                                                 String content,
+                                                 Map<String, Object> variables,
+                                                 Map<String, Object> stepOutputs,
+                                                 List<WorkflowNodeRun> nodeRuns,
+                                                 String startFromNodeKey,
+                                                 String approvedToolResult) {
         return executeGraphInternal(runId, wf, version, graph, sessionId, content, variables, stepOutputs, nodeRuns, startFromNodeKey, approvedToolResult);
     }
 
+    /**
+     * 执行主流程并返回协议结果。
+     *
+     * @param runId 运行ID。
+     * @param wf 工作流定义。
+     * @param version 工作流版本。
+     * @param graph 流程图。
+     * @param sessionId 会话ID。
+     * @param content 用户输入内容。
+     * @param variables 运行变量。
+     * @param stepOutputs 步骤输出映射。
+     * @param nodeRuns 节点运行记录。
+     * @param startFromNodeKey 起始节点Key。
+     * @param approvedToolResult 审批后的工具结果。
+     * @return 返回ExecutionResult对象。
+     */
     private ExecutionResult executeGraphInternal(String runId,
-                                                Workflow wf,
-                                                WorkflowVersion version,
-                                                Graph graph,
-                                                Long sessionId,
-                                                String content,
-                                                Map<String, Object> variables,
-                                                Map<String, Object> stepOutputs,
-                                                List<WorkflowNodeRun> nodeRuns,
-                                                String startFromNodeKey,
-                                                String approvedToolResult) {
+                                                 Workflow wf,
+                                                 WorkflowVersion version,
+                                                 Graph graph,
+                                                 Long sessionId,
+                                                 String content,
+                                                 Map<String, Object> variables,
+                                                 Map<String, Object> stepOutputs,
+                                                 List<WorkflowNodeRun> nodeRuns,
+                                                 String startFromNodeKey,
+                                                 String approvedToolResult) {
         CallAdvisor[] workflowAdvisors = version == null || version.getId() == null
                 ? new CallAdvisor[0]
                 : agentEnhancerRuntimeService.resolveForWorkflowVersion(version.getId(), runId, sessionId);
@@ -583,22 +710,34 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
         return ExecutionResult.success(finalContract);
     }
 
+    /**
+     * 执行主流程并返回协议结果。
+     *
+     * @param runId 运行ID。
+     * @param wf 工作流定义。
+     * @param version 工作流版本。
+     * @param node 节点定义。
+     * @param sessionId 会话ID。
+     * @param content 用户输入内容。
+     * @param variables 运行变量。
+     * @param stepOutputs 步骤输出映射。
+     * @param workflowAdvisors 工作流增强器数组。
+     * @param approvedToolResult 审批后的工具结果。
+     * @return 返回NodeResult对象。
+     */
     private NodeResult executeNode(String runId,
-                                  Workflow wf,
-                                  WorkflowVersion version,
-                                  WorkflowNode node,
-                                  Long sessionId,
-                                  String content,
-                                  Map<String, Object> variables,
-                                  Map<String, Object> stepOutputs,
-                                  CallAdvisor[] workflowAdvisors,
-                                  String approvedToolResult) {
+                                   Workflow wf,
+                                   WorkflowVersion version,
+                                   WorkflowNode node,
+                                   Long sessionId,
+                                   String content,
+                                   Map<String, Object> variables,
+                                   Map<String, Object> stepOutputs,
+                                   CallAdvisor[] workflowAdvisors,
+                                   String approvedToolResult) {
         String type = node.getNodeType() == null ? "" : node.getNodeType().toUpperCase(Locale.ROOT);
         long start = System.currentTimeMillis();
-
         Map<String, Object> cfg = parseJsonMap(node.getConfigJson());
-
-        // 统一可用变量
         Map<String, Object> root = new LinkedHashMap<>();
         root.put("input", content);
         root.put("sessionId", sessionId);
@@ -611,130 +750,163 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
         if (StringUtils.hasText(approvedToolResult)) {
             root.put("approvedToolResult", approvedToolResult);
         }
-
-        if ("START".equals(type) || "PARALLEL".equals(type) || "JOIN".equals(type) || "END".equals(type)) {
-            return NodeResult.text("", System.currentTimeMillis() - start);
+        WorkflowNodeExecutionContext context = new WorkflowNodeExecutionContext(
+                type,
+                start,
+                runId,
+                wf,
+                version,
+                node,
+                sessionId,
+                cfg,
+                root,
+                stepOutputs,
+                workflowAdvisors,
+                approvedToolResult
+        );
+        WorkflowNodeExecutor executor = nodeExecutors.get(type);
+        if (executor == null) {
+            throw new BusinessException("不支持的节点类型: " + type);
         }
+        return executor.execute(context);
+    }
 
-        if ("RAG_RETRIEVE".equals(type)) {
-            String queryTemplate = cfg.get("queryTemplate") == null ? "{{input}}" : String.valueOf(cfg.get("queryTemplate"));
-            String query = renderTemplate(queryTemplate, root);
-            List<String> ragTags = parseStringList(cfg.get("ragTags"));
-            List<Document> docs = ragVectorStoreService.similaritySearch(query, ragTags);
-            String ragText = formatDocs(docs);
-            stepOutputs.put(node.getNodeKey() + ".ragText", ragText);
-            stepOutputs.put(node.getNodeKey() + ".ragTags", ragTags);
-            return NodeResult.text(ragText, System.currentTimeMillis() - start);
+    private NodeResult executePassThroughNode(WorkflowNodeExecutionContext context) {
+        return NodeResult.text("", System.currentTimeMillis() - context.start);
+    }
+
+    private NodeResult executeRagRetrieveNode(WorkflowNodeExecutionContext context) {
+        String queryTemplate = context.cfg.get("queryTemplate") == null
+                ? "{{input}}"
+                : String.valueOf(context.cfg.get("queryTemplate"));
+        String query = renderTemplate(queryTemplate, context.root);
+        List<String> ragTags = parseStringList(context.cfg.get("ragTags"));
+        List<Document> docs = ragVectorStoreService.similaritySearch(query, ragTags);
+        String ragText = formatDocs(docs);
+        context.stepOutputs.put(context.node.getNodeKey() + ".ragText", ragText);
+        context.stepOutputs.put(context.node.getNodeKey() + ".ragTags", ragTags);
+        return NodeResult.text(ragText, System.currentTimeMillis() - context.start);
+    }
+
+    private NodeResult executeIfNode(WorkflowNodeExecutionContext context) {
+        boolean ok = evaluateIf(context.cfg, context.root);
+        context.stepOutputs.put(context.node.getNodeKey() + ".if", ok);
+        return NodeResult.ifResult(ok, System.currentTimeMillis() - context.start);
+    }
+
+    private NodeResult executeToolCallNode(WorkflowNodeExecutionContext context) {
+        String toolKey = context.cfg.get("toolKey") == null ? null : String.valueOf(context.cfg.get("toolKey"));
+        if (!StringUtils.hasText(toolKey)) {
+            throw new BusinessException("TOOL_CALL 缺少 toolKey，nodeKey=" + context.node.getNodeKey());
         }
+        String argsTemplate = context.cfg.get("argumentsTemplateJson") == null
+                ? "{}"
+                : String.valueOf(context.cfg.get("argumentsTemplateJson"));
+        String args = renderTemplate(argsTemplate, context.root);
+        ToolCallback tool = findToolByKey(toolKey)
+                .orElseThrow(() -> new NotFoundException("未找到工具回调，toolKey=" + toolKey));
 
-        if ("IF".equals(type)) {
-            boolean ok = evaluateIf(cfg, root);
-            stepOutputs.put(node.getNodeKey() + ".if", ok);
-            return NodeResult.ifResult(ok, System.currentTimeMillis() - start);
+        Set<String> allowedToolKeys = parseAllowedToolKeys(context.cfg.get("allowedToolKeysJson"));
+        if (allowedToolKeys == null) {
+            allowedToolKeys = Set.of(toolKey);
         }
-
-        if ("TOOL_CALL".equals(type)) {
-            String toolKey = cfg.get("toolKey") == null ? null : String.valueOf(cfg.get("toolKey"));
-            if (!StringUtils.hasText(toolKey)) {
-                throw new BusinessException("TOOL_CALL 缺少 toolKey，nodeKey=" + node.getNodeKey());
-            }
-            String argsTemplate = cfg.get("argumentsTemplateJson") == null ? "{}" : String.valueOf(cfg.get("argumentsTemplateJson"));
-            String args = renderTemplate(argsTemplate, root);
-
-            ToolCallback tool = findToolByKey(toolKey)
-                    .orElseThrow(() -> new NotFoundException("未找到工具回调，toolKey=" + toolKey));
-
-            // 绑定 allowlist + run 信息（Workflow 场景）
-            Set<String> allowedToolKeys = parseAllowedToolKeys(cfg.get("allowedToolKeysJson"));
-            // 对 TOOL_CALL 节点：若未配置 allowlist，默认只放行自身
-            if (allowedToolKeys == null) {
-                allowedToolKeys = Set.of(toolKey);
-            }
-            GatewayToolBindingContextHolder.setWorkflow(null, sessionId, wf.getId(), version.getId(), node.getNodeKey(), runId, allowedToolKeys);
-            try {
-                String result = tool.call(args);
-                stepOutputs.put(node.getNodeKey() + ".toolKey", toolKey);
-                stepOutputs.put(node.getNodeKey() + ".toolResult", result);
-                return NodeResult.text(result, System.currentTimeMillis() - start);
-            } finally {
-                GatewayToolBindingContextHolder.clear();
-            }
+        GatewayToolBindingContextHolder.setWorkflow(
+                null,
+                context.sessionId,
+                context.wf.getId(),
+                context.version.getId(),
+                context.node.getNodeKey(),
+                context.runId,
+                allowedToolKeys
+        );
+        try {
+            String result = tool.call(args);
+            context.stepOutputs.put(context.node.getNodeKey() + ".toolKey", toolKey);
+            context.stepOutputs.put(context.node.getNodeKey() + ".toolResult", result);
+            return NodeResult.text(result, System.currentTimeMillis() - context.start);
+        } finally {
+            GatewayToolBindingContextHolder.clear();
         }
+    }
 
-        if ("LLM".equals(type) || "OUTPUT".equals(type)) {
-            ModelConfig model = resolveModel(cfg);
-            ChatClient chatClient = buildChatClient(model, cfg, workflowAdvisors);
-            String system = cfg.get("systemPrompt") == null ? "" : String.valueOf(cfg.get("systemPrompt"));
-            String userTemplate = cfg.get("userTemplate") == null ? "{{input}}" : String.valueOf(cfg.get("userTemplate"));
-            String user = renderTemplate(userTemplate, root);
+    private NodeResult executeLlmOrOutputNode(WorkflowNodeExecutionContext context) {
+        ModelConfig model = resolveModel(context.cfg);
+        ChatClient chatClient = buildChatClient(model, context.cfg, context.workflowAdvisors);
+        String system = context.cfg.get("systemPrompt") == null ? "" : String.valueOf(context.cfg.get("systemPrompt"));
+        String userTemplate = context.cfg.get("userTemplate") == null ? "{{input}}" : String.valueOf(context.cfg.get("userTemplate"));
+        String user = renderTemplate(userTemplate, context.root);
 
-            List<SystemMessage> systemMessages = new ArrayList<>();
-            if (StringUtils.hasText(system)) {
-                systemMessages.add(new SystemMessage(system));
-            }
-
-            // RAG 注入：可显式引用某个 RAG 节点输出
-            String ragFrom = cfg.get("ragFromNodeKey") == null ? null : String.valueOf(cfg.get("ragFromNodeKey"));
-            if (StringUtils.hasText(ragFrom)) {
-                Object ragTextObj = stepOutputs.get(ragFrom + ".ragText");
-                if (ragTextObj != null) {
-                    String ragText = String.valueOf(ragTextObj);
-                    if (StringUtils.hasText(ragText)) {
-                        systemMessages.add(new SystemMessage("你可以参考以下【参考文档】回答用户问题：\n" + ragText));
-                    }
+        List<SystemMessage> systemMessages = new ArrayList<>();
+        if (StringUtils.hasText(system)) {
+            systemMessages.add(new SystemMessage(system));
+        }
+        String ragFrom = context.cfg.get("ragFromNodeKey") == null ? null : String.valueOf(context.cfg.get("ragFromNodeKey"));
+        if (StringUtils.hasText(ragFrom)) {
+            Object ragTextObj = context.stepOutputs.get(ragFrom + ".ragText");
+            if (ragTextObj != null) {
+                String ragText = String.valueOf(ragTextObj);
+                if (StringUtils.hasText(ragText)) {
+                    systemMessages.add(new SystemMessage("你可以参考以下【参考文档】回答用户问题：\n" + ragText));
                 }
             }
-
-            boolean outputContract = "OUTPUT".equals(type) || "CONTRACT".equalsIgnoreCase(String.valueOf(cfg.get("outputMode")));
-            if (outputContract) {
-                systemMessages.add(new SystemMessage(outputSupport.contractInstruction()));
-            }
-
-            if (StringUtils.hasText(approvedToolResult)) {
-                systemMessages.add(new SystemMessage("已执行并通过审批的工具调用结果如下（仅供继续推理，不再触发工具调用）:\n" + truncate(approvedToolResult, 8000)));
-            }
-
-            List<Message> messages = new ArrayList<>();
-            messages.addAll(systemMessages);
-            messages.add(new UserMessage(user));
-            Prompt prompt = new Prompt(messages);
-
-            Set<String> allowedToolKeys = parseAllowedToolKeys(cfg.get("allowedToolKeysJson"));
-            Long modelId = model == null ? null : model.getId();
-            GatewayToolBindingContextHolder.setWorkflow(modelId, sessionId, wf.getId(), version.getId(), node.getNodeKey(), runId, allowedToolKeys);
-            try {
-                ChatResponse resp = chatClient.prompt(prompt).call().chatResponse();
-                String raw = extractText(resp);
-
-                if (!outputContract) {
-                    String safe = sanitizeAndLimit(raw).text;
-                    stepOutputs.put(node.getNodeKey() + ".text", safe);
-                    NodeResult r = NodeResult.text(safe, System.currentTimeMillis() - start);
-                    r.modelIdUsed = model == null ? null : model.getId();
-                    r.modelNameUsed = model == null ? null : model.getModelName();
-                    applyUsage(r, resp);
-                    return r;
-                }
-
-                PlatformContractV1 parsed = outputSupport.parseOrNull(raw);
-                if (parsed == null) {
-                    parsed = repairOnce(chatClient, raw);
-                }
-                if (parsed == null) {
-                    throw new BusinessException("OUTPUT 节点输出无法解析为 PlatformContractV1");
-                }
-                stepOutputs.put(node.getNodeKey() + ".contract.answer", parsed.getAnswer());
-                NodeResult r = NodeResult.contract(parsed, sanitizeAndLimit(raw).text, System.currentTimeMillis() - start);
-                r.modelIdUsed = model == null ? null : model.getId();
-                r.modelNameUsed = model == null ? null : model.getModelName();
-                applyUsage(r, resp);
-                return r;
-            } finally {
-                GatewayToolBindingContextHolder.clear();
-            }
         }
 
-        throw new BusinessException("不支持的节点类型: " + type);
+        boolean outputContract = "OUTPUT".equals(context.type)
+                || "CONTRACT".equalsIgnoreCase(String.valueOf(context.cfg.get("outputMode")));
+        if (outputContract) {
+            systemMessages.add(new SystemMessage(outputSupport.contractInstruction()));
+        }
+        if (StringUtils.hasText(context.approvedToolResult)) {
+            systemMessages.add(new SystemMessage(
+                    "已执行并通过审批的工具调用结果如下（仅供继续推理，不再触发工具调用）:\n"
+                            + truncate(context.approvedToolResult, 8000)));
+        }
+
+        List<Message> messages = new ArrayList<>();
+        messages.addAll(systemMessages);
+        messages.add(new UserMessage(user));
+        Prompt prompt = new Prompt(messages);
+
+        Set<String> allowedToolKeys = parseAllowedToolKeys(context.cfg.get("allowedToolKeysJson"));
+        Long modelId = model == null ? null : model.getId();
+        GatewayToolBindingContextHolder.setWorkflow(
+                modelId,
+                context.sessionId,
+                context.wf.getId(),
+                context.version.getId(),
+                context.node.getNodeKey(),
+                context.runId,
+                allowedToolKeys
+        );
+        try {
+            ChatResponse resp = chatClient.prompt(prompt).call().chatResponse();
+            String raw = extractText(resp);
+            if (!outputContract) {
+                String safe = sanitizeAndLimit(raw).text;
+                context.stepOutputs.put(context.node.getNodeKey() + ".text", safe);
+                NodeResult result = NodeResult.text(safe, System.currentTimeMillis() - context.start);
+                result.modelIdUsed = model == null ? null : model.getId();
+                result.modelNameUsed = model == null ? null : model.getModelName();
+                applyUsage(result, resp);
+                return result;
+            }
+
+            PlatformContractV1 parsed = outputSupport.parseOrNull(raw);
+            if (parsed == null) {
+                parsed = repairOnce(chatClient, raw);
+            }
+            if (parsed == null) {
+                throw new BusinessException("OUTPUT 节点输出无法解析为 PlatformContractV1");
+            }
+            context.stepOutputs.put(context.node.getNodeKey() + ".contract.answer", parsed.getAnswer());
+            NodeResult result = NodeResult.contract(parsed, sanitizeAndLimit(raw).text, System.currentTimeMillis() - context.start);
+            result.modelIdUsed = model == null ? null : model.getId();
+            result.modelNameUsed = model == null ? null : model.getModelName();
+            applyUsage(result, resp);
+            return result;
+        } finally {
+            GatewayToolBindingContextHolder.clear();
+        }
     }
 
     private void applyUsage(NodeResult r, ChatResponse resp) {
@@ -753,6 +925,15 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
         }
     }
 
+    /**
+     * 判断边条件是否满足并允许流转。
+     *
+     * @param edge 流程连线。
+     * @param ifResult 条件节点计算结果。
+     * @param variables 运行变量。
+     * @param stepOutputs 步骤输出映射。
+     * @return 返回是否满足边的启用条件。
+     */
     private boolean isEdgeEnabled(WorkflowEdge edge, Boolean ifResult, Map<String, Object> variables, Map<String, Object> stepOutputs) {
         if (edge == null) {
             return false;
@@ -989,7 +1170,8 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
         }
         // 尝试按 JSON 数组解析
         try {
-            List<String> list = objectMapper.readValue(s, new TypeReference<List<String>>() {});
+            List<String> list = objectMapper.readValue(s, new TypeReference<List<String>>() {
+            });
             return list == null ? Collections.emptyList() : list;
         } catch (Exception ignore) {
         }
@@ -1026,7 +1208,8 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
             return null;
         }
         try {
-            List<String> list = objectMapper.readValue(json, new TypeReference<List<String>>() {});
+            List<String> list = objectMapper.readValue(json, new TypeReference<List<String>>() {
+            });
             if (list == null) {
                 return null;
             }
@@ -1238,6 +1421,52 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
                 .status(status)
                 .error(base.getError())
                 .build();
+    }
+
+    @FunctionalInterface
+    private interface WorkflowNodeExecutor {
+        NodeResult execute(WorkflowNodeExecutionContext context);
+    }
+
+    private static final class WorkflowNodeExecutionContext {
+        private final String type;
+        private final long start;
+        private final String runId;
+        private final Workflow wf;
+        private final WorkflowVersion version;
+        private final WorkflowNode node;
+        private final Long sessionId;
+        private final Map<String, Object> cfg;
+        private final Map<String, Object> root;
+        private final Map<String, Object> stepOutputs;
+        private final CallAdvisor[] workflowAdvisors;
+        private final String approvedToolResult;
+
+        private WorkflowNodeExecutionContext(String type,
+                                             long start,
+                                             String runId,
+                                             Workflow wf,
+                                             WorkflowVersion version,
+                                             WorkflowNode node,
+                                             Long sessionId,
+                                             Map<String, Object> cfg,
+                                             Map<String, Object> root,
+                                             Map<String, Object> stepOutputs,
+                                             CallAdvisor[] workflowAdvisors,
+                                             String approvedToolResult) {
+            this.type = type;
+            this.start = start;
+            this.runId = runId;
+            this.wf = wf;
+            this.version = version;
+            this.node = node;
+            this.sessionId = sessionId;
+            this.cfg = cfg;
+            this.root = root;
+            this.stepOutputs = stepOutputs;
+            this.workflowAdvisors = workflowAdvisors;
+            this.approvedToolResult = approvedToolResult;
+        }
     }
 
     private static final class Graph {

@@ -40,6 +40,12 @@ public class OrchestrationMCPTest {
      */
     private final MCPServerCSDNJob mcpServerCSDNJob;
 
+    /**
+     * 创建编排 MCP 测试实例并注入依赖组件。
+     *
+     * @param modelProviderFactory 模型ProviderFactory。
+     * @param mcpServerCSDNJob MCP测试服务实例。
+     */
     @Autowired
     public OrchestrationMCPTest(ModelProviderFactory modelProviderFactory,
                                 MCPServerCSDNJob mcpServerCSDNJob) {

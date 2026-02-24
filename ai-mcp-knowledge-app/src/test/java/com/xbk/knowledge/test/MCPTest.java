@@ -72,6 +72,14 @@ public class MCPTest {
      */
     private final TraceIdAgentEnhancer traceIdAdvisor;
 
+    /**
+     * 创建 MCP 测试实例并注入依赖组件。
+     *
+     * @param tools 测试工具回调列表。
+     * @param openAiChatModel OpenAI对话模型。
+     * @param mcpServerCSDNJob MCP测试服务实例。
+     * @param traceIdAdvisor traceIDAdvisor。
+     */
     @Autowired
     public MCPTest(ToolCallbackProvider tools,
                    OpenAiChatModel openAiChatModel,

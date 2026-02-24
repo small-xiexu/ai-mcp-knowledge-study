@@ -306,7 +306,7 @@ public class IdentityAuditAspect {
     }
 
     /**
-     * 解析资源ID。
+     * 解析资源 ID。
      *
      * @param args 入参数组
      * @return 资源ID
@@ -332,7 +332,7 @@ public class IdentityAuditAspect {
     }
 
     /**
-     * 解析来源IP。
+     * 解析来源 IP。
      *
      * @param request HTTP 请求
      * @return IP
@@ -474,6 +474,11 @@ public class IdentityAuditAspect {
         }
     }
 
+    /**
+     * 脱敏敏感字段列表。
+     *
+     * @param values 待脱敏值列表。
+     */
     @SuppressWarnings("unchecked")
     private void sanitizeSensitiveList(List<?> values) {
         if (values == null || values.isEmpty()) {
@@ -494,6 +499,12 @@ public class IdentityAuditAspect {
         }
     }
 
+    /**
+     * 判断是否为敏感字段。
+     *
+     * @param fieldName 字段名称。
+     * @return 返回是否满足业务条件。
+     */
     private boolean isSensitiveField(String fieldName) {
         if (fieldName == null || fieldName.isBlank()) {
             return false;

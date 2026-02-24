@@ -102,6 +102,12 @@ public class ToolCallLoggingAgentEnhancer implements CallAdvisor {
         return String.join(",", toolNames);
     }
 
+    /**
+     * 提取用户输入文本。
+     *
+     * @param request 请求参数。
+     * @return 返回处理后的文本内容。
+     */
     private String getUserText(ChatClientRequest request) {
         if (request == null || request.prompt() == null) {
             return "";
@@ -112,6 +118,13 @@ public class ToolCallLoggingAgentEnhancer implements CallAdvisor {
         return "";
     }
 
+    /**
+     * 截断过长提示词，避免日志膨胀。
+     *
+     * @param prompt 提示词。
+     * @param maxLength 最大长度。
+     * @return 返回截断后的提示词文本。
+     */
     private String truncatePrompt(String prompt, int maxLength) {
         if (prompt == null) {
             return "";

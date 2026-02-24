@@ -172,6 +172,12 @@ public class ChatSessionAppServiceImpl implements ChatSessionAppService {
         return "该会话已绑定模型【" + displayName + "】，为保证对话一致性不可切换模型。如需切换，请新建会话。";
     }
 
+    /**
+     * 解析模型名称。
+     *
+     * @param modelId 模型ID。
+     * @return 返回名称文本。
+     */
     private String resolveModelName(Long modelId) {
         if (modelId == null) {
             return null;
