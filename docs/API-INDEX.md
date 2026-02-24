@@ -2,7 +2,7 @@
 
 > 数据来源：基于当前代码自动扫描 `ai-mcp-knowledge-trigger/src/main/java/com/xbk/knowledge/trigger/http/*.java`。  
 > 说明：本索引按“方法级”组织，便于联调、权限核查与回归测试。  
-> 返回约定：绝大多数接口返回 `Result<T>` 包装；流式与协议接口见文末补充。
+> 返回约定：绝大多数业务接口返回 `Result<T>` 包装；流式与 MCP 协议接口在文末单独列出。
 
 ## 1. 通用约定
 - 鉴权方式：Sa-Token，token 默认请求头键为 `satoken`（可配置）。
@@ -23,12 +23,12 @@
 - MCP Gateway 协议接口包含 JSON-RPC 请求/响应透传。
 - XXL 管理接口在代码中未统一使用 `@SaCheckPermission`，实际访问控制可能由额外网关/守卫实现（例如 `XxlPermissionGuard`）。
 
-## 4. Result 型接口（按 Controller）
+## 4. 接口清单（按 Controller）
 
 ### AICallController.java
 | 方法名 | HTTP | 路径 | 权限 |
 |---|---|---|---|
-| `chat` | `POST` | `/api/ai/chat` | `agent:read` |
+| `stream` | `POST` | `/api/ai/stream` | `agent:read` |
 | `getAvailableModels` | `POST` | `/api/ai/models` | `agent:read` |
 
 ### AgentEnhancerController.java
@@ -142,6 +142,12 @@
 | `saveGatewayInstance` | `POST` | `/api/gateway/manage/instances/save` | `tool:write` |
 | `saveModelBindings` | `POST` | `/api/gateway/manage/bindings/model/save` | `tool:write` |
 | `saveTool` | `POST` | `/api/gateway/manage/tools/save` | `tool:write` |
+
+### McpGatewayController.java
+| 方法名 | HTTP | 路径 | 权限 |
+|---|---|---|---|
+| `establishSseConnection` | `GET` | `/api/gateway/{gatewayId}/mcp/sse` | `-`（API Key 鉴权，SSE 长连接） |
+| `handleMessage` | `POST` | `/api/gateway/{gatewayId}/mcp/message?sessionId=...` | `-`（API Key 鉴权，JSON-RPC 消息处理） |
 
 ### McpServerConfigController.java
 | 方法名 | HTTP | 路径 | 权限 |
@@ -283,7 +289,7 @@
 ## 5. 流式与协议接口（补充）
 | Controller | 方法 | HTTP | 路径 | 权限/说明 |
 |---|---|---|---|---|
-| `AICallController` | `streamChat` | `POST` | `/api/ai/stream` | `agent:read`，SSE 流式对话 |
+| `AICallController` | `stream` | `POST` | `/api/ai/stream` | `agent:read`，SSE 流式对话 |
 | `AgentRuntimeController` | `stream` | `POST` | `/api/agents/{agentCode}/stream` | `agent:invoke`，SSE 流式 Agent 输出 |
 | `McpGatewayController` | `establishSseConnection` | `GET` | `/api/gateway/{gatewayId}/mcp/sse` | 外部 MCP Client 建连（SSE） |
 | `McpGatewayController` | `handleMessage` | `POST` | `/api/gateway/{gatewayId}/mcp/message?sessionId=...` | JSON-RPC 消息处理与回推 |

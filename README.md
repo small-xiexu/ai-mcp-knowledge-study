@@ -27,11 +27,13 @@
 当前仓库采用单组织模式，SQL 为重建脚本（无外键，应用层负责级联约束与清理）。
 
 ## 2. 当前代码快照（基于当前工作区）
-- 总文件数：`1010`
-- Java 文件：`861`
+> 统计口径：排除 `.git`、`.idea`、`node_modules`、`target` 目录（统计日期：2026-02-24）。
+
+- 总文件数：`1154`
+- Java 文件：`862`
 - Vue 文件：`42`
 - TypeScript 文件：`31`
-- 后端 Controller：`28`
+- 后端 Controller：`27`
 - XXL Job 类：`8`（另有 `package-info`）
 - 数据库表：`37`
 
@@ -156,8 +158,7 @@ graph LR
 - 支持自定义 `completions_path` 与 `embeddings_path`
 
 ### 6.3 AI 对话与会话
-- 对话：`/api/ai/chat`
-- 流式：`/api/ai/stream`
+- 流式对话：`/api/ai/stream`
 - 会话管理：`/api/ai/sessions/*`
 - 会话绑定模型一致性校验（同会话禁止随意切模）
 
@@ -262,7 +263,7 @@ AgentVersion 草稿保存示例：
 - 预热接口：`/api/preheat/agent-version`、`/api/preheat/workflow-version`
 
 ## 7. 关键流程图
-### 7.1 AI 对话链路（同步/流式）
+### 7.1 AI 对话链路（流式）
 ```mermaid
 sequenceDiagram
     participant FE as 前端
@@ -274,8 +275,8 @@ sequenceDiagram
     participant M as 模型Provider
     participant DB as MySQL/Redis
 
-    FE->>C: POST /api/ai/chat
-    C->>A: chat(command)
+    FE->>C: POST /api/ai/stream
+    C->>A: streamChat(command)
     A->>A: 解析模型 + 会话模型一致性校验
     A->>A: 构建 Prompt(历史/RAG/工具提示)
     A->>S: buildChatClient(model, toolEnabled)
@@ -285,7 +286,7 @@ sequenceDiagram
     A->>M: prompt.call()/stream()
     A->>DB: 写调用日志 + 记忆消息
     A-->>C: AICallResult/Flux
-    C-->>FE: Result
+    C-->>FE: SSE chunk + usage
 ```
 
 ### 7.2 Workflow 运行与审批续跑

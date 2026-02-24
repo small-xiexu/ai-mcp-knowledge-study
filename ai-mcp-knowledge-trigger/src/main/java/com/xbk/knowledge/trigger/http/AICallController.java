@@ -2,22 +2,17 @@ package com.xbk.knowledge.trigger.http;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.xbk.knowledge.types.common.Result;
-import com.xbk.knowledge.types.common.ResultCode;
 import com.xbk.knowledge.api.IAICallService;
 import com.xbk.knowledge.api.dto.ai.AIRequest;
-import com.xbk.knowledge.api.dto.ai.AIResponse;
 import com.xbk.knowledge.api.dto.ai.ModelInfo;
 import com.xbk.knowledge.application.model.dto.AICallCommand;
-import com.xbk.knowledge.application.model.dto.AICallResult;
 import com.xbk.knowledge.application.service.app.AiChatAppService;
 import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.common.model.valobj.EnabledQuery;
 import com.xbk.knowledge.application.service.app.ModelConfigAppService;
 import com.xbk.knowledge.trigger.converter.DTOConverter;
-import com.xbk.knowledge.types.exception.BusinessException;
 import com.xbk.knowledge.types.enums.ModelType;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.metadata.Usage;
@@ -44,7 +39,6 @@ import java.util.function.Function;
  *
  * @author sxie
  */
-@Slf4j
 @RestController
 @RequestMapping("/api/ai")
 @RequiredArgsConstructor
@@ -52,44 +46,6 @@ public class AICallController implements IAICallService {
 
     private final ModelConfigAppService modelConfigAppService;
     private final AiChatAppService aiChatAppService;
-
-    /**
-     * 通用 AI 调用接口
-     * 按规则选择模型并执行调用
-     * <p>
-     * 为什么：统一入口封装模型选择与调用流程，避免调用方直接拼装命令。
-     * 模型选择优先级：显式 modelId > 会话绑定模型 > 全局激活聊天模型。
-     * 流程：
-     * 1. 进入接口后执行 `agent:read` 权限校验。
-     * 2. Spring 完成请求体绑定与参数校验（`@Valid`）。
-     * 3. Controller 通过 `DTOConverter` 将 API 请求转换为应用层 `AICallCommand`。
-     * 4. 调用 `aiChatAppService.chat` 执行模型调用与运行链路编排。
-     * 5. 将应用层结果转换为 `AIResponse` 并统一封装返回；异常分支返回标准错误码。
-     *
-     * @param request AI 请求
-     * @return AI 响应
-     */
-    @Override
-    @PostMapping("/chat")
-    @SaCheckPermission("agent:read")
-    public Result<AIResponse> chat(@Valid @RequestBody AIRequest request) {
-        try {
-            AICallCommand command = DTOConverter.toAppAICallCommand(request);
-            AICallResult result = aiChatAppService.chat(command);
-            AIResponse response = DTOConverter.toApiAIResponse(result);
-            return Result.success(response);
-        } catch (BusinessException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("AI 调用失败", e);
-            AIResponse response = new AIResponse();
-            response.setSuccess(false);
-            String errorMessage = e.getMessage();
-            response.setErrorMessage(errorMessage);
-            String responseMessage = "AI 调用失败：" + errorMessage;
-            return Result.error(ResultCode.AI_CALL_FAILED, responseMessage, response);
-        }
-    }
 
     /**
      * 流式 AI 对话
@@ -109,7 +65,6 @@ public class AICallController implements IAICallService {
     @SaCheckPermission("agent:read")
     @Override
     public SseEmitter stream(@Valid @RequestBody AIRequest request, HttpServletResponse httpResponse) {
-
         httpResponse.setCharacterEncoding("UTF-8");
         httpResponse.setHeader("Cache-Control", "no-cache");
         httpResponse.setHeader("Connection", "keep-alive");

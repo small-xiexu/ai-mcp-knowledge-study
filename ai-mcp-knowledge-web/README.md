@@ -112,7 +112,7 @@ npm run format
 - `PUT /models/{id}/disable` - 禁用模型
 
 ### AI 调用
-- `POST /ai/chat` - 通用 AI 调用
+- `POST /ai/stream` - 流式 AI 调用（SSE）
 - `GET /ai/models/available` - 获取可用模型列表
 
 ### 监控统计

@@ -2,7 +2,6 @@ package com.xbk.knowledge.api;
 
 import com.xbk.knowledge.types.common.Result;
 import com.xbk.knowledge.api.dto.ai.AIRequest;
-import com.xbk.knowledge.api.dto.ai.AIResponse;
 import com.xbk.knowledge.api.dto.ai.ModelInfo;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -16,15 +15,6 @@ import java.util.List;
  * @author sxie
  */
 public interface IAICallService {
-
-    /**
-     * 通用 AI 调用接口
-     * 根据策略自动选择最优模型
-     *
-     * @param request AI 请求
-     * @return AI 响应
-     */
-    Result<AIResponse> chat(AIRequest request);
 
     /**
      * 流式 AI 调用接口。

@@ -1,14 +1,10 @@
 package com.xbk.knowledge.trigger.http;
 
-import com.xbk.knowledge.api.dto.ai.AIRequest;
-import com.xbk.knowledge.api.dto.ai.AIResponse;
-import com.xbk.knowledge.application.model.dto.AICallResult;
 import com.xbk.knowledge.application.service.app.AiChatAppService;
 import com.xbk.knowledge.application.service.app.ModelConfigAppService;
 import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.common.model.valobj.EnabledQuery;
 import com.xbk.knowledge.types.common.Result;
-import com.xbk.knowledge.types.common.ResultCode;
 import com.xbk.knowledge.types.enums.ModelType;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -17,7 +13,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -27,46 +22,6 @@ import static org.mockito.Mockito.when;
  * @author xiexu
  */
 public class AICallControllerTest {
-
-    /**
-     * 对外暴露 shouldReturnSuccessForChat 作为调用入口，便于上层复用。
-     */
-    @Test
-    public void shouldReturnSuccessForChat() {
-        AiChatAppService aiChatAppService = Mockito.mock(AiChatAppService.class);
-        ModelConfigAppService modelConfigAppService = Mockito.mock(ModelConfigAppService.class);
-        AICallController controller = new AICallController(modelConfigAppService, aiChatAppService);
-
-        AICallResult callResult = AICallResult.builder()
-                .success(true)
-                .content("ok")
-                .modelUsed("m1")
-                .build();
-        when(aiChatAppService.chat(any())).thenReturn(callResult);
-
-        Result<AIResponse> result = controller.chat(AIRequest.builder().content("hi").build());
-
-        assertEquals(ResultCode.SUCCESS.getCode(), result.getCode());
-        assertEquals("ok", result.getData().getContent());
-    }
-
-    /**
-     * 对外暴露 shouldReturnErrorWhenChatFails 作为调用入口，便于上层复用。
-     */
-    @Test
-    public void shouldReturnErrorWhenChatFails() {
-        AiChatAppService aiChatAppService = Mockito.mock(AiChatAppService.class);
-        ModelConfigAppService modelConfigAppService = Mockito.mock(ModelConfigAppService.class);
-        AICallController controller = new AICallController(modelConfigAppService, aiChatAppService);
-
-        when(aiChatAppService.chat(any())).thenThrow(new RuntimeException("boom"));
-
-        Result<AIResponse> result = controller.chat(AIRequest.builder().content("hi").build());
-
-        assertEquals(ResultCode.AI_CALL_FAILED.getCode(), result.getCode());
-        assertTrue(result.getMessage().contains("boom"));
-        assertEquals(Boolean.FALSE, result.getData().getSuccess());
-    }
 
     /**
      * 对外暴露 shouldReturnAvailableModels 作为调用入口，便于上层复用。

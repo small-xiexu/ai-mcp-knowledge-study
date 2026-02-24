@@ -1,7 +1,6 @@
 import request from '@/utils/request'
 import type {
   AIRequest,
-  AIResponse,
   ModelInfo,
   ChatSession,
   ChatSessionCreateRequest,
@@ -9,12 +8,6 @@ import type {
   ChatMessage,
   ChatMessageCreateRequest
 } from '@/types/entity'
-
-/**
- * 通用 AI 调用
- */
-export const chat = (data: AIRequest) =>
-  request.post<AIResponse>('/ai/chat', data)
 
 /**
  * 流式 AI 调用
