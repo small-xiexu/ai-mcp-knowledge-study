@@ -82,4 +82,14 @@ public interface ChatSessionRepository {
      * @return 影响行数。
      */
     int deleteByUpdatedBefore(LocalDateTime updatedBefore);
+
+    /**
+     * 查询过期会话 ID 列表。
+     * <p>
+     * 用于在批量清理前同步处理关联缓存。
+     *
+     * @param updatedBefore 最后更新时间上限（早于该时间的会话会被识别为过期）。
+     * @return 过期会话 ID 列表。
+     */
+    List<Long> findIdsByUpdatedBefore(LocalDateTime updatedBefore);
 }

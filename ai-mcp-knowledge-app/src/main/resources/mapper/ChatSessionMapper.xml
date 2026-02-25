@@ -94,4 +94,10 @@
         where updated_at &lt; #{updatedBefore}
     </delete>
 
+    <select id="findIdsByUpdatedBefore" resultType="long">
+        select id
+        from ai_chat_session
+        where updated_at &lt; #{updatedBefore}
+    </select>
+
 </mapper>

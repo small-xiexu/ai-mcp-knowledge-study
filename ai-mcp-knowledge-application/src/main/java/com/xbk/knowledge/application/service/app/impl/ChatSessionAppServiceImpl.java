@@ -188,12 +188,15 @@ public class ChatSessionAppServiceImpl implements ChatSessionAppService {
     @Transactional(rollbackFor = Exception.class)
     public void deleteMessages(Long sessionId) {
         chatMessageRepository.deleteBySessionId(sessionId);
+        if (sessionId != null) {
+            chatMemoryRepository.deleteByConversationId(String.valueOf(sessionId));
+        }
     }
 
     private String buildModelLockMessage(Long modelId) {
         String modelName = resolveModelName(modelId);
         String displayName = modelName != null ? modelName : String.valueOf(modelId);
-        return "该话已绑定模型【" + displayName + "】，为保证对话一致性不可切换模型。如需切换，请新建话。";
+        return "该会话已绑定模型【" + displayName + "】，为保证对话一致性不可切换模型。如需切换，请新建会话。";
     }
 
     /**

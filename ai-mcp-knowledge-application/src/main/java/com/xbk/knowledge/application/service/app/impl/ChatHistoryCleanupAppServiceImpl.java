@@ -4,10 +4,12 @@ import com.xbk.knowledge.application.service.app.ChatHistoryCleanupAppService;
 import com.xbk.knowledge.domain.chat.adapter.repository.ChatMessageRepository;
 import com.xbk.knowledge.domain.chat.adapter.repository.ChatSessionRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 聊天历史清理服务实现
@@ -32,6 +34,11 @@ public class ChatHistoryCleanupAppServiceImpl implements ChatHistoryCleanupAppSe
     private final ChatMessageRepository chatMessageRepository;
 
     /**
+     * 聊天记忆仓储。
+     */
+    private final ChatMemoryRepository chatMemoryRepository;
+
+    /**
      * 清理过期会话与消息
      *
      * 按更新时间清理历史数据，控制存储规模
@@ -45,8 +52,20 @@ public class ChatHistoryCleanupAppServiceImpl implements ChatHistoryCleanupAppSe
         if (updatedBefore == null) {
             return 0;
         }
+        List<Long> expiredSessionIds = chatSessionRepository.findIdsByUpdatedBefore(updatedBefore);
+        if (expiredSessionIds == null || expiredSessionIds.isEmpty()) {
+            return 0;
+        }
         // 先清理消息，避免话删除后遗留孤儿消息
         chatMessageRepository.deleteBySessionUpdatedBefore(updatedBefore);
-        return chatSessionRepository.deleteByUpdatedBefore(updatedBefore);
+        int deletedCount = chatSessionRepository.deleteByUpdatedBefore(updatedBefore);
+        // 同步清理 Redis 会话记忆，避免短期内读到过期上下文
+        for (Long sessionId : expiredSessionIds) {
+            if (sessionId == null) {
+                continue;
+            }
+            chatMemoryRepository.deleteByConversationId(String.valueOf(sessionId));
+        }
+        return deletedCount;
     }
 }

@@ -123,4 +123,17 @@ public class ChatSessionRepositoryImpl implements ChatSessionRepository {
     public int deleteByUpdatedBefore(LocalDateTime updatedBefore) {
         return chatSessionMapper.deleteByUpdatedBefore(updatedBefore);
     }
+
+    /**
+     * 查询过期会话 ID 列表
+     *
+     * 用于在批量删除前清理会话记忆缓存
+     *
+     * @param updatedBefore 会话更新时间上限（早于该时间的会话会被识别为过期）。
+     * @return 过期会话 ID 列表。
+     */
+    @Override
+    public List<Long> findIdsByUpdatedBefore(LocalDateTime updatedBefore) {
+        return chatSessionMapper.findIdsByUpdatedBefore(updatedBefore);
+    }
 }

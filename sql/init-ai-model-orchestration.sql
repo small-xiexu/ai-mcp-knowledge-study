@@ -304,6 +304,8 @@ CREATE TABLE ai_model_config (
     embeddings_path VARCHAR(255) DEFAULT NULL COMMENT '向量嵌入路径（OpenAI兼容协议）',
     enabled TINYINT(1) DEFAULT 1 COMMENT '是否启用(0:禁用 1:启用)',
     tool_enabled TINYINT(1) DEFAULT 1 COMMENT '是否启用工具调用(0:禁用 1:启用)',
+    max_prompt_chars INT DEFAULT NULL COMMENT 'Prompt历史字符预算',
+    max_history_messages INT DEFAULT NULL COMMENT 'Prompt历史消息条数预算',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     UNIQUE KEY uk_model_name (model_name),
@@ -881,12 +883,12 @@ CREATE TABLE agent_run_context (
 
 -- 初始化数据：模型配置（示例）
 INSERT INTO ai_model_config (
-    model_name, model_type, api_key, base_url, completions_path, embeddings_path, enabled, tool_enabled
+    model_name, model_type, api_key, base_url, completions_path, embeddings_path, enabled, tool_enabled, max_prompt_chars, max_history_messages
 )
 VALUES
-('GPT-4', 'OPENAI', 'sk-placeholder', 'http://127.0.0.1:8045', '/v1/chat/completions', '/v1/embeddings', 1, 1),
-('Claude-3.5-Sonnet', 'ANTHROPIC', 'sk-ant-placeholder', 'https://api.anthropic.com', '/v1/chat/completions', '/v1/embeddings', 1, 1),
-('Gemini-3-Flash', 'GEMINI', 'sk-placeholder', 'http://127.0.0.1:8045', '/v1/chat/completions', '/v1/embeddings', 1, 1)
+('GPT-4', 'OPENAI', 'sk-placeholder', 'http://127.0.0.1:8045', '/v1/chat/completions', '/v1/embeddings', 1, 1, 12000, 20),
+('Claude-3.5-Sonnet', 'ANTHROPIC', 'sk-ant-placeholder', 'https://api.anthropic.com', '/v1/chat/completions', '/v1/embeddings', 1, 1, 12000, 20),
+('Gemini-3-Flash', 'GEMINI', 'sk-placeholder', 'http://127.0.0.1:8045', '/v1/chat/completions', '/v1/embeddings', 1, 1, 12000, 20)
 ON DUPLICATE KEY UPDATE
 model_type = VALUES(model_type),
 api_key = VALUES(api_key),
@@ -895,6 +897,8 @@ completions_path = VALUES(completions_path),
 embeddings_path = VALUES(embeddings_path),
 enabled = VALUES(enabled),
 tool_enabled = VALUES(tool_enabled),
+max_prompt_chars = VALUES(max_prompt_chars),
+max_history_messages = VALUES(max_history_messages),
 updated_at = VALUES(updated_at);
 
 SELECT id INTO @gpt4_id FROM ai_model_config WHERE model_name = 'GPT-4' LIMIT 1;

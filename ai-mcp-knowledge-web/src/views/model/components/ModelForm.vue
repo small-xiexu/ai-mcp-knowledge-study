@@ -143,6 +143,45 @@
             </div>
           </el-form-item>
         </el-col>
+        <el-col :span="12">
+          <el-form-item
+            label="历史预算"
+            prop="maxPromptChars"
+          >
+            <el-input-number
+              v-model="formData.maxPromptChars"
+              :min="2000"
+              :max="50000"
+              :step="500"
+              controls-position="right"
+              style="width: 100%"
+            />
+            <div class="form-hint inline">
+              当前模型单次 Prompt 可注入历史字符上限
+            </div>
+          </el-form-item>
+        </el-col>
+      </el-row>
+
+      <el-row :gutter="20">
+        <el-col :span="12">
+          <el-form-item
+            label="历史条数"
+            prop="maxHistoryMessages"
+          >
+            <el-input-number
+              v-model="formData.maxHistoryMessages"
+              :min="1"
+              :max="200"
+              :step="1"
+              controls-position="right"
+              style="width: 100%"
+            />
+            <div class="form-hint inline">
+              当前模型单次 Prompt 可注入历史消息条数上限
+            </div>
+          </el-form-item>
+        </el-col>
       </el-row>
     </el-form>
 
@@ -202,14 +241,18 @@ const formData = reactive({
   completionsPath: '',
   embeddingsPath: '',
   enabled: true,
-  toolEnabled: true
+  toolEnabled: true,
+  maxPromptChars: 12000,
+  maxHistoryMessages: 20
 })
 
 const rules: FormRules = {
   modelName: [{ required: true, message: '请输入模型名称', trigger: 'blur' }],
   modelType: [{ required: true, message: '请选择模型类型', trigger: 'change' }],
   apiKey: [{ required: true, message: '请输入 API Key', trigger: 'blur' }],
-  baseUrl: [{ required: true, message: '请输入 Base URL', trigger: 'blur' }]
+  baseUrl: [{ required: true, message: '请输入 Base URL', trigger: 'blur' }],
+  maxPromptChars: [{ type: 'number', min: 2000, max: 50000, message: '请输入 2000-50000 之间的值', trigger: 'change' }],
+  maxHistoryMessages: [{ type: 'number', min: 1, max: 200, message: '请输入 1-200 之间的值', trigger: 'change' }]
 }
 
 const resetForm = () => {
@@ -222,6 +265,8 @@ const resetForm = () => {
   formData.embeddingsPath = ''
   formData.enabled = true
   formData.toolEnabled = true
+  formData.maxPromptChars = 12000
+  formData.maxHistoryMessages = 20
   formRef.value?.clearValidate()
 }
 
@@ -240,6 +285,8 @@ watch(
       formData.embeddingsPath = data.embeddingsPath || ''
       formData.enabled = data.enabled
       formData.toolEnabled = data.toolEnabled !== false
+      formData.maxPromptChars = data.maxPromptChars ?? 12000
+      formData.maxHistoryMessages = data.maxHistoryMessages ?? 20
     } else {
       isEdit.value = false
       resetForm()
@@ -270,7 +317,9 @@ const handleSubmit = async () => {
         completionsPath: formData.completionsPath || undefined,
         embeddingsPath: formData.embeddingsPath || undefined,
         enabled: formData.enabled,
-        toolEnabled: formData.toolEnabled
+        toolEnabled: formData.toolEnabled,
+        maxPromptChars: formData.maxPromptChars,
+        maxHistoryMessages: formData.maxHistoryMessages
       }
 
       if (isEdit.value) {

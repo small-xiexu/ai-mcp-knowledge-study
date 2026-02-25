@@ -11,6 +11,8 @@ export interface ModelConfig {
   embeddingsPath?: string
   enabled: boolean
   toolEnabled?: boolean
+  maxPromptChars?: number
+  maxHistoryMessages?: number
   createdAt: string
   updatedAt: string
   activeChat?: boolean
@@ -30,6 +32,8 @@ export interface ModelConfigRequest {
   embeddingsPath?: string
   enabled?: boolean
   toolEnabled?: boolean
+  maxPromptChars?: number
+  maxHistoryMessages?: number
 }
 
 /**

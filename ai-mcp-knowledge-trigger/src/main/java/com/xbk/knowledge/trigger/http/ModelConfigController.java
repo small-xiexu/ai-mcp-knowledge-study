@@ -390,6 +390,8 @@ public class ModelConfigController implements IModelConfigService {
         String apiKey = modelConfig.getApiKey();
         Boolean enabled = modelConfig.getEnabled();
         Boolean toolEnabled = modelConfig.getToolEnabled();
+        Integer maxPromptChars = modelConfig.getMaxPromptChars();
+        Integer maxHistoryMessages = modelConfig.getMaxHistoryMessages();
         LocalDateTime createdAt = modelConfig.getCreatedAt();
         LocalDateTime updatedAt = modelConfig.getUpdatedAt();
         Boolean activeChat = activeChatId != null && activeChatId.equals(modelId);
@@ -404,6 +406,8 @@ public class ModelConfigController implements IModelConfigService {
                 .apiKey(apiKey)
                 .enabled(enabled)
                 .toolEnabled(toolEnabled)
+                .maxPromptChars(maxPromptChars)
+                .maxHistoryMessages(maxHistoryMessages)
                 .createdAt(createdAt)
                 .updatedAt(updatedAt)
                 .activeChat(activeChat)
@@ -428,6 +432,8 @@ public class ModelConfigController implements IModelConfigService {
         String embeddingsPath = request.getEmbeddingsPath();
         Boolean enabled = request.getEnabled();
         Boolean toolEnabled = request.getToolEnabled();
+        Integer maxPromptChars = request.getMaxPromptChars();
+        Integer maxHistoryMessages = request.getMaxHistoryMessages();
         if (toolEnabled == null) {
             toolEnabled = true;
         }
@@ -440,6 +446,8 @@ public class ModelConfigController implements IModelConfigService {
                 .embeddingsPath(embeddingsPath)
                 .enabled(enabled)
                 .toolEnabled(toolEnabled)
+                .maxPromptChars(maxPromptChars)
+                .maxHistoryMessages(maxHistoryMessages)
                 .build();
 
         return modelConfig;

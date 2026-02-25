@@ -144,6 +144,8 @@ public class ModelConfigServiceImpl implements IModelConfigService {
         String baseUrl = modelConfig.getBaseUrl();
         Boolean enabled = modelConfig.getEnabled();
         Boolean toolEnabled = modelConfig.getToolEnabled();
+        Integer maxPromptChars = modelConfig.getMaxPromptChars();
+        Integer maxHistoryMessages = modelConfig.getMaxHistoryMessages();
         LocalDateTime updatedAt = LocalDateTime.now();
 
         existingConfig.setModelName(modelName);
@@ -152,6 +154,8 @@ public class ModelConfigServiceImpl implements IModelConfigService {
         existingConfig.setBaseUrl(baseUrl);
         existingConfig.setEnabled(enabled);
         existingConfig.setToolEnabled(toolEnabled);
+        existingConfig.setMaxPromptChars(maxPromptChars);
+        existingConfig.setMaxHistoryMessages(maxHistoryMessages);
         existingConfig.setUpdatedAt(updatedAt);
 
         ModelConfigAggregate aggregate = ModelConfigAggregate.builder()

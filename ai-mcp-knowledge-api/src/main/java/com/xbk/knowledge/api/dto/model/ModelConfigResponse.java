@@ -75,6 +75,16 @@ public class ModelConfigResponse implements Serializable {
     private Boolean toolEnabled;
 
     /**
+     * Prompt 历史字符预算
+     */
+    private Integer maxPromptChars;
+
+    /**
+     * Prompt 历史消息条数预算
+     */
+    private Integer maxHistoryMessages;
+
+    /**
      * 创建时间
      */
     private LocalDateTime createdAt;

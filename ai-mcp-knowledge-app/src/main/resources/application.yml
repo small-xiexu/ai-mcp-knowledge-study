@@ -26,6 +26,8 @@ chat:
     retention-days: 7
     # 上下文窗口大小
     memory-window-size: 20
+    # 构建 Prompt 时允许注入的历史文本字符预算
+    max-prompt-chars: 12000
 
 mcp:
   tools:

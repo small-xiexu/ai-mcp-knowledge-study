@@ -94,6 +94,20 @@ public class ModelConfigPO {
     private Boolean toolEnabled;
 
     /**
+     * Prompt 历史字符预算
+     *
+     * 控制该模型单次组装上下文时允许注入的历史文本规模
+     */
+    private Integer maxPromptChars;
+
+    /**
+     * Prompt 历史消息条数预算
+     *
+     * 控制该模型单次组装上下文时允许注入的历史消息条数
+     */
+    private Integer maxHistoryMessages;
+
+    /**
      * 创建时间
      *
      * 用于审计与排序

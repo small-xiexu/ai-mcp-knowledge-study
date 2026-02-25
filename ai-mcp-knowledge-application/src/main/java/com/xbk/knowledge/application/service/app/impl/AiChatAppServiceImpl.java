@@ -4,6 +4,7 @@ import com.xbk.knowledge.application.model.dto.AICallCommand;
 import com.xbk.knowledge.application.service.app.AiChatAppService;
 import com.xbk.knowledge.application.service.app.ChatClientAssemblyService;
 import com.xbk.knowledge.application.service.app.ModelConfigAppService;
+import com.xbk.knowledge.config.ChatHistoryProperties;
 import com.xbk.knowledge.application.context.GatewayToolBindingContextHolder;
 import com.xbk.knowledge.application.service.mcp.McpToolCatalogService;
 import com.xbk.knowledge.application.service.rag.RagVectorStoreService;
@@ -20,6 +21,7 @@ import com.xbk.knowledge.types.trace.TraceIdUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.messages.AbstractMessage;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
@@ -36,6 +38,7 @@ import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -94,6 +97,11 @@ public class AiChatAppServiceImpl implements AiChatAppService {
     private final ChatMemory chatMemory;
 
     /**
+     * 聊天历史配置。
+     */
+    private final ChatHistoryProperties chatHistoryProperties;
+
+    /**
      * MCP 工具目录服务。
      */
     private final McpToolCatalogService mcpToolCatalogService;
@@ -102,7 +110,7 @@ public class AiChatAppServiceImpl implements AiChatAppService {
      * 流式对话
      * <p>
      * 满足前端流式渲染与大模型逐字输出场景
-     * 
+     *
      * @param command AI 调用命令。
      * @return 流式响应序列。
      */
@@ -153,13 +161,22 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         });
     }
 
+    /**
+     * 按固定步骤装配对话调用上下文。
+     * <p>
+     * 该方法将“选模型 -> 算工具开关 -> 组 Prompt -> 建日志骨架 -> 算会话 ID”
+     * 收敛为单一编排入口，属于模板化流程编排（接近模板方法思路），用于保证调用链路顺序稳定。
+     *
+     * @param command AI 调用命令。
+     * @return 对话调用上下文。
+     */
     private ChatCallContext prepareChatContext(AICallCommand command) {
         // 1、确定本次调用使用的模型
         ModelConfig modelConfig = resolveChatModel(command);
         // 2、根据模型配置计算工具开关
         boolean toolEnabled = resolveToolEnabled(modelConfig);
         // 3、基于用户输入 + 历史记忆 + RAG 组装 Prompt
-        Prompt prompt = buildPrompt(command, toolEnabled);
+        Prompt prompt = buildPrompt(command, modelConfig, toolEnabled);
         // 4、创建调用日志骨架，后续只补充结果字段
         CallLog callLog = buildCallLog(modelConfig, command);
         // 5、计算会话 ID，供记忆读写使用
@@ -171,12 +188,12 @@ public class AiChatAppServiceImpl implements AiChatAppService {
      * 解析对话模型
      * <p>
      * 允许显式模型优先，未指定时使用全局激活模型
-     * 
+     *
      * @param command AI 调用命令。
      * @return 当前对话使用的模型配置。
      */
     private ModelConfig resolveChatModel(AICallCommand command) {
-        // 优先执行话模型锁定规则必要时改写 command.modelId 或直接拒绝
+        // 优先执行会话模型锁定规则，必要时改写 command.modelId 或直接拒绝
         enforceSessionModelBinding(command);
         Long modelId = command.getModelId();
         // 调用方显式指定模型时优先使用显式值
@@ -192,46 +209,54 @@ public class AiChatAppServiceImpl implements AiChatAppService {
     }
 
     /**
-     * 校验并绑定话模型一致性。
-     * 
+     * 校验并绑定会话模型一致性。
+     *
      * @param command 对话调用指令。
      */
     private void enforceSessionModelBinding(AICallCommand command) {
         if (command == null) {
             return;
         }
+        // 会话 ID
         Long sessionId = command.getSessionId();
-        // 未开启会话上下文时不触发模型锁定
+        // 会话 ID 缺失时允许按普通策略选模型
         if (sessionId == null) {
             return;
         }
+        // 尝试查询会话
         ChatSession session = chatSessionRepository.findById(sessionId);
-        // 话未绑定模型时允许按普通策略选模
+        // 会话未绑定模型时允许按普通策略选模型
         if (session == null || session.getModelId() == null) {
             return;
         }
         Long sessionModelId = session.getModelId();
         Long requestModelId = command.getModelId();
-        // 请求模型与话已绑定模型冲突时，明确拒绝以保证话一致性
+        // 请求模型与会话已绑定模型冲突时，明确拒绝以保证会话一致性
         if (requestModelId != null && !sessionModelId.equals(requestModelId)) {
             String message = buildModelLockMessage(sessionModelId);
             throw new BusinessException(message);
         }
         if (requestModelId == null) {
-            // 话已绑定模型时，强制使用话模型
+            // 会话已绑定模型时，强制使用会话模型
             command.setModelId(sessionModelId);
         }
     }
 
+    /**
+     * 构建模型锁定提示。
+     *
+     * @param modelId 模型ID。
+     * @return 锁定提示文本。
+     */
     private String buildModelLockMessage(Long modelId) {
         String modelName = resolveModelName(modelId);
         String displayName = modelName != null ? modelName : String.valueOf(modelId);
-        return "该话已绑定模型【" + displayName + "】，为保证对话一致性不可切换模型。如需切换，请新建话。";
+        return "该会话已绑定模型【" + displayName + "】，为保证对话一致性不可切换模型。如需切换，请新建会话。";
     }
 
     /**
      * 解析模型名称。
-     * 
+     *
      * @param modelId 模型ID。
      * @return 名称文本。
      */
@@ -250,7 +275,7 @@ public class AiChatAppServiceImpl implements AiChatAppService {
      * 解析 ChatClient
      * <p>
      * 统一走装配服务，避免业务侧重复拼装模型和工具
-     * 
+     *
      * @param modelConfig 模型配置。
      * @param toolEnabled 是否启用工具。
      * @return 可执行对话请求的 ChatClient。
@@ -263,23 +288,34 @@ public class AiChatAppServiceImpl implements AiChatAppService {
      * 构建提示词
      * <p>
      * 统一拼装历史消息、工具提示与 RAG 上下文
-     * 
-     * @param command AI 调用命令。
+     *
+     * @param command     AI 调用命令。
+     * @param modelConfig 模型配置。
      * @param toolEnabled 是否启用工具。
      * @return 组装后的提示词。
      */
-    private Prompt buildPrompt(AICallCommand command, boolean toolEnabled) {
+    private Prompt buildPrompt(AICallCommand command, ModelConfig modelConfig, boolean toolEnabled) {
+        // 用户输入内容
         String content = command.getContent();
         if (!StringUtils.hasText(content)) {
             content = "";
         }
+        // 解析会话 ID
         String conversationId = resolveConversationId(command);
         List<Message> messages = new ArrayList<>();
-        // 1、先注入话历史，保证多轮对话连续性
+        // 1、先注入对话历史，保证多轮对话连续性
         if (conversationId != null) {
             List<Message> history = chatMemory.get(conversationId);
             if (!CollectionUtils.isEmpty(history)) {
-                messages.addAll(history);
+                // 解析本次请求的历史消息条数预算
+                int maxHistoryMessages = resolveMaxHistoryMessages(modelConfig);
+                // 解析本次请求的历史字符预算
+                int maxPromptChars = resolveMaxPromptChars(modelConfig);
+                // 按消息条数预算裁剪历史消息
+                List<Message> limitedByCount = limitHistoryByCount(history, maxHistoryMessages);
+                // 按消息字符预算裁剪历史消息
+                limitedByCount = limitHistoryByChars(limitedByCount, maxPromptChars);
+                messages.addAll(limitedByCount);
             }
         }
         // 2、工具开启时注入工具提示词，引导模型按规范调用工具
@@ -319,10 +355,110 @@ public class AiChatAppServiceImpl implements AiChatAppService {
     }
 
     /**
+     * 按字符预算裁剪历史消息。
+     * <p>
+     * 从最新消息向前回溯，确保至少保留一条最新历史并控制提示词成本。
+     *
+     * @param history 历史消息列表。
+     * @return 裁剪后的历史消息列表。
+     */
+    private List<Message> limitHistoryByChars(List<Message> history, int maxPromptChars) {
+        if (CollectionUtils.isEmpty(history)) {
+            return Collections.emptyList();
+        }
+        if (maxPromptChars <= 0) {
+            return history;
+        }
+        List<Message> selected = new ArrayList<>();
+        int usedChars = 0;
+        for (int i = history.size() - 1; i >= 0; i--) {
+            Message message = history.get(i);
+            if (message == null) {
+                continue;
+            }
+            int charSize = resolveMessageCharSize(message);
+            if (!selected.isEmpty() && usedChars + charSize > maxPromptChars) {
+                break;
+            }
+            selected.add(message);
+            usedChars += charSize;
+        }
+        Collections.reverse(selected);
+        return selected;
+    }
+
+    /**
+     * 按消息条数预算裁剪历史消息。
+     * <p>
+     * 从最新消息向前回溯，优先保留最近上下文。
+     *
+     * @param history 历史消息列表。
+     * @param maxHistoryMessages 历史消息条数预算。
+     * @return 裁剪后的历史消息列表。
+     */
+    private List<Message> limitHistoryByCount(List<Message> history, int maxHistoryMessages) {
+        if (CollectionUtils.isEmpty(history)) {
+            return Collections.emptyList();
+        }
+        if (maxHistoryMessages <= 0 || history.size() <= maxHistoryMessages) {
+            return history;
+        }
+        int fromIndex = history.size() - maxHistoryMessages;
+        return new ArrayList<>(history.subList(fromIndex, history.size()));
+    }
+
+    /**
+     * 解析本次请求的历史字符预算。
+     * <p>
+     * 优先使用模型配置值，未配置时回退到全局默认值。
+     *
+     * @param modelConfig 模型配置。
+     * @return 历史字符预算。
+     */
+    private int resolveMaxPromptChars(ModelConfig modelConfig) {
+        if (modelConfig != null && modelConfig.getMaxPromptChars() != null) {
+            return modelConfig.getMaxPromptChars();
+        }
+        return chatHistoryProperties.getMaxPromptChars();
+    }
+
+    /**
+     * 解析本次请求的历史消息条数预算。
+     * <p>
+     * 优先使用模型配置值，未配置时回退到全局默认值。
+     *
+     * @param modelConfig 模型配置。
+     * @return 历史消息条数预算。
+     */
+    private int resolveMaxHistoryMessages(ModelConfig modelConfig) {
+        if (modelConfig != null && modelConfig.getMaxHistoryMessages() != null) {
+            return modelConfig.getMaxHistoryMessages();
+        }
+        return chatHistoryProperties.getMemoryWindowSize();
+    }
+
+    /**
+     * 计算消息文本字符数。
+     *
+     * @param message 消息对象。
+     * @return 文本字符数。
+     */
+    private int resolveMessageCharSize(Message message) {
+        if (!(message instanceof AbstractMessage)) {
+            return 0;
+        }
+        String text = ((AbstractMessage) message).getText();
+        if (text == null) {
+            return 0;
+        }
+        return text.length();
+    }
+
+    /**
      * 构建工具提示词
      * <p>
      * 提示模型可调用的工具能力
-     * 
+     *
      * @return 工具提示词文本。
      */
     private String resolveToolPrompt() {
@@ -338,7 +474,7 @@ public class AiChatAppServiceImpl implements AiChatAppService {
      * 判断工具是否启用
      * <p>
      * 配置未显式设置时默认开启工具能力
-     * 
+     *
      * @param modelConfig 模型配置。
      * @return `true` 表示启用工具，`false` 表示禁用工具。
      */
@@ -353,9 +489,9 @@ public class AiChatAppServiceImpl implements AiChatAppService {
      * 构建调用日志
      * <p>
      * 为后续落库提供基础字段
-     * 
+     *
      * @param modelConfig 模型配置。
-     * @param command AI 调用命令。
+     * @param command     AI 调用命令。
      * @return 调用日志骨架。
      */
     private CallLog buildCallLog(ModelConfig modelConfig, AICallCommand command) {
@@ -380,8 +516,8 @@ public class AiChatAppServiceImpl implements AiChatAppService {
      * 填充失败日志
      * <p>
      * 记录错误信息与耗时便于排查
-     * 
-     * @param callLog 调用日志骨架。
+     *
+     * @param callLog      调用日志骨架。
      * @param errorMessage 错误信息。
      * @param responseTime 响应耗时（毫秒）。
      * @return 填充后的失败调用日志。
@@ -400,8 +536,8 @@ public class AiChatAppServiceImpl implements AiChatAppService {
      * 截断内容
      * <p>
      * 控制日志体积，避免存储膨胀
-     * 
-     * @param content 消息内容。
+     *
+     * @param content   消息内容。
      * @param maxLength 最大长度。
      * @return 截断后的文本内容。
      */
@@ -419,8 +555,8 @@ public class AiChatAppServiceImpl implements AiChatAppService {
      * 记录流式返回的 token 使用
      * <p>
      * 流式结果需要累积统计
-     * 
-     * @param response 模型响应分片。
+     *
+     * @param response   模型响应分片。
      * @param usageStats token 统计容器。
      */
     private void captureUsage(ChatResponse response, UsageStats usageStats) {
@@ -438,9 +574,9 @@ public class AiChatAppServiceImpl implements AiChatAppService {
      * 追加流式输出内容
      * <p>
      * 流式场景需要累计文本用于落库与记忆
-     * 
+     *
      * @param response 模型响应分片。
-     * @param buffer 助手输出累积缓冲区。
+     * @param buffer   助手输出累积缓冲区。
      */
     private void appendStreamContent(ChatResponse response, StringBuilder buffer) {
         if (response == null || response.getResult() == null) {
@@ -457,9 +593,9 @@ public class AiChatAppServiceImpl implements AiChatAppService {
      * 追加对话记忆
      * <p>
      * 支持多轮对话上下文
-     * 
-     * @param conversationId 会话标识。
-     * @param userContent 用户输入内容。
+     *
+     * @param conversationId   会话标识。
+     * @param userContent      用户输入内容。
      * @param assistantContent 助手输出内容。
      */
     private void appendChatMemory(String conversationId, String userContent, String assistantContent) {
@@ -484,7 +620,7 @@ public class AiChatAppServiceImpl implements AiChatAppService {
      * 解析会话 ID
      * <p>
      * 对话记忆以话维度隔离
-     * 
+     *
      * @param command AI 调用命令。
      * @return 会话标识字符串。
      */
@@ -524,11 +660,11 @@ public class AiChatAppServiceImpl implements AiChatAppService {
 
         /**
          * 构建对话调用上下文。
-         * 
-         * @param modelConfig 模型配置。
-         * @param toolEnabled 工具开关。
-         * @param prompt 提示词。
-         * @param callLog 调用日志。
+         *
+         * @param modelConfig    模型配置。
+         * @param toolEnabled    工具开关。
+         * @param prompt         提示词。
+         * @param callLog        调用日志。
          * @param conversationId 会话上下文 ID。
          */
         private ChatCallContext(ModelConfig modelConfig,
@@ -568,10 +704,10 @@ public class AiChatAppServiceImpl implements AiChatAppService {
 
         /**
          * 更新业务数据。
-         * 
-         * @param promptTokens 输入Token数。
+         *
+         * @param promptTokens     输入Token数。
          * @param completionTokens 输出Token数。
-         * @param totalTokens 总Token数。
+         * @param totalTokens      总Token数。
          */
         private void update(Integer promptTokens, Integer completionTokens, Integer totalTokens) {
             // 流式分片重复回调，保留最近一次非空 usage 视图
@@ -588,7 +724,7 @@ public class AiChatAppServiceImpl implements AiChatAppService {
 
         /**
          * 计算本次响应的总 Token 数。
-         * 
+         *
          * @return 总 Token 数。
          */
         private Integer getTotalTokens() {

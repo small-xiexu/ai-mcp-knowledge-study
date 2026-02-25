@@ -14,6 +14,8 @@
         <result column="embeddings_path" property="embeddingsPath"/>
         <result column="enabled" property="enabled"/>
         <result column="tool_enabled" property="toolEnabled"/>
+        <result column="max_prompt_chars" property="maxPromptChars"/>
+        <result column="max_history_messages" property="maxHistoryMessages"/>
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
@@ -29,6 +31,8 @@
             embeddings_path,
             enabled,
             tool_enabled,
+            max_prompt_chars,
+            max_history_messages,
             created_at,
             updated_at
         ) values (
@@ -40,6 +44,8 @@
             #{embeddingsPath},
             #{enabled},
             #{toolEnabled},
+            #{maxPromptChars},
+            #{maxHistoryMessages},
             #{createdAt},
             #{updatedAt}
         )
@@ -55,6 +61,8 @@
             embeddings_path = #{embeddingsPath},
             enabled = #{enabled},
             tool_enabled = #{toolEnabled},
+            max_prompt_chars = #{maxPromptChars},
+            max_history_messages = #{maxHistoryMessages},
             updated_at = #{updatedAt}
         where id = #{id}
     </update>
@@ -75,6 +83,8 @@
             embeddings_path,
             enabled,
             tool_enabled,
+            max_prompt_chars,
+            max_history_messages,
             created_at,
             updated_at
         from ai_model_config
@@ -92,6 +102,8 @@
             embeddings_path,
             enabled,
             tool_enabled,
+            max_prompt_chars,
+            max_history_messages,
             created_at,
             updated_at
         from ai_model_config
@@ -109,6 +121,8 @@
             embeddings_path,
             enabled,
             tool_enabled,
+            max_prompt_chars,
+            max_history_messages,
             created_at,
             updated_at
         from ai_model_config
@@ -126,6 +140,8 @@
             embeddings_path,
             enabled,
             tool_enabled,
+            max_prompt_chars,
+            max_history_messages,
             created_at,
             updated_at
         from ai_model_config
@@ -143,6 +159,8 @@
             embeddings_path,
             enabled,
             tool_enabled,
+            max_prompt_chars,
+            max_history_messages,
             created_at,
             updated_at
         from ai_model_config
@@ -173,6 +191,8 @@
             embeddings_path,
             enabled,
             tool_enabled,
+            max_prompt_chars,
+            max_history_messages,
             created_at,
             updated_at
         from ai_model_config

@@ -9,6 +9,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
 /**
@@ -80,5 +82,19 @@ public class ModelConfigRequest extends BaseRequest {
      */
     @Builder.Default
     private Boolean toolEnabled = true;
+
+    /**
+     * Prompt 历史字符预算
+     */
+    @Min(value = 2000, message = "Prompt历史字符预算不能小于2000")
+    @Max(value = 50000, message = "Prompt历史字符预算不能大于50000")
+    private Integer maxPromptChars;
+
+    /**
+     * Prompt 历史消息条数预算
+     */
+    @Min(value = 1, message = "Prompt历史消息条数不能小于1")
+    @Max(value = 200, message = "Prompt历史消息条数不能大于200")
+    private Integer maxHistoryMessages;
 
 }

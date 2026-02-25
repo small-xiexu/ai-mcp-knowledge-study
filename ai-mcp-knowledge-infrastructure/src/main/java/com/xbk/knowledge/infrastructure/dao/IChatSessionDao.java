@@ -87,4 +87,14 @@ public interface IChatSessionDao extends BaseMapper<ChatSessionPO> {
      * @return 影响行数。
      */
     int deleteByUpdatedBefore(LocalDateTime updatedBefore);
+
+    /**
+     * 查询过期会话 ID 列表
+     *
+     * 用于批量清理前定位会话缓存
+     *
+     * @param updatedBefore 会话更新时间上限（早于该时间的会话会被识别为过期）。
+     * @return 过期会话 ID 列表。
+     */
+    List<Long> findIdsByUpdatedBefore(LocalDateTime updatedBefore);
 }

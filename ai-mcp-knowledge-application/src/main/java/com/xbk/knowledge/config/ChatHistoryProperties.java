@@ -24,4 +24,9 @@ public class ChatHistoryProperties {
      * 对话上下文窗口大小
      */
     private int memoryWindowSize = 20;
+
+    /**
+     * 构建 Prompt 时允许注入的历史文本字符预算
+     */
+    private int maxPromptChars = 12000;
 }
