@@ -28,6 +28,11 @@ public interface IAgentScheduleService {
 
     /**
      * 绑定/回写关联的 XXL Job ID。
+     * 
+     * @param id 主键 ID。
+     * @param xxlJobId XXL 任务 ID。
+     * @param operatorId 操作人标识。
+     * @return 更新后的调度配置实体。
      */
     AgentSchedule bindXxlJobId(Long id, Long xxlJobId, Long operatorId);
 

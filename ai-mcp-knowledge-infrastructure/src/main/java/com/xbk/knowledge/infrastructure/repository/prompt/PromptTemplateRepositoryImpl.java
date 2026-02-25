@@ -24,13 +24,16 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class PromptTemplateRepositoryImpl implements PromptTemplateRepository {
 
+    /**
+     * 提示词模板数据访问对象。
+     */
     private final IPromptTemplateDao promptTemplateMapper;
 
     /**
      * 查询提示词模板。
      *
-     * @param query 查询条件
-     * @return 返回 PromptTemplate 查询结果（可能为空）。
+     * @param query 主键查询条件
+     * @return PromptTemplate 查询结果（可能为空）
      */
     @Override
     public Optional<PromptTemplate> findById(PromptTemplateIdQuery query) {
@@ -44,8 +47,8 @@ public class PromptTemplateRepositoryImpl implements PromptTemplateRepository {
     /**
      * 判断模板编码是否已存在。
      *
-     * @param templateCode 模板编码。
-     * @return 返回是否存在。
+     * @param templateCode 模板编码
+     * @return 是否存在
      */
     @Override
     public boolean existsByCode(String templateCode) {
@@ -58,8 +61,8 @@ public class PromptTemplateRepositoryImpl implements PromptTemplateRepository {
     /**
      * 创建并持久化提示词模板数据。
      *
-     * @param template 模板实体。
-     * @return 返回 PromptTemplate 数据。
+     * @param template 模板实体
+     * @return 创建后的 PromptTemplate 信息
      */
     @Override
     public PromptTemplate insert(PromptTemplate template) {
@@ -80,8 +83,8 @@ public class PromptTemplateRepositoryImpl implements PromptTemplateRepository {
     /**
      * 更新提示词模板数据。
      *
-     * @param template 模板实体。
-     * @return 返回模板草稿更新条数。
+     * @param template 模板实体
+     * @return 模板草稿更新条数
      */
     @Override
     public int updateDraft(PromptTemplate template) {
@@ -99,7 +102,7 @@ public class PromptTemplateRepositoryImpl implements PromptTemplateRepository {
      *
      * @param id 主键 ID
      * @param updatedBy 更新人 ID
-     * @return 返回模板发布更新条数。
+     * @return 模板发布更新条数
      */
     @Override
     public int publish(Long id, Long updatedBy) {
@@ -114,7 +117,7 @@ public class PromptTemplateRepositoryImpl implements PromptTemplateRepository {
      *
      * @param id 主键 ID
      * @param updatedBy 更新人 ID
-     * @return 返回模板归档更新条数。
+     * @return 模板归档更新条数
      */
     @Override
     public int archive(Long id, Long updatedBy) {
@@ -127,8 +130,8 @@ public class PromptTemplateRepositoryImpl implements PromptTemplateRepository {
     /**
      * 查询提示词模板。
      *
-     * @param query 查询条件
-     * @return 返回 PromptTemplate 列表数据。
+     * @param query 分页查询条件
+     * @return PromptTemplate 列表
      */
     @Override
     public List<PromptTemplate> findPage(PromptTemplatePageQuery query) {
@@ -141,7 +144,7 @@ public class PromptTemplateRepositoryImpl implements PromptTemplateRepository {
     /**
      * 按条件统计业务数量。
      *
-     * @param query 查询条件
+     * @param query 分页查询条件
      * @return 统计数量
      */
     @Override

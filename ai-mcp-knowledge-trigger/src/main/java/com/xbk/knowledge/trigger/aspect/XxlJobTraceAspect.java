@@ -23,17 +23,21 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class XxlJobTraceAspect {
 
+    /**
+     * XXL 任务告警钩子。
+     */
     private final XxlJobAlertHook xxlJobAlertHook;
 
     /**
      * 拦截所有 @XxlJob 方法，统一注入 traceId
      *
-     * 为什么：让所有定时任务共享同一套链路追踪、耗时统计与异常告警逻辑，避免重复实现。
+     * 让所有定时任务共享同一套链路追踪、耗时统计与异常告警逻辑，避免重复实现。
      *
+     * @throws Throwable 原始异常
+     * 
      * @param joinPoint 切点
      * @param xxlJob 任务注解（用于获取 handler 名称）
-     * @return 返回 Object 数据。
-     * @throws Throwable 原始异常
+     * @return Object 数据。
      */
     @Around("@annotation(xxlJob)")
     public Object aroundXxlJob(ProceedingJoinPoint joinPoint, XxlJob xxlJob) throws Throwable {
@@ -57,7 +61,6 @@ public class XxlJobTraceAspect {
             xxlJobAlertHook.onJobError(jobHandler, throwable);
             throw throwable;
         } finally {
-            
             TraceIdUtils.clearIfGenerated(generated);
         }
     }

@@ -20,7 +20,7 @@ public interface MetricsAppService {
 
     /**
      * 统计调用次数指标
-     *
+     * 
      * @param query 指标查询条件
      * @return 调用次数统计
      */
@@ -28,7 +28,7 @@ public interface MetricsAppService {
 
     /**
      * 统计成功率指标
-     *
+     * 
      * @param query 指标查询条件
      * @return 成功率统计
      */
@@ -36,7 +36,7 @@ public interface MetricsAppService {
 
     /**
      * 统计响应时间指标
-     *
+     * 
      * @param query 指标查询条件
      * @return 响应时间统计
      */
@@ -44,7 +44,7 @@ public interface MetricsAppService {
 
     /**
      * 统计模型使用分布
-     *
+     * 
      * @param query 模型使用查询条件
      * @return 模型使用分布列表
      */

@@ -13,6 +13,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class AiClientModelNode extends AbstractAiClientArmoryNode {
 
+    /**
+     * 模型提供器工厂。
+     */
     private final ModelProviderFactory modelProviderFactory;
 
     public AiClientModelNode(ModelProviderFactory modelProviderFactory) {

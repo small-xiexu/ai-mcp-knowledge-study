@@ -32,22 +32,53 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class AuditAspect {
 
+    /**
+     * 模型配置表名。
+     */
     private static final String MODEL_CONFIG_TABLE = "ai_model_config";
+
+    /**
+     * MCP Server 配置表名。
+     */
     private static final String MCP_SERVER_CONFIG_TABLE = "ai_mcp_server_config";
+
+    /**
+     * 新增操作类型。
+     */
     private static final String OPERATION_INSERT = "INSERT";
+
+    /**
+     * 更新操作类型。
+     */
     private static final String OPERATION_UPDATE = "UPDATE";
+
+    /**
+     * 删除操作类型。
+     */
     private static final String OPERATION_DELETE = "DELETE";
 
+    /**
+     * 审计记录服务。
+     */
     private final AuditService auditService;
+
+    /**
+     * 模型配置仓储。
+     */
     private final ModelConfigRepository modelConfigRepository;
+
+    /**
+     * MCP Server 配置仓储。
+     */
     private final McpServerConfigRepository mcpServerConfigRepository;
 
     /**
      * 对外暴露 aroundCreateModel 作为调用入口，便于上层复用。
      *
-     * 为什么：创建后记录审计，避免遗漏
-     * 入参：切点
-     * 出参：原方法返回值
+     * 创建后记录审计，避免遗漏
+     * 
+     * @param joinPoint AOP 切点信息。
+     * @return 方法执行结果。
      */
     @Around("execution(* com.xbk.knowledge.trigger.http.ModelConfigController.createModel(..))")
     public Object aroundCreateModel(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -73,9 +104,10 @@ public class AuditAspect {
     /**
      * 对外暴露 aroundUpdateModel 作为调用入口，便于上层复用。
      *
-     * 为什么：更新前后需要对比，记录变更内容
-     * 入参：切点
-     * 出参：原方法返回值
+     * 更新前后需要对比，记录变更内容
+     * 
+     * @param joinPoint AOP 切点信息。
+     * @return 方法执行结果。
      */
     @Around("execution(* com.xbk.knowledge.trigger.http.ModelConfigController.updateModel(..))")
     public Object aroundUpdateModel(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -110,9 +142,10 @@ public class AuditAspect {
     /**
      * 对外暴露 aroundDeleteModel 作为调用入口，便于上层复用。
      *
-     * 为什么：删除前记录旧值，便于审计回溯
-     * 入参：切点
-     * 出参：原方法返回值
+     * 删除前记录旧值，便于审计回溯
+     * 
+     * @param joinPoint AOP 切点信息。
+     * @return 方法执行结果。
      */
     @Around("execution(* com.xbk.knowledge.trigger.http.ModelConfigController.deleteModel(..))")
     public Object aroundDeleteModel(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -144,9 +177,10 @@ public class AuditAspect {
     /**
      * 对外暴露 aroundCreateMcpServerConfig 作为调用入口，便于上层复用。
      *
-     * 为什么：创建后记录审计，避免遗漏
-     * 入参：切点
-     * 出参：原方法返回值
+     * 创建后记录审计，避免遗漏
+     * 
+     * @param joinPoint AOP 切点信息。
+     * @return 方法执行结果。
      */
     @Around("execution(* com.xbk.knowledge.trigger.http.McpServerConfigController.createConfig(..))")
     public Object aroundCreateMcpServerConfig(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -172,9 +206,10 @@ public class AuditAspect {
     /**
      * 对外暴露 aroundUpdateMcpServerConfig 作为调用入口，便于上层复用。
      *
-     * 为什么：更新前后需要对比，记录变更内容
-     * 入参：切点
-     * 出参：原方法返回值
+     * 更新前后需要对比，记录变更内容
+     * 
+     * @param joinPoint AOP 切点信息。
+     * @return 方法执行结果。
      */
     @Around("execution(* com.xbk.knowledge.trigger.http.McpServerConfigController.updateConfig(..))")
     public Object aroundUpdateMcpServerConfig(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -209,9 +244,10 @@ public class AuditAspect {
     /**
      * 对外暴露 aroundDeleteMcpServerConfig 作为调用入口，便于上层复用。
      *
-     * 为什么：删除前记录旧值，便于审计回溯
-     * 入参：切点
-     * 出参：原方法返回值
+     * 删除前记录旧值，便于审计回溯
+     * 
+     * @param joinPoint AOP 切点信息。
+     * @return 方法执行结果。
      */
     @Around("execution(* com.xbk.knowledge.trigger.http.McpServerConfigController.deleteConfig(..))")
     public Object aroundDeleteMcpServerConfig(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -243,7 +279,10 @@ public class AuditAspect {
     /**
      * 从返回结果解析记录 ID
      *
-     * 为什么：审计需要记录ID用于定位实体
+     * 审计需要记录ID用于定位实体
+     * 
+     * @param result 控制器返回结果。
+     * @return 数值型结果。
      */
     private Long extractRecordId(Object result) {
         if (!(result instanceof Result<?> resultWrapper)) {
@@ -266,7 +305,10 @@ public class AuditAspect {
     /**
      * 从方法入参解析记录 ID
      *
-     * 为什么：删除/更新场景 ID 通常在请求参数中
+     * 删除/更新场景 ID 通常在请求参数中
+     * 
+     * @param args 方法参数列表。
+     * @return 数值型结果。
      */
     private Long extractRecordId(Object[] args) {
         if (args == null || args.length == 0) {

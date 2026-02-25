@@ -24,13 +24,16 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AgentRepositoryImpl implements AgentRepository {
 
+    /**
+     * Agent 数据访问对象。
+     */
     private final IAgentDao agentDao;
 
     /**
      * 查询智能体。
      *
-     * @param query 查询条件
-     * @return 返回 Agent 查询结果（可能为空）。
+     * @param query 智能体编码查询条件
+     * @return Agent 查询结果（可能为空）
      */
     @Override
     public Optional<Agent> findByCode(AgentCodeQuery query) {
@@ -43,8 +46,8 @@ public class AgentRepositoryImpl implements AgentRepository {
     /**
      * 判断智能体编码是否已存在。
      *
-     * @param query 查询条件
-     * @return 返回是否存在。
+     * @param query 智能体编码查询条件
+     * @return 是否存在
      */
     @Override
     public boolean existsByCode(AgentCodeQuery query) {
@@ -54,8 +57,8 @@ public class AgentRepositoryImpl implements AgentRepository {
     /**
      * 创建并持久化智能体数据。
      *
-     * @param agent 智能体实体。
-     * @return 返回智能体保存结果。
+     * @param agent 智能体实体
+     * @return 创建后的智能体信息
      */
     @Override
     public Agent insert(Agent agent) {
@@ -78,8 +81,8 @@ public class AgentRepositoryImpl implements AgentRepository {
     /**
      * 更新智能体数据。
      *
-     * @param agent 智能体实体。
-     * @return 返回智能体处理条数。
+     * @param agent 智能体实体
+     * @return 智能体处理条数
      */
     @Override
     public int updateByCode(Agent agent) {
@@ -95,8 +98,8 @@ public class AgentRepositoryImpl implements AgentRepository {
     /**
      * 删除智能体数据。
      *
-     * @param query 查询条件
-     * @return 返回智能体处理条数。
+     * @param query 主键查询条件
+     * @return 智能体处理条数
      */
     @Override
     public int deleteByCode(AgentCodeQuery query) {
@@ -109,8 +112,8 @@ public class AgentRepositoryImpl implements AgentRepository {
     /**
      * 查询智能体。
      *
-     * @param query 查询条件
-     * @return 返回 Agent 列表数据。
+     * @param query 分页查询条件
+     * @return Agent 列表
      */
     @Override
     public List<Agent> findPage(AgentPageQuery query) {
@@ -126,7 +129,7 @@ public class AgentRepositoryImpl implements AgentRepository {
     /**
      * 按条件统计业务数量。
      *
-     * @param query 查询条件
+     * @param query 分页查询条件
      * @return 统计数量
      */
     @Override
@@ -149,6 +152,9 @@ public class AgentRepositoryImpl implements AgentRepository {
 
     /**
      * 实体转持久化对象。
+     *
+     * @param agent 智能体实体
+     * @return 智能体持久化实体。
      */
     private AgentPO toPO(Agent agent) {
         if (agent == null) {
@@ -171,6 +177,9 @@ public class AgentRepositoryImpl implements AgentRepository {
 
     /**
      * 持久化对象转实体。
+     *
+     * @param po 智能体持久化实体
+     * @return 智能体实体。
      */
     private Agent toEntity(AgentPO po) {
         if (po == null) {

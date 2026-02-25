@@ -54,22 +54,51 @@ import java.util.regex.Pattern;
 @Service
 @RequiredArgsConstructor
 public class AgentVersionServiceImpl implements IAgentVersionService {
-
+    /**
+     * Prompt 模板占位符匹配规则（示例{{var}}）。
+     */
     private static final Pattern PLACEHOLDER = Pattern.compile("\\{\\{\\s*([a-zA-Z0-9_\\-.]+)\\s*}}");
 
+    /**
+     * Agent 仓储，负责 Agent 主体数据访问。
+     */
     private final AgentRepository agentRepository;
+
+    /**
+     * AgentVersion 仓储，负责版本草稿/发布态持久化。
+     */
     private final AgentVersionRepository agentVersionRepository;
+
+    /**
+     * PromptTemplate 仓储，负责模板查询与版本固化读取。
+     */
     private final PromptTemplateRepository promptTemplateRepository;
+
+    /**
+     * Workflow 版本仓储，用于校验绑定的工作流版本是否存在。
+     */
     private final WorkflowVersionRepository workflowVersionRepository;
+
+    /**
+     * ClientProfile 仓储，用于读取客户端链路配置。
+     */
     private final ClientProfileRepository clientProfileRepository;
+
+    /**
+     * 模型配置领域服务，用于校验模型可用性与状态。
+     */
     private final IModelConfigService modelConfigService;
+
+    /**
+     * JSON 序列化组件，用于处理规划/链路配置 JSON 解析。
+     */
     private final ObjectMapper objectMapper;
 
     /**
      * 查询Agent 版本。
      *
-     * @param query 查询条件
-     * @return 返回 AgentVersion 分页数据。
+     * @param query 分页查询条件
+     * @return AgentVersion 分页数据
      */
     @Override
     public PageResult<AgentVersion> queryPage(AgentVersionPageQuery query) {
@@ -92,8 +121,8 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
     /**
      * 查询Agent 版本。
      *
-     * @param query 查询条件
-     * @return 返回 AgentVersion 数据。
+     * @param query 主键查询条件
+     * @return AgentVersion 详情
      */
     @Override
     public AgentVersion queryById(AgentVersionIdQuery query) {
@@ -108,8 +137,8 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
     /**
      * 创建并持久化Agent 版本数据。
      *
-     * @param draft 草稿版本实体。
-     * @return 返回Agent 版本保存结果。
+     * @param draft 草稿版本实体
+     * @return 创建后的 AgentVersion 信息
      */
     @Override
     public AgentVersion createDraft(AgentVersion draft) {
@@ -143,7 +172,7 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
             versionNo = max == null ? 1 : (max + 1);
         } else {
             if (agentVersionRepository.existsByAgentIdAndVersionNo(draft.getAgentId(), versionNo)) {
-                throw new BusinessException("versionNo 已存在：" + versionNo);
+                throw new BusinessException("versionNo 已存在" + versionNo);
             }
         }
         draft.setVersionNo(versionNo);
@@ -155,8 +184,8 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
     /**
      * 更新Agent 版本数据。
      *
-     * @param draft 草稿版本实体。
-     * @return 返回Agent 版本更新结果。
+     * @param draft 草稿版本实体
+     * @return 更新后的 AgentVersion 信息
      */
     @Override
     public AgentVersion updateDraft(AgentVersion draft) {
@@ -200,7 +229,7 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
      * @param agentCode Agent 编码
      * @param versionId 版本 ID
      * @param operatorId 操作人 ID
-     * @return 返回 AgentVersion 数据。
+     * @return 发布后的 AgentVersion 信息
      */
     @Override
     public AgentVersion publish(String agentCode, Long versionId, Long operatorId) {
@@ -243,10 +272,10 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
                 version.setSystemPromptSnapshot(null);
             }
         }
-        // 优先：Workflow 绑定模式（不要求 promptTemplate）
+        // 优先Workflow 绑定模式（不要求 promptTemplate）
         else if (version.getWorkflowVersionId() != null) {
-            // P0：仅要求 workflowVersionId 非空；状态校验放宽（允许先发布 Agent，再逐步完善 Workflow 发布流程）
-            // 若你希望更严格：可在这里要求 workflowVersion.state == PUBLISHED
+            // P0仅要求 workflowVersionId 非空；状态校验放宽（允许先发布 Agent，再逐步完善 Workflow 发布流程）
+            // 若你希望更严格可在这里要求 workflowVersion.state == PUBLISHED
             workflowVersionRepository.findById(
                     WorkflowVersionIdQuery.builder()
                             .id(version.getWorkflowVersionId())
@@ -263,7 +292,7 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
             version.setPromptTemplateVersionNo(null);
             version.setSystemPromptSnapshot(null);
         } else {
-            // Prompt 模板模式：校验模板并生成发布快照
+            // Prompt 模板模式校验模板并生成发布快照
             Long templateId = version.getPromptTemplateId();
             if (templateId == null) {
                 throw new BusinessException("发布前必须配置 promptTemplateId / workflowVersionId / clientProfileId / clientChainJson 之一");
@@ -303,9 +332,9 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
      * 回滚业务配置。
      *
      * @param agentCode Agent 编码
-     * @param targetVersionId 目标版本 ID。
+     * @param targetVersionId 目标版本 ID
      * @param operatorId 操作人 ID
-     * @return 返回 AgentVersion 数据。
+     * @return 回滚后的 AgentVersion 信息
      */
     @Override
     public AgentVersion rollback(String agentCode, Long targetVersionId, Long operatorId) {
@@ -351,9 +380,9 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
     /**
      * 按变量参数渲染模板文本。
      *
-     * @param content 用户输入内容。
-     * @param paramsJson 模板参数JSON。
-     * @return 返回渲染后的模板文本。
+     * @param content 用户输入内容
+     * @param paramsJson 模板参数 JSON
+     * @return 渲染后的模板文本
      */
     private String renderTemplate(String content, String paramsJson) {
         if (!StringUtils.hasText(content)) {
@@ -363,7 +392,7 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
         Set<String> requiredKeys = extractPlaceholderKeys(content);
         for (String key : requiredKeys) {
             if (!params.containsKey(key)) {
-                throw new BusinessException("模板变量缺失：" + key);
+                throw new BusinessException("模板变量缺失" + key);
             }
         }
 
@@ -390,9 +419,8 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
 
     /**
      * 解析模板参数。
-     *
+     * 
      * @param json JSON 字符串。
-     * @return 返回解析结果。
      */
     private Map<String, Object> parseParams(String json) {
         if (!StringUtils.hasText(json)) {
@@ -457,8 +485,8 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
     /**
      * 解析客户端链路。
      *
-     * @param clientChainJson 客户端链路JSON。
-     * @return 返回解析结果。
+     * @param clientChainJson 客户端链路 JSON
+     * @return 解析后的客户端链路步骤
      */
     private List<AgentClientProfileStep> parseClientChain(String clientChainJson) {
         if (!StringUtils.hasText(clientChainJson)) {
@@ -493,9 +521,9 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
 
     /**
      * 解析规划配置。
-     *
+     * 
      * @param json JSON 字符串。
-     * @return 返回AgentPlanningConfig对象。
+     * @return 解析后的规划配置。
      */
     private AgentPlanningConfig parsePlanningConfig(String json) {
         if (!StringUtils.hasText(json)) {
@@ -532,8 +560,8 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
 
     /**
      * 校验规划配置。
-     *
-     * @param config 配置对象。
+     * 
+     * @param config 规划配置。
      */
     private void validatePlanningConfig(AgentPlanningConfig config) {
         if (config == null || !Boolean.TRUE.equals(config.getEnabled())) {

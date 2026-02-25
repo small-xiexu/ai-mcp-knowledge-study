@@ -26,15 +26,26 @@ import java.util.Locale;
 @RequiredArgsConstructor
 public class AgentEnhancerAppServiceImpl implements AgentEnhancerAppService {
 
+    /**
+     * Agent 增强器仓储。
+     */
     private final AgentEnhancerRepository agentEnhancerRepository;
+
+    /**
+     * Agent 增强器绑定仓储。
+     */
     private final AgentEnhancerBindingRepository agentEnhancerBindingRepository;
+
+    /**
+     * Agent 增强器运行时服务。
+     */
     private final AgentEnhancerRuntimeService agentEnhancerRuntimeService;
 
     /**
      * 查询 Agent 增强器（AgentEnhancer）配置。
      *
-     * @param query 查询条件
-     * @return 返回 AgentEnhancer 分页数据。
+     * @param query 分页查询条件
+     * @return AgentEnhancer 分页数据
      */
     @Override
     public PageResult<AgentEnhancer> queryPage(AgentEnhancerPageQuery query) {
@@ -60,7 +71,7 @@ public class AgentEnhancerAppServiceImpl implements AgentEnhancerAppService {
      * 查询 Agent 增强器（AgentEnhancer）配置。
      *
      * @param id 主键 ID
-     * @return 返回 AgentEnhancer 数据。
+     * @return AgentEnhancer 详情
      */
     @Override
     public AgentEnhancer get(Long id) {
@@ -74,8 +85,8 @@ public class AgentEnhancerAppServiceImpl implements AgentEnhancerAppService {
     /**
      * 创建或更新 Agent 增强器（AgentEnhancer）数据。
      *
-     * @param agentEnhancer Agent 增强器（AgentEnhancer）实体。
-     * @return 返回 Agent 增强器（AgentEnhancer）保存结果。
+     * @param agentEnhancer Agent 增强器实体
+     * @return 保存后的 AgentEnhancer 信息
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -131,7 +142,7 @@ public class AgentEnhancerAppServiceImpl implements AgentEnhancerAppService {
      * 启用业务配置。
      *
      * @param id 主键 ID
-     * @return 返回 AgentEnhancer 数据。
+     * @return 启用后的 AgentEnhancer 信息
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -149,7 +160,7 @@ public class AgentEnhancerAppServiceImpl implements AgentEnhancerAppService {
      * 禁用业务配置。
      *
      * @param id 主键 ID
-     * @return 返回 AgentEnhancer 数据。
+     * @return 禁用后的 AgentEnhancer 信息
      */
     @Override
     @Transactional(rollbackFor = Exception.class)

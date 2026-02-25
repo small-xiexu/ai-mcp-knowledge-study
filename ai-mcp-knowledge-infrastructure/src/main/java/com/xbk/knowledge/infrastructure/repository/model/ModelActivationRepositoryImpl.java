@@ -20,14 +20,17 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class ModelActivationRepositoryImpl implements ModelActivationRepository {
 
+    /**
+     * 模型激活数据访问对象。
+     */
     private final IModelActivationDao modelActivationMapper;
 
     /**
      * 查询当前激活配置
      *
-     * 为什么：全局只有一份激活配置
-     * 入参：无
-     * 出参：激活配置
+     * 全局只有一份激活配置
+     * 
+     * @return 当前激活模型配置。
      */
     @Override
     public ModelActivation queryActivation() {
@@ -37,9 +40,9 @@ public class ModelActivationRepositoryImpl implements ModelActivationRepository 
     /**
      * 保存或更新激活配置
      * <p>
-     * 为什么：激活配置可能不存在，需要支持新增与更新
-     * 入参：激活配置
-     * 出参：保存后的激活配置
+     * 激活配置可能不存在，需要支持新增与更新
+     * 
+     * @param activation 待保存的激活模型配置。
      */
     @Override
     public void saveOrUpdate(ModelActivation activation) {

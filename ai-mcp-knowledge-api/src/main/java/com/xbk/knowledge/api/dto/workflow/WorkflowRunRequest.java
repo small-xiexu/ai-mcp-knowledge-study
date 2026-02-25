@@ -12,7 +12,7 @@ import lombok.Data;
 public class WorkflowRunRequest {
 
     /**
-     * 可选：指定 sessionId（用于对话记忆/上下文）
+     * 可选指定 sessionId（用于对话记忆/上下文）
      */
     private Long sessionId;
 
@@ -23,12 +23,12 @@ public class WorkflowRunRequest {
     private String content;
 
     /**
-     * 可选：额外变量（JSON），用于模板渲染/条件判断。
+     * 可选额外变量（JSON），用于模板渲染/条件判断。
      */
     private String variablesJson;
 
     /**
-     * 可选：指定 versionId；为空时使用当前发布版本。
+     * 可选指定 versionId；为空时使用当前发布版本。
      */
     private Long workflowVersionId;
 }

@@ -25,7 +25,7 @@ public class TraceIdAgentEnhancer implements CallAdvisor {
     /**
      * 返回 AgentEnhancer 名称。
      *
-     * @return 返回固定名称标识。
+     * @return 固定名称标识
      */
     @Override
     public String getName() {
@@ -35,7 +35,7 @@ public class TraceIdAgentEnhancer implements CallAdvisor {
     /**
      * 返回 AgentEnhancer 执行顺序。
      *
-     * @return 返回 AgentEnhancer 执行顺序值。
+     * @return AgentEnhancer 执行顺序值
      */
     @Override
     public int getOrder() {
@@ -45,9 +45,9 @@ public class TraceIdAgentEnhancer implements CallAdvisor {
     /**
      * 执行 traceId 注入与清理逻辑。
      *
-     * @param request ChatClient 请求参数。
-     * @param chain AgentEnhancer 链。
-     * @return 返回 ChatClientResponse 数据。
+     * @param request ChatClient 请求参数
+     * @param chain AgentEnhancer 链
+     * @return ChatClientResponse 数据
      */
     @Override
     public ChatClientResponse adviseCall(ChatClientRequest request, CallAdvisorChain chain) {
@@ -67,7 +67,7 @@ public class TraceIdAgentEnhancer implements CallAdvisor {
     /**
      * 查询链路追踪 ID。
      *
-     * @return 返回当前 traceId。
+     * @return 当前 traceId
      */
     public static String getCurrentTraceId() {
         return TraceIdUtils.getOrCreateTraceId();

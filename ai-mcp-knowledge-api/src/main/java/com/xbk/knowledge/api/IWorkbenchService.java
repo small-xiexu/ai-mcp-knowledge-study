@@ -14,9 +14,9 @@ public interface IWorkbenchService {
 
     /**
      * 查询工作台汇总信息。
-     *
+     * 
      * @param ignored 占位请求体（可为空）。
-     * @return 返回 WorkbenchSummaryResponse 数据。
+     * @return WorkbenchSummaryResponse 数据。
      */
     Result<WorkbenchSummaryResponse> summary(Object ignored);
 }

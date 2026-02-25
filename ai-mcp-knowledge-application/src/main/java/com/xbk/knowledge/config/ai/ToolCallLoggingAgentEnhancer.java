@@ -36,7 +36,7 @@ public class ToolCallLoggingAgentEnhancer implements CallAdvisor {
     /**
      * 返回 AgentEnhancer 名称。
      *
-     * @return 返回固定名称标识。
+     * @return 固定名称标识
      */
     @Override
     public String getName() {
@@ -46,7 +46,7 @@ public class ToolCallLoggingAgentEnhancer implements CallAdvisor {
     /**
      * 返回 AgentEnhancer 执行顺序。
      *
-     * @return 返回 AgentEnhancer 执行顺序值。
+     * @return AgentEnhancer 执行顺序值
      */
     @Override
     public int getOrder() {
@@ -57,9 +57,9 @@ public class ToolCallLoggingAgentEnhancer implements CallAdvisor {
     /**
      * 执行工具调用日志拦截。
      *
-     * @param request ChatClient 请求参数。
-     * @param chain AgentEnhancer 链。
-     * @return 返回 ChatClientResponse 数据。
+     * @param request ChatClient 请求参数
+     * @param chain AgentEnhancer 链
+     * @return ChatClientResponse 数据
      */
     @Override
     public ChatClientResponse adviseCall(ChatClientRequest request, CallAdvisorChain chain) {
@@ -105,8 +105,8 @@ public class ToolCallLoggingAgentEnhancer implements CallAdvisor {
     /**
      * 提取用户输入文本。
      *
-     * @param request 请求参数。
-     * @return 返回处理后的文本内容。
+     * @param request 请求体参数
+     * @return 处理后的文本内容
      */
     private String getUserText(ChatClientRequest request) {
         if (request == null || request.prompt() == null) {
@@ -121,9 +121,9 @@ public class ToolCallLoggingAgentEnhancer implements CallAdvisor {
     /**
      * 截断过长提示词，避免日志膨胀。
      *
-     * @param prompt 提示词。
-     * @param maxLength 最大长度。
-     * @return 返回截断后的提示词文本。
+     * @param prompt 提示词
+     * @param maxLength 最大长度
+     * @return 截断后的提示词文本
      */
     private String truncatePrompt(String prompt, int maxLength) {
         if (prompt == null) {

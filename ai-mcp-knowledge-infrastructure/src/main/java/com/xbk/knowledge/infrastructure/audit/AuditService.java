@@ -28,18 +28,32 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class AuditService {
 
+    /**
+     * 配置变更事件类型。
+     */
     private static final String EVENT_TYPE = "CONFIG_CHANGE";
 
+    /**
+     * 审计事件仓储。
+     */
     private final SysAuditEventRepository sysAuditEventRepository;
+
+    /**
+     * JSON 序列化器。
+     */
     private final ObjectMapper objectMapper;
 
     /**
      * 记录审计日志
      * 将写入流程集中在服务层，便于统一事务与序列化策略
      *
-     * 为什么：统一审计写入与序列化策略
-     * 入参：表名、记录ID、操作类型、旧值、新值
-     * 出参：无
+     * 统一审计写入与序列化策略
+     * 
+     * @param tableName 表名。
+     * @param recordId 标识 ID。
+     * @param operation 操作类型。
+     * @param oldValue 变更前数据。
+     * @param newValue 变更后数据。
      */
     @Transactional(rollbackFor = Exception.class)
     public void recordAudit(String tableName, Long recordId, String operation, Object oldValue, Object newValue) {
@@ -75,6 +89,8 @@ public class AuditService {
 
     /**
      * 解析当前登录用户 ID。
+     * 
+     * @return 数值型结果。
      */
     private Long resolveOperatorId() {
         try {
@@ -108,8 +124,8 @@ public class AuditService {
 
     /**
      * 获取当前 HTTP 请求上下文。
-     *
-     * @return 返回HttpServletRequest对象。
+     * 
+     * @return 当前 HTTP 请求。
      */
     private HttpServletRequest currentRequest() {
         if (RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes servletRequestAttributes) {
@@ -121,7 +137,10 @@ public class AuditService {
     /**
      * 序列化为 JSON
      *
-     * 为什么：审计记录统一存储 JSON 文本
+     * 审计记录统一存储 JSON 文本
+     * 
+     * @param value 待序列化数据。
+     * @return JSON 字符串。
      */
     private String toJson(Object value) {
         if (value == null) {

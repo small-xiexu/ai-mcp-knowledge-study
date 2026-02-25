@@ -60,7 +60,7 @@ public class AgentVersionDraftRequest extends BaseRequest {
     private Long workflowVersionId;
 
     /**
-     * RAG 模式：DISABLED/OPTIONAL/REQUIRED
+     * RAG 模式DISABLED/OPTIONAL/REQUIRED
      */
     @Builder.Default
     private String ragMode = "OPTIONAL";
@@ -88,7 +88,7 @@ public class AgentVersionDraftRequest extends BaseRequest {
     /**
      * Client 串联配置 JSON（数组）。
      *
-     * 每个元素结构示例：
+     * 每个元素结构示例
      * {"sequence":1,"stepName":"提示词优化","modelId":1,"systemPrompt":"...","enableTools":true,"allowedToolKeys":["mcp.publish"]}
      */
     private String clientChainJson;

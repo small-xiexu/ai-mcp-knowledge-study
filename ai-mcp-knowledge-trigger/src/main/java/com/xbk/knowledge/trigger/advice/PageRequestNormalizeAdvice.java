@@ -24,6 +24,11 @@ public class PageRequestNormalizeAdvice implements RequestBodyAdvice {
     /**
      * 确定是否启用该 Advice
      * 统一拦截所有请求体以便后续做归一化处理
+     * 
+     * @param methodParameter 当前控制器方法参数信息。
+     * @param targetType 目标请求体类型。
+     * @param converterType 消息转换器类型。
+     * @return `true` 表示启用该 Advice。
      */
     @Override
     public boolean supports(MethodParameter methodParameter,
@@ -35,6 +40,12 @@ public class PageRequestNormalizeAdvice implements RequestBodyAdvice {
     /**
      * 读取请求体之前的钩子
      * 此处无需改写输入流，直接透传
+     * 
+     * @param inputMessage 原始请求体输入流。
+     * @param parameter 当前控制器方法参数信息。
+     * @param targetType 目标请求体类型。
+     * @param converterType 消息转换器类型。
+     * @return 原始请求体输入流。
      */
     @Override
     public HttpInputMessage beforeBodyRead(HttpInputMessage inputMessage,
@@ -48,7 +59,14 @@ public class PageRequestNormalizeAdvice implements RequestBodyAdvice {
      * 读取请求体之后的钩子
      * 对分页请求统一执行参数修正
      * <p>
-     * 为什么：避免各接口重复校验分页边界，保证分页口径一致。
+     * 避免各接口重复校验分页边界，保证分页口径一致。
+     * 
+     * @param body 反序列化后的请求体。
+     * @param inputMessage 原始请求体输入流。
+     * @param parameter 当前控制器方法参数信息。
+     * @param targetType 目标请求体类型。
+     * @param converterType 消息转换器类型。
+     * @return 归一化后的请求体。
      */
     @Override
     public Object afterBodyRead(Object body,
@@ -56,7 +74,6 @@ public class PageRequestNormalizeAdvice implements RequestBodyAdvice {
                                 MethodParameter parameter,
                                 Type targetType,
                                 Class<? extends HttpMessageConverter<?>> converterType) {
-
         if (body instanceof PageRequest) {
             PageRequest pageRequest = (PageRequest) body;
             pageRequest.validate();
@@ -67,6 +84,13 @@ public class PageRequestNormalizeAdvice implements RequestBodyAdvice {
     /**
      * 请求体为空时的处理
      * 保持原样返回
+     * 
+     * @param body 空请求体对应的默认值。
+     * @param inputMessage 原始请求体输入流。
+     * @param parameter 当前控制器方法参数信息。
+     * @param targetType 目标请求体类型。
+     * @param converterType 消息转换器类型。
+     * @return 原始空请求体值。
      */
     @Override
     public Object handleEmptyBody(Object body,

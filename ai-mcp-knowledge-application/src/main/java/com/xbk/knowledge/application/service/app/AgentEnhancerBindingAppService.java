@@ -20,14 +20,26 @@ public interface AgentEnhancerBindingAppService {
      * 绑定保存条目（用于排序/启停）。
      */
     final class AgentEnhancerBindingSaveItem {
+
+        /**
+         * Agent 增强器 ID。
+         */
         private Long agentEnhancerId;
+
+        /**
+         * 绑定排序号。
+         */
         private Integer orderNo;
+
+        /**
+         * 绑定启用状态。
+         */
         private Boolean enabled;
 
         /**
          * 获取 Agent 增强器 ID。
          *
-         * @return 返回 Agent 增强器 ID。
+         * @return Agent 增强器 ID
          */
         public Long getAgentEnhancerId() {
             return agentEnhancerId;
@@ -36,7 +48,7 @@ public interface AgentEnhancerBindingAppService {
         /**
          * 设置 Agent 增强器 ID。
          *
-         * @param agentEnhancerId Agent 增强器 ID。
+         * @param agentEnhancerId Agent 增强器 ID
          */
         public void setAgentEnhancerId(Long agentEnhancerId) {
             this.agentEnhancerId = agentEnhancerId;
@@ -45,7 +57,7 @@ public interface AgentEnhancerBindingAppService {
         /**
          * 获取绑定排序号。
          *
-         * @return 返回绑定排序号。
+         * @return 绑定排序号
          */
         public Integer getOrderNo() {
             return orderNo;
@@ -54,7 +66,7 @@ public interface AgentEnhancerBindingAppService {
         /**
          * 设置绑定排序号。
          *
-         * @param orderNo 排序号。
+         * @param orderNo 排序号
          */
         public void setOrderNo(Integer orderNo) {
             this.orderNo = orderNo;
@@ -63,7 +75,7 @@ public interface AgentEnhancerBindingAppService {
         /**
          * 获取绑定启用状态。
          *
-         * @return 返回是否启用。
+         * @return 是否启用
          */
         public Boolean getEnabled() {
             return enabled;

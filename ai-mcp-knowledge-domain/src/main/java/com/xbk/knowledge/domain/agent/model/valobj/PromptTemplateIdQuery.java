@@ -14,5 +14,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PromptTemplateIdQuery {
 
+    /**
+     * 模板 ID。
+     */
     private Long id;
 }

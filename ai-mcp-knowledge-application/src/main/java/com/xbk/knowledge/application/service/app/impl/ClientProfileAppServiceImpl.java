@@ -21,13 +21,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ClientProfileAppServiceImpl implements ClientProfileAppService {
 
+    /**
+     * 客户端画像领域服务。
+     */
     private final IClientProfileService clientProfileService;
 
     /**
      * 查询客户端画像。
      *
-     * @param query 查询条件
-     * @return 返回 ClientProfile 分页数据。
+     * @param query 分页查询条件
+     * @return ClientProfile 分页数据
      */
     @Override
     public PageResult<ClientProfile> queryPage(ClientProfilePageQuery query) {
@@ -38,7 +41,7 @@ public class ClientProfileAppServiceImpl implements ClientProfileAppService {
      * 查询客户端画像。
      *
      * @param id 主键 ID
-     * @return 返回 ClientProfile 数据。
+     * @return ClientProfile 详情
      */
     @Override
     public ClientProfile get(Long id) {
@@ -48,9 +51,9 @@ public class ClientProfileAppServiceImpl implements ClientProfileAppService {
     /**
      * 根据筛选条件查询客户端画像列表。
      *
-     * @param profile 客户端画像配置。
-     * @param steps 步骤列表。
-     * @return 返回 ClientProfile 数据。
+     * @param profile 客户端画像配置
+     * @param steps 步骤列表
+     * @return 保存后的 ClientProfile 信息
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -63,7 +66,7 @@ public class ClientProfileAppServiceImpl implements ClientProfileAppService {
      *
      * @param id 主键 ID
      * @param updatedBy 更新人 ID
-     * @return 返回 ClientProfile 数据。
+     * @return 启用后的 ClientProfile 信息
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -76,7 +79,7 @@ public class ClientProfileAppServiceImpl implements ClientProfileAppService {
      *
      * @param id 主键 ID
      * @param updatedBy 更新人 ID
-     * @return 返回 ClientProfile 数据。
+     * @return 禁用后的 ClientProfile 信息
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -98,8 +101,8 @@ public class ClientProfileAppServiceImpl implements ClientProfileAppService {
     /**
      * 根据筛选条件查询客户端画像列表。
      *
-     * @param clientProfileId 客户端画像 ID。
-     * @return 返回 ClientProfileStep 列表数据。
+     * @param clientProfileId 客户端画像 ID
+     * @return ClientProfileStep 列表
      */
     @Override
     public List<ClientProfileStep> listSteps(Long clientProfileId) {

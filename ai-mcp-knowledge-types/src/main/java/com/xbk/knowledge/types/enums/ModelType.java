@@ -45,6 +45,8 @@ public enum ModelType {
 
     /**
      * 对外暴露 getDisplayName 作为调用入口，便于上层复用。
+     * 
+     * @return 模型类型显示名称。
      */
     public String getDisplayName() {
         return displayName;

@@ -11,11 +11,14 @@ import com.xbk.knowledge.types.common.ResultCode;
  */
 public class NotFoundException extends BusinessException {
 
+    /**
+     * 序列化版本号。
+     */
     private static final long serialVersionUID = 1L;
 
     /**
      * 构造函数
-     *
+     * 
      * @param message 错误消息
      */
     public NotFoundException(String message) {
@@ -24,9 +27,9 @@ public class NotFoundException extends BusinessException {
 
     /**
      * 构造函数（带数据）
-     *
+     * 
      * @param message 错误消息
-     * @param data    错误数据
+     * @param data 错误数据
      */
     public NotFoundException(String message, Object data) {
         super(ResultCode.NOT_FOUND.getCode(), message, data);

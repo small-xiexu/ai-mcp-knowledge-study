@@ -18,7 +18,7 @@ public interface IAuthService {
 
     /**
      * 执行登录。
-     *
+     * 
      * @param request 登录认证参数。
      * @param httpRequest HTTP 请求对象
      * @return 登录结果
@@ -27,15 +27,15 @@ public interface IAuthService {
 
     /**
      * 执行登出。
-     *
-     * @return 返回登出状态。
+     * 
+     * @return 登出状态。
      */
     Result<Void> logout();
 
     /**
      * 查询当前登录用户。
-     *
-     * @return 返回 AuthProfileResponse 数据。
+     * 
+     * @return AuthProfileResponse 数据。
      */
     Result<AuthProfileResponse> currentUser();
 }

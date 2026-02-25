@@ -27,6 +27,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class WorkbenchController implements IWorkbenchService {
 
+    /**
+     * 工作台聚合应用服务。
+     */
     private final WorkbenchAppService workbenchAppService;
 
     /**
@@ -37,8 +40,8 @@ public class WorkbenchController implements IWorkbenchService {
      * 3. 在 Trigger 层将应用层模型转换为 `WorkbenchSummaryResponse`。
      * 4. 对空值场景做兜底（如 guideSteps 返回空列表）。
      * 5. 统一通过 `Result.success` 返回给前端工作台页面。
-     *
-     * @param ignored 请求体占位参数（可为空）
+     * 
+     * @param ignored 预留请求体参数（当前未使用）。
      * @return 工作台汇总响应
      */
     @PostMapping("/summary")
@@ -51,9 +54,9 @@ public class WorkbenchController implements IWorkbenchService {
 
     /**
      * 将输入数据转换为响应。
-     *
-     * @param s 源对象。
-     * @return 返回WorkbenchSummaryResponse对象。
+     * 
+     * @param s 工作台汇总数据。
+     * @return 工作台汇总响应。
      */
     private WorkbenchSummaryResponse toResponse(WorkbenchSummary s) {
         if (s == null) {
@@ -77,9 +80,9 @@ public class WorkbenchController implements IWorkbenchService {
 
     /**
      * 将输入数据转换为模型。
-     *
-     * @param m 模型对象。
-     * @return 返回ModelInfo对象。
+     * 
+     * @param m 模型统计信息。
+     * @return 模型信息响应。
      */
     private WorkbenchSummaryResponse.ModelInfo toModel(WorkbenchSummary.ModelInfo m) {
         if (m == null) {
@@ -95,9 +98,9 @@ public class WorkbenchController implements IWorkbenchService {
 
     /**
      * 将输入数据转换为智能体信息。
-     *
-     * @param a 智能体对象。
-     * @return 返回AgentInfo对象。
+     * 
+     * @param a 智能体统计信息。
+     * @return 智能体信息响应。
      */
     private WorkbenchSummaryResponse.AgentInfo toAgent(WorkbenchSummary.AgentInfo a) {
         if (a == null) {
@@ -111,9 +114,9 @@ public class WorkbenchController implements IWorkbenchService {
 
     /**
      * 将输入数据转换为提示词。
-     *
-     * @param p 提示词对象。
-     * @return 返回PromptInfo对象。
+     * 
+     * @param p 提示词统计信息。
+     * @return 提示词信息响应。
      */
     private WorkbenchSummaryResponse.PromptInfo toPrompt(WorkbenchSummary.PromptInfo p) {
         if (p == null) {
@@ -127,9 +130,9 @@ public class WorkbenchController implements IWorkbenchService {
 
     /**
      * 将输入数据转换为工具。
-     *
-     * @param t 工具对象。
-     * @return 返回ToolInfo对象。
+     * 
+     * @param t 工具统计信息。
+     * @return 工具信息响应。
      */
     private WorkbenchSummaryResponse.ToolInfo toTool(WorkbenchSummary.ToolInfo t) {
         if (t == null) {
@@ -142,9 +145,9 @@ public class WorkbenchController implements IWorkbenchService {
 
     /**
      * 将输入数据转换为调度。
-     *
-     * @param s 源对象。
-     * @return 返回ScheduleInfo对象。
+     * 
+     * @param s 调度统计信息。
+     * @return 调度信息响应。
      */
     private WorkbenchSummaryResponse.ScheduleInfo toSchedule(WorkbenchSummary.ScheduleInfo s) {
         if (s == null) {
@@ -158,9 +161,9 @@ public class WorkbenchController implements IWorkbenchService {
 
     /**
      * 将输入数据转换为知识信息。
-     *
-     * @param k 知识对象。
-     * @return 返回KnowledgeInfo对象。
+     * 
+     * @param k 知识库统计信息。
+     * @return 知识库信息响应。
      */
     private WorkbenchSummaryResponse.KnowledgeInfo toKnowledge(WorkbenchSummary.KnowledgeInfo k) {
         if (k == null) {
@@ -176,9 +179,9 @@ public class WorkbenchController implements IWorkbenchService {
 
     /**
      * 将输入数据转换为待办信息。
-     *
-     * @param t 工具对象。
-     * @return 返回TodoInfo对象。
+     * 
+     * @param t 待办统计信息。
+     * @return 待办信息响应。
      */
     private WorkbenchSummaryResponse.TodoInfo toTodo(WorkbenchSummary.TodoInfo t) {
         if (t == null) {
@@ -191,9 +194,9 @@ public class WorkbenchController implements IWorkbenchService {
 
     /**
      * 将输入数据转换为步骤。
-     *
-     * @param s 源对象。
-     * @return 返回GuideStep对象。
+     * 
+     * @param s 引导步骤数据。
+     * @return 引导步骤响应。
      */
     private WorkbenchSummaryResponse.GuideStep toStep(WorkbenchSummary.GuideStep s) {
         if (s == null) {

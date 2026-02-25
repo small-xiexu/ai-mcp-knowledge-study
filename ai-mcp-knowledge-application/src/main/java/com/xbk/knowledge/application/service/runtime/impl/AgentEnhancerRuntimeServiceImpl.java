@@ -41,23 +41,48 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 public class AgentEnhancerRuntimeServiceImpl implements AgentEnhancerRuntimeService {
 
+    /**
+     * Agent 增强器绑定仓储。
+     */
     private final AgentEnhancerBindingRepository agentEnhancerBindingRepository;
+
+    /**
+     * JSON 序列化/反序列化组件。
+     */
     private final ObjectMapper objectMapper;
 
+    /**
+     * 聊天记忆组件。
+     */
     private final ChatMemory chatMemory;
+
+    /**
+     * 聊天记忆仓储。
+     */
     private final ChatMemoryRepository chatMemoryRepository;
+
+    /**
+     * 请求响应日志增强器。
+     */
     private final RequestResponseLoggingAgentEnhancer requestResponseLoggingAgentEnhancer;
+
+    /**
+     * 工具调用日志增强器。
+     */
     private final ToolCallLoggingAgentEnhancer toolCallLoggingAgentEnhancer;
 
+    /**
+     * 绑定配置缓存。
+     */
     private final ConcurrentHashMap<BindingKey, List<AgentEnhancerBindingView>> bindingCache = new ConcurrentHashMap<>();
 
     /**
      * 解析 Agent 版本绑定的 AgentEnhancer 链路。
      *
-     * @param agentVersionId Agent 版本 ID。
+     * @param agentVersionId Agent 版本 ID
      * @param runId 运行 ID
      * @param sessionId 会话 ID
-     * @return 返回 CallAdvisor[] 数据。
+     * @return CallAdvisor 数组
      */
     @Override
     public CallAdvisor[] resolveForAgentVersion(Long agentVersionId, String runId, Long sessionId) {
@@ -67,10 +92,10 @@ public class AgentEnhancerRuntimeServiceImpl implements AgentEnhancerRuntimeServ
     /**
      * 解析 Workflow 版本绑定的 AgentEnhancer 链路。
      *
-     * @param workflowVersionId 工作流版本 ID。
+     * @param workflowVersionId 工作流版本 ID
      * @param runId 运行 ID
      * @param sessionId 会话 ID
-     * @return 返回 CallAdvisor[] 数据。
+     * @return CallAdvisor 数组
      */
     @Override
     public CallAdvisor[] resolveForWorkflowVersion(Long workflowVersionId, String runId, Long sessionId) {
@@ -94,8 +119,6 @@ public class AgentEnhancerRuntimeServiceImpl implements AgentEnhancerRuntimeServ
 
     /**
      * 清空全部 AgentEnhancer 绑定缓存。
-     *
-     *
      */
     @Override
     public void evictAll() {
@@ -105,11 +128,11 @@ public class AgentEnhancerRuntimeServiceImpl implements AgentEnhancerRuntimeServ
     /**
      * 按绑定目标解析可用执行器配置。
      *
-     * @param bindType 绑定类型。
-     * @param bindTargetId 绑定目标ID。
-     * @param runId 运行ID。
-     * @param sessionId 会话ID。
-     * @return 返回匹配的结果数组。
+     * @param bindType 绑定类型
+     * @param bindTargetId 绑定目标 ID
+     * @param runId 运行 ID
+     * @param sessionId 会话 ID
+     * @return 匹配的执行器数组
      */
     private CallAdvisor[] resolveForTarget(String bindType, Long bindTargetId, String runId, Long sessionId) {
         if (!StringUtils.hasText(bindType) || bindTargetId == null) {
@@ -221,10 +244,10 @@ public class AgentEnhancerRuntimeServiceImpl implements AgentEnhancerRuntimeServ
     /**
      * 读取整型配置项。
      *
-     * @param json JSON 字符串。
-     * @param field 字段名。
-     * @param defaultVal 默认值。
-     * @return 返回读取到的整型配置值。
+     * @param json JSON 字符串
+     * @param field 字段名
+     * @param defaultVal 默认值
+     * @return 读取到的整型配置值
      */
     private int readIntConfig(String json, String field, int defaultVal) {
         if (!StringUtils.hasText(json) || !StringUtils.hasText(field)) {
@@ -245,10 +268,10 @@ public class AgentEnhancerRuntimeServiceImpl implements AgentEnhancerRuntimeServ
     /**
      * 读取字符串配置项。
      *
-     * @param json JSON 字符串。
-     * @param field 字段名。
-     * @param defaultVal 默认值。
-     * @return 返回读取到的字符串配置值。
+     * @param json JSON 字符串
+     * @param field 字段名
+     * @param defaultVal 默认值
+     * @return 读取到的字符串配置值
      */
     private String readStringConfig(String json, String field, String defaultVal) {
         if (!StringUtils.hasText(json) || !StringUtils.hasText(field)) {

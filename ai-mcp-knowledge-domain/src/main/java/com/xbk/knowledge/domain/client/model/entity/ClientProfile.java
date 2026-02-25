@@ -20,12 +20,24 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class ClientProfile {
 
+    /**
+     * 主键 ID。
+     */
     private Long id;
 
+    /**
+     * 客户画像编码。
+     */
     private String clientCode;
 
+    /**
+     * 客户画像名称。
+     */
     private String clientName;
 
+    /**
+     * 客户画像描述。
+     */
     private String description;
 
     /**
@@ -33,11 +45,23 @@ public class ClientProfile {
      */
     private String status;
 
+    /**
+     * 创建人 ID。
+     */
     private Long createdBy;
 
+    /**
+     * 更新人 ID。
+     */
     private Long updatedBy;
 
+    /**
+     * 创建时间。
+     */
     private LocalDateTime createdAt;
 
+    /**
+     * 更新时间。
+     */
     private LocalDateTime updatedAt;
 }

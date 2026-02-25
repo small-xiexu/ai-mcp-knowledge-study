@@ -18,7 +18,7 @@ public class ChatMessageResponse {
     private Long id;
 
     /**
-     * 会话ID
+     * 会话 ID
      */
     private Long sessionId;
 

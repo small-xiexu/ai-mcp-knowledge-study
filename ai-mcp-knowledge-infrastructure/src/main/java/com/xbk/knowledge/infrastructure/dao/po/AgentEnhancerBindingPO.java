@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 /**
  * AgentEnhancer 绑定关系实体。
  *
- * 对应表：agent_enhancer_binding
+ * 对应表agent_enhancer_binding
  *
  * @author sxie
  */
@@ -28,19 +28,25 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class AgentEnhancerBindingPO {
 
+    /**
+     * 主键 ID。
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
-     * 绑定类型：AGENT_VERSION/WORKFLOW_VERSION。
+     * 绑定类型AGENT_VERSION/WORKFLOW_VERSION。
      */
     private String bindType;
 
     /**
-     * 绑定目标 ID：AgentVersionId / WorkflowVersionId。
+     * 绑定目标 IDAgentVersionId / WorkflowVersionId。
      */
     private Long bindTargetId;
 
+    /**
+     * Agent 增强器 ID。
+     */
     private Long agentEnhancerId;
 
     /**
@@ -53,10 +59,15 @@ public class AgentEnhancerBindingPO {
      */
     private Integer enabled;
 
+    /**
+     * 创建时间。
+     */
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
+    /**
+     * 更新时间。
+     */
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedAt;
 }
-

@@ -9,6 +9,9 @@ import com.xbk.knowledge.application.service.armory.factory.AiClientArmoryContex
  */
 public abstract class AbstractAiClientArmoryNode implements AiClientArmoryNode {
 
+    /**
+     * 下一个装配节点。
+     */
     private AiClientArmoryNode next;
 
     @Override
@@ -26,7 +29,7 @@ public abstract class AbstractAiClientArmoryNode implements AiClientArmoryNode {
 
     /**
      * 当前节点逻辑。
-     *
+     * 
      * @param context 动态上下文
      */
     protected abstract void doHandle(AiClientArmoryContext context);

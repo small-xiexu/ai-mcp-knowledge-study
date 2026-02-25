@@ -12,6 +12,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class EnabledQuery {
 
+    /**
+     * 启用状态。
+     */
     private Boolean enabled;
 
     public EnabledQuery(Boolean enabled) {

@@ -39,7 +39,14 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/api/gateway")
 public class McpGatewayController implements IMcpGatewayService {
 
+    /**
+     * Gateway SSE 话服务。
+     */
     private final GatewaySessionService gatewaySessionService;
+
+    /**
+     * Gateway 消息处理服务。
+     */
     private final GatewayMessageService gatewayMessageService;
 
     /**
@@ -49,6 +56,11 @@ public class McpGatewayController implements IMcpGatewayService {
      * 2. Controller 合并两种 API Key 传参来源，得到最终鉴权参数。
      * 3. 调用 `gatewaySessionService.establishSseConnection` 创建会话与事件流。
      * 4. 返回 `Flux<ServerSentEvent<String>>`，持续向客户端推送 endpoint/心跳等事件。
+     * 
+     * @param gatewayId 标识 ID。
+     * @param apiKey API Key。
+     * @param apiKeyQuery API Key 查询串。
+     * @return Gateway SSE 事件流。
      */
     @GetMapping(value = "/{gatewayId}/mcp/sse", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @Override
@@ -65,8 +77,13 @@ public class McpGatewayController implements IMcpGatewayService {
      * 1. 客户端通过 HTTP POST 提交 JSON-RPC 消息与 `sessionId`。
      * 2. Controller 校验 `sessionId` 与 `body` 非空后反序列化为 JSON-RPC 对象。
      * 3. 调用 `gatewayMessageService.process` 执行协议路由与业务处理。
-     * 4. 通过 `gatewaySessionService.publishResponse` 将响应推送回对应 SSE 会话。
+     * 4. 通过 `gatewaySessionService.publishResponse` 将响应推送回对应 SSE 话。
      * 5. 正常返回 `Result.success`；业务异常返回 400；系统异常返回 500。
+     * 
+     * @param gatewayId 标识 ID。
+     * @param sessionId 会话 ID。
+     * @param body 请求体。
+     * @return JSON-RPC 消息处理结果。
      */
     @PostMapping(value = "/{gatewayId}/mcp/message", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Override

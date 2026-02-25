@@ -13,7 +13,7 @@ import java.util.Optional;
 import java.util.List;
 
 /**
- * 新增或更新工作流运行上下文数据。
+ * 工作流运行上下文仓储实现。
  *
  * @author sxie
  */
@@ -21,12 +21,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class WorkflowRunContextRepositoryImpl implements WorkflowRunContextRepository {
 
+    /**
+     * Workflow 运行上下文数据访问对象。
+     */
     private final IWorkflowRunContextDao mapper;
 
     /**
      * 新增或更新工作流运行上下文数据。
      *
-     * @param ctx 运行上下文。
+     * @param ctx 运行上下文
      */
     @Override
     public void upsert(WorkflowRunContext ctx) {
@@ -40,7 +43,7 @@ public class WorkflowRunContextRepositoryImpl implements WorkflowRunContextRepos
      * 查询工作流运行上下文。
      *
      * @param runId 运行 ID
-     * @return 返回 WorkflowRunContext 查询结果（可能为空）。
+     * @return WorkflowRunContext 查询结果（可能为空）
      */
     @Override
     public Optional<WorkflowRunContext> findByRunId(String runId) {
@@ -56,7 +59,7 @@ public class WorkflowRunContextRepositoryImpl implements WorkflowRunContextRepos
      *
      * @param runId 运行 ID
      * @param status 状态值
-     * @return 返回运行上下文状态更新条数。
+     * @return 运行上下文状态更新条数
      */
     @Override
     public int updateStatus(String runId, String status) {
@@ -69,8 +72,8 @@ public class WorkflowRunContextRepositoryImpl implements WorkflowRunContextRepos
     /**
      * 删除工作流运行上下文数据。
      *
-     * @param runIds 运行 ID 列表。
-     * @return 返回运行上下文删除条数。
+     * @param runIds 运行 ID 列表
+     * @return 运行上下文删除条数
      */
     @Override
     public int deleteByRunIds(List<String> runIds) {

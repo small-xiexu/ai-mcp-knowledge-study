@@ -28,10 +28,15 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 })
 public class BaseUrlNormalizationTest {
 
+    /**
+     * 模型 Provider 工厂。
+     */
     private final ModelProviderFactory modelProviderFactory;
 
     /**
      * 对外暴露 BaseUrlNormalizationTest 作为调用入口，便于上层复用。
+     * 
+     * @param modelProviderFactory 模型提供器工厂。
      */
     @Autowired
     public BaseUrlNormalizationTest(ModelProviderFactory modelProviderFactory) {
@@ -39,13 +44,13 @@ public class BaseUrlNormalizationTest {
     }
 
     /**
-     * 测试场景 1：标准格式（不带 /v1）
-     * 输入：http://127.0.0.1:8045
-     * 预期：正常工作
+     * 测试场景 1标准格式（不带 /v1）
+     * 输入http://127.0.0.1:8045
+     * 预期正常工作
      */
     @Test
     public void test_baseUrl_without_v1() {
-        log.info(">>> 测试场景 1：标准格式（不带 /v1）");
+        log.info(">>> 测试场景 1标准格式（不带 /v1）");
 
         ModelConfig config = new ModelConfig();
         config.setModelType(ModelType.OPENAI);
@@ -60,13 +65,13 @@ public class BaseUrlNormalizationTest {
     }
 
     /**
-     * 测试场景 2：带 /v1 后缀
-     * 输入：http://127.0.0.1:8045/v1
-     * 预期：自动去除 /v1，正常工作
+     * 测试场景 2带 /v1 后缀
+     * 输入http://127.0.0.1:8045/v1
+     * 预期自动去除 /v1，正常工作
      */
     @Test
     public void test_baseUrl_with_v1() {
-        log.info(">>> 测试场景 2：带 /v1 后缀");
+        log.info(">>> 测试场景 2带 /v1 后缀");
 
         ModelConfig config = new ModelConfig();
         config.setModelType(ModelType.OPENAI);
@@ -81,13 +86,13 @@ public class BaseUrlNormalizationTest {
     }
 
     /**
-     * 测试场景 3：带 /v1/chat/completions 完整路径
-     * 输入：http://127.0.0.1:8045/v1/chat/completions
-     * 预期：自动去除完整路径，正常工作
+     * 测试场景 3带 /v1/chat/completions 完整路径
+     * 输入http://127.0.0.1:8045/v1/chat/completions
+     * 预期自动去除完整路径，正常工作
      */
     @Test
     public void test_baseUrl_with_full_path() {
-        log.info(">>> 测试场景 3：带 /v1/chat/completions 完整路径");
+        log.info(">>> 测试场景 3带 /v1/chat/completions 完整路径");
 
         ModelConfig config = new ModelConfig();
         config.setModelType(ModelType.OPENAI);
@@ -102,13 +107,13 @@ public class BaseUrlNormalizationTest {
     }
 
     /**
-     * 测试场景 4：带末尾斜杠
-     * 输入：http://127.0.0.1:8045/
-     * 预期：自动去除末尾斜杠，正常工作
+     * 测试场景 4带末尾斜杠
+     * 输入http://127.0.0.1:8045/
+     * 预期自动去除末尾斜杠，正常工作
      */
     @Test
     public void test_baseUrl_with_trailing_slash() {
-        log.info(">>> 测试场景 4：带末尾斜杠");
+        log.info(">>> 测试场景 4带末尾斜杠");
 
         ModelConfig config = new ModelConfig();
         config.setModelType(ModelType.OPENAI);
@@ -123,13 +128,13 @@ public class BaseUrlNormalizationTest {
     }
 
     /**
-     * 测试场景 5：带 /v1/ 和末尾斜杠
-     * 输入：http://127.0.0.1:8045/v1/
-     * 预期：自动去除 /v1 和末尾斜杠，正常工作
+     * 测试场景 5带 /v1/ 和末尾斜杠
+     * 输入http://127.0.0.1:8045/v1/
+     * 预期自动去除 /v1 和末尾斜杠，正常工作
      */
     @Test
     public void test_baseUrl_with_v1_and_trailing_slash() {
-        log.info(">>> 测试场景 5：带 /v1/ 和末尾斜杠");
+        log.info(">>> 测试场景 5带 /v1/ 和末尾斜杠");
 
         ModelConfig config = new ModelConfig();
         config.setModelType(ModelType.OPENAI);

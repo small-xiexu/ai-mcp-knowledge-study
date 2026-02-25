@@ -20,10 +20,20 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class WorkflowNode {
+
+    /**
+     * 主键 ID。
+     */
     private Long id;
 
+    /**
+     * Workflow 版本 ID。
+     */
     private Long workflowVersionId;
 
+    /**
+     * 节点键。
+     */
     private String nodeKey;
 
     /**
@@ -31,6 +41,9 @@ public class WorkflowNode {
      */
     private String nodeType;
 
+    /**
+     * 节点名称。
+     */
     private String nodeName;
 
     /**
@@ -38,10 +51,23 @@ public class WorkflowNode {
      */
     private String configJson;
 
+    /**
+     * 画布 X 坐标。
+     */
     private Integer positionX;
 
+    /**
+     * 画布 Y 坐标。
+     */
     private Integer positionY;
+
+    /**
+     * 创建时间。
+     */
     private LocalDateTime createdAt;
+
+    /**
+     * 更新时间。
+     */
     private LocalDateTime updatedAt;
 }
-

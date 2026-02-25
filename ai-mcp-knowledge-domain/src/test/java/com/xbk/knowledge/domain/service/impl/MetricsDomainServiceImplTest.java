@@ -22,7 +22,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  */
 public class MetricsDomainServiceImplTest {
 
+    /**
+     * 调用日志仓储。
+     */
     private CallLogRepository callLogRepository;
+
+    /**
+     * 指标领域服务实现。
+     */
     private MetricsDomainServiceImpl service;
 
     /**

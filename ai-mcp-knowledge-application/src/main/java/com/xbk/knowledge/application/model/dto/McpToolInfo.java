@@ -20,7 +20,7 @@ public class McpToolInfo {
     /**
      * 工具名称
      *
-     * 为什么：对外展示的函数名（ToolDefinition.name），也是模型侧实际调用的 tool/function name
+     * 对外展示的函数名（ToolDefinition.name），也是模型侧实际调用的 tool/function name
      */
     private String name;
 
@@ -39,14 +39,14 @@ public class McpToolInfo {
     /**
      * 工具描述
      *
-     * 为什么：用于提示与展示
+     * 用于提示与展示
      */
     private String description;
 
     /**
-     * 入参 Schema(JSON)
+     * 输入 Schema(JSON)。
      *
-     * 为什么：用于工具参数校验与提示
+     * 用于工具参数校验与提示
      */
     private String inputSchema;
 }

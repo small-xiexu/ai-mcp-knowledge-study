@@ -20,6 +20,9 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class AgentPlanningConfig implements Serializable {
 
+    /**
+     * 序列化版本号。
+     */
     private static final long serialVersionUID = 1L;
 
     /**
@@ -63,4 +66,3 @@ public class AgentPlanningConfig implements Serializable {
     @Builder.Default
     private Integer approvalExpireMinutes = 120;
 }
-

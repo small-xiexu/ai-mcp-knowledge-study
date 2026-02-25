@@ -16,6 +16,7 @@ public final class PageResultConverter {
 
     /**
      * 创建分页结果转换器并注入依赖组件。
+     * 
      */
     private PageResultConverter() {
     }
@@ -23,14 +24,14 @@ public final class PageResultConverter {
     /**
      * 将分页结果中的 records 转换为目标类型
      *
-     * @param source    原始分页结果
-     * @param converter 记录转换函数
      * @param <T>       原始记录类型
      * @param <R>       目标记录类型
+     * 
+     * @param source 原始分页结果
+     * @param converter 记录转换函数
      * @return 转换后的分页结果
      */
     public static <T, R> PageResult<R> convert(PageResult<T> source, Function<T, R> converter) {
-        
         if (source == null) {
             return PageResult.of(Collections.emptyList(), 0L, 1, 10);
         }
@@ -41,7 +42,6 @@ public final class PageResultConverter {
         if (records == null || records.isEmpty()) {
             targetRecords = Collections.emptyList();
         } else {
-            
             targetRecords = records
                     .stream()
                     .map(converter)

@@ -35,6 +35,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class WorkflowRuntimeController implements IWorkflowRuntimeService {
 
+    /**
+     * Workflow 运行时应用服务。
+     */
     private final WorkflowRuntimeAppService workflowRuntimeAppService;
 
     /**
@@ -46,8 +49,8 @@ public class WorkflowRuntimeController implements IWorkflowRuntimeService {
      * 4. 应用层完成版本解析、节点调度、上下文与审批处理。
      * 5. 返回 `PlatformContractV1` 并统一封装 `Result.success`。
      *
-     * @param workflowCode Workflow 编码
-     * @param request 运行请求
+     * @param workflowCode 工作流编码
+     * @param request 请求体参数
      * @return 平台响应
      */
     @PostMapping("/{workflowCode}/run")
@@ -73,8 +76,8 @@ public class WorkflowRuntimeController implements IWorkflowRuntimeService {
      * 4. 将领域分页结果转换为 `WorkflowRunResponse` 分页结果。
      * 5. 统一封装 `Result.success` 返回。
      *
-     * @param request 工作流运行分页查询参数。
-     * @return 返回 WorkflowRunResponse 分页数据。
+     * @param request 工作流运行分页查询参数
+     * @return WorkflowRunResponse 分页数据
      */
     @PostMapping("/runs/list")
     @SaCheckPermission("workflow:read")
@@ -97,8 +100,8 @@ public class WorkflowRuntimeController implements IWorkflowRuntimeService {
      * 4. 将领域运行实体转换为 `WorkflowRunResponse`。
      * 5. 统一封装 `Result.success` 返回。
      *
-     * @param request 工作流运行查询参数。
-     * @return 返回 WorkflowRunResponse 数据。
+     * @param request 工作流运行查询参数
+     * @return WorkflowRunResponse 详情
      */
     @PostMapping("/runs/get")
     @SaCheckPermission("workflow:read")
@@ -117,8 +120,8 @@ public class WorkflowRuntimeController implements IWorkflowRuntimeService {
      * 4. 将节点运行实体列表转换为 `WorkflowNodeRunResponse` 列表。
      * 5. 统一封装 `Result.success` 返回。
      *
-     * @param request 工作流运行分页查询参数。
-     * @return 返回 WorkflowNodeRunResponse 列表数据。
+     * @param request 工作流运行分页查询参数
+     * @return 节点运行响应列表。
      */
     @PostMapping("/runs/nodes")
     @SaCheckPermission("workflow:read")
@@ -131,8 +134,8 @@ public class WorkflowRuntimeController implements IWorkflowRuntimeService {
     /**
      * 将输入数据转换为运行响应。
      *
-     * @param run 运行记录。
-     * @return 返回WorkflowRunResponse对象。
+     * @param run 运行记录
+     * @return 工作流运行响应。
      */
     private WorkflowRunResponse toRunResponse(WorkflowRun run) {
         if (run == null) {
@@ -161,8 +164,8 @@ public class WorkflowRuntimeController implements IWorkflowRuntimeService {
     /**
      * 将输入数据转换为节点运行响应。
      *
-     * @param nodeRun 节点运行。
-     * @return 返回WorkflowNodeRunResponse对象。
+     * @param nodeRun 节点运行
+     * @return 节点运行响应。
      */
     private WorkflowNodeRunResponse toNodeRunResponse(WorkflowNodeRun nodeRun) {
         if (nodeRun == null) {

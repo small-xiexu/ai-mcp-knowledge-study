@@ -19,12 +19,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SaTokenPermissionProvider implements StpInterface {
 
+    /**
+     * 鉴权应用服务。
+     */
     private final AuthAppService authAppService;
 
     /**
      * 查询权限列表。
-     *
-     * @param loginId   登录ID
+     * 
+     * @param loginId 登录ID
      * @param loginType 登录类型
      * @return 权限编码列表
      */
@@ -39,8 +42,8 @@ public class SaTokenPermissionProvider implements StpInterface {
 
     /**
      * 查询角色列表。
-     *
-     * @param loginId   登录ID
+     * 
+     * @param loginId 登录ID
      * @param loginType 登录类型
      * @return 角色编码列表
      */
@@ -55,7 +58,7 @@ public class SaTokenPermissionProvider implements StpInterface {
 
     /**
      * 解析登录ID。
-     *
+     * 
      * @param loginId 登录ID对象
      * @return 用户ID
      */

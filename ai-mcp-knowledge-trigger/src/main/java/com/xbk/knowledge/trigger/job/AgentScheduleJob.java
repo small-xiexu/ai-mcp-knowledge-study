@@ -22,7 +22,7 @@ import java.util.Map;
  *
  * XXL-Job Handler: agentScheduleHandler
  *
- * executorParam 约定（JSON）：
+ * executorParam 约定（JSON）
  * - scheduleId: number
  *
  * 说明：
@@ -36,13 +36,23 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AgentScheduleJob {
 
+    /**
+     * JSON 序列化/反序列化组件。
+     */
     private final ObjectMapper objectMapper;
+
+    /**
+     * Agent 调度仓储。
+     */
     private final AgentScheduleRepository agentScheduleRepository;
+
+    /**
+     * Agent 运行时应用服务。
+     */
     private final AgentRuntimeAppService agentRuntimeAppService;
 
     /**
      * 执行定时任务处理。
-     *
      */
     @XxlJob("agentScheduleHandler")
     public void execute() {
@@ -100,9 +110,9 @@ public class AgentScheduleJob {
 
     /**
      * 解析调度任务负载。
-     *
+     * 
      * @param payloadTemplateJson 载荷模板JSON。
-     * @return 返回Payload对象。
+     * @return 调度任务负载。
      */
     private Payload parsePayload(String payloadTemplateJson) {
         if (!StringUtils.hasText(payloadTemplateJson)) {

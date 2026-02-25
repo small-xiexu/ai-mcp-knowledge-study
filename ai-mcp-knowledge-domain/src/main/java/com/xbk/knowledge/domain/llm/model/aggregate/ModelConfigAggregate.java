@@ -24,7 +24,7 @@ public class ModelConfigAggregate {
     /**
      * 模型配置（聚合根）
      *
-     * 为什么：聚合根控制模型配置生命周期
+     * 聚合根控制模型配置生命周期
      */
     private ModelConfig modelConfig;
 

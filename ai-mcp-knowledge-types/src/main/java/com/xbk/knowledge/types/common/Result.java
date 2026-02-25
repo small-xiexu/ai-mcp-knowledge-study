@@ -22,6 +22,9 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class Result<T> implements Serializable {
 
+    /**
+     * 序列化版本号。
+     */
     private static final long serialVersionUID = 1L;
 
     /**
@@ -46,7 +49,7 @@ public class Result<T> implements Serializable {
 
     /**
      * 成功响应（无数据）
-     *
+     * 
      * @return Result
      */
     public static <T> Result<T> success() {
@@ -62,7 +65,7 @@ public class Result<T> implements Serializable {
 
     /**
      * 成功响应（带数据）
-     *
+     * 
      * @param data 响应数据
      * @return Result
      */
@@ -80,9 +83,9 @@ public class Result<T> implements Serializable {
 
     /**
      * 成功响应（自定义消息）
-     *
+     * 
      * @param message 响应消息
-     * @param data    响应数据
+     * @param data 响应数据
      * @return Result
      */
     public static <T> Result<T> success(String message, T data) {
@@ -98,7 +101,7 @@ public class Result<T> implements Serializable {
 
     /**
      * 失败响应
-     *
+     * 
      * @param message 错误消息
      * @return Result
      */
@@ -114,8 +117,8 @@ public class Result<T> implements Serializable {
 
     /**
      * 失败响应（自定义错误码）
-     *
-     * @param code    错误码
+     * 
+     * @param code 错误码
      * @param message 错误消息
      * @return Result
      */
@@ -130,7 +133,7 @@ public class Result<T> implements Serializable {
 
     /**
      * 失败响应（使用统一错误码）
-     *
+     * 
      * @param resultCode 错误码
      * @return Result
      */
@@ -147,9 +150,9 @@ public class Result<T> implements Serializable {
 
     /**
      * 失败响应（统一错误码 + 自定义消息）
-     *
+     * 
      * @param resultCode 错误码
-     * @param message    错误消息
+     * @param message 错误消息
      * @return Result
      */
     public static <T> Result<T> error(ResultCode resultCode, String message) {
@@ -164,9 +167,9 @@ public class Result<T> implements Serializable {
 
     /**
      * 失败响应（统一错误码 + 数据）
-     *
+     * 
      * @param resultCode 错误码
-     * @param data       错误数据
+     * @param data 错误数据
      * @return Result
      */
     public static <T> Result<T> error(ResultCode resultCode, T data) {
@@ -183,10 +186,10 @@ public class Result<T> implements Serializable {
 
     /**
      * 失败响应（统一错误码 + 自定义消息 + 数据）
-     *
+     * 
      * @param resultCode 错误码
-     * @param message    错误消息
-     * @param data       错误数据
+     * @param message 错误消息
+     * @param data 错误数据
      * @return Result
      */
     public static <T> Result<T> error(ResultCode resultCode, String message, T data) {
@@ -202,10 +205,10 @@ public class Result<T> implements Serializable {
 
     /**
      * 失败响应（带数据）
-     *
-     * @param code    错误码
+     * 
+     * @param code 错误码
      * @param message 错误消息
-     * @param data    错误数据
+     * @param data 错误数据
      * @return Result
      */
     public static <T> Result<T> error(Integer code, String message, T data) {

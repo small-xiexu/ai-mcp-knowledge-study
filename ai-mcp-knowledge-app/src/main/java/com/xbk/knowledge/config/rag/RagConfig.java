@@ -16,7 +16,7 @@ public class RagConfig {
     /**
      * TokenTextSplitter
      * 默认分割器用于文档切块
-     *
+     * 
      * @return TokenTextSplitter
      */
     @Bean

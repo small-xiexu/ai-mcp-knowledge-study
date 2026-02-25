@@ -22,9 +22,10 @@ public abstract class AbstractOpenAiProtocolAdapter {
     /**
      * 创建基于 OpenAI 协议的 ChatModel
      *
-     * 为什么：统一封装 OpenAI 协议模型创建逻辑
-     * 入参：模型配置
-     * 出参：ChatModel
+     * 统一封装 OpenAI 协议模型创建逻辑
+     * 
+     * @param config 配置信息。
+     * @return OpenAI 协议对话模型。
      */
     public ChatModel createChatModel(ModelConfig config) {
         // 规范化 baseUrl，避免路径重复
@@ -59,15 +60,16 @@ public abstract class AbstractOpenAiProtocolAdapter {
      * 规范化 baseUrl
      * 自动去除可能导致路径重复的后缀，确保与 Spring AI 的 OpenAiApi 兼容
      *
-     * Spring AI 的 OpenAiApi 会自动在 baseUrl 后拼接 /v1/chat/completions
-     * 因此需要去除用户可能传入的以下后缀：
+     * Spring AI 的 OpenAiApi 自动在 baseUrl 后拼接 /v1/chat/completions
+     * 因此需要去除用户可能传入的以下后缀
      * - /v1/chat/completions
      * - /v1
      * - 末尾的斜杠
      *
-     * 为什么：避免 Spring AI 自动拼接导致重复路径
-     * 入参：原始 baseUrl
-     * 出参：规范化后的 baseUrl
+     * 避免 Spring AI 自动拼接导致重复路径
+     * 
+     * @param baseUrl 基础 URL。
+     * @return 规范化后的基础 URL。
      */
     protected String normalizeBaseUrl(String baseUrl) {
         if (baseUrl == null || baseUrl.isEmpty()) {
@@ -102,6 +104,10 @@ public abstract class AbstractOpenAiProtocolAdapter {
 
     /**
      * 规范化 OpenAI 协议路径，保证以 '/' 开头并提供默认值。
+     * 
+     * @param rawPath 路径。
+     * @param defaultPath 默认值。
+     * @return 规范化后的 API 路径。
      */
     protected String normalizeApiPath(String rawPath, String defaultPath) {
         String path = StringUtils.hasText(rawPath) ? rawPath.trim() : defaultPath;

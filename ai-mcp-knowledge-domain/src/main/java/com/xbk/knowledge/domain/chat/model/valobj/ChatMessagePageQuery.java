@@ -17,23 +17,23 @@ import lombok.NoArgsConstructor;
 public class ChatMessagePageQuery {
 
     /**
-     * 会话ID
+     * 会话 ID
      *
-     * 为什么：限定消息所属会话
+     * 限定消息所属话
      */
     private Long sessionId;
 
     /**
      * 偏移量
      *
-     * 为什么：用于分页计算起始位置
+     * 用于分页计算起始位置
      */
     private Integer offset;
 
     /**
      * 每页大小
      *
-     * 为什么：控制单次返回数量
+     * 控制单次返回数量
      */
     private Integer pageSize;
 }

@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 /**
  * WorkflowNode 实体。
  *
- * 对应表：workflow_node
+ * 对应表workflow_node
  *
  * @author sxie
  */
@@ -28,11 +28,20 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class WorkflowNodePO {
 
+    /**
+     * 主键 ID。
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * Workflow 版本 ID。
+     */
     private Long workflowVersionId;
 
+    /**
+     * 节点键。
+     */
     private String nodeKey;
 
     /**
@@ -40,6 +49,9 @@ public class WorkflowNodePO {
      */
     private String nodeType;
 
+    /**
+     * 节点名称。
+     */
     private String nodeName;
 
     /**
@@ -47,14 +59,25 @@ public class WorkflowNodePO {
      */
     private String configJson;
 
+    /**
+     * 画布 X 坐标。
+     */
     private Integer positionX;
 
+    /**
+     * 画布 Y 坐标。
+     */
     private Integer positionY;
 
+    /**
+     * 创建时间。
+     */
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
+    /**
+     * 更新时间。
+     */
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedAt;
 }
-

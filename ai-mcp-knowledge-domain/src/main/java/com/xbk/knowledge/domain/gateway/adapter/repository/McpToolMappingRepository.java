@@ -16,21 +16,31 @@ public interface McpToolMappingRepository {
 
     /**
      * 按工具 ID 与映射类型查询映射配置。
+     * 
+     * @param query 工具映射查询条件。
+     * @return 工具参数映射列表。
      */
     List<McpToolMapping> findByToolIdAndMappingType(ToolMappingQuery query);
 
     /**
      * 保存或更新记录。
+     * 
+     * @param mapping 待保存的工具参数映射实体。
+     * @return 已持久化的工具参数映射实体。
      */
     McpToolMapping save(McpToolMapping mapping);
 
     /**
      * 按主键删除记录。
+     * 
+     * @param query 主键查询条件。
      */
     void deleteById(IdQuery query);
 
     /**
      * 删除指定工具的映射配置。
+     * 
+     * @param toolId 标识 ID。
      */
     void deleteByToolId(Long toolId);
 }

@@ -21,9 +21,19 @@ import java.util.concurrent.ConcurrentMap;
 @Service
 public class DefaultAiClientArmoryStrategyFactory {
 
+    /**
+     * ChatClient 缓存键模板。
+     */
     private static final String CHAT_CLIENT_CACHE_KEY_TEMPLATE = "%s:%s";
 
+    /**
+     * 装配节点链路根节点。
+     */
     private final RootNode rootNode;
+
+    /**
+     * 标准 ChatClient 缓存表。
+     */
     private final ConcurrentMap<String, ChatClient> standardChatClientRegistry = new ConcurrentHashMap<>();
 
     public DefaultAiClientArmoryStrategyFactory(RootNode rootNode, AiClientToolNode aiClientToolNode, AiClientAgentEnhancerNode aiClientAdvisorNode, AiClientModelNode aiClientModelNode, AiClientNode aiClientNode) {
@@ -36,9 +46,9 @@ public class DefaultAiClientArmoryStrategyFactory {
 
     /**
      * 基于节点链路构建 ChatClient。
-     *
-     * @param modelConfig   模型配置
-     * @param enableTools   工具开关
+     * 
+     * @param modelConfig 模型配置
+     * @param enableTools 工具开关
      * @param extraAdvisors 额外 AgentEnhancer
      * @return 装配完成的 ChatClient
      */
@@ -52,7 +62,7 @@ public class DefaultAiClientArmoryStrategyFactory {
 
     /**
      * 主动预热标准 ChatClient（无额外 AgentEnhancer）。
-     *
+     * 
      * @param modelConfig 模型配置
      * @param enableTools 工具开关
      */
@@ -62,7 +72,7 @@ public class DefaultAiClientArmoryStrategyFactory {
 
     /**
      * 按模型清理标准 ChatClient 缓存。
-     *
+     * 
      * @param modelId 模型 ID
      */
     public void evictModel(Long modelId) {
@@ -75,6 +85,8 @@ public class DefaultAiClientArmoryStrategyFactory {
 
     /**
      * 获取当前标准 ChatClient 缓存条目数。
+     * 
+     * @return 统计数量。
      */
     public int registrySize() {
         return standardChatClientRegistry.size();

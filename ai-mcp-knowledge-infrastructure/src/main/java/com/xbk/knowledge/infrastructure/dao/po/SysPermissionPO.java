@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 
 /**
  * 系统权限实体。
- * 对应数据库表：sys_permission
+ * 对应数据库表sys_permission
  *
  * 职责：领域实体，用于承载权限定义。
  *
@@ -56,7 +56,7 @@ public class SysPermissionPO {
     private String action;
 
     /**
-     * 状态：1启用、0禁用。
+     * 状态1启用、0禁用。
      */
     private Integer status;
 

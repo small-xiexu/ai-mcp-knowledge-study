@@ -24,7 +24,7 @@ public class CallLogAggregate {
     /**
      * 调用日志（聚合根）
      *
-     * 为什么：确保调用日志的保存具有一致性边界
+     * 确保调用日志的保存具有一致性边界
      */
     private CallLog callLog;
 }

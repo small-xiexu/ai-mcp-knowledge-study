@@ -38,10 +38,29 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class IdentityAuditAspect {
 
+    /**
+     * 成功执行标记。
+     */
     private static final int SUCCESS = 1;
+
+    /**
+     * 失败执行标记。
+     */
     private static final int FAILED = 0;
+
+    /**
+     * 错误信息最大保留长度。
+     */
     private static final int ERROR_MESSAGE_MAX_LENGTH = 1000;
+
+    /**
+     * 敏感信息脱敏占位符。
+     */
     private static final String SENSITIVE_MASK = "***";
+
+    /**
+     * 需要脱敏的字段名集合。
+     */
     private static final Set<String> SENSITIVE_FIELDS = Set.of(
             "password",
             "passwordHash",
@@ -51,15 +70,24 @@ public class IdentityAuditAspect {
             "refreshToken"
     );
 
+    /**
+     * 身份审计日志写入服务。
+     */
     private final IdentityAuditLogService identityAuditLogService;
+
+    /**
+     * JSON 序列化器。
+     */
     private final ObjectMapper objectMapper;
+
+    /**
+     * 身份上下文服务。
+     */
     private final IdentityContextService identityContextService;
 
     /**
      * 拦截身份域关键写操作并落审计事件。
      *
-     * @param joinPoint 切点
-     * @return 原方法返回值
      * @throws Throwable 原方法异常
      */
     @Around(
@@ -75,9 +103,9 @@ public class IdentityAuditAspect {
     )
     /**
      * 拦截身份与权限写操作并记录审计日志。
-     *
+     * 
      * @param joinPoint 切点上下文。
-     * @return 返回 Object 数据。
+     * @return Object 数据。
      */
     public Object aroundIdentityWriteOperations(ProceedingJoinPoint joinPoint) throws Throwable {
         long start = System.currentTimeMillis();
@@ -137,7 +165,7 @@ public class IdentityAuditAspect {
 
     /**
      * 判断接口调用是否成功。
-     *
+     * 
      * @param result 接口返回对象
      * @return 是否成功
      */
@@ -150,7 +178,7 @@ public class IdentityAuditAspect {
 
     /**
      * 提取统一响应消息。
-     *
+     * 
      * @param result 接口返回对象
      * @return 消息
      */
@@ -163,7 +191,7 @@ public class IdentityAuditAspect {
 
     /**
      * 提取统一响应 data。
-     *
+     * 
      * @param result 接口返回对象
      * @return 数据对象
      */
@@ -176,9 +204,9 @@ public class IdentityAuditAspect {
 
     /**
      * 构造旧值快照。
-     *
+     * 
      * @param args 入参数组
-     * @return 旧值快照对象
+     * @param eventType 事件类型。
      */
     private Map<String, Object> buildOldValue(Object[] args, String eventType) {
         Map<String, Object> snapshot = new HashMap<>();
@@ -194,11 +222,10 @@ public class IdentityAuditAspect {
 
     /**
      * 构造新值快照。
-     *
+     * 
      * @param resultData 响应 data
      * @param eventType 事件类型
      * @param executeResult 执行结果
-     * @return 新值快照对象
      */
     private Map<String, Object> buildNewValue(Object resultData, String eventType, int executeResult) {
         Map<String, Object> snapshot = new HashMap<>();
@@ -218,7 +245,7 @@ public class IdentityAuditAspect {
 
     /**
      * 安全序列化 JSON。
-     *
+     * 
      * @param value 对象
      * @return JSON 字符串
      */
@@ -235,7 +262,7 @@ public class IdentityAuditAspect {
 
     /**
      * 获取当前请求。
-     *
+     * 
      * @return HTTP 请求
      */
     private HttpServletRequest currentRequest() {
@@ -248,7 +275,7 @@ public class IdentityAuditAspect {
 
     /**
      * 解析操作人ID。
-     *
+     * 
      * @return 操作人ID
      */
     private Long resolveOperatorId() {
@@ -264,7 +291,7 @@ public class IdentityAuditAspect {
 
     /**
      * 解析资源类型。
-     *
+     * 
      * @param request HTTP 请求
      * @return 资源类型
      */
@@ -290,7 +317,7 @@ public class IdentityAuditAspect {
 
     /**
      * 解析事件类型。
-     *
+     * 
      * @param request HTTP 请求
      * @return 事件类型
      */
@@ -307,7 +334,7 @@ public class IdentityAuditAspect {
 
     /**
      * 解析资源 ID。
-     *
+     * 
      * @param args 入参数组
      * @return 资源ID
      */
@@ -333,7 +360,7 @@ public class IdentityAuditAspect {
 
     /**
      * 解析来源 IP。
-     *
+     * 
      * @param request HTTP 请求
      * @return IP
      */
@@ -354,7 +381,7 @@ public class IdentityAuditAspect {
 
     /**
      * 通过反射提取 Long 字段。
-     *
+     * 
      * @param args 入参数组
      * @param fieldName 字段名
      * @return Long 值
@@ -376,7 +403,7 @@ public class IdentityAuditAspect {
 
     /**
      * 通过反射提取 String 字段。
-     *
+     * 
      * @param args 入参数组
      * @param fieldName 字段名
      * @return 字符串值
@@ -398,7 +425,7 @@ public class IdentityAuditAspect {
 
     /**
      * 通过反射提取字段值。
-     *
+     * 
      * @param target 目标对象
      * @param fieldName 字段名
      * @return 字段值
@@ -421,9 +448,8 @@ public class IdentityAuditAspect {
 
     /**
      * 将对象转换为 Map 结构。
-     *
+     * 
      * @param value 原对象
-     * @return Map
      */
     private Map<String, Object> convertToMap(Object value) {
         if (value == null) {
@@ -434,7 +460,7 @@ public class IdentityAuditAspect {
 
     /**
      * 截断字符串。
-     *
+     * 
      * @param text 原文
      * @param maxLength 最大长度
      * @return 截断后文本
@@ -448,7 +474,7 @@ public class IdentityAuditAspect {
 
     /**
      * 递归脱敏敏感字段。
-     *
+     * 
      * @param sourceMap 原始 Map
      */
     private void sanitizeSensitiveValues(Map<String, Object> sourceMap) {
@@ -476,7 +502,7 @@ public class IdentityAuditAspect {
 
     /**
      * 脱敏敏感字段列表。
-     *
+     * 
      * @param values 待脱敏值列表。
      */
     @SuppressWarnings("unchecked")
@@ -501,9 +527,9 @@ public class IdentityAuditAspect {
 
     /**
      * 判断是否为敏感字段。
-     *
+     * 
      * @param fieldName 字段名称。
-     * @return 返回是否满足业务条件。
+     * @return 是否满足业务条件。
      */
     private boolean isSensitiveField(String fieldName) {
         if (fieldName == null || fieldName.isBlank()) {

@@ -12,13 +12,14 @@ public final class TimeCostUtils {
 
     /**
      * 创建耗时工具并注入依赖组件。
+     * 
      */
     private TimeCostUtils() {
     }
 
     /**
      * 开始计时
-     *
+     * 
      * @return 计时起点（纳秒）
      */
     public static long start() {
@@ -27,7 +28,7 @@ public final class TimeCostUtils {
 
     /**
      * 计算耗时（毫秒）
-     *
+     * 
      * @param startNano 计时起点（纳秒）
      * @return 耗时（毫秒）
      */

@@ -29,17 +29,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * MCP Gateway SSE + tools/list 集成测试
- * 目标：验证 MCP 客户端可以通过 SSE 建立会话并拉取工具清单
+ * 目标验证 MCP 客户端可以通过 SSE 建立话并拉取工具清单
  *
  * 说明：
- * 本测试包含两部分：
+ * 本测试包含两部分
  * 1. 验证 SSE + tools/list
  * 2. 通过 OpenAI 模型验证 tools/call 全链路（包含真实工具调用）
  *
- * 前置条件：
+ * 前置条件
  * 1. ai-mcp-gateway-study 服务已启动（默认 http://localhost:8091）
  * 2. gatewayId 对应的工具已配置并可用（默认 gateway_001）
- * 可通过系统属性或环境变量覆盖默认值：
+ * 可通过系统属性或环境变量覆盖默认值
  * - baseUrl: mcp.gateway.base-url / MCP_GATEWAY_BASE_URL
  * - contextPath: mcp.gateway.context-path / MCP_GATEWAY_CONTEXT_PATH
  * - gatewayId: mcp.gateway.gateway-id / MCP_GATEWAY_ID
@@ -59,27 +59,32 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class McpGatewaySseToolsListTest {
 
     /**
-     * MCP 服务运行时注册器：用于动态注册/注销 SSE MCP Server。
+     * MCP 服务运行时注册器用于动态注册/注销 SSE MCP Server。
      */
     private final McpServerRuntimeService runtimeService;
 
     /**
-     * 工具回调提供器：用于读取 tools/list 返回的工具定义。
+     * 工具回调提供器用于读取 tools/list 返回的工具定义。
      */
     private final ToolCallbackProvider toolCallbackProvider;
 
     /**
-     * ChatClient 装配器：用于构建带 MCP 工具增强的模型客户端。
+     * ChatClient 装配器用于构建带 MCP 工具增强的模型客户端。
      */
     private final ChatClientAssemblyService chatClientAssemblyService;
 
     /**
-     * 模型配置应用服务：用于查询可用 OpenAI 模型。
+     * 模型配置应用服务用于查询可用 OpenAI 模型。
      */
     private final ModelConfigAppService modelConfigAppService;
 
     /**
      * 构造注入测试依赖。
+     * 
+     * @param runtimeService MCP 服务运行时注册器。
+     * @param toolCallbackProvider 工具回调提供器。
+     * @param chatClientAssemblyService ChatClient 装配服务。
+     * @param modelConfigAppService 模型配置应用服务。
      */
     @Autowired
     public McpGatewaySseToolsListTest(McpServerRuntimeService runtimeService,
@@ -95,7 +100,7 @@ public class McpGatewaySseToolsListTest {
     /**
      * 仅验证网关 SSE + tools/list。
      *
-     * 验证点：
+     * 验证点
      * 1. 运行时可注册 SSE MCP Server
      * 2. ToolCallbackProvider 能拿到工具列表
      * 3. 工具列表中包含指定工具名
@@ -132,7 +137,7 @@ public class McpGatewaySseToolsListTest {
                 .build();
 
         try {
-            // 注册后会触发 initialize + tools/list
+            // 注册后触发 initialize + tools/list
             runtimeService.registerOrUpdate(config);
 
             ToolCallback[] callbacks = toolCallbackProvider.getToolCallbacks();
@@ -154,7 +159,7 @@ public class McpGatewaySseToolsListTest {
     /**
      * 通过大模型验证 SSE + tools/list + tools/call 全链路。
      *
-     * 核心思路：
+     * 核心思路
      * 1. 先完成 SSE 注册并断言 tools/list 返回目标工具
      * 2. 再发起一次 OpenAI 模型调用，要求必须调用工具
      * 3. 断言模型返回有效文本，且不出现“工具不可用/未找到”等失败语义
@@ -170,7 +175,7 @@ public class McpGatewaySseToolsListTest {
         String modelPrompt = getConfig(
                 "mcp.gateway.model-prompt",
                 "MCP_GATEWAY_MODEL_PROMPT",
-                "请务必调用工具 sendWeixinNotice，参数：platform=测试平台，subject=网关联调验证，description=SSE+tools/list+tools/call 集成测试，jumpUrl=https://example.com。调用完成后用中文简短回复结果。"
+                "请务必调用工具 sendWeixinNotice，参数platform=测试平台，subject=网关联调验证，description=SSE+tools/list+tools/call 集成测试，jumpUrl=https://example.com。调用完成后用中文简短回复结果。"
         );
         Long preferredModelId = getLongConfig("mcp.gateway.model-id", "MCP_GATEWAY_MODEL_ID", null);
 
@@ -241,10 +246,13 @@ public class McpGatewaySseToolsListTest {
     /**
      * 解析要使用的 OpenAI 模型。
      *
-     * 优先级：
+     * 优先级
      * 1. 显式指定 modelId
      * 2. 当前激活且启用的 OpenAI 对话模型
      * 3. 启用列表中的任一 OpenAI 模型
+     * 
+     * @param preferredModelId 标识 ID。
+     * @return 可用的 OpenAI 模型配置。
      */
     private ModelConfig resolveOpenAiModelConfig(Long preferredModelId) {
         if (preferredModelId != null) {
@@ -279,6 +287,10 @@ public class McpGatewaySseToolsListTest {
 
     /**
      * 判断工具列表中是否存在指定工具。
+     * 
+     * @param callbacks 工具回调数组。
+     * @param expectedName 配置项值。
+     * @return `true` 表示存在目标工具，`false` 表示不存在。
      */
     private boolean hasTool(ToolCallback[] callbacks, String expectedName) {
         if (callbacks == null || callbacks.length == 0 || expectedName == null) {
@@ -298,6 +310,9 @@ public class McpGatewaySseToolsListTest {
 
     /**
      * 收集 tools/list 的工具名称，便于日志与断言排查。
+     * 
+     * @param callbacks 工具回调数组。
+     * @return 工具名称列表文本。
      */
     private String collectToolNames(ToolCallback[] callbacks) {
         if (callbacks == null || callbacks.length == 0) {
@@ -325,6 +340,9 @@ public class McpGatewaySseToolsListTest {
 
     /**
      * 提取模型最终文本输出，便于断言与日志排查。
+     * 
+     * @param response 模型响应。
+     * @return 助手文本输出。
      */
     private String extractAssistantContent(ChatResponse response) {
         if (response == null || response.getResult() == null || response.getResult().getOutput() == null) {
@@ -336,6 +354,9 @@ public class McpGatewaySseToolsListTest {
 
     /**
      * 判断回复中是否包含典型工具失败语义。
+     * 
+     * @param content 消息内容。
+     * @return `true` 表示命中失败语义，`false` 表示未命中。
      */
     private boolean containsToolFailureKeyword(String content) {
         if (content == null || content.isEmpty()) {
@@ -349,6 +370,10 @@ public class McpGatewaySseToolsListTest {
 
     /**
      * 构建网关 SSE 路径。
+     * 
+     * @param contextPath 上下文路径。
+     * @param gatewayId 标识 ID。
+     * @return SSE 路径。
      */
     private String buildSseEndpoint(String contextPath, String gatewayId) {
         String safeContext = ensureLeadingSlash(trimTrailingSlash(contextPath));
@@ -358,6 +383,9 @@ public class McpGatewaySseToolsListTest {
 
     /**
      * 去掉末尾斜杠，避免 URL 拼接产生双斜杠。
+     * 
+     * @param value 值。
+     * @return 去除末尾斜杠后的文本。
      */
     private String trimTrailingSlash(String value) {
         if (value == null || value.isEmpty()) {
@@ -371,6 +399,9 @@ public class McpGatewaySseToolsListTest {
 
     /**
      * 确保字符串以斜杠开头。
+     * 
+     * @param value 值。
+     * @return 补齐前导斜杠后的文本。
      */
     private String ensureLeadingSlash(String value) {
         if (value == null || value.isEmpty()) {
@@ -383,7 +414,12 @@ public class McpGatewaySseToolsListTest {
     }
 
     /**
-     * 读取字符串配置：优先系统属性，其次环境变量，最后默认值。
+     * 读取字符串配置优先系统属性，其次环境变量，最后默认值。
+     * 
+     * @param propertyKey 属性键。
+     * @param envKey 环境变量键。
+     * @param defaultValue 默认值。
+     * @return 配置值。
      */
     private String getConfig(String propertyKey, String envKey, String defaultValue) {
         String property = System.getProperty(propertyKey);
@@ -399,6 +435,11 @@ public class McpGatewaySseToolsListTest {
 
     /**
      * 读取整型配置，解析失败时回退默认值。
+     * 
+     * @param propertyKey 属性键。
+     * @param envKey 环境变量键。
+     * @param defaultValue 默认值。
+     * @return 数值型结果。
      */
     private Integer getIntConfig(String propertyKey, String envKey, Integer defaultValue) {
         String value = getConfig(propertyKey, envKey, null);
@@ -415,6 +456,11 @@ public class McpGatewaySseToolsListTest {
 
     /**
      * 读取 Long 配置，解析失败时回退默认值。
+     * 
+     * @param propertyKey 属性键。
+     * @param envKey 环境变量键。
+     * @param defaultValue 默认值。
+     * @return 数值型结果。
      */
     private Long getLongConfig(String propertyKey, String envKey, Long defaultValue) {
         String value = getConfig(propertyKey, envKey, null);

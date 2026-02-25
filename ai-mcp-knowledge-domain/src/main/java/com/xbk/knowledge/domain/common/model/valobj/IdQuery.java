@@ -12,6 +12,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class IdQuery {
 
+    /**
+     * 主键 ID。
+     */
     private Long id;
 
     public IdQuery(Long id) {

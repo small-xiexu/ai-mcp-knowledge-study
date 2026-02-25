@@ -25,12 +25,16 @@ public enum SessionMessageHandlerMethodEnum {
     /**
      * JSON-RPC method 字段值
      */
-     private final String method;
+    private final String method;
+
     /**
      * 对应的 Spring Bean 名称
      */
-     private final String handlerName;
+    private final String handlerName;
 
+    /**
+     * method 到枚举值的索引映射。
+     */
     private static final Map<String, SessionMessageHandlerMethodEnum> METHOD_MAP;
 
     static {
@@ -43,8 +47,11 @@ public enum SessionMessageHandlerMethodEnum {
 
     /**
      * 按 method 字符串查找对应枚举值，未匹配返回 null
+     * 
+     * @param method 请求方式。
+     * @return 枚举值。
      */
-     public static SessionMessageHandlerMethodEnum getByMethod(String method) {
+    public static SessionMessageHandlerMethodEnum getByMethod(String method) {
         if (method == null) {
             return null;
         }

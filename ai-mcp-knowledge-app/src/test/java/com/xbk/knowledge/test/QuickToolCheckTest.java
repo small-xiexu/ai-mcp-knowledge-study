@@ -23,10 +23,15 @@ import static org.junit.jupiter.api.Assertions.*;
 })
 public class QuickToolCheckTest {
 
+    /**
+     * 工具回调提供器。
+     */
     private final ToolCallbackProvider toolCallbackProvider;
 
     /**
      * 对外暴露 QuickToolCheckTest 作为调用入口，便于上层复用。
+     * 
+     * @param toolCallbackProvider 工具回调提供器。
      */
     @Autowired
     public QuickToolCheckTest(ToolCallbackProvider toolCallbackProvider) {

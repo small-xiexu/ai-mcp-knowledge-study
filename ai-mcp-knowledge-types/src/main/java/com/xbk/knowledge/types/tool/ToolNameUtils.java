@@ -11,6 +11,9 @@ package com.xbk.knowledge.types.tool;
  */
 public final class ToolNameUtils {
 
+    /**
+     * 函数名最大长度。
+     */
     private static final int MAX_NAME_LEN = 64;
 
     private ToolNameUtils() {
@@ -19,12 +22,17 @@ public final class ToolNameUtils {
     /**
      * 生成安全的工具函数名。
      *
-     * 输出格式：
+     * 输出格式
      * - {prefix}_{namespaceId}__{toolName}
      *
      * 规则：
      * - 仅保留 [A-Za-z0-9_-]，其它字符替换为下划线
      * - 超长截断到 64
+     * 
+     * @param prefix 前缀。
+     * @param namespaceId 标识 ID。
+     * @param toolName 工具名称。
+     * @return 安全的工具函数名。
      */
     public static String safeFunctionName(String prefix, String namespaceId, String toolName) {
         String p = sanitize(prefix == null ? "" : prefix);
@@ -48,9 +56,9 @@ public final class ToolNameUtils {
 
     /**
      * 执行脱敏处理。
-     *
-     * @param input 输入值。
-     * @return 返回清洗后的结果值。
+     * 
+     * @param input 输入文本。
+     * @return 清洗后的结果值。
      */
     private static String sanitize(String input) {
         if (input == null || input.isEmpty()) {
@@ -69,4 +77,3 @@ public final class ToolNameUtils {
         return sb.toString();
     }
 }
-

@@ -12,13 +12,24 @@ import lombok.Getter;
 @Getter
 public class ApprovalRequiredException extends RuntimeException {
 
+    /**
+     * 审批请求ID。
+     */
     private final Long approvalRequestId;
+
+    /**
+     * 工具标识。
+     */
     private final String toolKey;
+
+    /**
+     * 风险等级。
+     */
     private final String riskLevel;
 
     /**
      * ApprovalRequired 异常定义。
-     *
+     * 
      * @param approvalRequestId 审批单 ID。
      * @param toolKey 工具标识
      * @param riskLevel 风险等级。
@@ -31,4 +42,3 @@ public class ApprovalRequiredException extends RuntimeException {
         this.riskLevel = riskLevel;
     }
 }
-

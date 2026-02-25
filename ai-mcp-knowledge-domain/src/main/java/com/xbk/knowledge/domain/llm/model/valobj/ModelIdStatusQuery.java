@@ -20,14 +20,14 @@ public class ModelIdStatusQuery {
     /**
      * 模型ID
      *
-     * 为什么：用于按模型维度筛选
+     * 用于按模型维度筛选
      */
     private Long modelId;
 
     /**
      * 调用状态
      *
-     * 为什么：用于按状态维度筛选
+     * 用于按状态维度筛选
      */
     private CallStatus status;
 }

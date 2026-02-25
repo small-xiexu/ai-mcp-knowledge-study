@@ -12,6 +12,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class McpServerNameQuery {
 
+    /**
+     * MCP Server 名称。
+     */
     private String serverName;
 
     public McpServerNameQuery(String serverName) {

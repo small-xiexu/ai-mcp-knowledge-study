@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * 工具注册仓储实现
+ * 工具注册仓储实现。
  *
  * @author sxie
  */
@@ -25,13 +25,16 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository {
 
+    /**
+     * 工具注册 DAO。
+     */
     private final IMcpToolRegistryDao mapper;
 
     /**
      * 查询MCP 工具注册。
      *
-     * @param query 查询条件
-     * @return 返回 McpToolRegistry 查询结果（可能为空）。
+     * @param query 主键查询条件
+     * @return McpToolRegistry 查询结果（可能为空）
      */
     @Override
     public Optional<McpToolRegistry> findById(IdQuery query) {
@@ -45,8 +48,8 @@ public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository 
     /**
      * 查询MCP 工具注册。
      *
-     * @param query 查询条件
-     * @return 返回 McpToolRegistry 查询结果（可能为空）。
+     * @param query 网关工具名称查询条件
+     * @return McpToolRegistry 查询结果（可能为空）
      */
     @Override
     public Optional<McpToolRegistry> findByGatewayIdAndToolName(ToolNameQuery query) {
@@ -60,8 +63,8 @@ public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository 
     /**
      * 查询MCP 工具注册。
      *
-     * @param query 查询条件
-     * @return 返回 McpToolRegistry 列表数据。
+     * @param query 主键查询条件
+     * @return McpToolRegistry 列表
      */
     @Override
     public List<McpToolRegistry> findByGatewayId(GatewayIdQuery query) {
@@ -74,8 +77,8 @@ public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository 
     /**
      * 查询MCP 工具注册。
      *
-     * @param query 查询条件
-     * @return 返回 McpToolRegistry 列表数据。
+     * @param query 主键查询条件
+     * @return 已启用 McpToolRegistry 列表
      */
     @Override
     public List<McpToolRegistry> findEnabledByGatewayId(GatewayIdQuery query) {
@@ -88,8 +91,8 @@ public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository 
     /**
      * 查询MCP 工具注册。
      *
-     * @param query 查询条件
-     * @return 返回 McpToolRegistry 列表数据。
+     * @param query 分页查询条件
+     * @return McpToolRegistry 列表
      */
     @Override
     public List<McpToolRegistry> findPage(ToolRegistryPageQuery query) {
@@ -102,8 +105,8 @@ public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository 
     /**
      * 创建或更新MCP 工具注册数据。
      *
-     * @param registry 工具注册配置。
-     * @return 返回 McpToolRegistry 数据。
+     * @param registry 工具注册配置
+     * @return 保存后的 McpToolRegistry 信息
      */
     @Override
     public McpToolRegistry save(McpToolRegistry registry) {
@@ -111,7 +114,7 @@ public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository 
             return null;
         }
         // 补齐 toolKey/riskLevel，保证治理字段稳定。
-        // 约束：Gateway HTTP 工具默认使用 gateway:{gatewayId}:{toolName} 作为 toolKey。
+        // 约束Gateway HTTP 工具默认使用 gateway:{gatewayId}:{toolName} 作为 toolKey。
         if (registry.getToolKey() == null || registry.getToolKey().isBlank()) {
             String gatewayId = registry.getGatewayId();
             String toolName = registry.getToolName();
@@ -133,7 +136,7 @@ public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository 
     /**
      * 删除MCP 工具注册数据。
      *
-     * @param query 查询条件
+     * @param query 主键查询条件
      */
     @Override
     public void deleteById(IdQuery query) {
@@ -146,7 +149,7 @@ public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository 
     /**
      * 按条件统计业务数量。
      *
-     * @param query 查询条件
+     * @param query 主键查询条件
      * @return 统计数量
      */
     @Override

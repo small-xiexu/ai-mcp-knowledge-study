@@ -21,7 +21,7 @@ public class EnabledIdsQuery {
     /**
      * 模型ID列表
      *
-     * 为什么：承载可用模型的集合条件
+     * 承载可用模型的集合条件
      */
     private List<Long> ids;
 }

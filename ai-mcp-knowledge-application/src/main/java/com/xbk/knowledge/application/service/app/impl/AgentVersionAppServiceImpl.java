@@ -19,13 +19,16 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class AgentVersionAppServiceImpl implements AgentVersionAppService {
 
+    /**
+     * Agent 版本领域服务。
+     */
     private final IAgentVersionService agentVersionService;
 
     /**
      * 查询Agent 版本。
      *
-     * @param query 查询条件
-     * @return 返回 AgentVersion 分页数据。
+     * @param query 分页查询条件
+     * @return AgentVersion 分页数据
      */
     @Override
     public PageResult<AgentVersion> queryPage(AgentVersionPageQuery query) {
@@ -35,8 +38,8 @@ public class AgentVersionAppServiceImpl implements AgentVersionAppService {
     /**
      * 查询Agent 版本。
      *
-     * @param query 查询条件
-     * @return 返回 AgentVersion 数据。
+     * @param query 主键查询条件
+     * @return AgentVersion 详情
      */
     @Override
     public AgentVersion queryById(AgentVersionIdQuery query) {
@@ -46,8 +49,8 @@ public class AgentVersionAppServiceImpl implements AgentVersionAppService {
     /**
      * 创建并持久化Agent 版本数据。
      *
-     * @param draft 草稿版本实体。
-     * @return 返回 Agent 版本保存结果。
+     * @param draft 草稿版本实体
+     * @return 创建后的 AgentVersion 信息
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -58,8 +61,8 @@ public class AgentVersionAppServiceImpl implements AgentVersionAppService {
     /**
      * 更新Agent 版本数据。
      *
-     * @param draft 草稿版本实体。
-     * @return 返回 Agent 版本更新结果。
+     * @param draft 草稿版本实体
+     * @return 更新后的 AgentVersion 信息
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -73,7 +76,7 @@ public class AgentVersionAppServiceImpl implements AgentVersionAppService {
      * @param agentCode Agent 编码
      * @param versionId 版本 ID
      * @param operatorId 操作人 ID
-     * @return 返回 AgentVersion 数据。
+     * @return 发布后的 AgentVersion 信息
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -85,9 +88,9 @@ public class AgentVersionAppServiceImpl implements AgentVersionAppService {
      * 回滚业务配置。
      *
      * @param agentCode Agent 编码
-     * @param targetVersionId 目标版本 ID。
+     * @param targetVersionId 目标版本 ID
      * @param operatorId 操作人 ID
-     * @return 返回 AgentVersion 数据。
+     * @return 回滚后的 AgentVersion 信息
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -95,4 +98,3 @@ public class AgentVersionAppServiceImpl implements AgentVersionAppService {
         return agentVersionService.rollback(agentCode, targetVersionId, operatorId);
     }
 }
-

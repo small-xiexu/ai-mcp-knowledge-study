@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * 查询工作流版本。
+ * 工作流版本仓储实现。
  *
  * @author sxie
  */
@@ -23,13 +23,16 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class WorkflowVersionRepositoryImpl implements WorkflowVersionRepository {
 
+    /**
+     * Workflow 版本数据访问对象。
+     */
     private final IWorkflowVersionDao mapper;
 
     /**
      * 查询工作流版本。
      *
-     * @param query 查询条件
-     * @return 返回 WorkflowVersion 查询结果（可能为空）。
+     * @param query 主键查询条件
+     * @return WorkflowVersion 查询结果（可能为空）
      */
     @Override
     public Optional<WorkflowVersion> findById(WorkflowVersionIdQuery query) {
@@ -43,8 +46,8 @@ public class WorkflowVersionRepositoryImpl implements WorkflowVersionRepository 
     /**
      * 根据筛选条件查询工作流版本列表。
      *
-     * @param query 查询条件
-     * @return 返回 WorkflowVersion 列表数据。
+     * @param query 工作流版本列表查询条件
+     * @return WorkflowVersion 列表
      */
     @Override
     public List<WorkflowVersion> listByWorkflowId(WorkflowVersionListQuery query) {
@@ -57,8 +60,8 @@ public class WorkflowVersionRepositoryImpl implements WorkflowVersionRepository 
     /**
      * 创建并持久化工作流版本数据。
      *
-     * @param version 版本实体。
-     * @return 返回 WorkflowVersion 数据。
+     * @param version 版本实体
+     * @return 创建后的 WorkflowVersion 信息
      */
     @Override
     public WorkflowVersion insert(WorkflowVersion version) {
@@ -72,8 +75,8 @@ public class WorkflowVersionRepositoryImpl implements WorkflowVersionRepository 
     /**
      * 更新工作流版本数据。
      *
-     * @param version 版本实体。
-     * @return 返回版本更新条数。
+     * @param version 版本实体
+     * @return 版本更新条数
      */
     @Override
     public int updateById(WorkflowVersion version) {
@@ -87,7 +90,7 @@ public class WorkflowVersionRepositoryImpl implements WorkflowVersionRepository 
      * 查询工作流版本。
      *
      * @param workflowId Workflow ID
-     * @return 返回 WorkflowVersion 查询结果（可能为空）。
+     * @return 已发布 WorkflowVersion（可能为空）
      */
     @Override
     public Optional<WorkflowVersion> findPublishedVersion(Long workflowId) {

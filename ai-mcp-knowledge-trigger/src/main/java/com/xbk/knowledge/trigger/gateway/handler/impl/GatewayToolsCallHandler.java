@@ -24,14 +24,17 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class GatewayToolsCallHandler implements IRequestHandler {
 
+    /**
+     * Gateway 工具服务。
+     */
     private final GatewayToolService gatewayToolService;
 
     /**
      * 处理业务请求。
-     *
+     * 
      * @param gatewayId 网关 ID
      * @param request tools/call 协议请求参数。
-     * @return 返回 McpSchemaVO.JSONRPCResponse 数据。
+     * @return McpSchemaVO.JSONRPCResponse 数据。
      */
     @Override
     public McpSchemaVO.JSONRPCResponse handle(String gatewayId, McpSchemaVO.JSONRPCRequest request) {
@@ -80,6 +83,10 @@ public class GatewayToolsCallHandler implements IRequestHandler {
 
     /**
      * 构造参数校验失败的 JSON-RPC 错误响应（错误码 -32602）
+     * 
+     * @param requestId JSON-RPC 请求 ID。
+     * @param message 消息内容。
+     * @return JSON-RPC 响应。
      */
      private McpSchemaVO.JSONRPCResponse invalidParams(Object requestId, String message) {
         return new McpSchemaVO.JSONRPCResponse(

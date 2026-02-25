@@ -55,7 +55,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 /**
  * Ollama 大模型集成测试类
  * 演示基于 Spring AI 框架调用本地部署的 Ollama 模型（deepseek-r1:1.5b）
- * 包含：同步调用、流式调用、图片识别、RAG 知识库问答等场景
+ * 包含同步调用、流式调用、图片识别、RAG 知识库问答等场景
  *
  * @author xiexu
  */
@@ -91,11 +91,11 @@ public class OllamaTest {
 
     /**
      * 创建 Ollama 测试实例并注入依赖组件。
-     *
+     * 
      * @param ollamaChatModel Ollama对话模型。
-     * @param imageResource 测试图片资源。
+     * @param imageResource 图片资源。
      * @param simpleVectorStore 内存向量库。
-     * @param pgVectorStore PgVector向量库。
+     * @param pgVectorStore PgVector 向量库。
      * @param tokenTextSplitter 文本切分器。
      */
     @Autowired
@@ -178,7 +178,7 @@ public class OllamaTest {
         Prompt prompt = new Prompt("1+1", chatOptions);
         Flux<ChatResponse> stream = ollamaChatModel.stream(prompt);
 
-        // 订阅响应流：逐块处理、错误处理、完成回调
+        // 订阅响应流逐块处理、错误处理、完成回调
         Consumer<ChatResponse> responseConsumer = chatResponse -> {
             AssistantMessage output = chatResponse
                     .getResult()
@@ -208,7 +208,7 @@ public class OllamaTest {
      */
     @Test
     public void upload() {
-        // 1. 使用 Tika 读取文档（支持多种格式：txt、pdf、docx 等）
+        // 1. 使用 Tika 读取文档（支持多种格式txt、pdf、docx 等）
         TikaDocumentReader reader = new TikaDocumentReader("./data/file.txt");
 
         List<Document> documents = reader.get();
@@ -240,7 +240,7 @@ public class OllamaTest {
     public void chat() {
         String message = "人工智能学科始于哪一年";
 
-        // 系统提示词模板：指导模型基于检索到的文档回答问题
+        // 系统提示词模板指导模型基于检索到的文档回答问题
         String SYSTEM_PROMPT = """
                 Use the information from the DOCUMENTS section to provide accurate answers but act as if you knew this information innately.
                 If unsure, simply state that you don't know.
@@ -249,7 +249,7 @@ public class OllamaTest {
                     {documents}
                 """;
 
-        // 1. 构建向量搜索请求：查询语句、返回 Top5、按知识库过滤
+        // 1. 构建向量搜索请求查询语句、返回 Top5、按知识库过滤
         SearchRequest request = SearchRequest.builder()
                 .query(message)
                 .topK(5)
@@ -272,7 +272,7 @@ public class OllamaTest {
         Map<String, Object> promptVariables = Collections.<String, Object>singletonMap("documents", documentsCollectors);
         Message ragMessage = promptTemplate.createMessage(promptVariables);
 
-        // 5. 组装消息列表：用户问题 + 系统提示（含检索上下文）
+        // 5. 组装消息列表用户问题 + 系统提示（含检索上下文）
         ArrayList<Message> messages = new ArrayList<>();
         UserMessage userMessage = new UserMessage(message);
         messages.add(userMessage);

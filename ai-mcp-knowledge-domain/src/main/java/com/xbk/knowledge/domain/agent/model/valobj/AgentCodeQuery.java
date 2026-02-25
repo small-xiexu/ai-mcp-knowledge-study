@@ -14,5 +14,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AgentCodeQuery {
 
+    /**
+     * Agent 编码。
+     */
     private String agentCode;
 }

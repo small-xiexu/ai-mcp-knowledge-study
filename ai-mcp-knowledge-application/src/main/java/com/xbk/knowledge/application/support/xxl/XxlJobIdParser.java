@@ -14,13 +14,14 @@ public final class XxlJobIdParser {
 
     /**
      * 创建 XXL-Job ID 解析器并注入依赖组件。
+     * 
      */
     private XxlJobIdParser() {
     }
 
     /**
      * 解析业务数据。
-     *
+     * 
      * @param content 输入内容
      * @return 处理后的结果
      */

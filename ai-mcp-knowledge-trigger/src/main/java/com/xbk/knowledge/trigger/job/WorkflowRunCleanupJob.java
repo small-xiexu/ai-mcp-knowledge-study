@@ -23,17 +23,38 @@ import java.util.List;
 @RequiredArgsConstructor
 public class WorkflowRunCleanupJob {
 
+    /**
+     * 运行记录保留天数。
+     */
     private static final int RETENTION_DAYS = 7;
+
+    /**
+     * 单批清理运行记录上限。
+     */
     private static final int BATCH_LIMIT = 2000;
+
+    /**
+     * 最大批处理次数。
+     */
     private static final int MAX_BATCHES = 20;
 
+    /**
+     * Workflow 运行仓储。
+     */
     private final WorkflowRunRepository workflowRunRepository;
+
+    /**
+     * Workflow 节点运行仓储。
+     */
     private final WorkflowNodeRunRepository workflowNodeRunRepository;
+
+    /**
+     * Workflow 运行上下文仓储。
+     */
     private final WorkflowRunContextRepository workflowRunContextRepository;
 
     /**
      * 执行定时任务处理。
-     *
      */
     @XxlJob("workflowRunCleanupHandler")
     public void execute() {

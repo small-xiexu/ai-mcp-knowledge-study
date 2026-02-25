@@ -37,16 +37,27 @@ import java.util.List;
 @EnableConfigurationProperties(VectorStoreProperties.class)
 public class VectorStoreConfig {
 
+    /**
+     * PgVector JDBC 模板。
+     */
     private final JdbcTemplate pgvectorJdbcTemplate;
+
+    /**
+     * 模型配置应用服务。
+     */
     private final ModelConfigAppService modelConfigAppService;
+
+    /**
+     * 向量存储配置属性。
+     */
     private final VectorStoreProperties vectorStoreProperties;
 
     /**
      * 创建向量存储配置并注入依赖组件。
-     *
-     * @param pgvectorJdbcTemplate PgVector JDBC模板。
+     * 
+     * @param pgvectorJdbcTemplate PgVector JDBC 模板。
      * @param modelConfigAppService 模型配置应用服务。
-     * @param vectorStoreProperties 向量库配置。
+     * @param vectorStoreProperties 向量存储配置属性。
      */
     public VectorStoreConfig(
             @Qualifier("pgvectorJdbcTemplate") JdbcTemplate pgvectorJdbcTemplate,
@@ -59,7 +70,7 @@ public class VectorStoreConfig {
 
     /**
      * OpenAI 向量存储
-     *
+     * 
      * @return PgVectorStore
      */
     @Bean(name = "openAiPgVectorStore")
@@ -73,7 +84,7 @@ public class VectorStoreConfig {
 
     /**
      * Ollama 向量存储
-     *
+     * 
      * @return PgVectorStore
      */
     @Bean(name = "ollamaPgVectorStore")
@@ -87,9 +98,9 @@ public class VectorStoreConfig {
 
     /**
      * 构建 PgVectorStore
-     *
+     * 
      * @param embeddingModel 嵌入模型
-     * @param tableName      向量表名
+     * @param tableName 向量表名
      * @return PgVectorStore
      */
     private PgVectorStore buildPgVectorStore(EmbeddingModel embeddingModel, String tableName) {
@@ -104,6 +115,9 @@ public class VectorStoreConfig {
     /**
      * 根据模型类型解析启用的嵌入模型
      * 统一从数据库配置加载，避免依赖 Spring AI 自动配置
+     * 
+     * @param modelTypes 允许匹配的模型类型列表（按传入顺序匹配）。
+     * @return 匹配到的启用模型配置。
      */
     private ModelConfig resolveEmbeddingModel(ModelType... modelTypes) {
         List<ModelConfig> enabledModels = modelConfigAppService.queryEnabledModels(new EnabledQuery(true));
@@ -124,6 +138,9 @@ public class VectorStoreConfig {
 
     /**
      * 构建 EmbeddingModel
+     * 
+     * @param modelConfig 模型配置。
+     * @return 与配置匹配的嵌入模型。
      */
     private EmbeddingModel buildEmbeddingModel(ModelConfig modelConfig) {
         if (modelConfig == null || modelConfig.getModelType() == null) {
@@ -160,6 +177,9 @@ public class VectorStoreConfig {
     /**
      * 规范化 baseUrl
      * 避免 /v1 或 /v1/embeddings 后缀导致重复拼接
+     * 
+     * @param baseUrl 基础 URL。
+     * @return 规范化后的基础 URL。
      */
     private String normalizeBaseUrl(String baseUrl) {
         if (!StringUtils.hasText(baseUrl)) {
@@ -179,6 +199,9 @@ public class VectorStoreConfig {
 
     /**
      * 规范化 embeddingsPath，保证以 '/' 开头并提供默认值。
+     * 
+     * @param embeddingsPath 路径。
+     * @return 规范化后的 embeddingsPath。
      */
     private String resolveEmbeddingsPath(String embeddingsPath) {
         String resolved = StringUtils.hasText(embeddingsPath) ? embeddingsPath.trim() : "/v1/embeddings";

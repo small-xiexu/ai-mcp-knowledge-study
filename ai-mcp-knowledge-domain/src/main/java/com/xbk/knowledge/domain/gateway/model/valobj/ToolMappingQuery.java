@@ -12,7 +12,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ToolMappingQuery {
 
+    /**
+     * 工具 ID。
+     */
     private Long toolId;
+
+    /**
+     * 映射类型。
+     */
     private String mappingType;
 
     public ToolMappingQuery(Long toolId, String mappingType) {

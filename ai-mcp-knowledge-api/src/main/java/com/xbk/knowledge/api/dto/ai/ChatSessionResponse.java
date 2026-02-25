@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * 会话响应
+ * 话响应
  *
  * @author sxie
  */
@@ -14,17 +14,17 @@ import java.util.List;
 public class ChatSessionResponse {
 
     /**
-     * 会话ID
+     * 会话 ID
      */
     private Long id;
 
     /**
-     * 会话标题
+     * 话标题
      */
     private String title;
 
     /**
-     * 会话默认模型ID
+     * 话默认模型ID
      */
     private Long modelId;
 

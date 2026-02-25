@@ -17,6 +17,9 @@ public interface AgentEnhancerRuntimeService {
 
     /**
      * 绑定配置变更后调用，用于驱逐缓存（可选）。
+     * 
+     * @param bindType 绑定类型。
+     * @param bindTargetId 标识 ID。
      */
     void evictBindingCache(String bindType, Long bindTargetId);
 

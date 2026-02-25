@@ -17,15 +17,15 @@ public interface RoleAppService {
 
     /**
      * 分页查询角色。
-     *
-     * @param query 查询条件
-     * @return 分页结果
+     * 
+     * @param query 分页查询条件。
+     * @return SysRole 分页结果。
      */
     PageResult<SysRole> queryRolePage(RolePageQuery query);
 
     /**
      * 创建角色。
-     *
+     * 
      * @param role 角色实体
      * @return 创建后的角色
      */
@@ -33,7 +33,7 @@ public interface RoleAppService {
 
     /**
      * 更新角色。
-     *
+     * 
      * @param role 角色实体
      * @return 更新后的角色
      */
@@ -41,7 +41,7 @@ public interface RoleAppService {
 
     /**
      * 查询角色已绑定的权限 ID 列表。
-     *
+     * 
      * @param roleId 角色ID
      * @return 权限ID列表
      */
@@ -49,7 +49,7 @@ public interface RoleAppService {
 
     /**
      * 绑定角色权限。
-     *
+     * 
      * @param roleId 角色ID
      * @param permissionIds 权限ID列表
      * @param operatorId 操作人ID

@@ -28,7 +28,7 @@ import java.util.function.Predicate;
  * Web 请求日志切面
  * 统一记录所有 HTTP 接口的请求/响应/耗时信息
  *
- * 设计目标：
+ * 设计目标
  * 1、 日志结构稳定，方便后续接入日志平台检索
  * 2、 请求/响应尽量保持 JSON 结构，避免解析困难
  * 3、 避免大对象刷屏，通过截断包装保持合法 JSON
@@ -42,7 +42,9 @@ import java.util.function.Predicate;
 @Component
 @RequiredArgsConstructor
 public class WebLogAspect {
-
+    /**
+     * JSON 序列化组件，用于统一格式化请求/响应日志内容。
+     */
     private final ObjectMapper objectMapper;
 
     /**
@@ -53,13 +55,14 @@ public class WebLogAspect {
     }
 
     /**
-     * 环绕通知：记录请求和响应信息
+     * 环绕通知记录请求和响应信息
      *
-     * 为什么：统一请求/响应日志结构，确保排障时可关联 traceId 与耗时。
+     * 统一请求/响应日志结构，确保排障时可关联 traceId 与耗时。
      *
+     * @throws Throwable 异常
+     * 
      * @param joinPoint 连接点
      * @return 方法返回值
-     * @throws Throwable 异常
      */
     @Around("webLog()")
     public Object doAround(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -93,7 +96,12 @@ public class WebLogAspect {
      * 构建请求上下文
      * 使用简化类名与方法名，避免日志过长且便于定位
      *
-     * 为什么：保持日志字段稳定且可读，降低检索成本。
+     * 保持日志字段稳定且可读，降低检索成本。
+     * 
+     * @param joinPoint AOP 切点信息。
+     * @param request HTTP 请求。
+     * @param traceId 标识 ID。
+     * @return 请求上下文。
      */
     private RequestContext buildRequestContext(ProceedingJoinPoint joinPoint, HttpServletRequest request, String traceId) {
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
@@ -121,12 +129,12 @@ public class WebLogAspect {
      * 记录请求与响应信息
      * 保持一条日志输出，便于 ELK 聚合检索
      *
-     * 为什么：避免多条日志分散导致上下文难以拼接。
-     *
+     * 避免多条日志分散导致上下文难以拼接。
+     * 
      * @param requestContext 请求上下文
-     * @param result    返回结果
+     * @param result 返回结果
      * @param exception 异常信息
-     * @param costTime  耗时（毫秒）
+     * @param costTime 耗时（毫秒）
      */
     private void logRequestAndResponse(RequestContext requestContext, Object result,
                               Throwable exception, long costTime) {
@@ -160,8 +168,8 @@ public class WebLogAspect {
      * 避免日志过长，对大对象进行截断
      * 过滤 Servlet 原生对象，避免日志污染和序列化异常
      *
-     * 为什么：保证日志可解析且不会因大对象导致日志爆量。
-     *
+     * 保证日志可解析且不因大对象导致日志爆量。
+     * 
      * @param args 方法参数数组
      * @return 格式化后的参数字符串
      */
@@ -187,8 +195,8 @@ public class WebLogAspect {
      * 避免日志过长，对大对象进行截断
      * 截断时保持 JSON 结构，方便下游解析
      *
-     * 为什么：兼顾可读性与机器可解析性。
-     *
+     * 兼顾可读性与机器可解析性。
+     * 
      * @param result 返回结果
      * @return 格式化后的响应 JSON
      */
@@ -203,10 +211,10 @@ public class WebLogAspect {
 
     /**
      * 截断过长 JSON 字符串。
-     *
+     * 
      * @param json JSON 字符串。
      * @param maxLength 最大长度。
-     * @return 返回 JSON 字符串。
+     * @return JSON 字符串。
      */
     private String truncateJsonString(String json, int maxLength) {
         if (json == null) {
@@ -222,9 +230,9 @@ public class WebLogAspect {
 
     /**
      * 构建请求地址。
-     *
-     * @param request 请求参数。
-     * @return 返回构建结果对象。
+     * 
+     * @param request HTTP 请求。
+     * @return 构建后的请求地址。
      */
     private String buildRequestUrl(HttpServletRequest request) {
         if (request == null) {
@@ -246,8 +254,8 @@ public class WebLogAspect {
      * 对象转 JSON 字符串
      * 序列化失败时回退为 toString，避免影响主流程
      *
-     * 为什么：日志记录不应影响接口主流程。
-     *
+     * 日志记录不应影响接口主流程。
+     * 
      * @param obj 对象
      * @return JSON 字符串
      */
@@ -266,8 +274,8 @@ public class WebLogAspect {
     /**
      * 截断字符串
      * 避免日志过长
-     *
-     * @param str       原始字符串
+     * 
+     * @param str 原始字符串
      * @param maxLength 最大长度
      * @return 截断后的字符串
      */
@@ -287,25 +295,47 @@ public class WebLogAspect {
      *
      * @author sxie
      */
-      private static class RequestContext {
-        
+    private static class RequestContext {
+
+        /**
+         * 链路追踪 ID。
+         */
         private final String traceId;
+
+        /**
+         * 控制器名称。
+         */
         private final String controller;
+
+        /**
+         * 控制器方法名称。
+         */
         private final String method;
+
+        /**
+         * 请求 URI。
+         */
         private final String requestUri;
+
+        /**
+         * 请求完整 URL。
+         */
         private final String requestUrl;
+
+        /**
+         * 方法参数快照。
+         */
         private final Object[] args;
 
         /**
          * 构建请求上下文快照对象。
-         *
+         * 
          * @param traceId 链路追踪ID。
          * @param controller 控制器名称。
          * @param method 方法名称。
          * @param requestUri 请求URI。
          * @param requestUrl 请求URL。
          * @param args 方法参数数组。
-         * @return 返回当前对象实例。
          */
         private RequestContext(String traceId, String controller, String method, String requestUri, String requestUrl,
                                Object[] args) {
@@ -324,10 +354,17 @@ public class WebLogAspect {
      *
      * @author sxie
      */
-      @Getter
+    @Getter
     private static class TruncatedPayload {
-        
+
+        /**
+         * 是否发生截断。
+         */
         private final boolean truncated;
+
+        /**
+         * 截断后的字符串值。
+         */
         private final String value;
 
         private TruncatedPayload(boolean truncated, String value) {

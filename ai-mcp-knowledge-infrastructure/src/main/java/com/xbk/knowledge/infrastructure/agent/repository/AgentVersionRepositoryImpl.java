@@ -24,13 +24,16 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AgentVersionRepositoryImpl implements AgentVersionRepository {
 
+    /**
+     * Agent 版本数据访问对象。
+     */
     private final IAgentVersionDao agentVersionDao;
 
     /**
      * 查询Agent 版本。
-     *
-     * @param query 查询条件
-     * @return 返回 AgentVersion 查询结果（可能为空）。
+     * 
+     * @param query 主键查询条件。
+     * @return AgentVersion 查询结果（可能为空）。
      */
     @Override
     public Optional<AgentVersion> findById(AgentVersionIdQuery query) {
@@ -42,9 +45,9 @@ public class AgentVersionRepositoryImpl implements AgentVersionRepository {
 
     /**
      * 查询Agent 版本。
-     *
-     * @param query 查询条件
-     * @return 返回 AgentVersion 列表数据。
+     * 
+     * @param query 分页查询条件。
+     * @return AgentVersion 列表数据。
      */
     @Override
     public List<AgentVersion> findPage(AgentVersionPageQuery query) {
@@ -59,9 +62,9 @@ public class AgentVersionRepositoryImpl implements AgentVersionRepository {
 
     /**
      * 根据筛选条件查询Agent 版本列表。
-     *
+     * 
      * @param agentId Agent ID
-     * @return 返回 AgentVersion 列表数据。
+     * @return AgentVersion 列表数据。
      */
     @Override
     public List<AgentVersion> listByAgentId(Long agentId) {
@@ -76,8 +79,8 @@ public class AgentVersionRepositoryImpl implements AgentVersionRepository {
 
     /**
      * 按条件统计业务数量。
-     *
-     * @param query 查询条件
+     * 
+     * @param query 分页查询条件。
      * @return 统计数量
      */
     @Override
@@ -90,9 +93,9 @@ public class AgentVersionRepositoryImpl implements AgentVersionRepository {
 
     /**
      * 查询Agent 版本。
-     *
+     * 
      * @param agentId Agent ID
-     * @return 返回最大版本号。
+     * @return 最大版本号。
      */
     @Override
     public Integer findMaxVersionNo(Long agentId) {
@@ -104,10 +107,10 @@ public class AgentVersionRepositoryImpl implements AgentVersionRepository {
 
     /**
      * 判断指定版本号是否已存在。
-     *
+     * 
      * @param agentId Agent ID
      * @param versionNo 版本号。
-     * @return 返回是否存在。
+     * @return 是否存在。
      */
     @Override
     public boolean existsByAgentIdAndVersionNo(Long agentId, Integer versionNo) {
@@ -119,9 +122,9 @@ public class AgentVersionRepositoryImpl implements AgentVersionRepository {
 
     /**
      * 创建并持久化Agent 版本数据。
-     *
+     * 
      * @param version 版本实体。
-     * @return 返回 Agent 版本保存结果。
+     * @return Agent 版本保存结果。
      */
     @Override
     public AgentVersion insert(AgentVersion version) {
@@ -143,9 +146,9 @@ public class AgentVersionRepositoryImpl implements AgentVersionRepository {
 
     /**
      * 更新Agent 版本数据。
-     *
+     * 
      * @param version 版本实体。
-     * @return 返回 Agent 版本处理条数。
+     * @return Agent 版本处理条数。
      */
     @Override
     public int updateDraft(AgentVersion version) {
@@ -160,13 +163,13 @@ public class AgentVersionRepositoryImpl implements AgentVersionRepository {
 
     /**
      * 发布业务配置。
-     *
+     * 
      * @param id 主键 ID
      * @param promptTemplateVersionNo 提示词模板版本号。
      * @param templateParamsJson 模板参数 JSON。
      * @param systemPromptSnapshot 系统提示词快照。
      * @param updatedBy 更新人 ID
-     * @return 返回 Agent 版本处理条数。
+     * @return Agent 版本处理条数。
      */
     @Override
     public int publish(Long id,
@@ -187,11 +190,11 @@ public class AgentVersionRepositoryImpl implements AgentVersionRepository {
 
     /**
      * 更新Agent 版本数据。
-     *
+     * 
      * @param id 主键 ID
      * @param fromState 原状态。
      * @param toState 目标状态。
-     * @return 返回 Agent 版本处理条数。
+     * @return Agent 版本处理条数。
      */
     @Override
     public int updateState(Long id, String fromState, String toState) {
@@ -203,9 +206,9 @@ public class AgentVersionRepositoryImpl implements AgentVersionRepository {
 
     /**
      * 删除Agent 版本数据。
-     *
+     * 
      * @param agentId Agent ID
-     * @return 返回 Agent 版本处理条数。
+     * @return Agent 版本处理条数。
      */
     @Override
     public int removeByAgentId(Long agentId) {
@@ -217,6 +220,9 @@ public class AgentVersionRepositoryImpl implements AgentVersionRepository {
 
     /**
      * 实体转持久化对象。
+     * 
+     * @param version 版本实体。
+     * @return 版本持久化实体。
      */
     private AgentVersionPO toPO(AgentVersion version) {
         if (version == null) {
@@ -255,6 +261,9 @@ public class AgentVersionRepositoryImpl implements AgentVersionRepository {
 
     /**
      * 持久化对象转实体。
+     * 
+     * @param po 版本持久化实体。
+     * @return 版本实体。
      */
     private AgentVersion toEntity(AgentVersionPO po) {
         if (po == null) {

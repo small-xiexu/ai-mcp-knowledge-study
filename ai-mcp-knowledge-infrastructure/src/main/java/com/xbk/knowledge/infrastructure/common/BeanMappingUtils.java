@@ -16,6 +16,7 @@ public final class BeanMappingUtils {
 
     /**
      * 创建对象映射工具并注入依赖组件。
+     * 
      */
     private BeanMappingUtils() {
     }
@@ -23,10 +24,11 @@ public final class BeanMappingUtils {
     /**
      * 单对象复制。
      *
-     * @param source    源对象
-     * @param targetCls 目标类型
      * @param <S>       源类型
      * @param <T>       目标类型
+     * 
+     * @param source 源对象
+     * @param targetCls 目标类型
      * @return 目标对象
      */
     public static <S, T> T map(S source, Class<T> targetCls) {
@@ -45,10 +47,11 @@ public final class BeanMappingUtils {
     /**
      * 列表复制。
      *
-     * @param sourceList 源列表
-     * @param targetCls  目标类型
      * @param <S>        源类型
      * @param <T>        目标类型
+     * 
+     * @param sourceList 源列表
+     * @param targetCls 目标类型
      * @return 目标列表
      */
     public static <S, T> List<T> mapList(List<S> sourceList, Class<T> targetCls) {

@@ -22,6 +22,9 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class IdentityAuditLogService {
 
+    /**
+     * 审计事件数据访问对象。
+     */
     private final ISysAuditEventDao sysAuditEventMapper;
 
     /**

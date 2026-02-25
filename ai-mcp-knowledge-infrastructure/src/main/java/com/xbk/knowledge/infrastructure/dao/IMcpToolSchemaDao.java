@@ -16,22 +16,35 @@ public interface IMcpToolSchemaDao extends BaseMapper<McpToolSchemaPO> {
 
     /**
      * 新增 Schema 缓存记录
+     * 
+     * @param schema 工具 Schema 持久化实体。
+     * @return 影响行数。
      */
      int insertToolSchema(McpToolSchemaPO schema);
 
     /**
      * 更新 Schema 缓存记录
+     * 
+     * @param schema 工具 Schema 持久化实体。
+     * @return 影响行数。
      */
      int updateToolSchema(McpToolSchemaPO schema);
 
     /**
      * 按 gatewayId + toolId 查询当前生效的 Schema 快照
+     * 
+     * @param gatewayId 标识 ID。
+     * @param toolId 标识 ID。
+     * @return 工具 Schema 持久化实体。
      */
      McpToolSchemaPO findActiveByGatewayIdAndToolId(@Param("gatewayId") String gatewayId,
                                                  @Param("toolId") Long toolId);
 
     /**
      * 按工具 ID 删除所有 Schema 快照
+     * 
+     * @param query 主键查询条件。
+     * @return 影响行数。
      */
      int deleteByToolId(ToolIdQuery query);
 }

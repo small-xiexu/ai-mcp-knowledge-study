@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 
 /**
  * 系统角色实体。
- * 对应数据库表：sys_role
+ * 对应数据库表sys_role
  *
  * 职责：领域实体，用于承载角色信息。
  *
@@ -46,7 +46,7 @@ public class SysRolePO {
     private String roleName;
 
     /**
-     * 状态：1启用、0禁用。
+     * 状态1启用、0禁用。
      */
     private Integer status;
 

@@ -26,7 +26,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Gateway 会话服务
+ * Gateway 话服务
  *
  * 职责：管理 MCP SSE 连接的完整生命周期，包括建立连接、API Key 鉴权、
  * 速率限制、心跳保活、消息回推、会话过期清理
@@ -39,29 +39,41 @@ import java.util.concurrent.ConcurrentHashMap;
 public class GatewaySessionService {
 
     /**
-     * 会话超时时间（分钟），超过此时间未活跃的会话将被清理
+     * 话超时时间（分钟），超过此时间未活跃的话将被清理。
      */
     private static final long SESSION_TIMEOUT_MINUTES = 30;
 
+    /**
+     * 网关仓储。
+     */
     private final McpGatewayRepository gatewayRepository;
+
+    /**
+     * 网关鉴权仓储。
+     */
     private final McpGatewayAuthRepository gatewayAuthRepository;
+
+    /**
+     * JSON 序列化/反序列化组件。
+     */
     private final ObjectMapper objectMapper;
 
     /**
-     * sessionId → 会话状态，内存维护所有活跃会话
+     * sessionId 到会话状态的映射，内存维护所有活跃话。
      */
     private final Map<String, SessionConfigVO> sessions = new ConcurrentHashMap<>();
+
     /**
-     * gatewayId:apiKey → 速率窗口，用于 API Key 调用频率限制
+     * gatewayId:apiKey 到速率窗口的映射，用于 API Key 调用频率限制。
      */
     private final Map<String, RateWindow> rateWindows = new ConcurrentHashMap<>();
 
     /**
      * 建立 SSE 连接
      * 流程：校验网关 → 校验 API Key → 生成 sessionId → 推送 endpoint 事件 → 启动心跳
-     *
+     * 
      * @param gatewayId 网关业务标识
-     * @param apiKey    客户端传入的 API Key（可选，取决于网关是否配置鉴权）
+     * @param apiKey 客户端传入的 API Key（可选，取决于网关是否配置鉴权）
      * @return SSE 事件流
      */
     public Flux<ServerSentEvent<String>> establishSseConnection(String gatewayId, String apiKey) {
@@ -85,7 +97,10 @@ public class GatewaySessionService {
     }
 
     /**
-     * 按 sessionId 获取活跃会话，同时刷新最后访问时间
+     * 按 sessionId 获取活跃话，同时刷新最后访问时间
+     * 
+     * @param sessionId 会话 ID。
+     * @return 会话配置。
      */
     public SessionConfigVO getSession(String sessionId) {
         if (!StringUtils.hasText(sessionId)) {
@@ -100,7 +115,9 @@ public class GatewaySessionService {
     }
 
     /**
-     * 移除会话并关闭对应的 SSE sink
+     * 移除话并关闭对应的 SSE sink
+     * 
+     * @param sessionId 会话 ID。
      */
     public void removeSession(String sessionId) {
         SessionConfigVO session = sessions.remove(sessionId);
@@ -117,6 +134,9 @@ public class GatewaySessionService {
 
     /**
      * 将 JSON-RPC 响应通过 SSE 推送给客户端
+     * 
+     * @param sessionId 会话 ID。
+     * @param rpcResponse JSON-RPC 响应。
      */
     public void publishResponse(String sessionId, McpSchemaVO.JSONRPCResponse rpcResponse) {
         if (rpcResponse == null || !StringUtils.hasText(sessionId)) {
@@ -158,6 +178,8 @@ public class GatewaySessionService {
 
     /**
      * 校验网关是否存在且已启用
+     * 
+     * @param gatewayId 标识 ID。
      */
     private void validateGateway(String gatewayId) {
         if (!StringUtils.hasText(gatewayId)) {
@@ -174,6 +196,9 @@ public class GatewaySessionService {
 
     /**
      * 校验 API Key 有效性（存在性、过期、速率限制）
+     * 
+     * @param gatewayId 标识 ID。
+     * @param apiKey API Key。
      */
     private void validateApiKey(String gatewayId, String apiKey) {
         List<McpGatewayAuth> authList = gatewayAuthRepository.findByGatewayId(new GatewayIdQuery(gatewayId));
@@ -215,6 +240,10 @@ public class GatewaySessionService {
 
     /**
      * 基于滑动分钟窗口的速率限制检查
+     * 
+     * @param gatewayId 标识 ID。
+     * @param apiKey API Key。
+     * @param rateLimit 限流配置。
      */
     private void checkRateLimit(String gatewayId, String apiKey, Integer rateLimit) {
         if (rateLimit == null || rateLimit <= 0) {
@@ -240,7 +269,14 @@ public class GatewaySessionService {
      */
     private static class RateWindow {
 
+        /**
+         * 分钟窗口标识。
+         */
         private final long windowMinute;
+
+        /**
+         * 当前窗口内调用计数。
+         */
         private int count;
 
         private RateWindow(long windowMinute, int count) {

@@ -26,14 +26,21 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserIdentityAppServiceImpl implements UserIdentityAppService {
 
+    /**
+     * 身份仓储。
+     */
     private final IdentityRepository identityRepository;
+
+    /**
+     * 密码编码器。
+     */
     private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 
     /**
      * 分页查询用户。
-     *
-     * @param query 查询条件
-     * @return 分页结果
+     * 
+     * @param query 分页查询条件。
+     * @return SysUser 分页结果。
      */
     @Override
     public PageResult<SysUser> queryUserPage(UserPageQuery query) {
@@ -53,8 +60,8 @@ public class UserIdentityAppServiceImpl implements UserIdentityAppService {
 
     /**
      * 创建用户。
-     *
-     * @param user        用户实体
+     * 
+     * @param user 用户实体
      * @param rawPassword 明文密码
      * @return 创建后的用户
      */
@@ -63,7 +70,7 @@ public class UserIdentityAppServiceImpl implements UserIdentityAppService {
     public SysUser createUser(SysUser user, String rawPassword) {
         String username = user.getUsername();
         if (identityRepository.existsByUsername(username)) {
-            throw new BusinessException("用户名已存在：" + username);
+            throw new BusinessException("用户名已存在" + username);
         }
         LocalDateTime now = LocalDateTime.now();
         user.setPasswordHash(bCryptPasswordEncoder.encode(rawPassword));
@@ -80,7 +87,7 @@ public class UserIdentityAppServiceImpl implements UserIdentityAppService {
 
     /**
      * 更新用户基础信息。
-     *
+     * 
      * @param user 用户实体
      * @return 更新后的用户
      */
@@ -108,7 +115,7 @@ public class UserIdentityAppServiceImpl implements UserIdentityAppService {
 
     /**
      * 重置用户密码。
-     *
+     * 
      * @param userId 用户ID
      * @param rawPassword 新密码明文
      */
@@ -129,7 +136,7 @@ public class UserIdentityAppServiceImpl implements UserIdentityAppService {
 
     /**
      * 查询用户已绑定的角色 ID 列表。
-     *
+     * 
      * @param userId 用户ID
      * @return 角色ID列表
      */
@@ -142,7 +149,7 @@ public class UserIdentityAppServiceImpl implements UserIdentityAppService {
 
     /**
      * 重新绑定用户角色。
-     *
+     * 
      * @param userId 目标用户ID
      * @param roleIds 角色ID集合
      * @param operatorId 操作人ID

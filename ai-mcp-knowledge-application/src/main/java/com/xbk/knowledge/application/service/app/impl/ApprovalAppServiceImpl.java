@@ -59,7 +59,7 @@ import java.util.Optional;
 /**
  * 审批应用服务实现。
  *
- * 实现要点（方式B）：
+ * 实现要点（方式B）
  * 1、 审批通过后平台执行一次已审批的工具调用（使用审批单快照 arguments）
  * 2、 将工具结果注入到模型上下文中，继续生成 PlatformContractV1 最终结果
  * 3、 更新 approval_request/agent_run/agent_run_context 状态，并写审计（工具调用审计由工具回调侧写入）
@@ -70,22 +70,84 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class ApprovalAppServiceImpl implements ApprovalAppService {
-
+    /**
+     * 审批单仓储，用于审批查询与状态流转。
+     */
     private final ApprovalRequestRepository approvalRequestRepository;
+
+    /**
+     * Agent 运行记录仓储，用于更新运行状态与指标。
+     */
     private final AgentRunRepository agentRunRepository;
+
+    /**
+     * Agent 运行上下文仓储，用于续跑状态维护。
+     */
     private final AgentRunContextRepository agentRunContextRepository;
+
+    /**
+     * AgentVersion 仓储，用于加载审批关联版本配置。
+     */
     private final AgentVersionRepository agentVersionRepository;
+
+    /**
+     * 模型配置领域服务，用于解析续跑使用模型。
+     */
     private final IModelConfigService modelConfigService;
+
+    /**
+     * ChatClient 装配服务，用于构建续跑调用客户端。
+     */
     private final ChatClientAssemblyService chatClientAssemblyService;
+
+    /**
+     * 工具回调提供器，用于执行审批通过后的工具调用。
+     */
     private final ToolCallbackProvider toolCallbackProvider;
+
+    /**
+     * 身份上下文服务，用于获取当前审批人身份。
+     */
     private final IdentityContextService identityContextService;
+
+    /**
+     * JSON 序列化组件，用于快照与上下文 JSON 处理。
+     */
     private final ObjectMapper objectMapper;
+
+    /**
+     * PlatformContract 输出支持组件，用于解析/修复模型 JSON 输出。
+     */
     private final PlatformContractV1OutputSupport outputSupport;
+
+    /**
+     * 审计事件仓储，用于记录审批行为审计日志。
+     */
     private final SysAuditEventRepository sysAuditEventRepository;
+
+    /**
+     * RAG 治理支持组件，用于补充续跑检索上下文。
+     */
     private final AgentRagGovernanceSupport ragGovernanceSupport;
+
+    /**
+     * Workflow 运行时服务，用于审批后恢复工作流执行。
+     */
     private final WorkflowRuntimeAppService workflowRuntimeAppService;
+
+    /**
+     * Workflow 运行记录仓储，用于查询审批关联 workflow run。
+     */
     private final WorkflowRunRepository workflowRunRepository;
+
+    /**
+     * Workflow 运行上下文仓储，用于恢复执行上下文。
+     */
     private final WorkflowRunContextRepository workflowRunContextRepository;
+
+    /**
+     * Agent 运行时服务，用于恢复 Planning 运行链路。
+     */
     private final AgentRuntimeAppService agentRuntimeAppService;
 
     /**
@@ -94,7 +156,7 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
      * @param status 状态值
      * @param offset 分页偏移量
      * @param pageSize 分页大小
-     * @return 返回 ApprovalRequest 分页数据。
+     * @return ApprovalRequest 分页数据
      */
     @Override
     public PageResult<ApprovalRequest> list(String status, int offset, int pageSize) {
@@ -110,7 +172,7 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
      * 查询审批。
      *
      * @param id 主键 ID
-     * @return 返回 ApprovalRequest 数据。
+     * @return ApprovalRequest 详情
      */
     @Override
     public ApprovalRequest get(Long id) {
@@ -122,8 +184,8 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
      * 审批通过并触发续跑。
      *
      * @param id 主键 ID
-     * @param decisionComment 审批意见。
-     * @return 返回 PlatformContractV1 数据。
+     * @param decisionComment 审批意见
+     * @return 审批通过后的平台协议结果
      */
     @Override
     public PlatformContractV1 approve(Long id, String decisionComment) {
@@ -160,7 +222,7 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
             return agentRuntimeAppService.resumePlannedRun(req.getRunId(), req.getId());
         }
 
-        // 分支：Agent 场景沿用旧逻辑；Workflow 场景交给 WorkflowRuntime 续跑
+        // 分支Agent 场景沿用旧逻辑；Workflow 场景交给 WorkflowRuntime 续跑
         if (req.getAgentVersionId() != null) {
             AgentRun run = agentRunRepository.findByRunId(req.getRunId())
                     .orElseThrow(() -> new NotFoundException("关联 run 不存在，runId=" + req.getRunId()));
@@ -218,7 +280,7 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
         }
 
         if (req.getWorkflowVersionId() != null) {
-            // Workflow 续跑：由 WorkflowRuntime 负责执行工具 + 继续执行图
+            // Workflow 续跑由 WorkflowRuntime 负责执行工具 + 继续执行图
             PlatformContractV1 result = workflowRuntimeAppService.resumeFromApproval(id);
             return result;
         }
@@ -230,8 +292,8 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
      * 拒绝审批请求并更新状态。
      *
      * @param id 主键 ID
-     * @param decisionComment 审批意见。
-     * @return 返回 ApprovalRequest 数据。
+     * @param decisionComment 审批意见
+     * @return 更新后的审批单信息
      */
     @Override
     public ApprovalRequest reject(Long id, String decisionComment) {
@@ -274,7 +336,7 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
 
     /**
      * 记录审批审计日志。
-     *
+     * 
      * @param runId 运行ID。
      * @param approvalId 审批单ID。
      * @param action 审批动作。
@@ -347,10 +409,10 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
     /**
      * 执行已审批通过的工具调用。
      *
-     * @param toolKey 工具标识。
-     * @param argumentsSnapshotJson 工具参数快照JSON。
-     * @param runId 运行ID。
-     * @return 返回工具调用返回内容。
+     * @param toolKey 工具标识
+     * @param argumentsSnapshotJson 工具参数快照 JSON
+     * @param runId 运行 ID
+     * @return 工具调用输出内容
      */
     private String executeApprovedTool(String toolKey, String argumentsSnapshotJson, String runId) {
         if (toolCallbackProvider == null) {
@@ -397,14 +459,14 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
     /**
      * 基于模型继续执行审批后的运行流程。
      *
-     * @param version 工作流版本。
-     * @param model 模型对象。
-     * @param sessionId 会话ID。
-     * @param agentCode 智能体编码。
-     * @param runId 运行ID。
-     * @param agentVersionId 智能体版本ID。
-     * @param toolResult 工具执行结果。
-     * @return 返回ContinuedOutput对象。
+     * @param version 工作流版本
+     * @param model 继续执行所用模型配置
+     * @param sessionId 会话 ID
+     * @param agentCode 智能体编码
+     * @param runId 运行 ID
+     * @param agentVersionId 智能体版本 ID
+     * @param toolResult 工具执行结果
+     * @return 审批通过后的继续执行结果。
      */
     private ContinuedOutput continueRunByModel(AgentVersion version,
                                               ModelConfig model,
@@ -439,7 +501,7 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
                 ragTagsJson = snap.ragTagsJson;
             }
         } catch (Exception e) {
-            // 快照缺失不阻断：兜底使用空输入
+            // 快照缺失不阻断兜底使用空输入
             log.warn("读取 run_context_snapshot 失败，runId: {}", runId, e);
         }
 
@@ -497,8 +559,8 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
     /**
      * 将 RAG 文档拼接为模型可读上下文。
      *
-     * @param docs 文档列表。
-     * @return 返回拼接后的文档上下文文本。
+     * @param docs 文档列表
+     * @return 拼接后的文档上下文文本
      */
     private String formatRagDocuments(List<Document> docs) {
         if (docs == null || docs.isEmpty()) {
@@ -531,8 +593,8 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
     /**
      * 应用 RAG 覆盖配置。
      *
-     * @param contract 协议结果。
-     * @param rag RAG配置。
+     * @param contract 协议结果
+     * @param rag RAG 配置
      */
     private void applyRagOverrides(PlatformContractV1 contract, ResolvedRag rag) {
         if (contract == null || rag == null) {
@@ -556,7 +618,7 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
         Prompt prompt = new Prompt(
                 new SystemMessage("你是 JSON 修复器。你必须仅输出合法 JSON，不要输出任何额外文字。"),
                 new SystemMessage(outputSupport.contractInstruction()),
-                new UserMessage("请将以下内容修复为符合要求的 JSON：\n" + safe)
+                new UserMessage("请将以下内容修复为符合要求的 JSON\n" + safe)
         );
         ChatResponse resp = client.prompt(prompt).call().chatResponse();
         if (resp == null || resp.getResult() == null || resp.getResult().getOutput() == null) {
@@ -577,8 +639,8 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
     /**
      * 获取Snapshot运行Context。
      *
-     * @param runId 运行ID。
-     * @return 返回AgentRunContextSnapshot对象。
+     * @param runId 运行 ID
+     * @return 运行上下文快照。
      */
     private AgentRunContextSnapshot loadSnapshotFromRunContext(String runId) {
         if (agentRunContextRepository == null || !StringUtils.hasText(runId)) {
@@ -604,8 +666,8 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
     /**
      * 解析模型版本。
      *
-     * @param version 工作流版本。
-     * @return 返回解析后的模型配置。
+     * @param version 工作流版本
+     * @return 解析后的模型配置
      */
     private ModelConfig resolveModelForVersion(AgentVersion version) {
         if (version == null) {
@@ -623,7 +685,15 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
     }
 
     private static final class AgentRunContextSnapshot {
+
+        /**
+         * 原始输入内容快照。
+         */
         private final String content;
+
+        /**
+         * RAG 标签 JSON 快照。
+         */
         private final String ragTagsJson;
 
         private AgentRunContextSnapshot(String content, String ragTagsJson) {
@@ -633,7 +703,15 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
     }
 
     private static final class ContinuedOutput {
+
+        /**
+         * 续跑后的平台协议结果。
+         */
         private final PlatformContractV1 contract;
+
+        /**
+         * 输出修复尝试次数。
+         */
         private final int repairAttempts;
 
         private ContinuedOutput(PlatformContractV1 contract, int repairAttempts) {

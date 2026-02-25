@@ -21,14 +21,18 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RagTaskRepositoryImpl implements RagTaskRepository {
 
+    /**
+     * RAG 任务数据访问对象。
+     */
     private final IRagTaskDao ragTaskMapper;
 
     /**
      * 新建任务
      *
-     * 为什么：落库时补齐时间戳，保证审计字段一致
-     * 入参：任务实体
-     * 出参：持久化后的任务
+     * 落库时补齐时间戳，保证审计字段一致
+     * 
+     * @param task 待创建的任务实体。
+     * @return 已持久化的任务实体。
      */
     @Override
     public RagTask create(RagTask task) {
@@ -43,9 +47,10 @@ public class RagTaskRepositoryImpl implements RagTaskRepository {
     /**
      * 更新任务
      *
-     * 为什么：更新时刷新更新时间，保持审计一致
-     * 入参：任务实体
-     * 出参：更新后的任务
+     * 更新时刷新更新时间，保持审计一致
+     * 
+     * @param task 待更新的任务实体。
+     * @return 更新后的任务实体。
      */
     @Override
     public RagTask update(RagTask task) {
@@ -57,9 +62,10 @@ public class RagTaskRepositoryImpl implements RagTaskRepository {
     /**
      * 按任务 ID 查询
      *
-     * 为什么：获取任务当前状态
-     * 入参：任务 ID
-     * 出参：任务实体
+     * 获取任务当前状态
+     * 
+     * @param taskId 任务 ID。
+     * @return 任务实体。
      */
     @Override
     public RagTask findByTaskId(String taskId) {
@@ -69,9 +75,11 @@ public class RagTaskRepositoryImpl implements RagTaskRepository {
     /**
      * 分页查询任务
      *
-     * 为什么：控制单次返回数量
-     * 入参：偏移量、条数
-     * 出参：任务列表
+     * 控制单次返回数量
+     * 
+     * @param offset 分页偏移量。
+     * @param limit 分页大小。
+     * @return 任务列表。
      */
     @Override
     public List<RagTask> findPage(int offset, int limit) {
@@ -81,9 +89,9 @@ public class RagTaskRepositoryImpl implements RagTaskRepository {
     /**
      * 统计任务总数
      *
-     * 为什么：分页展示需要总数
-     * 入参：无
-     * 出参：总数
+     * 分页展示需要总数
+     * 
+     * @return 统计数量。
      */
     @Override
     public long countAll() {
@@ -92,7 +100,7 @@ public class RagTaskRepositoryImpl implements RagTaskRepository {
 
     /**
      * 按条件统计业务数量。
-     *
+     * 
      * @param status 状态值
      * @return 统计数量
      */
@@ -106,7 +114,7 @@ public class RagTaskRepositoryImpl implements RagTaskRepository {
 
     /**
      * 按条件统计业务数量。
-     *
+     * 
      * @return 统计数量
      */
     @Override
@@ -116,7 +124,7 @@ public class RagTaskRepositoryImpl implements RagTaskRepository {
 
     /**
      * 按条件统计业务数量。
-     *
+     * 
      * @param since 起始时间。
      * @return 统计数量
      */
@@ -131,9 +139,10 @@ public class RagTaskRepositoryImpl implements RagTaskRepository {
     /**
      * 查询指定时间后失败的任务
      *
-     * 为什么：支持失败重试或告警统计
-     * 入参：起始时间
-     * 出参：失败任务列表
+     * 支持失败重试或告警统计
+     * 
+     * @param since 起始时间（查询该时间之后失败的任务）。
+     * @return 失败任务列表。
      */
     @Override
     public List<RagTask> findFailedTasksSince(LocalDateTime since) {
@@ -143,9 +152,10 @@ public class RagTaskRepositoryImpl implements RagTaskRepository {
     /**
      * 查询指定时间前仍处于处理中的任务
      *
-     * 为什么：识别超时任务用于清理或重试
-     * 入参：截止时间
-     * 出参：任务列表
+     * 识别超时任务用于清理或重试
+     * 
+     * @param before 截止时间（早于该时间且仍处理中）。
+     * @return 超时候选任务列表。
      */
     @Override
     public List<RagTask> findProcessingTasksBefore(LocalDateTime before) {
@@ -155,9 +165,10 @@ public class RagTaskRepositoryImpl implements RagTaskRepository {
     /**
      * 删除指定时间前已完成的任务
      *
-     * 为什么：定期清理历史任务
-     * 入参：截止时间
-     * 出参：删除数量
+     * 定期清理历史任务
+     * 
+     * @param before 截止时间（早于该时间的已完成任务会被删除）。
+     * @return 影响行数。
      */
     @Override
     public int deleteCompletedTasksBefore(LocalDateTime before) {

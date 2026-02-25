@@ -51,7 +51,7 @@ public class WorkflowRunResponse {
     private String operatorType;
 
     /**
-     * 会话ID
+     * 会话 ID
      */
     private Long sessionId;
 

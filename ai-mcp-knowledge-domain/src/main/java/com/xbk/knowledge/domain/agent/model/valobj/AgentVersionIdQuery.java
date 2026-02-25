@@ -14,5 +14,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AgentVersionIdQuery {
 
+    /**
+     * Agent 版本 ID。
+     */
     private Long id;
 }

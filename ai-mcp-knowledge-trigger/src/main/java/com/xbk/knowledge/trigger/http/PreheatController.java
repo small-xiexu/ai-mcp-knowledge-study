@@ -29,6 +29,9 @@ import jakarta.validation.Valid;
 @RequiredArgsConstructor
 public class PreheatController implements IPreheatService {
 
+    /**
+     * 预热应用服务。
+     */
     private final PreheatAppService preheatAppService;
 
     /**
@@ -40,8 +43,8 @@ public class PreheatController implements IPreheatService {
      * 4. 调用 `preheatAppService.preheatAgentVersion` 执行运行资源预热。
      * 5. 将预热结果转换为 `PreheatResponse` 并统一返回。
      *
-     * @param request Agent 版本预热参数。
-     * @return 返回 PreheatResponse 数据。
+     * @param request Agent 版本预热参数
+     * @return PreheatResponse 数据
      */
     @PostMapping("/agent-version")
     @SaCheckPermission("agent:write")
@@ -64,8 +67,8 @@ public class PreheatController implements IPreheatService {
      * 4. 调用 `preheatAppService.preheatWorkflowVersion` 执行运行资源预热。
      * 5. 将预热结果转换为 `PreheatResponse` 并统一返回。
      *
-     * @param request Workflow 版本预热参数。
-     * @return 返回 PreheatResponse 数据。
+     * @param request Workflow 版本预热参数
+     * @return PreheatResponse 数据
      */
     @PostMapping("/workflow-version")
     @SaCheckPermission("workflow:write")
@@ -82,8 +85,8 @@ public class PreheatController implements IPreheatService {
     /**
      * 将输入数据转换为响应。
      *
-     * @param r 结果对象。
-     * @return 返回PreheatResponse对象。
+     * @param r 预热结果
+     * @return 预热响应。
      */
     private PreheatResponse toResponse(PreheatResult r) {
         if (r == null) {

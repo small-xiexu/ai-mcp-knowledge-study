@@ -26,16 +26,26 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class AgentAppServiceImpl implements AgentAppService {
-
+    /**
+     * Agent 领域服务，用于 Agent 基础能力编排。
+     */
     private final IAgentService agentService;
+
+    /**
+     * Agent 调度仓储，用于查询待清理的调度记录。
+     */
     private final AgentScheduleRepository agentScheduleRepository;
+
+    /**
+     * XXL Job 应用服务，用于同步删除关联调度任务。
+     */
     private final XxlJobAppService xxlJobAppService;
 
     /**
      * 查询智能体。
      *
-     * @param query 查询条件
-     * @return 返回 Agent 分页数据。
+     * @param query 分页查询条件
+     * @return Agent 分页数据
      */
     @Override
     public PageResult<Agent> queryPage(AgentPageQuery query) {
@@ -45,8 +55,8 @@ public class AgentAppServiceImpl implements AgentAppService {
     /**
      * 查询智能体。
      *
-     * @param query 查询条件
-     * @return 返回 Agent 数据。
+     * @param query 智能体编码查询条件
+     * @return Agent 详情
      */
     @Override
     public Agent queryByCode(AgentCodeQuery query) {
@@ -56,8 +66,8 @@ public class AgentAppServiceImpl implements AgentAppService {
     /**
      * 创建并持久化智能体数据。
      *
-     * @param agent 智能体实体。
-     * @return 返回智能体保存结果。
+     * @param agent 智能体实体
+     * @return 创建后的智能体信息
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -68,8 +78,8 @@ public class AgentAppServiceImpl implements AgentAppService {
     /**
      * 更新智能体数据。
      *
-     * @param agent 智能体实体。
-     * @return 返回智能体更新结果。
+     * @param agent 智能体实体
+     * @return 更新后的智能体信息
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -80,7 +90,7 @@ public class AgentAppServiceImpl implements AgentAppService {
     /**
      * 删除智能体数据。
      *
-     * @param query 查询条件
+     * @param query 待删除智能体编码查询条件
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -97,7 +107,7 @@ public class AgentAppServiceImpl implements AgentAppService {
                 } catch (Exception e) {
                     log.error("删除 Agent 关联 xxl-job 失败，agentCode={}, scheduleId={}, xxlJobId={}",
                             query.getAgentCode(), schedule.getId(), schedule.getXxlJobId(), e);
-                    throw new BusinessException("删除 Agent 失败：XXL 任务清理失败，scheduleId=" + schedule.getId());
+                    throw new BusinessException("删除 Agent 失败XXL 任务清理失败，scheduleId=" + schedule.getId());
                 }
             }
         }

@@ -12,6 +12,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class GatewayIdQuery {
 
+    /**
+     * 网关 ID。
+     */
     private String gatewayId;
 
     public GatewayIdQuery(String gatewayId) {

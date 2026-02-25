@@ -39,23 +39,42 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class RagVectorStoreService {
 
+    /**
+     * 默认相似度阈值。
+     */
     private static final double DEFAULT_SIMILARITY_THRESHOLD = 0.35;
+
+    /**
+     * 默认召回条数。
+     */
     private static final int DEFAULT_TOP_K = 5;
 
+    /**
+     * 模型配置应用服务。
+     */
     private final ModelConfigAppService modelConfigAppService;
 
+    /**
+     * PgVector JDBC 模板。
+     */
     @Qualifier("pgvectorJdbcTemplate")
     private final JdbcTemplate pgvectorJdbcTemplate;
 
+    /**
+     * OpenAI 向量表名。
+     */
     @Value("${vector.store.openai.table-name}")
     private String openAiTableName;
 
+    /**
+     * Ollama 向量表名。
+     */
     @Value("${vector.store.ollama.table-name}")
     private String ollamaTableName;
 
     /**
      * 查询知识库标签列表
-     *
+     * 
      * @return 标签列表
      */
     public List<String> listTags() {
@@ -72,7 +91,7 @@ public class RagVectorStoreService {
 
     /**
      * 删除指定标签的向量数据
-     *
+     * 
      * @param ragTag 标签
      * @return 删除行数
      */
@@ -87,7 +106,7 @@ public class RagVectorStoreService {
 
     /**
      * 统计标签向量数量
-     *
+     * 
      * @param ragTag 标签
      * @return 数量
      */
@@ -103,7 +122,7 @@ public class RagVectorStoreService {
 
     /**
      * 写入文档到向量库
-     *
+     * 
      * @param documents 文档
      */
     public void saveDocuments(List<Document> documents) {
@@ -116,7 +135,7 @@ public class RagVectorStoreService {
 
     /**
      * 相似度检索
-     *
+     * 
      * @param query 查询文本
      * @param ragTags 标签列表
      * @return 文档列表
@@ -136,6 +155,9 @@ public class RagVectorStoreService {
 
     /**
      * 构建过滤表达式
+     * 
+     * @param ragTags 需要命中的知识标签列表。
+     * @return 向量检索过滤表达式。
      */
     private String buildFilterExpression(List<String> ragTags) {
         if (CollectionUtils.isEmpty(ragTags)) {
@@ -149,6 +171,8 @@ public class RagVectorStoreService {
 
     /**
      * 构建当前激活的向量库
+     * 
+     * @return 当前激活嵌入模型对应的向量库。
      */
     private PgVectorStore buildActiveVectorStore() {
         ModelConfig embeddingModel = modelConfigAppService.getActiveEmbeddingModel();
@@ -167,6 +191,9 @@ public class RagVectorStoreService {
 
     /**
      * 构建 EmbeddingModel
+     * 
+     * @param modelConfig 模型配置。
+     * @return 与模型配置匹配的嵌入模型。
      */
     private EmbeddingModel buildEmbeddingModel(ModelConfig modelConfig) {
         ModelType modelType = modelConfig.getModelType();
@@ -202,6 +229,9 @@ public class RagVectorStoreService {
 
     /**
      * 根据模型类型获取向量表名
+     * 
+     * @param modelType 模型类型枚举。
+     * @return 向量表名。
      */
     private String resolveVectorTableName(ModelType modelType) {
         if (modelType == ModelType.OLLAMA) {
@@ -212,6 +242,8 @@ public class RagVectorStoreService {
 
     /**
      * 获取当前激活模型对应的向量表名
+     * 
+     * @return 当前激活模型对应的向量表名。
      */
     private String resolveActiveVectorTableName() {
         ModelConfig embeddingModel = modelConfigAppService.getActiveEmbeddingModel();
@@ -224,6 +256,9 @@ public class RagVectorStoreService {
     /**
      * 规范化 baseUrl
      * 避免 /v1 或 /v1/embeddings 后缀导致重复拼接
+     * 
+     * @param baseUrl 基础 URL。
+     * @return 规范化后的基础 URL。
      */
     private String normalizeBaseUrl(String baseUrl) {
         if (!StringUtils.hasText(baseUrl)) {
@@ -243,6 +278,9 @@ public class RagVectorStoreService {
 
     /**
      * 规范化 embeddingsPath，保证以 '/' 开头并提供默认值。
+     * 
+     * @param embeddingsPath 路径。
+     * @return 规范化后的 embeddings 路径。
      */
     private String resolveEmbeddingsPath(String embeddingsPath) {
         String resolved = StringUtils.hasText(embeddingsPath) ? embeddingsPath.trim() : "/v1/embeddings";

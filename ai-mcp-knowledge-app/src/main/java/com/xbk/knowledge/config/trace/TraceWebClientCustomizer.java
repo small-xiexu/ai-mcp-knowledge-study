@@ -15,6 +15,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Component
 public class TraceWebClientCustomizer implements WebClientCustomizer {
 
+    /**
+     * TraceId 透传请求头名称。
+     */
     private static final String TRACE_ID_HEADER = "X-Trace-Id";
 
     @Override

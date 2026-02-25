@@ -26,12 +26,12 @@ public class XxlJobLogListRequest extends PageRequest {
     private Long jobId;
 
     /**
-     * 起始时间（格式：yyyy-MM-dd HH:mm:ss）
+     * 起始时间（格式yyyy-MM-dd HH:mm:ss）
      */
     private String startTime;
 
     /**
-     * 结束时间（格式：yyyy-MM-dd HH:mm:ss）
+     * 结束时间（格式yyyy-MM-dd HH:mm:ss）
      */
     private String endTime;
 }

@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 
 /**
  * 聊天历史清理服务实现
- * 先删消息再删会话，保证数据一致
+ * 先删消息再删话，保证数据一致
  *
  * 职责：应用层用例实现，用于协调仓储清理逻辑
  *
@@ -21,15 +21,23 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class ChatHistoryCleanupAppServiceImpl implements ChatHistoryCleanupAppService {
 
+    /**
+     * 聊天会话仓储。
+     */
     private final ChatSessionRepository chatSessionRepository;
+
+    /**
+     * 聊天消息仓储。
+     */
     private final ChatMessageRepository chatMessageRepository;
 
     /**
      * 清理过期会话与消息
      *
-     * 为什么：按更新时间清理历史数据，控制存储规模
-     * 入参：截止时间
-     * 出参：删除的会话数量
+     * 按更新时间清理历史数据，控制存储规模
+     * 
+     * @param updatedBefore 会话更新时间上限（早于该时间的会话与消息会被清理）。
+     * @return 删除的会话数量。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -37,7 +45,7 @@ public class ChatHistoryCleanupAppServiceImpl implements ChatHistoryCleanupAppSe
         if (updatedBefore == null) {
             return 0;
         }
-        // 先清理消息，避免会话删除后遗留孤儿消息
+        // 先清理消息，避免话删除后遗留孤儿消息
         chatMessageRepository.deleteBySessionUpdatedBefore(updatedBefore);
         return chatSessionRepository.deleteByUpdatedBefore(updatedBefore);
     }

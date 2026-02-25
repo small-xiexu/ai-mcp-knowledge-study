@@ -47,19 +47,22 @@ import java.util.function.ToLongFunction;
 @RequiredArgsConstructor
 public class MetricsController implements IMetricsService {
 
+        /**
+         * 监控指标应用服务。
+         */
         private final MetricsAppService metricsAppService;
 
         /**
          * 对外暴露 getCallMetrics 作为调用入口，便于上层复用。
          *
-         * 为什么：统一统计入口，避免调用方直接访问领域对象。
+         * 统一统计入口，避免调用方直接访问领域对象。
          * 流程：
          * 1. 进入接口后执行 `audit:read` 权限校验。
          * 2. Spring 完成请求参数绑定（当前接口未开启 `@Valid` 强校验）。
          * 3. Controller 组装 `MetricsQuery` 并调用 `metricsAppService.collectCallMetrics`。
          * 4. 将领域统计对象转换为 `CallMetricsDTO`。
          * 5. 统一封装 `Result.success` 返回。
-         *
+         * 
          * @param request 统计查询参数
          * @return 调用量统计结果
          */
@@ -94,14 +97,14 @@ public class MetricsController implements IMetricsService {
         /**
          * 对外暴露 getSuccessRate 作为调用入口，便于上层复用。
          *
-         * 为什么：成功率计算口径集中管理，避免多处重复计算。
+         * 成功率计算口径集中管理，避免多处重复计算。
          * 流程：
          * 1. 进入接口后执行 `audit:read` 权限校验。
          * 2. Spring 完成请求参数绑定。
          * 3. Controller 组装 `MetricsQuery` 并调用 `metricsAppService.collectSuccessRate`。
          * 4. 将领域统计对象转换为 `SuccessRateDTO`。
          * 5. 统一封装 `Result.success` 返回。
-         *
+         * 
          * @param request 统计查询参数
          * @return 成功率统计结果
          */
@@ -134,14 +137,14 @@ public class MetricsController implements IMetricsService {
         /**
          * 对外暴露 getResponseTime 作为调用入口，便于上层复用。
          *
-         * 为什么：响应耗时口径统一，便于趋势分析。
+         * 响应耗时口径统一，便于趋势分析。
          * 流程：
          * 1. 进入接口后执行 `audit:read` 权限校验。
          * 2. Spring 完成请求参数绑定。
          * 3. Controller 组装 `MetricsQuery` 并调用 `metricsAppService.collectResponseTime`。
          * 4. 将领域统计对象转换为 `ResponseTimeDTO`。
          * 5. 统一封装 `Result.success` 返回。
-         *
+         * 
          * @param request 统计查询参数
          * @return 响应耗时统计结果
          */
@@ -174,14 +177,14 @@ public class MetricsController implements IMetricsService {
         /**
          * 对外暴露 getModelUsage 作为调用入口，便于上层复用。
          *
-         * 为什么：统一模型使用分布计算，避免各端自行统计。
+         * 统一模型使用分布计算，避免各端自行统计。
          * 流程：
          * 1. 进入接口后执行 `audit:read` 权限校验。
          * 2. Spring 完成请求参数绑定。
          * 3. Controller 组装 `ModelUsageQuery` 并调用 `metricsAppService.collectModelUsage`。
          * 4. 计算总调用量后映射为 `ModelUsageDTO`（含占比）。
          * 5. 统一封装 `Result.success` 返回。
-         *
+         * 
          * @param request 模型使用统计查询参数
          * @return 模型使用分布结果
          */

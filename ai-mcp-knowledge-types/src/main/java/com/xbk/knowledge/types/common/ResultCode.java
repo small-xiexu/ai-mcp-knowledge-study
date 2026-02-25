@@ -62,7 +62,14 @@ public enum ResultCode {
      */
     STRATEGY_NOT_SUPPORTED(400, "模型选择策略未实现");
 
+    /**
+     * 业务码。
+     */
     private final Integer code;
+
+    /**
+     * 默认消息。
+     */
     private final String message;
 
     ResultCode(Integer code, String message) {

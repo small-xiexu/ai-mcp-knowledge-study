@@ -22,63 +22,69 @@ public interface IChatSessionDao extends BaseMapper<ChatSessionPO> {
     /**
      * 新增会话
      *
-     * 为什么：落库会话记录
-     * 入参：会话实体
-     * 出参：影响行数
+     * 落库会话记录
+     * 
+     * @param session 待写入的会话持久化实体。
+     * @return 影响行数。
      */
     int insertSession(ChatSessionPO session);
 
     /**
      * 更新会话
      *
-     * 为什么：更新会话元数据
-     * 入参：会话实体
-     * 出参：影响行数
+     * 更新会话元数据
+     * 
+     * @param session 待更新的会话持久化实体。
+     * @return 影响行数。
      */
     int updateSession(ChatSessionPO session);
 
     /**
      * 删除会话
      *
-     * 为什么：清理会话记录
-     * 入参：会话ID
-     * 出参：影响行数
+     * 清理会话记录
+     * 
+     * @param sessionId 会话 ID。
+     * @return 影响行数。
      */
     int deleteById(Long sessionId);
 
     /**
-     * 根据ID查询会话
+     * 根据 ID 查询会话
      *
-     * 为什么：按唯一 ID 获取会话
-     * 入参：会话ID
-     * 出参：会话实体
+     * 按唯一 ID 获取会话
+     * 
+     * @param sessionId 会话 ID。
+     * @return 会话持久化实体。
      */
     ChatSessionPO findById(Long sessionId);
 
     /**
      * 分页查询会话
      *
-     * 为什么：控制单次返回数量
-     * 入参：分页条件
-     * 出参：会话列表
+     * 控制单次返回数量
+     * 
+     * @param query 分页查询条件。
+     * @return ChatSessionPO 列表。
      */
     List<ChatSessionPO> findPage(ChatSessionPageQuery query);
 
     /**
      * 统计会话总数
      *
-     * 为什么：分页展示需要总数
-     * 入参：无
-     * 出参：总数
+     * 分页展示需要总数
+     * 
+     * @return 统计数量。
      */
     long countAll();
 
     /**
      * 删除过期会话
      *
-     * 为什么：清理历史会话
-     * 入参：截止时间
-     * 出参：影响行数
+     * 清理历史会话
+     * 
+     * @param updatedBefore 会话更新时间上限（早于该时间的会话会被删除）。
+     * @return 影响行数。
      */
     int deleteByUpdatedBefore(LocalDateTime updatedBefore);
 }

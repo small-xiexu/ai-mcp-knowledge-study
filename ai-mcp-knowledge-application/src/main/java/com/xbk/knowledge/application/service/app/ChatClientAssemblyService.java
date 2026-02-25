@@ -15,22 +15,24 @@ public interface ChatClientAssemblyService {
 
     /**
      * 构建默认 ChatClient（使用激活的对话模型）
-     *
+     * 
+     * @param extraAdvisors 额外 Advisor 列表。
      * @return ChatClient
      */
     ChatClient buildDefaultChatClient(CallAdvisor... extraAdvisors);
 
     /**
      * 基于指定模型配置构建 ChatClient
-     *
+     * 
      * @param modelConfig 模型配置
+     * @param extraAdvisors 额外 Advisor 列表。
      * @return ChatClient
      */
     ChatClient buildChatClient(ModelConfig modelConfig, CallAdvisor... extraAdvisors);
 
     /**
      * 基于指定模型配置构建 ChatClient（可控制是否注入工具）。
-     *
+     * 
      * @param modelConfig 模型配置
      * @param enableTools 是否启用工具注入
      * @param extraAdvisors 额外 AgentEnhancers
@@ -40,6 +42,10 @@ public interface ChatClientAssemblyService {
 
     /**
      * 基于指定模型配置构建 ChatClient（不注入工具）。
+     * 
+     * @param modelConfig 模型配置。
+     * @param extraAdvisors 额外 Advisor 列表。
+     * @return 不包含工具注入的 ChatClient。
      */
     default ChatClient buildChatClientNoTools(ModelConfig modelConfig, CallAdvisor... extraAdvisors) {
         return buildChatClient(modelConfig, false, extraAdvisors);

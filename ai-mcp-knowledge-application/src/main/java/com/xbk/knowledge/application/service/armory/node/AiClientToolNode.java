@@ -14,6 +14,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class AiClientToolNode extends AbstractAiClientArmoryNode {
 
+    /**
+     * 工具回调提供器对象工厂。
+     */
     private final ObjectProvider<ToolCallbackProvider> toolCallbackProvider;
 
     public AiClientToolNode(ObjectProvider<ToolCallbackProvider> toolCallbackProvider) {
@@ -22,7 +25,7 @@ public class AiClientToolNode extends AbstractAiClientArmoryNode {
 
     /**
      * 执行节点处理逻辑。
-     *
+     * 
      * @param context 执行上下文。
      */
     @Override
@@ -36,11 +39,11 @@ public class AiClientToolNode extends AbstractAiClientArmoryNode {
         if (provider == null) {
             context.setResolvedEnableTools(false);
             context.setToolCallbackProvider(null);
-            log.warn("MCP 工具未注入：ToolCallbackProvider 不可用，降级为无工具调用");
+            log.warn("MCP 工具未注入ToolCallbackProvider 不可用，降级为无工具调用");
             return;
         }
         context.setResolvedEnableTools(true);
         context.setToolCallbackProvider(provider);
-        log.debug("MCP 工具注入成功：{}", provider.getClass().getName());
+        log.debug("MCP 工具注入成功{}", provider.getClass().getName());
     }
 }

@@ -20,6 +20,9 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class RagTaskCleanupJob {
 
+    /**
+     * RAG 任务仓储。
+     */
     private final RagTaskRepository ragTaskRepository;
 
     /**
@@ -27,11 +30,10 @@ public class RagTaskCleanupJob {
      * XXL-Job Handler: ragTaskCleanupHandler
      * 建议 Cron: 0 0 3 * * ? (每天凌晨 3 点执行)
      *
-     * 为什么：固定在低峰期清理历史数据，减少对在线查询的影响。
+     * 固定在低峰期清理历史数据，减少对在线查询的影响。
      */
     @XxlJob("ragTaskCleanupHandler")
     public void cleanupExpiredTasks() {
-        
         // 删除 30 天前的已完成任务
         LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
         int deletedCount = ragTaskRepository.deleteCompletedTasksBefore(thirtyDaysAgo);

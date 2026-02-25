@@ -16,9 +16,9 @@ public interface IAuditEventService {
 
     /**
      * 按筛选条件分页查询审计事件数据。
-     *
+     * 
      * @param request 审计事件分页查询参数。
-     * @return 返回 AuditEventResponse 分页数据。
+     * @return AuditEventResponse 分页数据。
      */
     Result<PageResult<AuditEventResponse>> list(AuditEventQueryRequest request);
 }

@@ -13,14 +13,14 @@ public interface GatewayManageAppService {
 
     /**
      * 删除网关实例（应用层级联清理）。
-     *
+     * 
      * @param query 网关主键
      */
     void deleteGatewayInstance(IdQuery query);
 
     /**
      * 删除网关工具（应用层级联清理）。
-     *
+     * 
      * @param query 工具主键
      */
     void deleteTool(IdQuery query);

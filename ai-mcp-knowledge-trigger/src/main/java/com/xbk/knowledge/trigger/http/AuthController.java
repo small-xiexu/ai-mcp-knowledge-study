@@ -31,8 +31,14 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController implements IAuthService {
-
+    /**
+     * 认证应用服务，用于登录校验与用户画像查询。
+     */
     private final AuthAppService authAppService;
+
+    /**
+     * 身份上下文服务，用于登录态建立、销毁与当前话读取。
+     */
     private final IdentityContextService identityContextService;
 
     /**
@@ -43,8 +49,8 @@ public class AuthController implements IAuthService {
      * 3. 校验通过后调用 `identityContextService.login` 建立登录态并签发 token。
      * 4. 记录登录 IP 与登录审计，再查询用户画像信息。
      * 5. 组装 `AuthLoginResponse` 并通过 `Result.success` 返回。
-     *
-     * @param request     登录请求
+     * 
+     * @param request 登录请求
      * @param httpRequest HTTP 请求
      * @return 登录响应
      */
@@ -69,9 +75,9 @@ public class AuthController implements IAuthService {
      * 登出接口。
      * 流程：
      * 1. 进入接口后先执行 `@SaCheckLogin` 登录态校验。
-     * 2. Controller 调用 `identityContextService.logout` 清理当前会话登录态。
+     * 2. Controller 调用 `identityContextService.logout` 清理当前话登录态。
      * 3. 统一封装 `Result.success` 返回。
-     *
+     * 
      * @return 响应
      */
     @SaCheckLogin
@@ -89,7 +95,7 @@ public class AuthController implements IAuthService {
      * 2. 从 `identityContextService` 获取当前用户 ID。
      * 3. 调用 `authAppService.loadProfile` 查询用户画像与权限信息。
      * 4. 映射为 `AuthProfileResponse` 并统一封装返回。
-     *
+     * 
      * @return 当前登录用户画像
      */
     @SaCheckLogin
@@ -103,7 +109,7 @@ public class AuthController implements IAuthService {
 
     /**
      * 转换为响应模型。
-     *
+     * 
      * @param profile 应用层模型
      * @return 响应 DTO
      */
@@ -122,7 +128,7 @@ public class AuthController implements IAuthService {
 
     /**
      * 解析客户端IP。
-     *
+     * 
      * @param request HTTP 请求
      * @return IP
      */

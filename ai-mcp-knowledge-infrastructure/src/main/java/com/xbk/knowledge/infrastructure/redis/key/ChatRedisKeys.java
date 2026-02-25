@@ -10,11 +10,10 @@ public final class ChatRedisKeys {
 
     /**
      * 聊天记忆 Key 前缀
-     * 为什么：统一会话存储命名，支持按前缀查询
+     * 统一话存储命名，支持按前缀查询
      */
     public static final String CHAT_MEMORY_PREFIX = "chat:memory:";
 
     private ChatRedisKeys() {
-        
     }
 }

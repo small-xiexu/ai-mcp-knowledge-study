@@ -12,6 +12,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ToolIdQuery {
 
+    /**
+     * 工具 ID。
+     */
     private Long toolId;
 
     public ToolIdQuery(Long toolId) {

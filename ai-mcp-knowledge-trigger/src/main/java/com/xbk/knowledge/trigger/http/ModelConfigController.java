@@ -36,7 +36,9 @@ import java.util.List;
 @RequestMapping("/api/models")
 @RequiredArgsConstructor
 public class ModelConfigController implements IModelConfigService {
-
+    /**
+     * 模型配置应用服务，用于模型配置与激活能力编排。
+     */
     private final ModelConfigAppService modelConfigAppService;
 
     /**
@@ -47,7 +49,7 @@ public class ModelConfigController implements IModelConfigService {
      * 3. Controller 组装 `ModelConfigPageQuery` 并查询分页数据。
      * 4. 额外查询当前激活的对话模型与嵌入模型 ID。
      * 5. 转换分页结果并统一封装 `Result.success` 返回。
-     *
+     * 
      * @param request 分页查询请求
      * @return 分页结果（包含激活态标记）
      */
@@ -87,7 +89,7 @@ public class ModelConfigController implements IModelConfigService {
      * 3. Controller 组装 `IdQuery` 并调用应用服务查询模型。
      * 4. 补充当前激活模型标记并转换为 `ModelConfigResponse`。
      * 5. 统一封装 `Result.success` 返回。
-     *
+     * 
      * @param request ID 查询请求
      * @return 模型配置详情
      */
@@ -117,7 +119,7 @@ public class ModelConfigController implements IModelConfigService {
      * 3. Controller 将请求 DTO 转换为 `ModelConfig` 领域对象。
      * 4. 调用 `modelConfigAppService.createModelConfig` 完成创建。
      * 5. 转换响应并返回“创建成功”结果。
-     *
+     * 
      * @param request 模型配置请求
      * @return 创建的模型配置
      */
@@ -144,7 +146,7 @@ public class ModelConfigController implements IModelConfigService {
      * 3. Controller 构建领域对象并补齐目标 id。
      * 4. 调用 `modelConfigAppService.updateModelConfig` 执行更新。
      * 5. 转换响应并返回“更新成功”结果。
-     *
+     * 
      * @param request 模型配置请求（包含 ID）
      * @return 更新后的模型配置
      */
@@ -173,7 +175,7 @@ public class ModelConfigController implements IModelConfigService {
      * 3. Controller 组装 `IdQuery` 并调用应用服务删除。
      * 4. 应用层完成引用校验后执行删除。
      * 5. 统一封装空成功结果返回。
-     *
+     * 
      * @param request ID 查询请求
      * @return 删除结果
      */
@@ -197,7 +199,7 @@ public class ModelConfigController implements IModelConfigService {
      * 3. Controller 组装 `IdQuery` 并调用应用服务启用模型。
      * 4. 将结果转换为 `ModelConfigResponse`。
      * 5. 返回“模型启用成功”的统一结果。
-     *
+     * 
      * @param request ID 查询请求
      * @return 操作结果
      */
@@ -223,7 +225,7 @@ public class ModelConfigController implements IModelConfigService {
      * 3. Controller 组装 `IdQuery` 并调用应用服务禁用模型。
      * 4. 将结果转换为 `ModelConfigResponse`。
      * 5. 返回“模型禁用成功”的统一结果。
-     *
+     * 
      * @param request ID 查询请求
      * @return 操作结果
      */
@@ -249,7 +251,7 @@ public class ModelConfigController implements IModelConfigService {
      * 3. 若为空直接返回 null 成功结果。
      * 4. 若存在则转换为带 activeChat 标记的响应 DTO。
      * 5. 统一封装 `Result.success` 返回。
-     *
+     * 
      * @return 当前激活的对话模型
      */
     @PostMapping("/active-chat")
@@ -272,7 +274,7 @@ public class ModelConfigController implements IModelConfigService {
      * 3. 若为空直接返回 null 成功结果。
      * 4. 若存在则转换为带 activeEmbedding 标记的响应 DTO。
      * 5. 统一封装 `Result.success` 返回。
-     *
+     * 
      * @return 当前激活的嵌入模型
      */
     @PostMapping("/active-embedding")
@@ -295,7 +297,7 @@ public class ModelConfigController implements IModelConfigService {
      * 3. Controller 调用 `activateChatModel` 执行激活切换。
      * 4. 若返回空则输出业务错误；否则转换响应 DTO。
      * 5. 返回“对话模型激活成功”的统一结果。
-     *
+     * 
      * @param request ID 查询请求
      * @return 激活后的模型配置
      */
@@ -321,7 +323,7 @@ public class ModelConfigController implements IModelConfigService {
      * 3. Controller 调用 `activateEmbeddingModel` 执行激活切换。
      * 4. 若返回空则输出业务错误；否则转换响应 DTO。
      * 5. 返回“嵌入模型激活成功”的统一结果。
-     *
+     * 
      * @param request ID 查询请求
      * @return 激活后的模型配置
      */
@@ -347,7 +349,7 @@ public class ModelConfigController implements IModelConfigService {
      * 3. Controller 先按 id 查询模型，不存在直接返回错误。
      * 4. 调用 `testModelConnection` 执行真实连通性测试。
      * 5. 按测试结果返回成功或失败消息。
-     *
+     * 
      * @param request ID 查询请求
      * @return 测试结果
      */
@@ -371,9 +373,12 @@ public class ModelConfigController implements IModelConfigService {
     /**
      * 转换为响应 DTO
      *
-     * 为什么：输出层只暴露必要字段，并补充激活态标记
-     * 入参：模型配置实体、激活模型 ID
-     * 出参：响应 DTO
+     * 输出层只暴露必要字段，并补充激活态标记
+     * 
+     * @param modelConfig 模型配置。
+     * @param activeChatId 标识 ID。
+     * @param activeEmbeddingId 标识 ID。
+     * @return 模型配置响应。
      */
     private ModelConfigResponse convertToResponse(ModelConfig modelConfig, Long activeChatId, Long activeEmbeddingId) {
         Long modelId = modelConfig.getId();
@@ -409,9 +414,10 @@ public class ModelConfigController implements IModelConfigService {
     /**
      * 从请求 DTO 构建领域实体
      *
-     * 为什么：保证领域对象构建过程集中，便于统一校验与扩展
-     * 入参：请求 DTO
-     * 出参：领域实体
+     * 保证领域对象构建过程集中，便于统一校验与扩展
+     * 
+     * @param request 请求体参数。
+     * @return 模型配置实体。
      */
     private ModelConfig buildModelConfigFromRequest(ModelConfigRequest request) {
         String modelName = request.getModelName();

@@ -22,6 +22,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 @Configuration
 public class AsyncTraceConfig implements AsyncConfigurer {
 
+    /**
+     * 异步任务 Trace/MDC 装饰器。
+     */
     private final TaskDecorator traceMdcTaskDecorator;
 
     public AsyncTraceConfig(TaskDecorator traceMdcTaskDecorator) {

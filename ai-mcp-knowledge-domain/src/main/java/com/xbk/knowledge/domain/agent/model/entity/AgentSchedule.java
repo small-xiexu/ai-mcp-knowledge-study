@@ -23,10 +23,21 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class AgentSchedule implements Serializable {
 
+    /**
+     * 序列化版本号。
+     */
     private static final long serialVersionUID = 1L;
 
+    /**
+     * 主键 ID。
+     */
     private Long id;
+
+    /**
+     * Agent ID。
+     */
     private Long agentId;
+
     /**
      * Agent 对外编码（查询/展示字段，不一定落库）。
      */
@@ -60,14 +71,29 @@ public class AgentSchedule implements Serializable {
     /**
      * 调度入参模板（JSON）。
      *
-     * 约定（P2 最小集）：
+     * 约定（P2 最小集）
      * - content: string（必填）
      * - ragTagsJson: string（可选，JSON 数组字符串）
      */
     private String payloadTemplateJson;
 
+    /**
+     * 创建人 ID。
+     */
     private Long createdBy;
+
+    /**
+     * 更新人 ID。
+     */
     private Long updatedBy;
+
+    /**
+     * 创建时间。
+     */
     private LocalDateTime createdAt;
+
+    /**
+     * 更新时间。
+     */
     private LocalDateTime updatedAt;
 }

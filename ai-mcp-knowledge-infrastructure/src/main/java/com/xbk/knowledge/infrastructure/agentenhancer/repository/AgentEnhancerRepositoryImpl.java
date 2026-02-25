@@ -23,11 +23,14 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AgentEnhancerRepositoryImpl implements AgentEnhancerRepository {
 
+    /**
+     * AgentEnhancer 数据访问对象。
+     */
     private final IAgentEnhancerDao mapper;
 
     /**
      * 按主键查询 AgentEnhancer 配置。
-     *
+     * 
      * @param id AgentEnhancer 主键
      * @return AgentEnhancer 配置（不存在时返回空）
      */
@@ -42,7 +45,7 @@ public class AgentEnhancerRepositoryImpl implements AgentEnhancerRepository {
 
     /**
      * 按编码查询 AgentEnhancer 配置。
-     *
+     * 
      * @param agentEnhancerCode AgentEnhancer 业务编码
      * @return AgentEnhancer 配置（不存在时返回空）
      */
@@ -57,7 +60,7 @@ public class AgentEnhancerRepositoryImpl implements AgentEnhancerRepository {
 
     /**
      * 分页查询 AgentEnhancer 列表。
-     *
+     * 
      * @param query 分页与筛选条件
      * @return AgentEnhancer 分页数据列表
      */
@@ -71,7 +74,7 @@ public class AgentEnhancerRepositoryImpl implements AgentEnhancerRepository {
 
     /**
      * 统计 AgentEnhancer 查询结果总数。
-     *
+     * 
      * @param query 分页与筛选条件
      * @return 命中总数
      */
@@ -85,7 +88,7 @@ public class AgentEnhancerRepositoryImpl implements AgentEnhancerRepository {
 
     /**
      * 新增 AgentEnhancer 配置。
-     *
+     * 
      * @param agentEnhancer AgentEnhancer 领域实体
      * @return 新增后的 AgentEnhancer 领域实体
      */
@@ -100,7 +103,7 @@ public class AgentEnhancerRepositoryImpl implements AgentEnhancerRepository {
 
     /**
      * 更新 AgentEnhancer 配置。
-     *
+     * 
      * @param agentEnhancer AgentEnhancer 领域实体
      * @return 更新影响行数
      */
@@ -114,7 +117,7 @@ public class AgentEnhancerRepositoryImpl implements AgentEnhancerRepository {
 
     /**
      * 更新 AgentEnhancer 启用状态。
-     *
+     * 
      * @param id AgentEnhancer 主键
      * @param enabled 启用状态（1 启用，0 禁用）
      * @return 更新影响行数
@@ -129,7 +132,7 @@ public class AgentEnhancerRepositoryImpl implements AgentEnhancerRepository {
 
     /**
      * 按主键删除 AgentEnhancer 配置。
-     *
+     * 
      * @param id AgentEnhancer 主键
      * @return 删除影响行数
      */

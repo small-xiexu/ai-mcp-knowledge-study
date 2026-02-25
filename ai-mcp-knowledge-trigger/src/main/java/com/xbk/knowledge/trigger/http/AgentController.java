@@ -34,8 +34,14 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/agents")
 @RequiredArgsConstructor
 public class AgentController implements IAgentService {
-
+    /**
+     * Agent 应用服务，用于 Agent 的创建、更新、删除与查询。
+     */
     private final AgentAppService agentAppService;
+
+    /**
+     * 身份上下文服务，用于获取当前登录用户 ID。
+     */
     private final IdentityContextService identityContextService;
 
     /**
@@ -46,9 +52,9 @@ public class AgentController implements IAgentService {
      * 3. Controller 组装 `AgentPageQuery` 并调用 `agentAppService.queryPage`。
      * 4. 将领域分页结果转换为 `AgentResponse` 分页结果。
      * 5. 统一封装 `Result.success` 返回。
-     *
+     * 
      * @param request 查询条件
-     * @return 分页结果
+     * @return PageResult<AgentResponse> 分页结果。
      */
     @PostMapping("/list")
     @SaCheckPermission("agent:read")
@@ -72,7 +78,7 @@ public class AgentController implements IAgentService {
      * 3. Controller 组装 `AgentCodeQuery` 并调用 `agentAppService.queryByCode`。
      * 4. 将领域实体转换为 `AgentResponse`。
      * 5. 统一封装 `Result.success` 返回。
-     *
+     * 
      * @param request agentCode 请求
      * @return Agent 详情
      */
@@ -92,7 +98,7 @@ public class AgentController implements IAgentService {
      * 3. Controller 从登录上下文获取当前用户并组装 `Agent` 领域对象。
      * 4. 调用 `agentAppService.create` 落库创建 Agent。
      * 5. 将创建结果转换为 `AgentResponse` 并统一封装返回。
-     *
+     * 
      * @param request 创建参数
      * @return 创建后的 Agent
      */
@@ -122,7 +128,7 @@ public class AgentController implements IAgentService {
      * 3. Controller 从登录上下文获取当前用户并组装更新领域对象。
      * 4. 调用 `agentAppService.update` 执行更新。
      * 5. 将更新结果转换为 `AgentResponse` 并统一封装返回。
-     *
+     * 
      * @param request 更新参数
      * @return 更新后的 Agent
      */
@@ -151,7 +157,7 @@ public class AgentController implements IAgentService {
      * 3. Controller 组装 `AgentCodeQuery` 并调用 `agentAppService.remove`。
      * 4. 应用层执行 Agent 及关联配置/运行数据的级联删除。
      * 5. 统一封装空成功结果返回。
-     *
+     * 
      * @param request 删除参数
      * @return 空结果
      */
@@ -165,7 +171,7 @@ public class AgentController implements IAgentService {
 
     /**
      * 领域对象转输出 DTO。
-     *
+     * 
      * @param agent Agent 实体
      * @return 响应 DTO
      */

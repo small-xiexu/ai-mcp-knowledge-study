@@ -20,6 +20,9 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class ResponseTimeDTO implements Serializable {
 
+    /**
+     * 序列化版本号。
+     */
     private static final long serialVersionUID = 1L;
 
     /**

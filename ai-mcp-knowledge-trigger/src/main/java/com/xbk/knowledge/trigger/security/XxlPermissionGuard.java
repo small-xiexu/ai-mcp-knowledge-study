@@ -18,13 +18,20 @@ import java.util.List;
 @RequiredArgsConstructor
 public class XxlPermissionGuard {
 
+    /**
+     * 当前用户身份上下文服务。
+     */
     private final IdentityContextService identityContextService;
+
+    /**
+     * 鉴权应用服务。
+     */
     private final AuthAppService authAppService;
 
     /**
      * 任务查看权限校验
      *
-     * 为什么：接口层先校验权限，避免非法请求进入下游调用链。
+     * 接口层先校验权限，避免非法请求进入下游调用链。
      */
     public void assertCanView() {
         assertPermission("workflow:read");
@@ -33,7 +40,7 @@ public class XxlPermissionGuard {
     /**
      * 任务编辑权限校验
      *
-     * 为什么：编辑类操作风险更高，需要明确权限隔离。
+     * 编辑类操作风险更高，需要明确权限隔离。
      */
     public void assertCanEdit() {
         assertPermission("workflow:write");

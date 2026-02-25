@@ -17,6 +17,9 @@ import java.util.List;
 @Component
 public class AiClientAgentEnhancerNode extends AbstractAiClientArmoryNode {
 
+    /**
+     * 全局 Agent 增强器列表。
+     */
     private final List<CallAdvisor> globalAdvisors;
 
     public AiClientAgentEnhancerNode(List<CallAdvisor> advisors) {

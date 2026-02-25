@@ -18,10 +18,18 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class PlatformStreamEvent implements Serializable {
 
+    /**
+     * 序列化版本号。
+     */
     private static final long serialVersionUID = 1L;
 
+    /**
+     * 事件名称。
+     */
     private String name;
 
+    /**
+     * 事件负载。
+     */
     private Object data;
 }
-

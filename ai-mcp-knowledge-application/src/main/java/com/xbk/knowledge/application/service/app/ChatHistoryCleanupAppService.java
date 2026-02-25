@@ -12,9 +12,9 @@ public interface ChatHistoryCleanupAppService {
 
     /**
      * 清理过期聊天记录
-     *
+     * 
      * @param updatedBefore 截止时间
-     * @return 清理的会话数量
+     * @return 清理的话数量
      */
     int cleanupExpired(LocalDateTime updatedBefore);
 }

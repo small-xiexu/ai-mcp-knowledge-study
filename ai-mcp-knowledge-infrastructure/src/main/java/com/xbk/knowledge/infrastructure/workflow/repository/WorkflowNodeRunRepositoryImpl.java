@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * 创建并持久化工作流节点运行数据。
+ * 工作流节点运行仓储实现。
  *
  * @author sxie
  */
@@ -22,12 +22,15 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class WorkflowNodeRunRepositoryImpl implements WorkflowNodeRunRepository {
 
+    /**
+     * Workflow 节点运行数据访问对象。
+     */
     private final IWorkflowNodeRunDao mapper;
 
     /**
      * 创建并持久化工作流节点运行数据。
      *
-     * @param nodeRun 节点运行记录。
+     * @param nodeRun 节点运行记录
      */
     @Override
     public void insert(WorkflowNodeRun nodeRun) {
@@ -40,7 +43,7 @@ public class WorkflowNodeRunRepositoryImpl implements WorkflowNodeRunRepository 
     /**
      * 更新工作流节点运行数据。
      *
-     * @param nodeRun 节点运行记录。
+     * @param nodeRun 节点运行记录
      */
     @Override
     public void updateById(WorkflowNodeRun nodeRun) {
@@ -54,8 +57,8 @@ public class WorkflowNodeRunRepositoryImpl implements WorkflowNodeRunRepository 
      * 查询工作流节点运行。
      *
      * @param runId 运行 ID
-     * @param nodeKey 节点标识。
-     * @return 返回 WorkflowNodeRun 查询结果（可能为空）。
+     * @param nodeKey 节点标识
+     * @return WorkflowNodeRun 查询结果（可能为空）
      */
     @Override
     public Optional<WorkflowNodeRun> findByRunIdAndNodeKey(String runId, String nodeKey) {
@@ -70,7 +73,7 @@ public class WorkflowNodeRunRepositoryImpl implements WorkflowNodeRunRepository 
      * 根据筛选条件查询工作流节点运行列表。
      *
      * @param runId 运行 ID
-     * @return 返回 WorkflowNodeRun 列表数据。
+     * @return WorkflowNodeRun 列表
      */
     @Override
     public List<WorkflowNodeRun> listByRunId(String runId) {
@@ -84,9 +87,9 @@ public class WorkflowNodeRunRepositoryImpl implements WorkflowNodeRunRepository 
      * 累加节点工具调用次数。
      *
      * @param runId 运行 ID
-     * @param nodeKey 节点标识。
+     * @param nodeKey 节点标识
      * @param delta 增量值
-     * @return 返回工具调用计数累加条数。
+     * @return 工具调用计数累加条数
      */
     @Override
     public int incrementToolCallCount(String runId, String nodeKey, int delta) {
@@ -100,9 +103,9 @@ public class WorkflowNodeRunRepositoryImpl implements WorkflowNodeRunRepository 
      * 累加节点工具拒绝次数。
      *
      * @param runId 运行 ID
-     * @param nodeKey 节点标识。
+     * @param nodeKey 节点标识
      * @param delta 增量值
-     * @return 返回工具拒绝计数累加条数。
+     * @return 工具拒绝计数累加条数
      */
     @Override
     public int incrementToolDeniedCount(String runId, String nodeKey, int delta) {
@@ -115,8 +118,8 @@ public class WorkflowNodeRunRepositoryImpl implements WorkflowNodeRunRepository 
     /**
      * 删除工作流节点运行数据。
      *
-     * @param runIds 运行 ID 列表。
-     * @return 返回节点运行记录删除条数。
+     * @param runIds 运行 ID 列表
+     * @return 节点运行记录删除条数
      */
     @Override
     public int deleteByRunIds(List<String> runIds) {

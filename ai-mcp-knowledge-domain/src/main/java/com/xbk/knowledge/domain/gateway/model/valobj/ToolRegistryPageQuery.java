@@ -12,8 +12,19 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ToolRegistryPageQuery {
 
+    /**
+     * 网关 ID。
+     */
     private String gatewayId;
+
+    /**
+     * 分页偏移量。
+     */
     private Integer offset;
+
+    /**
+     * 分页大小。
+     */
     private Integer pageSize;
 
     public ToolRegistryPageQuery(String gatewayId, Integer offset, Integer pageSize) {

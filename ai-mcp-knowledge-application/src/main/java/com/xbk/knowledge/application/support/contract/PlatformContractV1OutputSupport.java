@@ -17,7 +17,7 @@ import java.util.List;
  *
  * 职责：
  * 1、 从模型输出的 JSON 文本解析为 PlatformContractV1（仅使用 answer/uncertainty/citations/toolCalls/actionsNext）
- * 2、 容错：支持从代码块或夹杂文本中提取 JSON
+ * 2、 容错支持从代码块或夹杂文本中提取 JSON
  *
  * 说明：meta/status/error 由平台补齐，模型输出不可信。
  *
@@ -27,16 +27,20 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class PlatformContractV1OutputSupport {
-
+    /**
+     * JSON 序列化组件，用于解析模型输出 JSON 文本。
+     */
     private final ObjectMapper objectMapper;
 
     /**
      * v1 输出约束指令（追加到系统消息中，强制模型输出 JSON）。
+     * 
+     * @return 平台输出契约指令文本。
      */
     public String contractInstruction() {
         return """
                 你必须仅输出一个合法的 JSON 对象，不要输出任何额外文本、解释、Markdown、代码块标记。
-                JSON 结构要求（字段必须存在，缺省用空字符串或空数组）：
+                JSON 结构要求（字段必须存在，缺省用空字符串或空数组）
                 {
                   "answer": "string",
                   "uncertainty": "string",
@@ -49,7 +53,7 @@ public class PlatformContractV1OutputSupport {
 
     /**
      * 解析模型输出为 v1（不含 meta/status）。
-     *
+     * 
      * @param rawText 模型输出文本
      * @return 解析结果（解析失败返回 null）
      */
@@ -85,9 +89,9 @@ public class PlatformContractV1OutputSupport {
 
     /**
      * 提取 JSON 对象。
-     *
+     * 
      * @param text 原始文本。
-     * @return 返回 JSON 字符串。
+     * @return 提取出的 JSON 字符串。
      */
     private String extractJsonObject(String text) {
         if (!StringUtils.hasText(text)) {
@@ -116,9 +120,9 @@ public class PlatformContractV1OutputSupport {
 
     /**
      * 返回文本或空字符串。
-     *
+     * 
      * @param node 节点定义。
-     * @return 返回处理后的文本内容。
+     * @return 非空文本内容。
      */
     private String textOrEmpty(JsonNode node) {
         if (node == null || node.isNull()) {
@@ -185,4 +189,3 @@ public class PlatformContractV1OutputSupport {
         return list;
     }
 }
-

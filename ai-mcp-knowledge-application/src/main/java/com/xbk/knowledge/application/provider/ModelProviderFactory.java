@@ -14,19 +14,21 @@ public interface ModelProviderFactory {
     /**
      * 根据模型类型获取对应的 Provider
      *
-     * 为什么：统一 Provider 路由逻辑
-     * 入参：模型类型
-     * 出参：ModelProvider 实例
+     * 统一 Provider 路由逻辑
      * @throws IllegalArgumentException 如果模型类型不支持
+     * 
+     * @param modelType 模型类型枚举。
+     * @return 对应的模型提供者实现。
      */
     ModelProvider getProvider(ModelType modelType);
 
     /**
      * 检查指定模型类型是否支持
      *
-     * 为什么：供上层进行能力探测
-     * 入参：模型类型
-     * 出参：是否支持
+     * 供上层进行能力探测
+     * 
+     * @param modelType 模型类型枚举。
+     * @return `true` 表示支持，`false` 表示不支持。
      */
     boolean isSupported(ModelType modelType);
 }

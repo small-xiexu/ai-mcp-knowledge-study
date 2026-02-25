@@ -42,9 +42,9 @@ public class TextChunk {
     private Map<String, Object> metadata;
 
     /**
-     * 简单构造器：仅指定文本内容
+     * 简单构造器仅指定文本内容
      * 自动生成 UUID 作为 ID，并初始化空的元数据 Map
-     *
+     * 
      * @param text 文本内容
      */
     public TextChunk(String text) {

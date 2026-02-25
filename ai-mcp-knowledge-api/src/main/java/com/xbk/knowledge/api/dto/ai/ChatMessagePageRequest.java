@@ -19,7 +19,7 @@ public class ChatMessagePageRequest extends PageRequest {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 会话ID
+     * 会话 ID
      */
     private Long sessionId;
 }

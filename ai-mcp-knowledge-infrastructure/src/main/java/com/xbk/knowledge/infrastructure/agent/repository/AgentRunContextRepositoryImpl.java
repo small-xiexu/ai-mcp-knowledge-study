@@ -20,12 +20,15 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AgentRunContextRepositoryImpl implements AgentRunContextRepository {
 
+    /**
+     * Agent 运行上下文数据访问对象。
+     */
     private final IAgentRunContextDao dao;
 
     /**
      * 新增或更新Agent 运行上下文数据。
      *
-     * @param context 运行上下文。
+     * @param context 运行上下文
      */
     @Override
     public void upsert(AgentRunContext context) {
@@ -45,7 +48,7 @@ public class AgentRunContextRepositoryImpl implements AgentRunContextRepository 
      * 查询Agent 运行上下文。
      *
      * @param runId 运行 ID
-     * @return 返回 AgentRunContext 查询结果（可能为空）。
+     * @return AgentRunContext 查询结果（可能为空）
      */
     @Override
     public Optional<AgentRunContext> findByRunId(String runId) {
@@ -60,7 +63,7 @@ public class AgentRunContextRepositoryImpl implements AgentRunContextRepository 
      *
      * @param runId 运行 ID
      * @param status 状态值
-     * @return 返回 Agent 运行上下文处理条数。
+     * @return Agent 运行上下文处理条数
      */
     @Override
     public int updateStatus(String runId, String status) {
@@ -74,7 +77,7 @@ public class AgentRunContextRepositoryImpl implements AgentRunContextRepository 
      * 删除Agent 运行上下文数据。
      *
      * @param agentId Agent ID
-     * @return 返回 Agent 运行上下文处理条数。
+     * @return Agent 运行上下文处理条数
      */
     @Override
     public int deleteByAgentId(Long agentId) {
@@ -86,6 +89,9 @@ public class AgentRunContextRepositoryImpl implements AgentRunContextRepository 
 
     /**
      * 实体转持久化对象。
+     *
+     * @param context 运行上下文实体
+     * @return 运行上下文持久化实体。
      */
     private AgentRunContextPO toPO(AgentRunContext context) {
         if (context == null) {
@@ -103,6 +109,9 @@ public class AgentRunContextRepositoryImpl implements AgentRunContextRepository 
 
     /**
      * 持久化对象转实体。
+     *
+     * @param po 运行上下文持久化实体
+     * @return 运行上下文实体。
      */
     private AgentRunContext toEntity(AgentRunContextPO po) {
         if (po == null) {

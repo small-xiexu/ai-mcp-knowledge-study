@@ -32,7 +32,7 @@ public class AgentRuntimeInvokeRequest extends BaseRequest {
     private String content;
 
     /**
-     * 会话ID
+     * 会话 ID
      */
     private Long sessionId;
 

@@ -31,19 +31,45 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class WorkbenchAppServiceImpl implements WorkbenchAppService {
-
+    /**
+     * Agent 仓储，用于统计智能体总量与发布量。
+     */
     private final AgentRepository agentRepository;
+
+    /**
+     * PromptTemplate 仓储，用于统计模板草稿与发布数量。
+     */
     private final PromptTemplateRepository promptTemplateRepository;
+
+    /**
+     * 审批单仓储，用于统计待审批数量。
+     */
     private final ApprovalRequestRepository approvalRequestRepository;
+
+    /**
+     * Agent 调度仓储，用于统计调度总量与启用量。
+     */
     private final AgentScheduleRepository agentScheduleRepository;
+
+    /**
+     * RAG 任务仓储，用于统计知识导入任务与标签规模。
+     */
     private final RagTaskRepository ragTaskRepository;
+
+    /**
+     * 模型配置仓储，用于统计模型总量与启用量。
+     */
     private final ModelConfigRepository modelConfigRepository;
+
+    /**
+     * 模型激活仓储，用于读取当前激活对话/嵌入模型。
+     */
     private final ModelActivationRepository modelActivationRepository;
 
     /**
      * 汇总工作台首页关键指标数据。
-     *
-     * @return 返回 WorkbenchSummary 数据。
+     * 
+     * @return WorkbenchSummary 数据。
      */
     @Override
     public WorkbenchSummary summary() {
@@ -116,7 +142,7 @@ public class WorkbenchAppServiceImpl implements WorkbenchAppService {
 
     /**
      * 构建引导步骤列表。
-     *
+     * 
      * @param modelEnabled 模型可用数量。
      * @param activeChatModelId 当前激活对话模型ID。
      * @param ragTagCount RAG标签数量。
@@ -124,7 +150,7 @@ public class WorkbenchAppServiceImpl implements WorkbenchAppService {
      * @param agentPublished 已发布智能体数量。
      * @param approvalsPending 待审批数量。
      * @param scheduleEnabled 启用调度数量。
-     * @return 返回步骤集合。
+     * @return 步骤集合。
      */
     private List<WorkbenchSummary.GuideStep> buildGuideSteps(long modelEnabled,
                                                              Long activeChatModelId,
@@ -169,7 +195,7 @@ public class WorkbenchAppServiceImpl implements WorkbenchAppService {
         // 6、 审批
         boolean approvalOk = approvalsPending == 0;
         steps.add(step("approvals", "处理工具审批单", approvalOk ? "DONE" : "TODO",
-                approvalOk ? null : ("有待审批单：" + approvalsPending),
+                approvalOk ? null : ("有待审批单" + approvalsPending),
                 "/approvals", "去处理", false));
 
         // 7、 调度
@@ -183,7 +209,7 @@ public class WorkbenchAppServiceImpl implements WorkbenchAppService {
 
     /**
      * 构建工作台引导步骤对象。
-     *
+     * 
      * @param key 步骤标识。
      * @param title 步骤标题。
      * @param status 状态值。
@@ -191,7 +217,7 @@ public class WorkbenchAppServiceImpl implements WorkbenchAppService {
      * @param actionPath 跳转路径。
      * @param actionLabel 操作文案。
      * @param writeAction 是否可写操作。
-     * @return 返回GuideStep对象。
+     * @return 引导步骤定义。
      */
     private WorkbenchSummary.GuideStep step(String key,
                                             String title,

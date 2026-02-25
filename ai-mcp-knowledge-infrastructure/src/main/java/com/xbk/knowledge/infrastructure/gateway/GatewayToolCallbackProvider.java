@@ -57,9 +57,9 @@ import java.util.LinkedHashMap;
  * Gateway ToolCallback 提供者
  *
  * 职责：将 Gateway 配置的 HTTP 工具转换为 Spring AI 的 ToolCallback，
- * 注入到 AI 模型调用链路中。支持工具绑定过滤（按模型/会话维度控制工具可见性）
+ * 注入到 AI 模型调用链路中。支持工具绑定过滤（按模型/话维度控制工具可见性）
  *
- * 为什么需要：Gateway 工具以 HTTP 配置形式存储在数据库中，需要适配为 Spring AI
+ * 需要Gateway 工具以 HTTP 配置形式存储在数据库中，需要适配为 Spring AI
  * 的 FunctionToolCallback 才能被 ChatClient 识别和调用
  *
  * @author sxie
@@ -68,26 +68,81 @@ import java.util.LinkedHashMap;
 @Component("gatewayToolCallbackProvider")
 @RequiredArgsConstructor
 public class GatewayToolCallbackProvider implements ToolCallbackProvider {
-
+    /**
+     * MDC 中网关工具调用 ID 的键名。
+     */
     private static final String CALL_ID_MDC_KEY = "gatewayToolCallId";
+
+    /**
+     * 工具绑定类型模型级绑定。
+     */
     private static final String BIND_TYPE_MODEL = "MODEL";
+
+    /**
+     * 工具绑定类型会话级绑定。
+     */
     private static final String BIND_TYPE_SESSION = "SESSION";
+
+    /**
+     * 工具绑定类型Agent 版本级绑定。
+     */
     private static final String BIND_TYPE_AGENT_VERSION = "AGENT_VERSION";
+
+    /**
+     * 工具调用权限编码。
+     */
     private static final String PERMISSION_TOOL_INVOKE = "tool:invoke";
 
+    /**
+     * 网关仓储，用于加载启用网关列表。
+     */
     private final McpGatewayRepository gatewayRepository;
+
+    /**
+     * 工具注册仓储，用于读取网关下工具注册信息。
+     */
     private final McpToolRegistryRepository toolRegistryRepository;
+
+    /**
+     * 工具绑定仓储，用于按模型/话/版本过滤工具可见性。
+     */
     private final McpToolBindingRepository toolBindingRepository;
+
+    /**
+     * 网关工具服务，用于查询工具定义与发起网关调用。
+     */
     private final GatewayToolService gatewayToolService;
+
+    /**
+     * JSON 序列化组件，用于处理工具参数与日志序列化。
+     */
     private final ObjectMapper objectMapper;
+
+    /**
+     * Agent 运行记录仓储，用于更新工具调用计数。
+     */
     private final AgentRunRepository agentRunRepository;
+
+    /**
+     * Agent 运行上下文仓储，用于读取审批和运行上下文。
+     */
     private final AgentRunContextRepository agentRunContextRepository;
+
+    /**
+     * 身份审计日志服务，用于记录工具调用审计事件。
+     */
     private final IdentityAuditLogService auditLogService;
+
+    /**
+     * 审批单仓储，用于高风险工具审批查询与创建。
+     */
     private final ApprovalRequestRepository approvalRequestRepository;
 
     /**
      * 获取所有可用的 Gateway 工具回调
      * 流程：加载已启用网关 → 获取工具定义 → 应用绑定过滤 → 去重 → 构建 FunctionToolCallback
+     * 
+     * @return 可用工具回调数组。
      */
     @Override
     public ToolCallback[] getToolCallbacks() {
@@ -148,6 +203,8 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
 
     /**
      * 批量加载所有网关的工具定义，返回 gatewayId → (toolName → ToolDefinition) 映射
+     * 
+     * @param gateways 网关列表。
      */
      private Map<String, Map<String, GatewayToolService.ToolDefinition>> loadToolDefinitions(List<McpGateway> gateways) {
         Map<String, Map<String, GatewayToolService.ToolDefinition>> result = new HashMap<>();
@@ -175,9 +232,12 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
     /**
      * 根据 ThreadLocal 中的绑定上下文过滤工具候选列表（无上下文时不过滤）。
      *
-     * 过滤顺序：
+     * 过滤顺序
      * 1、 allowlist（toolKey）优先且强制（当上下文显式携带 allowedToolKeys 时）
      * 2、 legacy 绑定过滤（MODEL/SESSION/AGENT_VERSION），当存在绑定记录时生效
+     * 
+     * @param candidates 候选工具列表。
+     * @return ToolCandidate 列表。
      */
     private List<ToolCandidate> applyVisibilityFilter(List<ToolCandidate> candidates) {
         BindingContext context = GatewayToolBindingContextHolder.get();
@@ -241,10 +301,10 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
 
     /**
      * 按 allowlist 规则过滤工具候选列表。
-     *
+     * 
      * @param candidates 候选工具列表。
      * @param context 执行上下文。
-     * @return 返回过滤后的候选工具列表。
+     * @return 过滤后的候选工具列表。
      */
     private List<ToolCandidate> applyAllowlistIfPresent(List<ToolCandidate> candidates,
                                                        BindingContext context) {
@@ -272,6 +332,9 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
 
     /**
      * 从绑定列表中收集已启用的工具 ID
+     * 
+     * @param collector 工具 ID 收集器。
+     * @param bindings 工具绑定列表。
      */
      private void appendEnabledToolIds(Set<Long> collector, List<McpToolBinding> bindings) {
         for (McpToolBinding binding : bindings) {
@@ -287,6 +350,11 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
 
     /**
      * 将工具注册信息和定义组装为候选对象
+     * 
+     * @param gatewayId 标识 ID。
+     * @param registry 工具注册配置。
+     * @param definition 工具定义。
+     * @return 工具候选数据。
      */
      private ToolCandidate buildToolCandidate(String gatewayId,
                                              McpToolRegistry registry,
@@ -315,6 +383,9 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
 
     /**
      * 将候选对象构建为 FunctionToolCallback，内部封装工具调用逻辑和链路追踪
+     * 
+     * @param candidate 工具候选数据。
+     * @return 工具回调。
      */
      private ToolCallback buildToolCallback(ToolCandidate candidate) {
         String inputSchema = candidate.inputSchema;
@@ -449,6 +520,13 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
      * 1、 风险等级取工具注册 risk_level，缺省 MEDIUM
      * 2、 riskLevel=HIGH 时触发审批
      * 3、 已存在 APPROVED 且未过期则放行；否则创建或复用 PENDING 审批单并中断执行
+     * 
+     * @param runId 运行 ID。
+     * @param candidate 工具候选数据。
+     * @param safeArgs 已脱敏工具入参。
+     * @param requesterId 标识 ID。
+     * @param requesterType 请求者类型。
+     * @param operatorId 操作人标识。
      */
     private void maybeRequireApproval(String runId, 
                                       ToolCandidate candidate,
@@ -511,7 +589,7 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
         workflowVersionId = ctx == null ? null : ctx.getWorkflowVersionId();
         workflowNodeKey = ctx == null ? null : ctx.getWorkflowNodeKey();
         if (workflowId == null || workflowVersionId == null || !StringUtils.hasText(workflowNodeKey)) {
-            // fallback：按 agent_run 归属
+            // fallback按 agent_run 归属
             AgentRun run = agentRunRepository
                     .findByRunId(runId)
                     .orElse(null);
@@ -554,7 +632,7 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
 
     /**
      * 更新待审批工具快照。
-     *
+     * 
      * @param runId 运行ID。
      * @param toolKey 工具标识。
      * @param riskLevel 风险级别。
@@ -713,19 +791,49 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
      * 工具候选对象，承载构建 ToolCallback 所需的中间数据
      */
      private static class ToolCandidate {
-
+        /**
+         * 工具注册 ID。
+         */
         private final Long toolId;
+
+        /**
+         * 所属网关 ID。
+         */
         private final String gatewayId;
+
+        /**
+         * 网关原始工具名。
+         */
         private final String toolName;
+
+        /**
+         * 平台治理用工具键（gatewayId:toolName）。
+         */
         private final String toolKey;
+
+        /**
+         * 暴露给模型侧的函数名（冲突治理后）。
+         */
         private final String functionName;
+
+        /**
+         * 工具描述信息。
+         */
         private final String description;
+
+        /**
+         * 工具输入参数 JSON Schema。
+         */
         private final String inputSchema;
+
+        /**
+         * 工具风险等级（LOW/MEDIUM/HIGH）。
+         */
         private final String riskLevel;
 
         /**
          * 将输入数据转换为Candidate。
-         *
+         * 
          * @param toolId 工具ID。
          * @param gatewayId 网关ID。
          * @param toolName 工具名称。
@@ -734,7 +842,6 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
          * @param description 描述文本。
          * @param inputSchema 输入Schema定义。
          * @param riskLevel 风险级别。
-         * @return 返回当前对象实例。
          */
         private ToolCandidate(Long toolId,
                               String gatewayId,
@@ -756,14 +863,24 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
     }
 
     /**
-     * ToolCallback 包装器：暴露 toolKey，用于工具目录/治理。
+     * ToolCallback 包装器暴露 toolKey，用于工具目录/治理。
      *
-     * 说明：治理字段不应依赖 ToolDefinition.name（会因冲突治理而变化）。
+     * 说明：治理字段不应依赖 ToolDefinition.name（因冲突治理而变化）。
      */
     private static final class GovernedToolCallback implements ToolCallback, ToolKeyAware {
-
+        /**
+         * 底层 ToolCallback 实现。
+         */
         private final ToolCallback delegate;
+
+        /**
+         * 平台治理工具键。
+         */
         private final String toolKey;
+
+        /**
+         * 工具来源标记（当前为 gateway）。
+         */
         private final String toolSource;
 
         private GovernedToolCallback(ToolCallback delegate, String toolKey, String toolSource) {
@@ -774,8 +891,8 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
 
         /**
          * 获取底层工具定义。
-         *
-         * @return 返回 ToolDefinition 数据。
+         * 
+         * @return ToolDefinition 数据。
          */
         @Override
         public ToolDefinition getToolDefinition() {
@@ -784,8 +901,8 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
 
         /**
          * 获取底层工具元数据。
-         *
-         * @return 返回 ToolMetadata 数据。
+         * 
+         * @return ToolMetadata 数据。
          */
         @Override
         public ToolMetadata getToolMetadata() {
@@ -794,9 +911,9 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
 
         /**
          * 调用底层工具（无上下文）。
-         *
+         * 
          * @param toolInput 工具输入参数。
-         * @return 返回工具执行结果文本。
+         * @return 工具执行结果文本。
          */
         @Override
         public String call(String toolInput) {
@@ -805,10 +922,10 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
 
         /**
          * 调用底层工具（带上下文）。
-         *
+         * 
          * @param toolInput 工具输入参数。
          * @param toolContext 工具上下文。
-         * @return 返回工具执行结果文本。
+         * @return 工具执行结果文本。
          */
         @Override
         public String call(String toolInput, ToolContext toolContext) {
@@ -817,8 +934,8 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
 
         /**
          * 返回治理后的工具标识。
-         *
-         * @return 返回工具唯一标识。
+         * 
+         * @return 工具唯一标识。
          */
         @Override
         public String toolKey() {
@@ -827,8 +944,8 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
 
         /**
          * 返回工具来源标识。
-         *
-         * @return 返回工具来源。
+         * 
+         * @return 工具来源。
          */
         @Override
         public String toolSource() {

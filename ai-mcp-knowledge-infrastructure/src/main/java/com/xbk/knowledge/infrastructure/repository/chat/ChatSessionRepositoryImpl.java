@@ -23,14 +23,18 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ChatSessionRepositoryImpl implements ChatSessionRepository {
 
+    /**
+     * 聊天会话数据访问对象。
+     */
     private final IChatSessionDao chatSessionMapper;
 
     /**
      * 创建会话
      *
-     * 为什么：落库时补齐时间戳，保证审计字段一致
-     * 入参：会话实体
-     * 出参：持久化后的会话
+     * 落库时补齐时间戳，保证审计字段一致
+     * 
+     * @param session 待创建的会话实体。
+     * @return 已持久化的会话实体。
      */
     @Override
     public ChatSession create(ChatSession session) {
@@ -45,9 +49,10 @@ public class ChatSessionRepositoryImpl implements ChatSessionRepository {
     /**
      * 更新会话
      *
-     * 为什么：更新时刷新更新时间，保持审计一致
-     * 入参：会话实体
-     * 出参：更新后的会话
+     * 更新时刷新更新时间，保持审计一致
+     * 
+     * @param session 待更新的会话实体。
+     * @return 更新后的会话实体。
      */
     @Override
     public ChatSession update(ChatSession session) {
@@ -59,9 +64,9 @@ public class ChatSessionRepositoryImpl implements ChatSessionRepository {
     /**
      * 删除会话
      *
-     * 为什么：按 ID 删除会话记录
-     * 入参：会话 ID
-     * 出参：无
+     * 按 ID 删除会话记录
+     * 
+     * @param sessionId 会话 ID。
      */
     @Override
     public void deleteById(Long sessionId) {
@@ -71,9 +76,10 @@ public class ChatSessionRepositoryImpl implements ChatSessionRepository {
     /**
      * 查询会话
      *
-     * 为什么：获取会话详情
-     * 入参：会话 ID
-     * 出参：会话实体
+     * 获取会话详情
+     * 
+     * @param sessionId 会话 ID。
+     * @return 会话实体。
      */
     @Override
     public ChatSession findById(Long sessionId) {
@@ -83,9 +89,10 @@ public class ChatSessionRepositoryImpl implements ChatSessionRepository {
     /**
      * 分页查询会话
      *
-     * 为什么：控制单次返回数量
-     * 入参：分页查询条件
-     * 出参：会话列表
+     * 控制单次返回数量
+     * 
+     * @param query 分页查询条件。
+     * @return 会话列表。
      */
     @Override
     public List<ChatSession> findPage(ChatSessionPageQuery query) {
@@ -95,9 +102,9 @@ public class ChatSessionRepositoryImpl implements ChatSessionRepository {
     /**
      * 统计会话总数
      *
-     * 为什么：分页展示需要总数
-     * 入参：无
-     * 出参：总数
+     * 分页展示需要总数
+     * 
+     * @return 统计数量。
      */
     @Override
     public long countAll() {
@@ -107,9 +114,10 @@ public class ChatSessionRepositoryImpl implements ChatSessionRepository {
     /**
      * 删除过期会话
      *
-     * 为什么：清理历史会话，控制数据规模
-     * 入参：截止时间
-     * 出参：删除数量
+     * 清理历史会话，控制数据规模
+     * 
+     * @param updatedBefore 会话更新时间上限（早于该时间的会话会被删除）。
+     * @return 影响行数。
      */
     @Override
     public int deleteByUpdatedBefore(LocalDateTime updatedBefore) {

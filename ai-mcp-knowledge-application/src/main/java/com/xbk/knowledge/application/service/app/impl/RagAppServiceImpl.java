@@ -40,21 +40,47 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class RagAppServiceImpl implements RagAppService {
 
+    /**
+     * 单文件大小上限（30MB）。
+     */
     private static final long MAX_FILE_SIZE_BYTES = 30L * 1024 * 1024;
+
+    /**
+     * 支持的文件扩展名白名单。
+     */
     private static final List<String> SUPPORTED_EXTENSIONS = Arrays.asList("pdf", "docx", "md", "txt", "sql");
 
+    /**
+     * RAG 向量检索服务。
+     */
     private final RagVectorStoreService ragVectorStoreService;
+
+    /**
+     * RAG 任务仓储。
+     */
     private final RagTaskRepository ragTaskRepository;
+
+    /**
+     * RAG 任务处理器。
+     */
     private final RagTaskProcessor ragTaskProcessor;
+
+    /**
+     * 文本切分器。
+     */
     private final TokenTextSplitter tokenTextSplitter;
+
+    /**
+     * JSON 序列化/反序列化组件。
+     */
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * 查询全部 RAG 标签
      *
-     * 为什么：前端展示标签列表用于筛选与选择
-     * 入参：无
-     * 出参：标签列表
+     * 前端展示标签列表用于筛选与选择
+     * 
+     * @return RAG 标签列表。
      */
     @Override
     public List<String> listRagTags() {
@@ -64,9 +90,10 @@ public class RagAppServiceImpl implements RagAppService {
     /**
      * 删除 RAG 标签
      *
-     * 为什么：清理标签下的向量数据，释放存储与检索资源
-     * 入参：标签名
-     * 出参：是否成功
+     * 清理标签下的向量数据，释放存储与检索资源
+     * 
+     * @param ragTag RAG 标签。
+     * @return `true` 表示删除流程执行成功，`false` 表示执行失败。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -79,9 +106,10 @@ public class RagAppServiceImpl implements RagAppService {
     /**
      * 统计标签向量数量
      *
-     * 为什么：展示知识库规模，评估覆盖范围
-     * 入参：标签名
-     * 出参：向量数量
+     * 展示知识库规模，评估覆盖范围
+     * 
+     * @param ragTag RAG 标签。
+     * @return 统计数量。
      */
     @Override
     public long countByRagTag(String ragTag) {
@@ -91,9 +119,11 @@ public class RagAppServiceImpl implements RagAppService {
     /**
      * 同步上传文件
      *
-     * 为什么：适用于小批量文件的即时入库
-     * 入参：标签名、文件列表
-     * 出参：是否成功
+     * 适用于小批量文件的即时入库
+     * 
+     * @param ragTag RAG 标签。
+     * @param files 待上传文件列表。
+     * @return `true` 表示文件已完成入库，`false` 表示未执行入库。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -154,9 +184,11 @@ public class RagAppServiceImpl implements RagAppService {
     /**
      * 异步上传文件（支持进度跟踪）
      *
-     * 为什么：大文件或批量导入需要异步处理，避免阻塞接口
-     * 入参：标签名、文件列表
-     * 出参：任务 ID
+     * 大文件或批量导入需要异步处理，避免阻塞接口
+     * 
+     * @param ragTag RAG 标签。
+     * @param files 待上传文件列表。
+     * @return 异步任务 ID。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -207,9 +239,13 @@ public class RagAppServiceImpl implements RagAppService {
     /**
      * 分析 Git 仓库
      *
-     * 为什么：直接从仓库构建知识库，减少手动上传步骤
-     * 入参：仓库地址、用户名、Token、标签名
-     * 出参：任务 ID
+     * 直接从仓库构建知识库，减少手动上传步骤
+     * 
+     * @param repoUrl 仓库地址。
+     * @param userName 用户名。
+     * @param token 令牌。
+     * @param ragTag RAG 标签。
+     * @return 异步任务 ID。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -236,9 +272,10 @@ public class RagAppServiceImpl implements RagAppService {
     /**
      * 查询任务
      *
-     * 为什么：支持前端轮询任务状态
-     * 入参：任务 ID
-     * 出参：任务详情
+     * 支持前端轮询任务状态
+     * 
+     * @param taskId 任务 ID。
+     * @return 任务实体。
      */
     @Override
     public RagTask queryTask(String taskId) {
@@ -248,9 +285,10 @@ public class RagAppServiceImpl implements RagAppService {
     /**
      * 取消任务
      *
-     * 为什么：长任务可终止，节省计算资源
-     * 入参：任务 ID
-     * 出参：是否成功
+     * 长任务可终止，节省计算资源
+     * 
+     * @param taskId 任务 ID。
+     * @return `true` 表示取消成功，`false` 表示任务不存在或取消失败。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -270,9 +308,11 @@ public class RagAppServiceImpl implements RagAppService {
     /**
      * 分页查询任务
      *
-     * 为什么：任务记录可能较多，分页避免接口过大
-     * 入参：偏移量、页大小
-     * 出参：分页结果
+     * 任务记录可能较多，分页避免接口过大
+     * 
+     * @param offset 分页偏移量。
+     * @param pageSize 分页大小。
+     * @return 任务分页结果。
      */
     @Override
     public PageResult<RagTask> queryTaskPage(int offset, int pageSize) {
@@ -288,9 +328,10 @@ public class RagAppServiceImpl implements RagAppService {
     /**
      * 重试任务
      *
-     * 为什么：允许失败任务基于失败详情再次执行
-     * 入参：任务 ID
-     * 出参：新任务 ID
+     * 允许失败任务基于失败详情再次执行
+     * 
+     * @param taskId 任务 ID。
+     * @return 新任务 ID。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -344,7 +385,7 @@ public class RagAppServiceImpl implements RagAppService {
                 taskId, newTaskId, errors.size(), newRetryCount);
 
         /*
-         * 约束：目前只创建任务记录，实际重试由外部机制触发
+         * 约束目前只创建任务记录，实际重试由外部机制触发
  */
         return newTaskId;
     }
@@ -352,9 +393,10 @@ public class RagAppServiceImpl implements RagAppService {
     /**
      * 校验文件扩展名是否支持
      *
-     * 为什么：限制解析器范围，避免不可控格式导致解析失败
-     * 入参：文件名
-     * 出参：是否支持
+     * 限制解析器范围，避免不可控格式导致解析失败
+     * 
+     * @param fileName 文件名。
+     * @return `true` 表示扩展名在白名单内，`false` 表示不支持。
      */
     private boolean isSupportedFile(String fileName) {
         if (!StringUtils.hasText(fileName)) {
@@ -371,9 +413,10 @@ public class RagAppServiceImpl implements RagAppService {
     /**
      * 解析仓库名称作为默认标签
      *
-     * 为什么：未传标签时使用仓库名保证任务可识别
-     * 入参：仓库地址
-     * 出参：解析后的标签名
+     * 未传标签时使用仓库名保证任务可识别
+     * 
+     * @param repoUrl 仓库地址。
+     * @return 解析得到的仓库名称。
      */
     private String resolveRepoName(String repoUrl) {
         if (!StringUtils.hasText(repoUrl)) {

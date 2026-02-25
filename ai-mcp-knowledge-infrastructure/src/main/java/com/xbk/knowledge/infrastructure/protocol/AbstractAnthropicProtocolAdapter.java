@@ -19,9 +19,10 @@ public abstract class AbstractAnthropicProtocolAdapter {
     /**
      * 创建基于 Anthropic 协议的 ChatModel
      * <p>
-     * 为什么：统一封装 Anthropic 协议模型创建逻辑
-     * 入参：模型配置
-     * 出参：ChatModel
+     * 统一封装 Anthropic 协议模型创建逻辑
+     * 
+     * @param config 配置信息。
+     * @return Anthropic 协议对话模型。
      */
     public ChatModel createChatModel(ModelConfig config) {
         String baseUrl = config.getBaseUrl();

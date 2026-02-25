@@ -31,7 +31,14 @@ import static org.mockito.Mockito.when;
  */
 public class ModelConfigServiceImplTest {
 
+    /**
+     * 模型配置仓储。
+     */
     private ModelConfigRepository modelConfigRepository;
+
+    /**
+     * 模型配置领域服务实现。
+     */
     private ModelConfigServiceImpl service;
 
     /**

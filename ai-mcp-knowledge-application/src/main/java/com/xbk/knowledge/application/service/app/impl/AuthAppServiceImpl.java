@@ -25,13 +25,20 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AuthAppServiceImpl implements AuthAppService {
 
+    /**
+     * 身份仓储。
+     */
     private final IdentityRepository identityRepository;
+
+    /**
+     * 密码编码器。
+     */
     private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 
     /**
      * 校验登录凭证并返回用户。
-     *
-     * @param username    用户名
+     * 
+     * @param username 用户名
      * @param rawPassword 明文密码
      * @return 用户实体
      */
@@ -50,8 +57,8 @@ public class AuthAppServiceImpl implements AuthAppService {
 
     /**
      * 记录登录成功信息。
-     *
-     * @param userId  用户ID
+     * 
+     * @param userId 用户ID
      * @param loginIp 登录IP
      */
     @Override
@@ -62,7 +69,7 @@ public class AuthAppServiceImpl implements AuthAppService {
 
     /**
      * 加载登录用户画像。
-     *
+     * 
      * @param userId 用户ID
      * @return 用户画像
      */
@@ -87,7 +94,7 @@ public class AuthAppServiceImpl implements AuthAppService {
 
     /**
      * 查询用户角色编码集合。
-     *
+     * 
      * @param userId 用户ID
      * @return 角色编码列表
      */
@@ -101,7 +108,7 @@ public class AuthAppServiceImpl implements AuthAppService {
 
     /**
      * 查询用户权限编码集合。
-     *
+     * 
      * @param userId 用户ID
      * @return 权限编码列表
      */
@@ -118,7 +125,7 @@ public class AuthAppServiceImpl implements AuthAppService {
 
     /**
      * 校验用户状态是否可登录。
-     *
+     * 
      * @param user 用户实体
      */
     private void validateUserStatus(SysUser user) {
@@ -130,7 +137,7 @@ public class AuthAppServiceImpl implements AuthAppService {
 
     /**
      * 判断是否平台超管。
-     *
+     * 
      * @param user 用户实体
      * @return 是否超管
      */

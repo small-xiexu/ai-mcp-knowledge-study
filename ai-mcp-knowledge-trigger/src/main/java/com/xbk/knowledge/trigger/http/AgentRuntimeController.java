@@ -31,7 +31,9 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/agents/{agentCode}")
 @RequiredArgsConstructor
 public class AgentRuntimeController implements IAgentRuntimeService {
-
+    /**
+     * Agent 运行时应用服务，用于执行 chat/stream/invoke 运行链路。
+     */
     private final AgentRuntimeAppService agentRuntimeAppService;
 
     /**
@@ -42,9 +44,9 @@ public class AgentRuntimeController implements IAgentRuntimeService {
      * 3. Controller 调用 `agentRuntimeAppService.chat` 执行 Agent 同步运行链路。
      * 4. 应用层完成版本解析、上下文组装、模型调用与结果封装。
      * 5. Controller 统一通过 `Result.success` 返回平台标准结构体。
-     *
-     * @param agentCode Agent 对外编码
-     * @param request   对话请求
+     * 
+     * @param agentCode 智能体编码。
+     * @param request 请求体参数。
      * @return 平台标准结构化结果
      */
     @PostMapping("/chat")
@@ -61,17 +63,17 @@ public class AgentRuntimeController implements IAgentRuntimeService {
     }
 
     /**
-     * 流式对话调用（SSE：delta + final）。
+     * 流式对话调用（SSEdelta + final）。
      * 流程：
      * 1. 进入接口后按 `agentCode` 路由并执行 `agent:invoke` 权限校验。
      * 2. Spring 完成请求体绑定与参数校验（`@Valid`），并设置 SSE 响应头。
      * 3. Controller 调用 `agentRuntimeAppService.stream` 获取流式事件。
      * 4. 将应用层 `PlatformStreamEvent` 按事件名写入 `SseEmitter`。
      * 5. 异常走 `completeWithError`，完成时调用 `complete` 结束连接。
-     *
-     * @param agentCode     Agent 对外编码
-     * @param request       对话请求
-     * @param httpResponse  HTTP 响应（用于设置 SSE 相关 Header）
+     * 
+     * @param agentCode 智能体编码。
+     * @param request 请求体参数。
+     * @param httpResponse HTTP 响应。
      * @return SSE emitter
      */
     @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
@@ -123,9 +125,9 @@ public class AgentRuntimeController implements IAgentRuntimeService {
      * 3. Controller 调用 `agentRuntimeAppService.invoke` 执行统一运行入口逻辑。
      * 4. 应用层完成运行快照、上下文与标准输出契约组装。
      * 5. Controller 统一通过 `Result.success` 返回平台标准结构体。
-     *
-     * @param agentCode Agent 对外编码
-     * @param request   调用请求
+     * 
+     * @param agentCode 智能体编码。
+     * @param request 请求体参数。
      * @return 平台标准结构化结果
      */
     @PostMapping("/invoke")

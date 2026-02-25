@@ -32,8 +32,8 @@ public class TokenTextSplitterWithContext {
 
     /**
      * 构造器
-     *
-     * @param chunkSize    每个文本块的 Token 数量
+     * 
+     * @param chunkSize 每个文本块的 Token 数量
      * @param chunkOverlap 相邻块之间的重叠 Token 数量
      */
     public TokenTextSplitterWithContext(int chunkSize, int chunkOverlap) {
@@ -44,7 +44,7 @@ public class TokenTextSplitterWithContext {
     /**
      * 将文档列表分割为更小的文本块
      * 流程：遍历文档 -> 结巴分词 -> 滑动窗口切块 -> 继承原文档元数据
-     *
+     * 
      * @param documents 原始文档列表
      * @return 分割后的文档块列表
      */
@@ -55,7 +55,7 @@ public class TokenTextSplitterWithContext {
             String[] tokens = tokenize(doc.getText());
             int start = 0;
 
-            // 2. 滑动窗口切块：每次取 chunkSize 个 Token，步进 (chunkSize - chunkOverlap)
+            // 2. 滑动窗口切块每次取 chunkSize 个 Token，步进 (chunkSize - chunkOverlap)
             while (start < tokens.length) {
                 int maxEnd = start + chunkSize;
                 int tokensLength = tokens.length;
@@ -91,13 +91,13 @@ public class TokenTextSplitterWithContext {
     /**
      * 使用结巴分词对文本进行分词
      * 采用 INDEX 模式，适合搜索引擎场景
-     *
+     * 
      * @param text 原始文本
      * @return 分词后的 Token 数组
      */
     private String[] tokenize(String text) {
         JiebaSegmenter segmenter = new JiebaSegmenter();
-        // INDEX 模式：在精确模式基础上，对长词再次切分，提高召回率
+        // INDEX 模式在精确模式基础上，对长词再次切分，提高召回率
         List<SegToken> segTokens = segmenter.process(text, JiebaSegmenter.SegMode.INDEX);
         Function<SegToken, String> tokenMapper = token -> token.word;
         IntFunction<String[]> arrayFactory = String[]::new;

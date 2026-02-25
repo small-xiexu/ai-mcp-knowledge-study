@@ -35,6 +35,8 @@ public enum CallStatus {
 
     /**
      * 对外暴露 getDisplayName 作为调用入口，便于上层复用。
+     * 
+     * @return 状态显示名称。
      */
     public String getDisplayName() {
         return displayName;

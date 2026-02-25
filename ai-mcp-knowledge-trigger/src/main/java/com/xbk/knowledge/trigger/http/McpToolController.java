@@ -25,6 +25,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class McpToolController implements IMcpToolService {
 
+    /**
+     * MCP 工具目录应用服务。
+     */
     private final McpToolCatalogService mcpToolCatalogService;
 
     /**
@@ -34,7 +37,7 @@ public class McpToolController implements IMcpToolService {
      * 2. Controller 调用 `mcpToolCatalogService.listTools` 拉取工具目录。
      * 3. 将应用层 `McpToolInfo` 列表映射为对外 `McpToolResponse` 列表。
      * 4. 统一通过 `Result.success` 返回给前端配置页使用。
-     *
+     * 
      * @return 工具列表
      */
     @PostMapping("/list")
@@ -51,9 +54,9 @@ public class McpToolController implements IMcpToolService {
 
     /**
      * 将输入数据转换为响应。
-     *
+     * 
      * @param info 工具信息。
-     * @return 返回McpToolResponse对象。
+     * @return 工具响应。
      */
     private McpToolResponse toResponse(McpToolInfo info) {
         if (info == null) {

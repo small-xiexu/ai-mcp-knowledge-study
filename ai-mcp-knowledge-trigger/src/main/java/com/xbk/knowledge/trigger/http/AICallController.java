@@ -44,29 +44,36 @@ import java.util.function.Function;
 @RequestMapping("/api/ai")
 @RequiredArgsConstructor
 public class AICallController implements IAICallService {
-
+    /**
+     * 模型配置应用服务，用于查询可用模型列表。
+     */
     private final ModelConfigAppService modelConfigAppService;
+
+    /**
+     * AI 对话应用服务，负责流式对话调用编排。
+     */
     private final AiChatAppService aiChatAppService;
 
     /**
      * 流式 AI 对话
      * <p>
-     * 为什么：使用 SSE 保证前端逐步渲染，提升长文本体验。
+     * 使用 SSE 保证前端逐步渲染，提升长文本体验。
      * 流程：
      * 1. 进入接口后执行 `agent:read` 权限校验并初始化 SSE 响应头。
      * 2. 将 API 请求转换为 `AICallCommand`，并初始化 usage 统计容器。
      * 3. 调用 `aiChatAppService.streamChat` 获取流式 `ChatResponse`。
      * 4. 对每个分片执行内容发送与 token 统计，结束时推送 usage 事件并关闭连接。
      * 5. 异常场景通过 `SseEmitter.completeWithError` 终止流并交由上层处理。
-     *
+     * 
      * @param request AI 请求
+     * @param httpResponse HTTP 响应。
      * @return SSE 响应
      */
     @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @SaCheckPermission("agent:read")
     @Override
     public SseEmitter stream(@Valid @RequestBody AIRequest request, HttpServletResponse httpResponse) {
-        // SSE 响应基础设置：
+        // SSE 响应基础设置
         // 1、UTF-8 防止中文分片乱码
         // 2、no-cache/keep-alive 让连接保持长连
         // 3、X-Accel-Buffering=no 禁止反向代理缓冲，确保分片实时推送
@@ -79,13 +86,13 @@ public class AICallController implements IAICallService {
         SseEmitter emitter = new SseEmitter(0L);
         AICallCommand command = DTOConverter.toAppAICallCommand(request);
 
-        // 记录整次流式会话的 token 统计，最终在结束阶段一次性回传 usage 事件
+        // 记录整次流式话的 token 统计，最终在结束阶段一次性回传 usage 事件
         UsageStats usageStats = new UsageStats();
 
-        // subscribe 三段回调语义：
+        // subscribe 三段回调语义
         // onNext(每个分片)、onError(异常终止)、onComplete(正常结束)
         Consumer<ChatResponse> onChunk = chatResponse -> {
-            // 每收到一个分片先提取 usage 快照（若当前分片不含 usage，方法内部会安全忽略）
+            // 每收到一个分片先提取 usage 快照（若当前分片不含 usage，方法内部安全忽略）
             captureUsage(chatResponse, usageStats);
             // 将当前分片文本通过 SSE 发送给前端，前端可实时拼接渲染
             sendChunk(emitter, chatResponse);
@@ -105,13 +112,13 @@ public class AICallController implements IAICallService {
     /**
      * 获取所有可用模型列表
      * <p>
-     * 为什么：前端下拉统一来源，避免直接访问配置表。
+     * 前端下拉统一来源，避免直接访问配置表。
      * 流程：
      * 1. 进入接口后执行 `agent:read` 权限校验。
      * 2. Controller 以 `enabled=true` 条件调用 `modelConfigAppService.queryEnabledModels`。
      * 3. 将领域模型配置映射为对外 `ModelInfo` 列表。
      * 4. 统一封装 `Result.success` 返回，供前端模型选择器使用。
-     *
+     * 
      * @return 模型列表
      */
     @Override
@@ -190,13 +197,24 @@ public class AICallController implements IAICallService {
      * @author sxie
      */
     private static class UsageStats {
+        /**
+         * 输入 token 数（Prompt）。
+         */
         private Integer promptTokens;
+
+        /**
+         * 输出 token 数（Completion）。
+         */
         private Integer completionTokens;
+
+        /**
+         * 总 token 数（Prompt + Completion）。
+         */
         private Integer totalTokens;
 
         /**
          * 更新业务数据。
-         *
+         * 
          * @param promptTokens 输入Token数。
          * @param completionTokens 输出Token数。
          * @param totalTokens 总Token数。

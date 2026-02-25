@@ -16,8 +16,8 @@ public interface AuthAppService {
 
     /**
      * 校验登录凭证并返回用户。
-     *
-     * @param username    用户名
+     * 
+     * @param username 用户名
      * @param rawPassword 明文密码
      * @return 用户实体
      */
@@ -25,15 +25,15 @@ public interface AuthAppService {
 
     /**
      * 记录登录成功信息。
-     *
-     * @param userId    用户ID
-     * @param loginIp   登录IP
+     * 
+     * @param userId 用户ID
+     * @param loginIp 登录IP
      */
     void recordLoginSuccess(Long userId, String loginIp);
 
     /**
      * 加载登录用户画像。
-     *
+     * 
      * @param userId 用户ID
      * @return 用户画像
      */
@@ -41,7 +41,7 @@ public interface AuthAppService {
 
     /**
      * 查询用户角色编码集合。
-     *
+     * 
      * @param userId 用户ID
      * @return 角色编码列表
      */
@@ -49,7 +49,7 @@ public interface AuthAppService {
 
     /**
      * 查询用户权限编码集合。
-     *
+     * 
      * @param userId 用户ID
      * @return 权限编码列表
      */

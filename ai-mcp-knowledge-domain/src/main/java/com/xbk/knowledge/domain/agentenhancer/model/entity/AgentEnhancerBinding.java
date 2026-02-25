@@ -20,18 +20,25 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AgentEnhancerBinding {
+
+    /**
+     * 主键 ID。
+     */
     private Long id;
 
     /**
-     * 绑定类型：AGENT_VERSION/WORKFLOW_VERSION。
+     * 绑定类型AGENT_VERSION/WORKFLOW_VERSION。
      */
     private String bindType;
 
     /**
-     * 绑定目标 ID：AgentVersionId / WorkflowVersionId。
+     * 绑定目标 IDAgentVersionId / WorkflowVersionId。
      */
     private Long bindTargetId;
 
+    /**
+     * Agent 增强器 ID。
+     */
     private Long agentEnhancerId;
 
     /**
@@ -43,7 +50,14 @@ public class AgentEnhancerBinding {
      * 是否启用（1启用 0禁用）。
      */
     private Integer enabled;
+
+    /**
+     * 创建时间。
+     */
     private LocalDateTime createdAt;
+
+    /**
+     * 更新时间。
+     */
     private LocalDateTime updatedAt;
 }
-

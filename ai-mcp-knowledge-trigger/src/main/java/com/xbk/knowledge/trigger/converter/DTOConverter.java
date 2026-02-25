@@ -21,7 +21,10 @@ public class DTOConverter {
     /**
      * API AIRequest -> 应用层 AICallCommand
      *
-     * 为什么：接口层只做字段映射，避免引入业务逻辑导致边界污染。
+     * 接口层只做字段映射，避免引入业务逻辑导致边界污染。
+     * 
+     * @param api AI 请求参数。
+     * @return 转换后的 AI 调用命令。
      */
     public static AICallCommand toAppAICallCommand(AIRequest api) {
         if (api == null) {
@@ -48,7 +51,10 @@ public class DTOConverter {
     /**
      * 应用层 AICallResult -> API AIResponse
      *
-     * 为什么：统一响应字段映射，保证对外返回结构稳定。
+     * 统一响应字段映射，保证对外返回结构稳定。
+     * 
+     * @param result AI 调用结果。
+     * @return API 响应数据。
      */
     public static AIResponse toApiAIResponse(AICallResult result) {
         if (result == null) {

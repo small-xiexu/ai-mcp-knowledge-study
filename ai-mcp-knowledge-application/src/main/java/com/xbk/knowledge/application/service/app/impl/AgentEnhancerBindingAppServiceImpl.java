@@ -29,15 +29,26 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class AgentEnhancerBindingAppServiceImpl implements AgentEnhancerBindingAppService {
 
+    /**
+     * Agent 增强器仓储。
+     */
     private final AgentEnhancerRepository agentEnhancerRepository;
+
+    /**
+     * Agent 增强器绑定仓储。
+     */
     private final AgentEnhancerBindingRepository agentEnhancerBindingRepository;
+
+    /**
+     * Agent 增强器运行时服务。
+     */
     private final AgentEnhancerRuntimeService agentEnhancerRuntimeService;
 
     /**
      * 根据筛选条件查询AgentEnhancer 绑定列表。
-     *
-     * @param query 查询条件
-     * @return 返回 AgentEnhancerBindingView 列表数据。
+     * 
+     * @param query AgentEnhancer 绑定查询条件。
+     * @return AgentEnhancerBindingView 列表数据。
      */
     @Override
     public List<AgentEnhancerBindingView> listBindings(AgentEnhancerBindingQuery query) {
@@ -53,7 +64,7 @@ public class AgentEnhancerBindingAppServiceImpl implements AgentEnhancerBindingA
 
     /**
      * 创建或更新AgentEnhancer 绑定数据。
-     *
+     * 
      * @param bindType 绑定类型
      * @param bindTargetId 绑定目标 ID
      * @param items 条目列表。

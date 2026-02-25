@@ -15,6 +15,8 @@ public class Application {
 
     /**
      * 对外暴露 main 作为调用入口，便于上层复用。
+     * 
+     * @param args String[] 参数。
      */
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);

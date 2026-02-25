@@ -30,6 +30,9 @@ import jakarta.validation.Valid;
 @RequiredArgsConstructor
 public class AuditEventController implements IAuditEventService {
 
+    /**
+     * 审计事件应用服务。
+     */
     private final AuditEventAppService auditEventAppService;
 
     /**
@@ -40,9 +43,9 @@ public class AuditEventController implements IAuditEventService {
      * 3. Controller 将请求 DTO 组装为 `AuditEventPageQuery` 查询对象。
      * 4. 调用 `auditEventAppService.queryPage` 执行分页查询。
      * 5. 将领域分页结果转换为 `AuditEventResponse` 并统一封装 `Result.success` 返回。
-     *
+     * 
      * @param request 查询参数
-     * @return 分页结果
+     * @return PageResult<AuditEventResponse> 分页结果。
      */
     @SaCheckPermission("audit:read")
     @PostMapping("/list")
@@ -63,7 +66,7 @@ public class AuditEventController implements IAuditEventService {
 
     /**
      * 转换响应对象。
-     *
+     * 
      * @param event 审计事件实体
      * @return 响应 DTO
      */

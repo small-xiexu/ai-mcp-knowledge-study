@@ -26,7 +26,7 @@ import java.util.Map;
 /**
  * AgentSchedule 应用服务实现。
  *
- * 关键点：
+ * 关键点
  * - schedule 落库后创建/更新 xxl-job，并将 jobId 回写到 schedule.xxl_job_id
  * - enable/disable 同步 start/stop xxl-job
  *
@@ -36,20 +36,41 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
-
+    /**
+     * Agent 调度对应的 XXL 执行器 Handler 名称。
+     */
     private static final String XXL_HANDLER = "agentScheduleHandler";
 
+    /**
+     * Agent 调度领域服务，用于调度配置读写与启停。
+     */
     private final IAgentScheduleService agentScheduleService;
+
+    /**
+     * Agent 应用服务，用于按 agentCode 解析 Agent 信息。
+     */
     private final AgentAppService agentAppService;
+
+    /**
+     * 身份上下文服务，用于获取当前操作人 ID。
+     */
     private final IdentityContextService identityContextService;
+
+    /**
+     * XXL Job 应用服务，用于创建/更新/启停调度任务。
+     */
     private final XxlJobAppService xxlJobAppService;
+
+    /**
+     * JSON 序列化组件，用于处理执行参数 JSON。
+     */
     private final ObjectMapper objectMapper;
 
     /**
      * 查询Agent 调度。
      *
-     * @param query 查询条件
-     * @return 返回 AgentSchedule 分页数据。
+     * @param query 分页查询条件
+     * @return AgentSchedule 分页数据
      */
     @Override
     public PageResult<AgentSchedule> queryPage(AgentSchedulePageQuery query) {
@@ -59,8 +80,8 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
     /**
      * 查询Agent 调度。
      *
-     * @param query 查询条件
-     * @return 返回 AgentSchedule 数据。
+     * @param query 主键查询条件
+     * @return AgentSchedule 详情
      */
     @Override
     public AgentSchedule queryById(AgentScheduleIdQuery query) {
@@ -70,9 +91,9 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
     /**
      * 创建并持久化Agent 调度数据。
      *
-     * @param schedule 调度配置。
+     * @param schedule 调度配置
      * @param agentCode Agent 编码
-     * @return 返回 AgentSchedule 数据。
+     * @return 创建后的 AgentSchedule 信息
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -103,9 +124,9 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
     /**
      * 更新Agent 调度数据。
      *
-     * @param schedule 调度配置。
+     * @param schedule 调度配置
      * @param agentCode Agent 编码
-     * @return 返回 AgentSchedule 数据。
+     * @return 更新后的 AgentSchedule 信息
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -135,7 +156,7 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
      * 启用业务配置。
      *
      * @param id 主键 ID
-     * @return 返回 AgentSchedule 数据。
+     * @return 启用后的 AgentSchedule 信息
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -157,7 +178,7 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
      * 禁用业务配置。
      *
      * @param id 主键 ID
-     * @return 返回 AgentSchedule 数据。
+     * @return 禁用后的 AgentSchedule 信息
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -192,15 +213,15 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
     /**
      * 解析智能体编码。
      *
-     * @param schedule 调度配置。
-     * @return 返回解析结果。
+     * @param schedule 调度配置
+     * @return 解析后的智能体编码
      */
     private String resolveAgentCode(AgentSchedule schedule) {
         if (schedule != null && StringUtils.hasText(schedule.getAgentCode())) {
             return schedule.getAgentCode().trim();
         }
         Long agentId = schedule == null ? null : schedule.getAgentId();
-        // 回退方案：避免空值导致 jobDesc 信息缺失
+        // 回退方案避免空值导致 jobDesc 信息缺失
         if (agentId == null) {
             return "UNKNOWN_AGENT";
         }
@@ -210,10 +231,10 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
     /**
      * 校验XxlJob。
      *
-     * @param schedule 调度配置。
-     * @param agentCode 智能体编码。
-     * @param createIfMissing 是否允许自动创建任务。
-     * @return 返回对应的 XXL-Job 任务ID。
+     * @param schedule 调度配置
+     * @param agentCode 智能体编码
+     * @param createIfMissing 是否允许自动创建任务
+     * @return 对应的 XXL-Job 任务 ID
      */
     private Long ensureXxlJob(AgentSchedule schedule, String agentCode, boolean createIfMissing) {
         if (schedule == null || schedule.getId() == null) {
@@ -256,7 +277,7 @@ public class AgentScheduleAppServiceImpl implements AgentScheduleAppService {
             return jobId;
         }
 
-        // 已存在 job：更新 cron 与 param
+        // 已存在 job更新 cron 与 param
         XxlJobInfo jobInfo = XxlJobInfo.builder()
                 .id(schedule.getXxlJobId())
                 .jobDesc(jobDesc)

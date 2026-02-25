@@ -16,6 +16,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class WorkflowVersionListQuery {
 
+    /**
+     * Workflow ID。
+     */
     private Long workflowId;
 }
-

@@ -50,24 +50,62 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class PreheatAppServiceImpl implements PreheatAppService {
 
+    /**
+     * MCP Server 配置应用服务。
+     */
     private final McpServerConfigAppService mcpServerConfigAppService;
+
+    /**
+     * 工具回调提供器。
+     */
     private final ToolCallbackProvider toolCallbackProvider;
+
+    /**
+     * Agent 增强器运行时服务。
+     */
     private final AgentEnhancerRuntimeService agentEnhancerRuntimeService;
+
+    /**
+     * JSON 序列化/反序列化组件。
+     */
     private final ObjectMapper objectMapper;
+
+    /**
+     * 模型配置应用服务。
+     */
     private final ModelConfigAppService modelConfigAppService;
+
+    /**
+     * AI 客户端装配策略工厂。
+     */
     private final DefaultAiClientArmoryStrategyFactory armoryStrategyFactory;
 
+    /**
+     * Agent 版本仓储。
+     */
     private final AgentVersionRepository agentVersionRepository;
+
+    /**
+     * Workflow 版本仓储。
+     */
     private final WorkflowVersionRepository workflowVersionRepository;
+
+    /**
+     * Workflow 图仓储。
+     */
     private final WorkflowGraphRepository workflowGraphRepository;
+
+    /**
+     * 客户端画像仓储。
+     */
     private final ClientProfileRepository clientProfileRepository;
 
     /**
      * 预热 Agent 版本运行资源。
      *
-     * @param agentVersionId Agent 版本 ID。
+     * @param agentVersionId Agent 版本 ID
      * @param refreshMcp 是否刷新 MCP 客户端。
-     * @return 返回 PreheatResult 数据。
+     * @return PreheatResult 数据
      */
     @Override
     public PreheatResult preheatAgentVersion(Long agentVersionId, boolean refreshMcp) {
@@ -115,9 +153,9 @@ public class PreheatAppServiceImpl implements PreheatAppService {
     /**
      * 预热 Workflow 版本运行资源。
      *
-     * @param workflowVersionId 工作流版本 ID。
+     * @param workflowVersionId 工作流版本 ID
      * @param refreshMcp 是否刷新 MCP 客户端。
-     * @return 返回 PreheatResult 数据。
+     * @return PreheatResult 数据
      */
     @Override
     public PreheatResult preheatWorkflowVersion(Long workflowVersionId, boolean refreshMcp) {
@@ -222,8 +260,8 @@ public class PreheatAppServiceImpl implements PreheatAppService {
     /**
      * 解析Agent版本模型ID列表。
      *
-     * @param version 工作流版本。
-     * @return 返回解析后的模型配置。
+     * @param version 工作流版本
+     * @return 解析得到的模型 ID 列表
      */
     private List<Long> resolveAgentVersionModelIds(AgentVersion version) {
         if (version == null) {
@@ -319,8 +357,8 @@ public class PreheatAppServiceImpl implements PreheatAppService {
     /**
      * 提取工具 Key。
      *
-     * @param cfgJson 配置JSON。
-     * @return 返回标识Key。
+     * @param cfgJson 配置 JSON
+     * @return 工具 Key
      */
     private String extractToolKey(String cfgJson) {
         if (!StringUtils.hasText(cfgJson)) {

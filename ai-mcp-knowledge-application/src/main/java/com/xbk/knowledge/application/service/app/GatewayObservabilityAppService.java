@@ -21,8 +21,8 @@ public interface GatewayObservabilityAppService {
 
     /**
      * 查询工具指标与告警快照
-     *
-     * @param query 查询条件
+     * 
+     * @param query 时间范围查询条件。
      * @return 观测报告
      */
     GatewayMetricsReport queryMetrics(MetricsQuery query);

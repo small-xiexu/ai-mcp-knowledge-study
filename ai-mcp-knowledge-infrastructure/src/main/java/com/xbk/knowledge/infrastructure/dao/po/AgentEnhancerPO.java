@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 /**
  * AgentEnhancer 资产实体。
  *
- * 对应表：agent_enhancer
+ * 对应表agent_enhancer
  *
  * @author sxie
  */
@@ -28,6 +28,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class AgentEnhancerPO {
 
+    /**
+     * 主键 ID。
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
@@ -36,12 +39,15 @@ public class AgentEnhancerPO {
      */
     private String agentEnhancerCode;
 
+    /**
+     * Agent 增强器名称。
+     */
     private String agentEnhancerName;
 
     /**
      * AgentEnhancer 类型（用于运行时装配）。
      *
-     * 建议值：
+     * 建议值
      * - CHAT_MEMORY
      * - REQUEST_RESPONSE_LOG
      * - TOOL_CALL_LOG
@@ -58,9 +64,15 @@ public class AgentEnhancerPO {
      */
     private String configJson;
 
+    /**
+     * 创建时间。
+     */
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
+    /**
+     * 更新时间。
+     */
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedAt;
 }

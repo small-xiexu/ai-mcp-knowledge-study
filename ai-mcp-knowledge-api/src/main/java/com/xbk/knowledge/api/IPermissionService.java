@@ -16,9 +16,9 @@ public interface IPermissionService {
 
     /**
      * 按筛选条件分页查询权限数据。
-     *
+     * 
      * @param request 权限分页查询参数。
-     * @return 返回 PermissionResponse 分页数据。
+     * @return PermissionResponse 分页数据。
      */
     Result<PageResult<PermissionResponse>> list(PermissionQueryRequest request);
 }

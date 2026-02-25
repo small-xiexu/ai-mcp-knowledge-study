@@ -31,17 +31,33 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ChatSessionAppServiceImpl implements ChatSessionAppService {
 
+    /**
+     * 聊天会话仓储。
+     */
     private final ChatSessionRepository chatSessionRepository;
+
+    /**
+     * 聊天消息仓储。
+     */
     private final ChatMessageRepository chatMessageRepository;
+
+    /**
+     * 聊天记忆仓储。
+     */
     private final ChatMemoryRepository chatMemoryRepository;
+
+    /**
+     * 模型配置应用服务。
+     */
     private final ModelConfigAppService modelConfigAppService;
 
     /**
      * 创建会话
      *
-     * 为什么：会话是消息聚合根，创建时保证数据一致性
-     * 入参：会话实体
-     * 出参：持久化后的会话
+     * 话是消息聚合根，创建时保证数据一致性
+     * 
+     * @param session 待创建的会话实体。
+     * @return 已持久化的会话实体。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -52,14 +68,15 @@ public class ChatSessionAppServiceImpl implements ChatSessionAppService {
     /**
      * 更新会话
      *
-     * 为什么：集中处理会话元数据修改，保持统一事务边界
-     * 入参：会话实体
-     * 出参：更新后的会话
+     * 集中处理会话元数据修改，保持统一事务边界
+     * 
+     * @param session 待更新的会话实体。
+     * @return 更新后的会话实体。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ChatSession updateSession(ChatSession session) {
-        // 首次消息发送后锁定模型，避免会话中途切换模型
+        // 首次消息发送后锁定模型，避免话中途切换模型
         if (session != null && session.getId() != null) {
             ChatSession existing = chatSessionRepository.findById(session.getId());
             if (existing != null && existing.getModelId() != null) {
@@ -79,14 +96,14 @@ public class ChatSessionAppServiceImpl implements ChatSessionAppService {
     /**
      * 删除会话
      *
-     * 为什么：删除会话时需同步清理消息与记忆，避免残留数据
-     * 入参：会话 ID
-     * 出参：无
+     * 删除会话时需同步清理消息与记忆，避免残留数据
+     * 
+     * @param sessionId 会话 ID。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void deleteSession(Long sessionId) {
-        // 先删消息再删会话，避免外键或引用一致性问题
+        // 先删消息再删话，避免外键或引用一致性问题
         chatMessageRepository.deleteBySessionId(sessionId);
         chatSessionRepository.deleteById(sessionId);
         if (sessionId != null) {
@@ -97,9 +114,10 @@ public class ChatSessionAppServiceImpl implements ChatSessionAppService {
     /**
      * 查询会话
      *
-     * 为什么：提供会话详情给前端或业务流程
-     * 入参：会话 ID
-     * 出参：会话实体
+     * 提供会话详情给前端或业务流程
+     * 
+     * @param sessionId 会话 ID。
+     * @return 会话实体。
      */
     @Override
     public ChatSession getSession(Long sessionId) {
@@ -109,9 +127,11 @@ public class ChatSessionAppServiceImpl implements ChatSessionAppService {
     /**
      * 分页查询会话
      *
-     * 为什么：控制单次返回数量，避免加载过大
-     * 入参：页码、页大小
-     * 出参：分页结果
+     * 控制单次返回数量，避免加载过大
+     * 
+     * @param pageNum 页码。
+     * @param pageSize 分页大小。
+     * @return 会话分页结果。
      */
     @Override
     public PageResult<ChatSession> listSessions(int pageNum, int pageSize) {
@@ -126,9 +146,10 @@ public class ChatSessionAppServiceImpl implements ChatSessionAppService {
     /**
      * 追加消息
      *
-     * 为什么：消息写入需保证事务性，便于后续检索与统计
-     * 入参：消息实体
-     * 出参：持久化后的消息
+     * 消息写入需保证事务性，便于后续检索与统计
+     * 
+     * @param message 待追加的消息实体。
+     * @return 已持久化的消息实体。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -139,9 +160,12 @@ public class ChatSessionAppServiceImpl implements ChatSessionAppService {
     /**
      * 分页查询会话消息
      *
-     * 为什么：历史消息可能很大，分页防止接口超时
-     * 入参：会话 ID、页码、页大小
-     * 出参：分页结果
+     * 历史消息可能很大，分页防止接口超时
+     * 
+     * @param sessionId 会话 ID。
+     * @param pageNum 页码。
+     * @param pageSize 分页大小。
+     * @return 消息分页结果。
      */
     @Override
     public PageResult<ChatMessage> listMessages(Long sessionId, int pageNum, int pageSize) {
@@ -156,9 +180,9 @@ public class ChatSessionAppServiceImpl implements ChatSessionAppService {
     /**
      * 清空会话消息
      *
-     * 为什么：仅清理消息，不影响会话元数据
-     * 入参：会话 ID
-     * 出参：无
+     * 仅清理消息，不影响会话元数据
+     * 
+     * @param sessionId 会话 ID。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -169,14 +193,14 @@ public class ChatSessionAppServiceImpl implements ChatSessionAppService {
     private String buildModelLockMessage(Long modelId) {
         String modelName = resolveModelName(modelId);
         String displayName = modelName != null ? modelName : String.valueOf(modelId);
-        return "该会话已绑定模型【" + displayName + "】，为保证对话一致性不可切换模型。如需切换，请新建会话。";
+        return "该话已绑定模型【" + displayName + "】，为保证对话一致性不可切换模型。如需切换，请新建话。";
     }
 
     /**
      * 解析模型名称。
-     *
+     * 
      * @param modelId 模型ID。
-     * @return 返回名称文本。
+     * @return 名称文本。
      */
     private String resolveModelName(Long modelId) {
         if (modelId == null) {

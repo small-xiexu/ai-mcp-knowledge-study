@@ -29,7 +29,7 @@ public class RequestResponseLoggingAgentEnhancer implements CallAdvisor {
     /**
      * 返回 AgentEnhancer 名称。
      *
-     * @return 返回固定名称标识。
+     * @return 固定名称标识
      */
     @Override
     public String getName() {
@@ -39,7 +39,7 @@ public class RequestResponseLoggingAgentEnhancer implements CallAdvisor {
     /**
      * 返回 AgentEnhancer 执行顺序。
      *
-     * @return 返回 AgentEnhancer 执行顺序值。
+     * @return AgentEnhancer 执行顺序值
      */
     @Override
     public int getOrder() {
@@ -50,9 +50,9 @@ public class RequestResponseLoggingAgentEnhancer implements CallAdvisor {
     /**
      * 执行请求与响应日志拦截。
      *
-     * @param request ChatClient 请求参数。
-     * @param chain AgentEnhancer 链。
-     * @return 返回 ChatClientResponse 数据。
+     * @param request ChatClient 请求参数
+     * @param chain AgentEnhancer 链
+     * @return ChatClientResponse 数据
      */
     @Override
     public ChatClientResponse adviseCall(ChatClientRequest request, CallAdvisorChain chain) {
@@ -91,9 +91,9 @@ public class RequestResponseLoggingAgentEnhancer implements CallAdvisor {
     /**
      * 截断日志文本，控制单条日志长度。
      *
-     * @param text 原始文本。
-     * @param maxLength 最大长度。
-     * @return 返回截断后的日志文本。
+     * @param text 原始文本
+     * @param maxLength 最大长度
+     * @return 截断后的日志文本
      */
     private String truncate(String text, int maxLength) {
         if (text == null) {

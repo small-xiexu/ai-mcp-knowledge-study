@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 /**
  * 模型激活配置实体
- * 对应数据库表：ai_model_activation
+ * 对应数据库表ai_model_activation
  *
  * 职责：记录当前激活的对话模型与嵌入模型
  * @author sxie
@@ -25,35 +25,35 @@ public class ModelActivation {
     /**
      * 主键ID
      *
-     * 为什么：用于持久化唯一标识
+     * 用于持久化唯一标识
      */
     private Long id;
 
     /**
      * 当前激活的对话模型ID
      *
-     * 为什么：全局对话模型唯一激活
+     * 全局对话模型唯一激活
      */
     private Long chatModelId;
 
     /**
      * 当前激活的嵌入模型ID
      *
-     * 为什么：全局嵌入模型唯一激活
+     * 全局嵌入模型唯一激活
      */
     private Long embeddingModelId;
 
     /**
      * 创建时间
      *
-     * 为什么：用于审计与排序
+     * 用于审计与排序
      */
     private LocalDateTime createdAt;
 
     /**
      * 更新时间
      *
-     * 为什么：用于审计与变更追踪
+     * 用于审计与变更追踪
      */
     private LocalDateTime updatedAt;
 }

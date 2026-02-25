@@ -18,7 +18,7 @@ public interface IAICallService {
 
     /**
      * 流式 AI 调用接口。
-     *
+     * 
      * @param request AI 请求
      * @param httpResponse HTTP 响应
      * @return 流式响应对象
@@ -27,7 +27,7 @@ public interface IAICallService {
 
     /**
      * 获取所有可用模型列表
-     *
+     * 
      * @return 模型列表
      */
     Result<List<ModelInfo>> getAvailableModels();

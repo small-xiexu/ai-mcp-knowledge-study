@@ -14,14 +14,14 @@ public interface McpToolCatalogService {
 
     /**
      * 构建工具清单提示词
-     *
+     * 
      * @return 工具清单提示词（无工具则返回空字符串）
      */
     String buildToolPrompt();
 
     /**
      * 获取工具列表
-     *
+     * 
      * @return 工具列表
      */
     List<McpToolInfo> listTools();

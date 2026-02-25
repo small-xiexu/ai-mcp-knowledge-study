@@ -10,10 +10,10 @@ import java.util.regex.Pattern;
  * 实现层级化文档分割策略，支持"父块-子块"结构
  * 适用于 RAG 场景中的"子块检索 + 父块扩展"策略，提升上下文完整性
  *
- * <p>分割策略：
+ * <p>分割策略
  * <ol>
- * <li>第一轮：按最高优先级分隔符（如段落）分割为父块</li>
- * <li>第二轮：对每个父块按次级分隔符（如句子）分割为子块</li>
+ * <li>第一轮按最高优先级分隔符（如段落）分割为父块</li>
+ * <li>第二轮对每个父块按次级分隔符（如句子）分割为子块</li>
  * <li>超长子块按字符长度进一步分割</li>
  * </ol>
  *
@@ -33,7 +33,7 @@ public class ParentAwareTextSplitter {
 
     /**
      * 分隔符优先级列表，按优先级从高到低排列
-     * 例如：["\n\n", "\n", " "] 表示先按段落分，再按行分，最后按空格分
+     * 例如["\n\n", "\n", " "] 表示先按段落分，再按行分，最后按空格分
      */
     private final List<String> separators;
 
@@ -49,10 +49,10 @@ public class ParentAwareTextSplitter {
 
     /**
      * 构造器
-     *
-     * @param chunkSize     目标块大小（字符数）
-     * @param chunkOverlap  重叠字符数
-     * @param separators    分隔符优先级列表
+     * 
+     * @param chunkSize 目标块大小（字符数）
+     * @param chunkOverlap 重叠字符数
+     * @param separators 分隔符优先级列表
      * @param keepSeparator 是否保留分隔符
      * @param minChunkChars 最小有效字符数
      */
@@ -69,16 +69,16 @@ public class ParentAwareTextSplitter {
 
     /**
      * 执行文本分割
-     * 两轮分割：第一轮按最高优先级分隔符分父块，第二轮对每个父块分子块
-     *
+     * 两轮分割第一轮按最高优先级分隔符分父块，第二轮对每个父块分子块
+     * 
      * @param text 原始文本
      * @return 分割后的文本块列表（包含父子关系）
      */
     public List<TextChunk> split(String text) {
-        // 第一轮：按最高优先级分隔符（如段落）分割为父块
+        // 第一轮按最高优先级分隔符（如段落）分割为父块
         List<TextChunk> parentChunks = splitBySeparator(text, separators.get(0), null);
 
-        // 第二轮：对每个父块进行子块分割
+        // 第二轮对每个父块进行子块分割
         List<TextChunk> allChunks = new ArrayList<>();
         for (TextChunk parent : parentChunks) {
             List<TextChunk> children = splitChildren(parent);
@@ -89,10 +89,10 @@ public class ParentAwareTextSplitter {
 
     /**
      * 按指定分隔符分割文本
-     *
-     * @param text      待分割文本
+     * 
+     * @param text 待分割文本
      * @param separator 分隔符
-     * @param parentId  父块 ID（用于建立父子关系）
+     * @param parentId 父块 ID（用于建立父子关系）
      * @return 分割后的文本块列表
      */
     private List<TextChunk> splitBySeparator(String text, String separator, String parentId) {
@@ -119,8 +119,8 @@ public class ParentAwareTextSplitter {
 
     /**
      * 对父块进行子块分割
-     * 策略：优先使用次级分隔符，超长块按字符长度分割
-     *
+     * 策略优先使用次级分隔符，超长块按字符长度分割
+     * 
      * @param parent 父文本块
      * @return 子文本块列表
      */
@@ -158,8 +158,8 @@ public class ParentAwareTextSplitter {
     /**
      * 按字符长度分割超长文本块
      * 使用滑动窗口，窗口大小为 chunkSize*4，步进为 (chunkSize-chunkOverlap)*4
-     *
-     * @param chunk  待分割的文本块
+     * 
+     * @param chunk 待分割的文本块
      * @param output 输出列表
      */
     private void splitByLength(TextChunk chunk, List<TextChunk> output) {

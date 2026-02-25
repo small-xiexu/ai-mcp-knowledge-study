@@ -20,6 +20,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AgentEnhancer {
+
+    /**
+     * 主键 ID。
+     */
     private Long id;
 
     /**
@@ -27,12 +31,15 @@ public class AgentEnhancer {
      */
     private String agentEnhancerCode;
 
+    /**
+     * Agent 增强器名称。
+     */
     private String agentEnhancerName;
 
     /**
      * AgentEnhancer 类型（用于运行时装配）。
      *
-     * 建议值：
+     * 建议值
      * - CHAT_MEMORY
      * - REQUEST_RESPONSE_LOG
      * - TOOL_CALL_LOG
@@ -48,6 +55,14 @@ public class AgentEnhancer {
      * 类型配置（JSON 字符串）。
      */
     private String configJson;
+
+    /**
+     * 创建时间。
+     */
     private LocalDateTime createdAt;
+
+    /**
+     * 更新时间。
+     */
     private LocalDateTime updatedAt;
 }

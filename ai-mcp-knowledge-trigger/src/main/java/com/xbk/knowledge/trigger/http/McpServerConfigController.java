@@ -40,8 +40,19 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class McpServerConfigController implements IMcpServerConfigService {
 
+    /**
+     * MCP Server 配置应用服务。
+     */
     private final McpServerConfigAppService mcpServerConfigAppService;
+
+    /**
+     * MCP Server 运行时服务。
+     */
     private final McpServerRuntimeService mcpServerRuntimeService;
+
+    /**
+     * JSON 序列化/反序列化组件。
+     */
     private final ObjectMapper objectMapper;
 
     /**
@@ -52,9 +63,9 @@ public class McpServerConfigController implements IMcpServerConfigService {
      * 3. Controller 组装 `McpServerConfigPageQuery` 并调用应用服务分页查询。
      * 4. 将领域分页结果转换为 `McpServerConfigResponse` 分页结构。
      * 5. 统一封装 `Result.success` 返回。
-     *
+     * 
      * @param request 分页查询请求
-     * @return 分页结果
+     * @return MCP 服务配置分页结果。
      */
     @PostMapping("/list")
     @SaCheckPermission("tool:read")
@@ -79,7 +90,7 @@ public class McpServerConfigController implements IMcpServerConfigService {
      * 3. Controller 组装 `IdQuery` 并调用应用服务查询实体。
      * 4. 转换为 `McpServerConfigResponse`（包含运行状态）。
      * 5. 统一封装 `Result.success` 返回。
-     *
+     * 
      * @param request ID 查询请求
      * @return MCP Server 配置
      */
@@ -102,7 +113,7 @@ public class McpServerConfigController implements IMcpServerConfigService {
      * 3. Controller 将请求 DTO 转换为 `McpServerConfig` 领域对象。
      * 4. 调用 `mcpServerConfigAppService.createMcpServerConfig` 执行创建。
      * 5. 转换响应并返回“创建成功”结果。
-     *
+     * 
      * @param request MCP Server 配置请求
      * @return 创建后的配置
      */
@@ -125,7 +136,7 @@ public class McpServerConfigController implements IMcpServerConfigService {
      * 3. Controller 组装领域对象并补齐待更新 id。
      * 4. 调用 `mcpServerConfigAppService.updateMcpServerConfig` 执行更新。
      * 5. 转换响应并返回“更新成功”结果。
-     *
+     * 
      * @param request MCP Server 配置请求
      * @return 更新后的配置
      */
@@ -148,7 +159,7 @@ public class McpServerConfigController implements IMcpServerConfigService {
      * 3. Controller 组装 `IdQuery` 并调用应用服务删除。
      * 4. 应用层执行引用校验与删除逻辑。
      * 5. 统一封装空成功结果返回。
-     *
+     * 
      * @param request ID 查询请求
      * @return 删除结果
      */
@@ -170,7 +181,7 @@ public class McpServerConfigController implements IMcpServerConfigService {
      * 3. Controller 组装 `IdQuery` 并调用应用服务执行启用。
      * 4. 将启用后的实体转换为响应 DTO。
      * 5. 返回“启用成功”的统一结果。
-     *
+     * 
      * @param request ID 查询请求
      * @return 更新后的配置
      */
@@ -193,7 +204,7 @@ public class McpServerConfigController implements IMcpServerConfigService {
      * 3. Controller 组装 `IdQuery` 并调用应用服务执行禁用。
      * 4. 将禁用后的实体转换为响应 DTO。
      * 5. 返回“禁用成功”的统一结果。
-     *
+     * 
      * @param request ID 查询请求
      * @return 更新后的配置
      */
@@ -216,7 +227,7 @@ public class McpServerConfigController implements IMcpServerConfigService {
      * 3. 应用层重建运行时连接并同步工具目录。
      * 4. Controller 不返回业务数据，仅返回执行状态。
      * 5. 返回“刷新成功”的统一结果。
-     *
+     * 
      * @return 操作结果
      */
     @PostMapping("/refresh")
@@ -235,7 +246,7 @@ public class McpServerConfigController implements IMcpServerConfigService {
      * 3. Controller 组装 `IdQuery` 并调用 `refreshServer`。
      * 4. 应用层仅重建目标 Server 连接与工具缓存。
      * 5. 返回“刷新成功”的统一结果。
-     *
+     * 
      * @param request ID 查询请求
      * @return 操作结果
      */
@@ -271,9 +282,9 @@ public class McpServerConfigController implements IMcpServerConfigService {
 
     /**
      * 将领域对象转换为响应。
-     *
-     * @param config 配置对象。
-     * @return 返回McpServerConfigResponse对象。
+     * 
+     * @param config MCP Server 配置实体。
+     * @return MCP Server 配置响应。
      */
     private McpServerConfigResponse convertToResponse(McpServerConfig config) {
         if (config == null) {
@@ -306,16 +317,16 @@ public class McpServerConfigController implements IMcpServerConfigService {
 
     /**
      * 将对象序列化为JSON 字符串。
-     *
-     * @param value 输入值。
-     * @return 返回 JSON 字符串。
+     * 
+     * @param value 值。
+     * @return JSON 字符串。
      */
     private String toJson(Object value) {
         if (value == null) {
             return null;
         }
         // 序列化可变结构字段，避免表结构频繁变更
-         // 约束：序列化失败时返回 null，交由应用层处理
+         // 约束序列化失败时返回 null，交由应用层处理
         try {
             return objectMapper.writeValueAsString(value);
         } catch (Exception e) {
@@ -326,16 +337,16 @@ public class McpServerConfigController implements IMcpServerConfigService {
 
     /**
      * 解析字符串列表。
-     *
+     * 
      * @param json JSON 字符串。
-     * @return 返回解析后的列表结果。
+     * @return 解析后的列表结果。
      */
     private List<String> parseStringList(String json) {
         if (!StringUtils.hasText(json)) {
             return Collections.emptyList();
         }
         // 将存储的 JSON 数组解析为列表，给前端可直接展示
-         // 约束：解析失败时降级为空列表
+         // 约束解析失败时降级为空列表
         try {
             return objectMapper.readValue(json, new TypeReference<List<String>>() {});
         } catch (Exception e) {
@@ -346,16 +357,15 @@ public class McpServerConfigController implements IMcpServerConfigService {
 
     /**
      * 解析字符串映射。
-     *
+     * 
      * @param json JSON 字符串。
-     * @return 返回字符串映射。
      */
     private Map<String, String> parseStringMap(String json) {
         if (!StringUtils.hasText(json)) {
             return Collections.emptyMap();
         }
         // 将存储的 JSON 对象解析为 Map，确保前端表单可直接回显
-         // 约束：解析失败时降级为空 Map
+         // 约束解析失败时降级为空 Map
         try {
             return JsonMapUtils.readStringMap(objectMapper, json);
         } catch (Exception e) {

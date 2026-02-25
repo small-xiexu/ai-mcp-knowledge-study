@@ -44,28 +44,74 @@ import java.util.List;
 @RequiredArgsConstructor
 public class XxlJobRepositoryImpl implements XxlJobRepository {
 
+    /**
+     * 默认分页大小。
+     */
     private static final int DEFAULT_PAGE_SIZE = 10;
+
+    /**
+     * 详情查询分页大小。
+     */
     private static final int DETAIL_PAGE_SIZE = 200;
+
+    /**
+     * 默认调度类型。
+     */
     private static final String DEFAULT_SCHEDULE_TYPE = "CRON";
+
+    /**
+     * 默认调度过期策略。
+     */
     private static final String DEFAULT_MISFIRE_STRATEGY = "DO_NOTHING";
+
+    /**
+     * 默认路由策略。
+     */
     private static final String DEFAULT_ROUTE_STRATEGY = "FIRST";
+
+    /**
+     * 默认阻塞处理策略。
+     */
     private static final String DEFAULT_BLOCK_STRATEGY = "SERIAL_EXECUTION";
+
+    /**
+     * 默认 GLUE 类型。
+     */
     private static final String DEFAULT_GLUE_TYPE = "BEAN";
 
+    /**
+     * WebClient 构建器。
+     */
     private final WebClient.Builder webClientBuilder;
+
+    /**
+     * Redis 模板。
+     */
     private final StringRedisTemplate stringRedisTemplate;
+
+    /**
+     * XXL-Admin 配置属性。
+     */
     private final XxlAdminProperties xxlAdminProperties;
+
+    /**
+     * JSON 序列化器。
+     */
     private final ObjectMapper objectMapper;
 
+    /**
+     * 复用的 WebClient 实例。
+     */
     private volatile WebClient webClient;
 
     /**
      * 分页查询 XXL 任务
      * 自动解析执行器 ID 并调用任务分页接口
      *
-     * 为什么：统一分页入口并复用执行器解析逻辑
-     * 入参：分页查询条件
-     * 出参：分页结果
+     * 统一分页入口并复用执行器解析逻辑
+     * 
+     * @param query 分页查询条件。
+     * @return 任务分页结果。
      */
     @Override
     public PageResult<XxlJobInfo> queryJobPage(XxlJobPageQuery query) {
@@ -103,9 +149,11 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
     /**
      * 查询全部 XXL 任务（带缓存）
      *
-     * 为什么：提供下拉数据源并减少对 xxl-admin 的调用
-     * 入参：执行器名称、是否刷新缓存
-     * 出参：任务列表
+     * 提供下拉数据源并减少对 xxl-admin 的调用
+     * 
+     * @param appName 应用名称。
+     * @param refresh 是否刷新缓存。
+     * @return 任务列表。
      */
     @Override
     public List<XxlJobInfo> queryAllJobs(String appName, boolean refresh) {
@@ -140,9 +188,11 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
      * 查询 XXL 任务详情
      * 通过分页接口扫描并匹配任务 ID
      *
-     * 为什么：xxl-admin 无直接详情接口，需通过分页扫描
-     * 入参：执行器名称、任务 ID
-     * 出参：任务详情
+     * xxl-admin 无直接详情接口，需通过分页扫描
+     * 
+     * @param appName 应用名称。
+     * @param jobId 标识 ID。
+     * @return 任务信息。
      */
     @Override
     public XxlJobInfo queryJobDetail(String appName, Long jobId) {
@@ -184,7 +234,10 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
     /**
      * 从 xxl-admin 全量拉取任务
      *
-     * 为什么：用于缓存刷新与全量拉取
+     * 用于缓存刷新与全量拉取
+     * 
+     * @param appName 应用名称。
+     * @return 任务列表。
      */
     private List<XxlJobInfo> fetchAllJobsFromXxl(String appName) {
         if (!StringUtils.hasText(appName)) {
@@ -218,9 +271,10 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
      * 创建 XXL 任务
      * 统一补全执行器 ID 与默认字段
      *
-     * 为什么：确保创建请求包含必要默认值
-     * 入参：任务信息
-     * 出参：创建结果消息
+     * 确保创建请求包含必要默认值
+     * 
+     * @param jobInfo 任务信息。
+     * @return 任务分组 ID。
      */
     @Override
     public String createJob(XxlJobInfo jobInfo) {
@@ -234,9 +288,9 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
      * 更新 XXL 任务
      * 统一补全执行器 ID 与默认字段
      *
-     * 为什么：保持字段完整，避免覆盖为空
-     * 入参：任务信息
-     * 出参：无
+     * 保持字段完整，避免覆盖为空
+     * 
+     * @param jobInfo 任务信息。
      */
     @Override
     public void updateJob(XxlJobInfo jobInfo) {
@@ -251,9 +305,9 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
     /**
      * 删除 XXL 任务
      *
-     * 为什么：统一删除入口
-     * 入参：任务 ID
-     * 出参：无
+     * 统一删除入口
+     * 
+     * @param jobId 标识 ID。
      */
     @Override
     public void removeJob(Long jobId) {
@@ -265,9 +319,9 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
     /**
      * 启动 XXL 任务
      *
-     * 为什么：统一启用入口
-     * 入参：任务 ID
-     * 出参：无
+     * 统一启用入口
+     * 
+     * @param jobId 标识 ID。
      */
     @Override
     public void startJob(Long jobId) {
@@ -279,9 +333,9 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
     /**
      * 停止 XXL 任务
      *
-     * 为什么：统一停用入口
-     * 入参：任务 ID
-     * 出参：无
+     * 统一停用入口
+     * 
+     * @param jobId 标识 ID。
      */
     @Override
     public void stopJob(Long jobId) {
@@ -293,9 +347,12 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
     /**
      * 手动触发 XXL 任务
      *
-     * 为什么：支持立即执行
-     * 入参：任务 ID、执行参数、指定地址
-     * 出参：触发结果消息
+     * 支持立即执行
+     * 
+     * @param jobId 标识 ID。
+     * @param executorParam 执行参数。
+     * @param addressList 执行器地址列表。
+     * @return 执行结果摘要。
      */
     @Override
     public String triggerJob(Long jobId, String executorParam, String addressList) {
@@ -319,9 +376,10 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
      * 分页查询 XXL 任务日志
      * 自动解析执行器 ID 并调用日志分页接口
      *
-     * 为什么：统一分页入口并复用执行器解析逻辑
-     * 入参：日志分页查询条件
-     * 出参：日志分页结果
+     * 统一分页入口并复用执行器解析逻辑
+     * 
+     * @param query 分页查询条件。
+     * @return XxlJobLogInfo 分页结果。
      */
     @Override
     public PageResult<XxlJobLogInfo> queryJobLogPage(XxlJobLogPageQuery query) {
@@ -368,9 +426,11 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
     /**
      * 查询 XXL 任务日志详情
      *
-     * 为什么：按行加载日志详情
-     * 入参：日志 ID、起始行
-     * 出参：日志详情
+     * 按行加载日志详情
+     * 
+     * @param logId 日志 ID。
+     * @param fromLineNum 起始行号。
+     * @return 任务日志详情。
      */
     @Override
     public XxlJobLogDetail queryLogDetail(Long logId, Integer fromLineNum) {
@@ -400,6 +460,9 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
 
     /**
      * 根据执行器应用名解析执行器分组 ID。
+     * 
+     * @param appName 应用名称。
+     * @return 数值型结果。
      */
     private Long resolveJobGroupId(String appName) {
         // 优先读取缓存，避免频繁查询执行器列表
@@ -431,13 +494,16 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
                 }
             }
         }
-        throw new IllegalStateException("未找到对应执行器：" + appName);
+        throw new IllegalStateException("未找到对应执行器" + appName);
     }
 
     /**
      * 缓存执行器 ID
      *
-     * 为什么：减少对 xxl-admin 的重复查询
+     * 减少对 xxl-admin 的重复查询
+     * 
+     * @param cacheKey 缓存键。
+     * @param jobGroupId 标识 ID。
      */
     private void cacheJobGroup(String cacheKey, Long jobGroupId) {
         Integer ttlSeconds = xxlAdminProperties.getCookieTtlSeconds();
@@ -448,7 +514,11 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
     /**
      * 发送表单请求并解析 JSON
      *
-     * 为什么：统一处理登录态与响应校验
+     * 统一处理登录态与响应校验
+     * 
+     * @param path 路径。
+     * @param form 表单参数。
+     * @return JSON 响应。
      */
     private JsonNode postFormForJson(String path, MultiValueMap<String, String> form) {
         String cookie = getOrLoginCookie();
@@ -469,7 +539,10 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
     /**
      * 判断是否需要重新登录
      *
-     * 为什么：登录态过期需要自动续期
+     * 登录态过期需要自动续期
+     * 
+     * @param response XXL-Job HTTP 响应。
+     * @return `true` 表示请求成功，`false` 表示请求失败。
      */
     private boolean isNeedRelogin(XxlHttpResponse response) {
         if (response == null) {
@@ -485,7 +558,12 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
     /**
      * 执行表单 POST 请求
      *
-     * 为什么：统一 WebClient 调用入口
+     * 统一 WebClient 调用入口
+     * 
+     * @param path 路径。
+     * @param form 表单参数。
+     * @param cookie Cookie。
+     * @return XXL-Job HTTP 响应。
      */
     private XxlHttpResponse executePostForm(String path, MultiValueMap<String, String> form, String cookie) {
         WebClient client = getWebClient();
@@ -502,7 +580,9 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
     /**
      * 获取 Cookie（无则登录）
      *
-     * 为什么：保持登录态可用
+     * 保持登录态可用
+     * 
+     * @return 登录 Cookie。
      */
     private String getOrLoginCookie() {
         String cached = stringRedisTemplate.opsForValue().get(XxlJobRedisKeys.ADMIN_COOKIE);
@@ -515,7 +595,9 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
     /**
      * 登录并缓存 Cookie
      *
-     * 为什么：登录态需要缓存以复用
+     * 登录态需要缓存以复用
+     * 
+     * @return Cookie 头字符串。
      */
     private String loginAndCacheCookie() {
         String username = xxlAdminProperties.getUsername();
@@ -536,7 +618,7 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
         Integer code = readInteger(json, "code");
         if (code != null && code != 200) {
             String msg = readText(json, "msg");
-            throw new IllegalStateException("xxl-admin 登录失败：" + msg);
+            throw new IllegalStateException("xxl-admin 登录失败" + msg);
         }
 
         String cookie = buildCookieHeader(response.headers().get(HttpHeaders.SET_COOKIE));
@@ -552,7 +634,9 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
     /**
      * 获取 WebClient
      *
-     * 为什么：懒加载避免重复构建
+     * 懒加载避免重复构建
+     * 
+     * @return XXL-Job WebClient。
      */
     private WebClient getWebClient() {
         if (webClient != null) {
@@ -573,7 +657,10 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
     /**
      * 将响应转换为内部响应对象
      *
-     * 为什么：统一读取状态、头与内容
+     * 统一读取状态、头与内容
+     * 
+     * @param response WebClient 响应。
+     * @return 异步 XXL-Job HTTP 响应。
      */
     private Mono<XxlHttpResponse> toResponse(ClientResponse response) {
         return response.bodyToMono(String.class)
@@ -584,7 +671,10 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
     /**
      * 解析 JSON 字符串
      *
-     * 为什么：统一异常处理，避免上层重复 try/catch
+     * 统一异常处理，避免上层重复 try/catch
+     * 
+     * @param body 请求体。
+     * @return JSON 结构。
      */
     private JsonNode parseJson(String body) {
         if (!StringUtils.hasText(body)) {
@@ -601,7 +691,9 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
     /**
      * 校验 xxl-admin 响应状态
      *
-     * 为什么：非 200 直接抛出异常
+     * 非 200 直接抛出异常
+     * 
+     * @param json JSON 节点。
      */
     private void validateResponseIfNeeded(JsonNode json) {
         JsonNode codeNode = json.get("code");
@@ -609,7 +701,7 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
             int code = codeNode.asInt();
             if (code != 200) {
                 String msg = readText(json, "msg");
-                throw new IllegalStateException("xxl-admin 接口调用失败：" + msg);
+                throw new IllegalStateException("xxl-admin 接口调用失败" + msg);
             }
         }
     }
@@ -617,7 +709,10 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
     /**
      * 提取数据节点
      *
-     * 为什么：兼容不同响应字段（data/content）
+     * 兼容不同响应字段（data/content）
+     * 
+     * @param json JSON 节点。
+     * @return data 字段节点。
      */
     private JsonNode extractDataNode(JsonNode json) {
         if (json == null) {
@@ -637,7 +732,10 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
     /**
      * 解析任务列表
      *
-     * 为什么：将响应 JSON 转为领域实体
+     * 将响应 JSON 转为领域实体
+     * 
+     * @param dataNode data 字段节点。
+     * @return 任务列表。
      */
     private List<XxlJobInfo> parseJobs(JsonNode dataNode) {
         List<XxlJobInfo> result = new ArrayList<>();
@@ -676,7 +774,10 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
     /**
      * 解析日志列表
      *
-     * 为什么：将响应 JSON 转为领域实体
+     * 将响应 JSON 转为领域实体
+     * 
+     * @param dataNode data 字段节点。
+     * @return XxlJobLogInfo 列表。
      */
     private List<XxlJobLogInfo> parseJobLogs(JsonNode dataNode) {
         List<XxlJobLogInfo> result = new ArrayList<>();
@@ -709,7 +810,10 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
     /**
      * 组装 Cookie Header
      *
-     * 为什么：将 Set-Cookie 头转为 Cookie 请求头
+     * 将 Set-Cookie 头转为 Cookie 请求头
+     * 
+     * @param setCookies Set-Cookie 响应头列表。
+     * @return 拼接后的 Cookie 字符串。
      */
     private String buildCookieHeader(List<String> setCookies) {
         if (CollectionUtils.isEmpty(setCookies)) {
@@ -734,7 +838,11 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
     /**
      * 构建日志过滤时间字符串
      *
-     * 为什么：xxl-admin 接口需要 "start - end" 格式
+     * xxl-admin 接口需要 "start - end" 格式
+     * 
+     * @param startTime 开始时间。
+     * @param endTime 结束时间。
+     * @return 时间范围字符串。
      */
     private String buildFilterTime(String startTime, String endTime) {
         if (!StringUtils.hasText(startTime) || !StringUtils.hasText(endTime)) {
@@ -746,7 +854,10 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
     /**
      * 归一化任务信息
      *
-     * 为什么：补齐默认字段与执行器 ID
+     * 补齐默认字段与执行器 ID
+     * 
+     * @param jobInfo 任务信息。
+     * @return 补齐默认值后的任务信息。
      */
     private XxlJobInfo normalizeJobInfo(XxlJobInfo jobInfo) {
         String appName = xxlAdminProperties.getAppName();
@@ -783,7 +894,9 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
     /**
      * 构建任务表单
      *
-     * 为什么：与 xxl-admin 表单字段对齐
+     * 与 xxl-admin 表单字段对齐
+     * 
+     * @param jobInfo 任务信息。
      */
     private MultiValueMap<String, String> buildJobForm(XxlJobInfo jobInfo) {
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
@@ -827,7 +940,11 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
     /**
      * 合并任务信息
      *
-     * 为什么：更新时保留只读字段（如触发状态）
+     * 更新时保留只读字段（如触发状态）
+     * 
+     * @param incoming 新任务配置。
+     * @param existing 旧任务配置。
+     * @return 合并后的任务配置。
      */
     private XxlJobInfo mergeJobInfo(XxlJobInfo incoming, XxlJobInfo existing) {
         if (existing == null) {
@@ -858,6 +975,10 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
 
     /**
      * 按候选字段读取 Long 值。
+     * 
+     * @param node JSON 节点。
+     * @param fields 字段列表。
+     * @return 数值型结果。
      */
     private Long readLong(JsonNode node, String... fields) {
         for (String field : fields) {
@@ -871,6 +992,10 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
 
     /**
      * 按候选字段读取 Integer 值。
+     * 
+     * @param node JSON 节点。
+     * @param fields 字段列表。
+     * @return 数值型结果。
      */
     private Integer readInteger(JsonNode node, String... fields) {
         for (String field : fields) {
@@ -884,6 +1009,10 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
 
     /**
      * 按候选字段读取 Boolean 值。
+     * 
+     * @param node JSON 节点。
+     * @param fields 字段列表。
+     * @return `true` 表示命中真值，`false` 表示未命中。
      */
     private Boolean readBoolean(JsonNode node, String... fields) {
         for (String field : fields) {
@@ -897,6 +1026,10 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
 
     /**
      * 按候选字段读取文本值。
+     * 
+     * @param node JSON 节点。
+     * @param fields 字段列表。
+     * @return 命中的字符串结果。
      */
     private String readText(JsonNode node, String... fields) {
         for (String field : fields) {
@@ -911,12 +1044,23 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
     /**
      * xxl-admin HTTP 响应封装
      *
-     * 为什么：统一承载状态码、头与响应体
+     * 统一承载状态码、头与响应体
      */
     private static class XxlHttpResponse {
 
+        /**
+         * HTTP 状态码。
+         */
         private final HttpStatusCode status;
+
+        /**
+         * HTTP 响应头。
+         */
         private final HttpHeaders headers;
+
+        /**
+         * HTTP 响应体文本。
+         */
         private final String body;
 
         private XxlHttpResponse(HttpStatusCode status, HttpHeaders headers, String body) {
@@ -927,6 +1071,8 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
 
         /**
          * 返回响应状态码。
+         * 
+         * @return HTTP 状态码。
          */
         private HttpStatusCode status() {
             return status;
@@ -934,6 +1080,8 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
 
         /**
          * 返回响应头。
+         * 
+         * @return HTTP 响应头。
          */
         private HttpHeaders headers() {
             return headers;
@@ -941,6 +1089,8 @@ public class XxlJobRepositoryImpl implements XxlJobRepository {
 
         /**
          * 返回响应体。
+         * 
+         * @return 响应体文本。
          */
         private String body() {
             return body;

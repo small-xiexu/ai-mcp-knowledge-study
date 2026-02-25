@@ -26,8 +26,8 @@ import java.util.Set;
  * 2、 在需要时执行向量检索，返回文档与平台可控的 citations
  *
  * 说明：
- * - allowedRagTagsJson 为空：视为“不限”（允许任意 tag），避免误伤存量；若需要严格白名单，请显式配置 allowed
- * - REQUIRED 未命中：由上层短路返回（SUCCESS + uncertainty），避免模型“装懂”
+ * - allowedRagTagsJson 为空视为“不限”（允许任意 tag），避免误伤存量；若需要严格白名单，请显式配置 allowed
+ * - REQUIRED 未命中由上层短路返回（SUCCESS + uncertainty），避免模型“装懂”
  *
  * @author sxie
  */
@@ -35,20 +35,37 @@ import java.util.Set;
 @Component
 @RequiredArgsConstructor
 public class AgentRagGovernanceSupport {
-
+    /**
+     * 检索文档最大保留条数。
+     */
     private static final int MAX_DOCS = 5;
+
+    /**
+     * citation 摘要最大长度。
+     */
     private static final int MAX_SNIPPET = 220;
+
+    /**
+     * 单文档内容最大保留长度。
+     */
     private static final int MAX_DOC_TEXT = 1600;
 
+    /**
+     * JSON 序列化组件，用于解析 RAG 标签配置 JSON。
+     */
     private final ObjectMapper objectMapper;
+
+    /**
+     * 向量检索服务，用于执行相似度查询。
+     */
     private final RagVectorStoreService ragVectorStoreService;
 
     /**
      * 解析并执行 RAG（按 AgentVersion 策略）。
-     *
-     * @param version        AgentVersion（已发布）
-     * @param ragTagsJson    请求侧 ragTagsJson（可空）
-     * @param query          查询文本（一般为用户输入）
+     * 
+     * @param version AgentVersion（已发布）
+     * @param ragTagsJson 请求侧 ragTagsJson（可空）
+     * @param query 查询文本（一般为用户输入）
      * @return 解析结果（永不为 null）
      */
     public ResolvedRag resolve(AgentVersion version, String ragTagsJson, String query) {
@@ -172,9 +189,9 @@ public class AgentRagGovernanceSupport {
 
     /**
      * 解析字符串列表（为空时返回空集合）。
-     *
+     * 
      * @param json JSON 字符串。
-     * @return 返回解析后的列表结果。
+     * @return 解析后的列表结果。
      */
     private List<String> parseStringListOrEmpty(String json) {
         if (!StringUtils.hasText(json)) {
@@ -204,10 +221,10 @@ public class AgentRagGovernanceSupport {
 
     /**
      * 按白名单过滤标签集合。
-     *
+     * 
      * @param base 基础标签集合。
      * @param allowed 允许标签集合。
-     * @return 返回FilteredTags对象。
+     * @return 过滤后的标签结果。
      */
     private FilteredTags filterByAllowList(List<String> base, List<String> allowed) {
         if (CollectionUtils.isEmpty(base)) {
@@ -239,9 +256,9 @@ public class AgentRagGovernanceSupport {
 
     /**
      * 构建引用信息列表。
-     *
+     * 
      * @param docs 文档列表。
-     * @return 返回构建结果对象。
+     * @return 引用信息列表。
      */
     private List<PlatformContractV1.Citation> buildCitations(List<Document> docs) {
         if (CollectionUtils.isEmpty(docs)) {
@@ -275,9 +292,9 @@ public class AgentRagGovernanceSupport {
 
     /**
      * 将对象安全转换为非空白字符串。
-     *
-     * @param o 输入对象。
-     * @return 返回非空白字符串，空白或空对象返回 null。
+     * 
+     * @param o 输入值。
+     * @return 非空白字符串，空白或空对象返回 null。
      */
     private String safeToString(Object o) {
         if (o == null) {
@@ -292,7 +309,7 @@ public class AgentRagGovernanceSupport {
      *
      * @param effective 生效标签集合。
      * @param dropped 未命中标签集合。
-     * @return 返回记录对象。
+     * @return 过滤标签记录。
      */
     private record FilteredTags(List<String> effective, List<String> dropped) {
     }

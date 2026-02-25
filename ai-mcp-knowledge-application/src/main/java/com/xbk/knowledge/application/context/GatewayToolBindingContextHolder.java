@@ -4,12 +4,9 @@ import java.util.Collections;
 import java.util.Set;
 
 /**
- * Gateway 工具绑定上下文
- * 通过 ThreadLocal 传递当前会话和模型信息
- * <p>
- * 为什么需要：GatewayToolCallbackProvider 在构建工具列表时需要知道当前请求的
- * 模型 ID 和会话 ID，以便按绑定关系过滤可见工具。由于 ToolCallbackProvider
- * 接口无法传递额外参数，因此通过 ThreadLocal 在调用链路中透传上下文
+ * Gateway 工具绑定上下文。
+ *
+ * 通过 ThreadLocal 传递当前会话与模型信息，便于按绑定关系过滤可见工具。
  *
  * @author sxie
  */
@@ -21,7 +18,10 @@ public final class GatewayToolBindingContextHolder {
     }
 
     /**
-     * 设置当前线程的绑定上下文
+     * 设置当前线程的绑定上下文。
+     *
+     * @param modelId 模型 ID
+     * @param sessionId 会话 ID
      */
     public static void set(Long modelId, Long sessionId) {
         CONTEXT.set(new BindingContext(modelId, sessionId, null, null, null, null, null, null));
@@ -33,6 +33,11 @@ public final class GatewayToolBindingContextHolder {
      * 说明：
      * - allowedToolKeys = null 表示“不启用 allowlist 过滤”（保持历史行为）。
      * - allowedToolKeys = 空集合 表示“明确无可用工具”。
+     *
+     * @param modelId 模型 ID
+     * @param sessionId 会话 ID
+     * @param agentVersionId 标识 ID
+     * @param allowedToolKeys 允许调用的工具 Key 集合
      */
     public static void set(Long modelId, Long sessionId, Long agentVersionId, Set<String> allowedToolKeys) {
         set(modelId, sessionId, agentVersionId, null, allowedToolKeys);
@@ -43,6 +48,12 @@ public final class GatewayToolBindingContextHolder {
      * <p>
      * 说明：
      * - runId 通常与 traceId 对齐，用于工具调用审计与链路串联。
+     *
+     * @param modelId 模型 ID
+     * @param sessionId 会话 ID
+     * @param agentVersionId 标识 ID
+     * @param runId 运行 ID
+     * @param allowedToolKeys 允许调用的工具 Key 集合
      */
     public static void set(Long modelId,
                            Long sessionId,
@@ -55,6 +66,13 @@ public final class GatewayToolBindingContextHolder {
 
     /**
      * Workflow 场景绑定上下文（支持节点级 allowlist 与审批定位）。
+     *
+     * @param modelId 模型 ID
+     * @param sessionId 会话 ID
+     * @param workflowId 工作流 ID
+     * @param workflowVersionId 工作流版本 ID
+     * @param nodeKey 节点键
+     * @param allowedToolKeys 允许调用的工具 Key 集合
      */
     public static void setWorkflow(Long modelId,
                                    Long sessionId,
@@ -67,6 +85,14 @@ public final class GatewayToolBindingContextHolder {
 
     /**
      * Workflow 场景绑定上下文（支持节点级 allowlist、审批定位与 runId）。
+     *
+     * @param modelId 模型 ID
+     * @param sessionId 会话 ID
+     * @param workflowId 工作流 ID
+     * @param workflowVersionId 工作流版本 ID
+     * @param nodeKey 节点键
+     * @param runId 运行 ID
+     * @param allowedToolKeys 允许调用的工具 Key 集合
      */
     public static void setWorkflow(Long modelId,
                                    Long sessionId,
@@ -80,21 +106,23 @@ public final class GatewayToolBindingContextHolder {
     }
 
     /**
-     * 获取当前线程的绑定上下文
+     * 获取当前线程的绑定上下文。
+     *
+     * @return 当前线程绑定的上下文
      */
     public static BindingContext get() {
         return CONTEXT.get();
     }
 
     /**
-     * 清除当前线程的绑定上下文（必须在 finally 中调用，防止内存泄漏）
+     * 清除当前线程的绑定上下文（必须在 finally 中调用，防止内存泄漏）。
      */
     public static void clear() {
         CONTEXT.remove();
     }
 
     /**
-     * 绑定上下文，承载模型 ID 和会话 ID
+     * 绑定上下文，承载模型 ID 和会话 ID。
      */
     public static final class BindingContext {
 
@@ -141,15 +169,14 @@ public final class GatewayToolBindingContextHolder {
         /**
          * 构建网关工具绑定上下文。
          *
-         * @param modelId 模型ID。
-         * @param sessionId 会话ID。
-         * @param agentVersionId 智能体版本ID。
-         * @param workflowId 工作流ID。
-         * @param workflowVersionId 工作流版本ID。
-         * @param workflowNodeKey 工作流节点Key。
-         * @param runId 运行ID。
-         * @param allowedToolKeys 允许调用的工具Key列表。
-         * @return 返回当前对象实例。
+         * @param modelId 模型 ID
+         * @param sessionId 会话 ID
+         * @param agentVersionId 智能体版本 ID
+         * @param workflowId 工作流 ID
+         * @param workflowVersionId 工作流版本 ID
+         * @param workflowNodeKey 工作流节点 Key
+         * @param runId 运行 ID
+         * @param allowedToolKeys 允许调用的工具 Key 列表
          */
         private BindingContext(Long modelId,
                                Long sessionId,
@@ -172,7 +199,7 @@ public final class GatewayToolBindingContextHolder {
         /**
          * 获取当前绑定上下文中的模型 ID。
          *
-         * @return 返回模型 ID。
+         * @return 模型 ID
          */
         public Long getModelId() {
             return modelId;
@@ -181,7 +208,7 @@ public final class GatewayToolBindingContextHolder {
         /**
          * 获取当前绑定上下文中的会话 ID。
          *
-         * @return 返回会话 ID。
+         * @return 会话 ID
          */
         public Long getSessionId() {
             return sessionId;
@@ -190,7 +217,7 @@ public final class GatewayToolBindingContextHolder {
         /**
          * 获取当前绑定上下文中的 Agent 版本 ID。
          *
-         * @return 返回 Agent 版本 ID。
+         * @return Agent 版本 ID
          */
         public Long getAgentVersionId() {
             return agentVersionId;
@@ -199,7 +226,7 @@ public final class GatewayToolBindingContextHolder {
         /**
          * 获取当前绑定上下文中的 Workflow ID。
          *
-         * @return 返回 Workflow ID。
+         * @return Workflow ID
          */
         public Long getWorkflowId() {
             return workflowId;
@@ -208,7 +235,7 @@ public final class GatewayToolBindingContextHolder {
         /**
          * 获取当前绑定上下文中的 Workflow 版本 ID。
          *
-         * @return 返回 Workflow 版本 ID。
+         * @return Workflow 版本 ID
          */
         public Long getWorkflowVersionId() {
             return workflowVersionId;
@@ -217,7 +244,7 @@ public final class GatewayToolBindingContextHolder {
         /**
          * 获取当前执行节点标识。
          *
-         * @return 返回 Workflow 节点标识。
+         * @return Workflow 节点标识
          */
         public String getWorkflowNodeKey() {
             return workflowNodeKey;
@@ -226,7 +253,7 @@ public final class GatewayToolBindingContextHolder {
         /**
          * 获取本次执行链路的运行 ID。
          *
-         * @return 返回运行 ID。
+         * @return 运行 ID
          */
         public String getRunId() {
             return runId;
@@ -235,7 +262,7 @@ public final class GatewayToolBindingContextHolder {
         /**
          * 获取当前上下文允许调用的工具集合。
          *
-         * @return 返回 Set<String> 数据。
+         * @return 当前允许调用的工具 Key 集合
          */
         public Set<String> getAllowedToolKeys() {
             return allowedToolKeys;

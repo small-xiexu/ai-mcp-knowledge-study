@@ -22,12 +22,15 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class WorkflowRunRepositoryImpl implements WorkflowRunRepository {
 
+    /**
+     * Workflow 运行记录数据访问对象。
+     */
     private final IWorkflowRunDao mapper;
 
     /**
      * 创建并持久化工作流运行数据。
      *
-     * @param run 运行记录。
+     * @param run 运行记录
      */
     @Override
     public void insert(WorkflowRun run) {
@@ -43,8 +46,8 @@ public class WorkflowRunRepositoryImpl implements WorkflowRunRepository {
      * @param runId 运行 ID
      * @param status 状态值
      * @param errorMessage 错误信息
-     * @param endedAt 结束时间。
-     * @return 返回运行状态更新条数。
+     * @param endedAt 结束时间
+     * @return 运行状态更新条数
      */
     @Override
     public int updateStatus(String runId, String status, String errorMessage, LocalDateTime endedAt) {
@@ -57,7 +60,7 @@ public class WorkflowRunRepositoryImpl implements WorkflowRunRepository {
     /**
      * 更新工作流运行数据。
      *
-     * @param run 运行记录。
+     * @param run 运行记录
      */
     @Override
     public void updateStatusAndMetrics(WorkflowRun run) {
@@ -71,7 +74,7 @@ public class WorkflowRunRepositoryImpl implements WorkflowRunRepository {
      * 查询工作流运行。
      *
      * @param runId 运行 ID
-     * @return 返回 WorkflowRun 查询结果（可能为空）。
+     * @return WorkflowRun 查询结果（可能为空）
      */
     @Override
     public Optional<WorkflowRun> findByRunId(String runId) {
@@ -88,7 +91,7 @@ public class WorkflowRunRepositoryImpl implements WorkflowRunRepository {
      * @param status 状态值
      * @param offset 分页偏移量
      * @param pageSize 分页大小
-     * @return 返回 WorkflowRun 列表数据。
+     * @return WorkflowRun 列表
      */
     @Override
     public List<WorkflowRun> list(String status, int offset, int pageSize) {
@@ -111,9 +114,9 @@ public class WorkflowRunRepositoryImpl implements WorkflowRunRepository {
     /**
      * 删除工作流运行数据。
      *
-     * @param cutOff 截止时间。
+     * @param cutOff 截止时间
      * @param limit 限制数量
-     * @return 返回运行记录删除条数。
+     * @return 运行记录删除条数
      */
     @Override
     public int deleteBefore(LocalDateTime cutOff, int limit) {
@@ -127,9 +130,9 @@ public class WorkflowRunRepositoryImpl implements WorkflowRunRepository {
     /**
      * 根据筛选条件查询工作流运行列表。
      *
-     * @param cutOff 截止时间。
+     * @param cutOff 截止时间
      * @param limit 限制数量
-     * @return 返回 String 列表数据。
+     * @return 运行 ID 列表
      */
     @Override
     public List<String> listRunIdsBefore(LocalDateTime cutOff, int limit) {
@@ -144,8 +147,8 @@ public class WorkflowRunRepositoryImpl implements WorkflowRunRepository {
     /**
      * 删除工作流运行数据。
      *
-     * @param runIds 运行 ID 列表。
-     * @return 返回运行记录删除条数。
+     * @param runIds 运行 ID 列表
+     * @return 运行记录删除条数
      */
     @Override
     public int deleteByRunIds(List<String> runIds) {

@@ -41,19 +41,49 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
 
+    /**
+     * 默认连接超时时间（毫秒）。
+     */
     private static final int DEFAULT_CONNECT_TIMEOUT_MS = 10000;
+
+    /**
+     * 默认请求超时时间（毫秒）。
+     */
     private static final int DEFAULT_REQUEST_TIMEOUT_MS = 30000;
+
+    /**
+     * 默认初始化超时时间（毫秒）。
+     */
     private static final int DEFAULT_INIT_TIMEOUT_MS = 60000;
 
+    /**
+     * JSON 序列化器。
+     */
     private final ObjectMapper objectMapper;
+
+    /**
+     * 动态工具回调提供器。
+     */
     private final DynamicMcpToolCallbackProvider toolCallbackProvider;
+
+    /**
+     * 运行中的 MCP 客户端注册表。
+     */
     private final Map<Long, McpSyncClient> clientRegistry = new ConcurrentHashMap<>();
+
+    /**
+     * MCP 服务元数据注册表。
+     */
     private final Map<Long, McpServerMeta> metaRegistry = new ConcurrentHashMap<>();
+
+    /**
+     * MCP 协议 JSON 映射器。
+     */
     private final McpJsonMapper mcpJsonMapper;
 
     /**
      * 创建 MCP 服务运行时并注入依赖组件。
-     *
+     * 
      * @param objectMapper JSON序列化器。
      * @param toolCallbackProvider 工具回调提供器。
      */
@@ -68,9 +98,9 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
      * 注册或更新 MCP Server 连接
      * 根据配置类型创建客户端并完成初始化
      *
-     * 为什么：配置变更后需要重建运行时连接
-     * 入参：MCP Server 配置
-     * 出参：无
+     * 配置变更后需要重建运行时连接
+     * 
+     * @param config 配置信息。
      */
     @Override
     public void registerOrUpdate(McpServerConfig config) {
@@ -104,9 +134,9 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
      * 取消注册 MCP Server 连接
      * 释放客户端资源并刷新工具回调
      *
-     * 为什么：禁用或删除配置时需要释放连接
-     * 入参：配置 ID
-     * 出参：无
+     * 禁用或删除配置时需要释放连接
+     * 
+     * @param id 主键 ID。
      */
     @Override
     public void unregister(Long id) {
@@ -124,9 +154,9 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
      * 刷新所有启用 MCP Server 连接
      * 以配置列表为准重建运行时连接
      *
-     * 为什么：批量配置变更时统一刷新运行时连接
-     * 入参：配置列表
-     * 出参：无
+     * 批量配置变更时统一刷新运行时连接
+     * 
+     * @param configs 启用状态的 MCP Server 配置列表。
      */
     @Override
     public void refresh(List<McpServerConfig> configs) {
@@ -150,9 +180,10 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
     /**
      * 判断 MCP Server 是否处于运行状态
      *
-     * 为什么：提供运行状态探测能力
-     * 入参：配置 ID
-     * 出参：是否运行
+     * 提供运行状态探测能力
+     * 
+     * @param id 主键 ID。
+     * @return `true` 表示运行中，`false` 表示未运行。
      */
     @Override
     public boolean isRunning(Long id) {
@@ -165,7 +196,7 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
     /**
      * 关闭所有 MCP 客户端连接
      *
-     * 为什么：应用关闭时释放外部连接
+     * 应用关闭时释放外部连接
      */
     @PreDestroy
     public void shutdown() {
@@ -180,7 +211,10 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
     /**
      * 构建 MCP 客户端
      *
-     * 为什么：根据不同协议创建对应的 Transport
+     * 根据不同协议创建对应的 Transport
+     * 
+     * @param config 配置信息。
+     * @return MCP 同步客户端。
      */
     private McpSyncClient buildClient(McpServerConfig config) {
         McpServerType serverType = config.getServerType();
@@ -204,7 +238,10 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
     /**
      * 构建 STDIO 客户端
      *
-     * 为什么：STDIO 模式需命令、参数、环境变量
+     * STDIO 模式需命令、参数、环境变量
+     * 
+     * @param config 配置信息。
+     * @return STDIO MCP 同步客户端。
      */
     private McpSyncClient buildStdioClient(McpServerConfig config) {
         String command = config.getCommand();
@@ -226,7 +263,10 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
     /**
      * 构建 SSE 客户端
      *
-     * 为什么：SSE 模式需 endpoint 与超时配置
+     * SSE 模式需 endpoint 与超时配置
+     * 
+     * @param config 配置信息。
+     * @return SSE MCP 同步客户端。
      */
     private McpSyncClient buildSseClient(McpServerConfig config) {
         String endpoint = config.getEndpoint();
@@ -256,7 +296,10 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
     /**
      * 构建 HTTP 客户端
      *
-     * 为什么：HTTP 模式需 endpoint 与超时配置
+     * HTTP 模式需 endpoint 与超时配置
+     * 
+     * @param config 配置信息。
+     * @return HTTP MCP 同步客户端。
      */
     private McpSyncClient buildHttpClient(McpServerConfig config) {
         String endpoint = config.getEndpoint();
@@ -307,7 +350,11 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
     /**
      * 构建同步客户端
      *
-     * 为什么：统一设置请求/初始化超时
+     * 统一设置请求/初始化超时
+     * 
+     * @param transport MCP 客户端传输层。
+     * @param config 配置信息。
+     * @return 初始化后的 MCP 同步客户端。
      */
     private McpSyncClient buildSyncClient(McpClientTransport transport,
                                           McpServerConfig config) {
@@ -323,7 +370,10 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
     /**
      * 应用自定义 Header
      *
-     * 为什么：支持鉴权等自定义请求头
+     * 支持鉴权等自定义请求头
+     * 
+     * @param requestBuilder HTTP 请求构建器。
+     * @param headers 请求头映射。
      */
     private void applyHeaders(HttpRequest.Builder requestBuilder, Map<String, String> headers) {
         if (requestBuilder == null || headers == null || headers.isEmpty()) {
@@ -342,7 +392,10 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
     /**
      * 解析 JSON 数组
      *
-     * 为什么：配置使用 JSON 存储需要还原
+     * 配置使用 JSON 存储需要还原
+     * 
+     * @param json JSON 文本。
+     * @return 字符串列表。
      */
     private List<String> parseStringList(String json) {
         if (!StringUtils.hasText(json)) {
@@ -359,7 +412,9 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
     /**
      * 解析 JSON 对象
      *
-     * 为什么：配置使用 JSON 存储需要还原
+     * 配置使用 JSON 存储需要还原
+     * 
+     * @param json JSON 文本。
      */
     private Map<String, String> parseStringMap(String json) {
         if (!StringUtils.hasText(json)) {
@@ -376,7 +431,11 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
     /**
      * 获取超时时间
      *
-     * 为什么：兜底非法值，避免传入负数
+     * 兜底非法值，避免传入负数
+     * 
+     * @param value 值。
+     * @param defaultValue 默认值。
+     * @return 超时时间（毫秒）。
      */
     private int getTimeout(Integer value, int defaultValue) {
         if (value == null || value <= 0) {
@@ -388,7 +447,9 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
     /**
      * 安静关闭客户端
      *
-     * 为什么：避免关闭异常影响主流程
+     * 避免关闭异常影响主流程
+     * 
+     * @param client MCP 同步客户端。
      */
     private void closeQuietly(McpSyncClient client) {
         if (client == null) {
@@ -404,7 +465,7 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
     /**
      * 刷新工具回调
      *
-     * 为什么：客户端变更后需要同步工具列表
+     * 客户端变更后需要同步工具列表
      */
     private void refreshToolCallbacks() {
         ArrayList<DynamicMcpToolCallbackProvider.McpClientDescriptor> descriptors = new ArrayList<>();
@@ -421,6 +482,9 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
     }
 
     private static final class McpServerMeta {
+        /**
+         * MCP 服务名称。
+         */
         private final String serverName;
 
         private McpServerMeta(String serverName) {

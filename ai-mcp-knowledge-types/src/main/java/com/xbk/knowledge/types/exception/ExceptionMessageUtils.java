@@ -16,7 +16,7 @@ public final class ExceptionMessageUtils {
     /**
      * 解析异常消息
      * 优先返回异常 message，避免空消息导致定位困难
-     *
+     * 
      * @param throwable 需要解析的异常
      * @param defaultMessage 默认提示语
      * @param appendType 是否追加异常类型名称
@@ -40,7 +40,7 @@ public final class ExceptionMessageUtils {
         boolean hasDefaultMessage = trimmedDefaultMessage != null && !trimmedDefaultMessage.isEmpty();
         if (appendType && hasTypeName) {
             if (hasDefaultMessage) {
-                return defaultMessage + "：" + typeName;
+                return defaultMessage + "" + typeName;
             }
             return typeName;
         }

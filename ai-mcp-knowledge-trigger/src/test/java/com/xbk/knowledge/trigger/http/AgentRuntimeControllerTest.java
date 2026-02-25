@@ -14,7 +14,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * 验证 AgentRuntimeController 的单组织路由规则：
+ * 验证 AgentRuntimeController 的单组织路由规则
  * - HTTP 入口不得信任请求体 scopeId，统一按默认组织 ID=1 路由
  *
  * @author xiexu

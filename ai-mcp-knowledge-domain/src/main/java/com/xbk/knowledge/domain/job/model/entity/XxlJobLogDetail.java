@@ -21,28 +21,28 @@ public class XxlJobLogDetail {
     /**
      * 起始行号
      *
-     * 为什么：支持增量拉取日志
+     * 支持增量拉取日志
      */
     private Integer fromLineNum;
 
     /**
      * 结束行号
      *
-     * 为什么：标识本次读取的结束位置
+     * 标识本次读取的结束位置
      */
     private Integer toLineNum;
 
     /**
      * 日志内容
      *
-     * 为什么：承载实际日志文本
+     * 承载实际日志文本
      */
     private String logContent;
 
     /**
      * 是否结束
      *
-     * 为什么：标识是否还有后续日志
+     * 标识是否还有后续日志
      */
     private Boolean end;
 }

@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * 查询工作流。
+ * 工作流仓储实现。
  *
  * @author sxie
  */
@@ -24,13 +24,16 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class WorkflowRepositoryImpl implements WorkflowRepository {
 
+    /**
+     * Workflow 数据访问对象。
+     */
     private final IWorkflowDao workflowMapper;
 
     /**
      * 查询工作流。
      *
-     * @param query 查询条件
-     * @return 返回 Workflow 查询结果（可能为空）。
+     * @param query 主键查询条件
+     * @return Workflow 查询结果（可能为空）
      */
     @Override
     public Optional<Workflow> findById(IdQuery query) {
@@ -44,8 +47,8 @@ public class WorkflowRepositoryImpl implements WorkflowRepository {
     /**
      * 查询工作流。
      *
-     * @param query 查询条件
-     * @return 返回 Workflow 查询结果（可能为空）。
+     * @param query 工作流编码查询条件
+     * @return Workflow 查询结果（可能为空）
      */
     @Override
     public Optional<Workflow> findByCode(WorkflowCodeQuery query) {
@@ -59,8 +62,8 @@ public class WorkflowRepositoryImpl implements WorkflowRepository {
     /**
      * 创建并持久化工作流数据。
      *
-     * @param workflow 工作流实体。
-     * @return 返回 Workflow 数据。
+     * @param workflow 工作流实体
+     * @return 创建后的 Workflow 信息
      */
     @Override
     public Workflow insert(Workflow workflow) {
@@ -74,8 +77,8 @@ public class WorkflowRepositoryImpl implements WorkflowRepository {
     /**
      * 更新工作流数据。
      *
-     * @param workflow 工作流实体。
-     * @return 返回工作流更新条数。
+     * @param workflow 工作流实体
+     * @return 工作流更新条数
      */
     @Override
     public int updateById(Workflow workflow) {
@@ -88,10 +91,10 @@ public class WorkflowRepositoryImpl implements WorkflowRepository {
     /**
      * 根据筛选条件查询工作流列表。
      *
-     * @param keyword 关键字。
+     * @param keyword 关键字
      * @param offset 分页偏移量
      * @param pageSize 分页大小
-     * @return 返回 Workflow 列表数据。
+     * @return Workflow 列表
      */
     @Override
     public List<Workflow> list(String keyword, int offset, int pageSize) {
@@ -103,7 +106,7 @@ public class WorkflowRepositoryImpl implements WorkflowRepository {
     /**
      * 按条件统计业务数量。
      *
-     * @param keyword 关键字。
+     * @param keyword 关键字
      * @return 统计数量
      */
     @Override

@@ -33,7 +33,7 @@ public class AIRequest {
 
     /**
      * 模型参数（可选）
-     * 例如：temperature、maxTokens 等
+     * 例如temperature、maxTokens 等
      */
     private Map<String, Object> parameters;
 
@@ -49,7 +49,7 @@ public class AIRequest {
     private Long modelId;
 
     /**
-     * 会话ID（可选）
+     * 会话 ID（可选）
      * 用于对话上下文记忆
      */
     private Long sessionId;

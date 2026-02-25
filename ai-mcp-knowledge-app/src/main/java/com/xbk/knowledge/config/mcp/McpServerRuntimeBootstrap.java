@@ -19,10 +19,15 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class McpServerRuntimeBootstrap implements ApplicationRunner {
 
+    /**
+     * MCP Server 配置应用服务。
+     */
     private final McpServerConfigAppService mcpServerConfigAppService;
 
     /**
      * 应用启动完成后刷新 MCP Server 运行时连接
+     * 
+     * @param args 应用启动参数。
      */
     @Override
     public void run(ApplicationArguments args) {

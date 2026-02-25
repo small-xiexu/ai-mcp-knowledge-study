@@ -18,14 +18,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class PromptTemplateAppServiceImpl implements PromptTemplateAppService {
-
+    /**
+     * PromptTemplate 领域服务，用于模板草稿与发布生命周期管理。
+     */
     private final IPromptTemplateService promptTemplateService;
 
     /**
      * 查询提示词模板。
      *
-     * @param query 查询条件
-     * @return 返回 PromptTemplate 分页数据。
+     * @param query 分页查询条件
+     * @return PromptTemplate 分页数据
      */
     @Override
     public PageResult<PromptTemplate> queryPage(PromptTemplatePageQuery query) {
@@ -35,8 +37,8 @@ public class PromptTemplateAppServiceImpl implements PromptTemplateAppService {
     /**
      * 查询提示词模板。
      *
-     * @param query 查询条件
-     * @return 返回 PromptTemplate 数据。
+     * @param query 主键查询条件
+     * @return PromptTemplate 详情
      */
     @Override
     public PromptTemplate queryById(PromptTemplateIdQuery query) {
@@ -46,8 +48,8 @@ public class PromptTemplateAppServiceImpl implements PromptTemplateAppService {
     /**
      * 创建并持久化提示词模板数据。
      *
-     * @param template 模板实体。
-     * @return 返回 PromptTemplate 数据。
+     * @param template 模板实体
+     * @return 创建后的 PromptTemplate 信息
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -58,8 +60,8 @@ public class PromptTemplateAppServiceImpl implements PromptTemplateAppService {
     /**
      * 更新提示词模板数据。
      *
-     * @param template 模板实体。
-     * @return 返回 PromptTemplate 数据。
+     * @param template 模板实体
+     * @return 更新后的 PromptTemplate 信息
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -70,9 +72,9 @@ public class PromptTemplateAppServiceImpl implements PromptTemplateAppService {
     /**
      * 发布业务配置。
      *
-     * @param query 查询条件
+     * @param query 主键查询条件
      * @param operatorId 操作人 ID
-     * @return 返回 PromptTemplate 数据。
+     * @return 发布后的 PromptTemplate 信息
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -83,9 +85,9 @@ public class PromptTemplateAppServiceImpl implements PromptTemplateAppService {
     /**
      * 归档业务配置。
      *
-     * @param query 查询条件
+     * @param query 主键查询条件
      * @param operatorId 操作人 ID
-     * @return 返回 PromptTemplate 数据。
+     * @return 归档后的 PromptTemplate 信息
      */
     @Override
     @Transactional(rollbackFor = Exception.class)

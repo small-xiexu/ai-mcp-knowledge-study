@@ -35,7 +35,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AgentEnhancerController implements IAgentEnhancerService {
 
+    /**
+     * Agent 增强器应用服务。
+     */
     private final AgentEnhancerAppService agentEnhancerAppService;
+
+    /**
+     * Agent 增强器绑定应用服务。
+     */
     private final AgentEnhancerBindingAppService agentEnhancerBindingAppService;
 
     /**
@@ -46,9 +53,9 @@ public class AgentEnhancerController implements IAgentEnhancerService {
      * 3. Controller 组装 `AgentEnhancerPageQuery` 并调用应用服务分页查询。
      * 4. 将领域分页结果转换为 `AgentEnhancerResponse` 分页结构。
      * 5. 统一封装 `Result.success` 返回。
-     *
+     * 
      * @param request Agent 增强器（AgentEnhancer）查询条件。
-     * @return 返回Agent 增强器（AgentEnhancer）分页查询结果。
+     * @return Agent 增强器（AgentEnhancer）分页查询结果。
      */
     @PostMapping("/list")
     @SaCheckPermission("agent-enhancer:read")
@@ -74,9 +81,9 @@ public class AgentEnhancerController implements IAgentEnhancerService {
      * 3. Controller 调用 `agentEnhancerAppService.get` 查询实体。
      * 4. 将实体转换为 `AgentEnhancerResponse`。
      * 5. 统一封装 `Result.success` 返回。
-     *
+     * 
      * @param request Agent 增强器（AgentEnhancer）详情查询参数。
-     * @return 返回Agent 增强器（AgentEnhancer）查询结果。
+     * @return Agent 增强器（AgentEnhancer）查询结果。
      */
     @PostMapping("/get")
     @SaCheckPermission("agent-enhancer:read")
@@ -94,9 +101,9 @@ public class AgentEnhancerController implements IAgentEnhancerService {
      * 3. Controller 按请求组装 `AgentEnhancer` 领域对象。
      * 4. 调用 `agentEnhancerAppService.save` 执行新增或更新。
      * 5. 转换为 `AgentEnhancerResponse` 并返回“保存成功”。
-     *
+     * 
      * @param request Agent 增强器（AgentEnhancer）保存参数。
-     * @return 返回Agent 增强器（AgentEnhancer）保存结果。
+     * @return Agent 增强器（AgentEnhancer）保存结果。
      */
     @PostMapping("/save")
     @SaCheckPermission("agent-enhancer:write")
@@ -122,9 +129,9 @@ public class AgentEnhancerController implements IAgentEnhancerService {
      * 3. Controller 调用 `agentEnhancerAppService.enable` 更新状态。
      * 4. 将更新结果转换为 `AgentEnhancerResponse`。
      * 5. 统一封装 `Result.success` 返回。
-     *
+     * 
      * @param request Agent 增强器（AgentEnhancer）启用参数。
-     * @return 返回Agent 增强器（AgentEnhancer）启用结果。
+     * @return Agent 增强器（AgentEnhancer）启用结果。
      */
     @PostMapping("/enable")
     @SaCheckPermission("agent-enhancer:write")
@@ -142,9 +149,9 @@ public class AgentEnhancerController implements IAgentEnhancerService {
      * 3. Controller 调用 `agentEnhancerAppService.disable` 更新状态。
      * 4. 将更新结果转换为 `AgentEnhancerResponse`。
      * 5. 统一封装 `Result.success` 返回。
-     *
+     * 
      * @param request Agent 增强器（AgentEnhancer）禁用参数。
-     * @return 返回Agent 增强器（AgentEnhancer）禁用结果。
+     * @return Agent 增强器（AgentEnhancer）禁用结果。
      */
     @PostMapping("/disable")
     @SaCheckPermission("agent-enhancer:write")
@@ -162,9 +169,9 @@ public class AgentEnhancerController implements IAgentEnhancerService {
      * 3. Controller 调用 `agentEnhancerAppService.remove` 执行删除。
      * 4. 应用层完成资源与绑定校验后落库删除。
      * 5. 统一封装空成功结果返回。
-     *
+     * 
      * @param request Agent 增强器（AgentEnhancer）删除参数。
-     * @return 返回Agent 增强器（AgentEnhancer）删除结果。
+     * @return Agent 增强器（AgentEnhancer）删除结果。
      */
     @PostMapping("/remove")
     @SaCheckPermission("agent-enhancer:write")
@@ -182,9 +189,9 @@ public class AgentEnhancerController implements IAgentEnhancerService {
      * 3. Controller 组装 `AgentEnhancerBindingQuery` 并调用应用服务查询。
      * 4. 将查询结果逐条转换为 `AgentEnhancerBindingViewResponse`。
      * 5. 统一封装 `Result.success` 返回（空列表时返回 `List.of()`）。
-     *
+     * 
      * @param request 绑定关系查询参数。
-     * @return 返回绑定关系列表查询结果。
+     * @return 绑定关系列表查询结果。
      */
     @PostMapping("/bindings/list")
     @SaCheckPermission("agent-enhancer:read")
@@ -210,9 +217,9 @@ public class AgentEnhancerController implements IAgentEnhancerService {
      * 3. Controller 将请求 items 转换为应用服务可识别的保存项。
      * 4. 调用 `agentEnhancerBindingAppService.saveBindings` 持久化绑定关系。
      * 5. 返回“保存成功”的统一结果。
-     *
+     * 
      * @param request 绑定关系保存参数。
-     * @return 返回绑定关系保存结果。
+     * @return 绑定关系保存结果。
      */
     @PostMapping("/bindings/save")
     @SaCheckPermission("agent-enhancer:write")
@@ -237,9 +244,9 @@ public class AgentEnhancerController implements IAgentEnhancerService {
 
     /**
      * 将输入数据转换为响应。
-     *
-     * @param a 智能体对象。
-     * @return 返回AgentEnhancerResponse对象。
+     * 
+     * @param a 增强器实体。
+     * @return 增强器响应。
      */
     private AgentEnhancerResponse toResponse(AgentEnhancer a) {
         if (a == null) {
@@ -259,9 +266,9 @@ public class AgentEnhancerController implements IAgentEnhancerService {
 
     /**
      * 将输入数据转换为View响应。
-     *
-     * @param v 版本对象。
-     * @return 返回AgentEnhancerBindingViewResponse对象。
+     * 
+     * @param v 增强器绑定视图。
+     * @return 增强器绑定视图响应。
      */
     private AgentEnhancerBindingViewResponse toViewResponse(AgentEnhancerBindingView v) {
         if (v == null) {

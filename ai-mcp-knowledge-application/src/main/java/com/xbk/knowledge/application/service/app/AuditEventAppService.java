@@ -15,9 +15,9 @@ public interface AuditEventAppService {
 
     /**
      * 分页查询审计事件。
-     *
-     * @param query 查询条件
-     * @return 分页结果
+     * 
+     * @param query 分页查询条件。
+     * @return SysAuditEvent 分页结果。
      */
     PageResult<SysAuditEvent> queryPage(AuditEventPageQuery query);
 }

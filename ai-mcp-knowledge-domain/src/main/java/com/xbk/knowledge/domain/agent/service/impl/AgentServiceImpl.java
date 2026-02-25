@@ -30,20 +30,46 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class AgentServiceImpl implements IAgentService {
-
+    /**
+     * Agent 仓储，负责 Agent 主体数据访问。
+     */
     private final AgentRepository agentRepository;
+
+    /**
+     * AgentVersion 仓储，负责版本列表与删除。
+     */
     private final AgentVersionRepository agentVersionRepository;
+
+    /**
+     * Agent 调度仓储，负责调度配置删除。
+     */
     private final AgentScheduleRepository agentScheduleRepository;
+
+    /**
+     * Agent 运行上下文仓储，负责运行上下文删除。
+     */
     private final AgentRunContextRepository agentRunContextRepository;
+
+    /**
+     * Agent 运行记录仓储，负责运行记录删除。
+     */
     private final AgentRunRepository agentRunRepository;
+
+    /**
+     * 审批单仓储，负责 Agent 关联审批单删除。
+     */
     private final ApprovalRequestRepository approvalRequestRepository;
+
+    /**
+     * AgentEnhancer 绑定仓储，负责版本级绑定删除。
+     */
     private final AgentEnhancerBindingRepository agentEnhancerBindingRepository;
 
     /**
      * 查询智能体。
      *
-     * @param query 查询条件
-     * @return 返回 Agent 分页数据。
+     * @param query 分页查询条件
+     * @return Agent 分页数据
      */
     @Override
     public PageResult<Agent> queryPage(AgentPageQuery query) {
@@ -67,8 +93,8 @@ public class AgentServiceImpl implements IAgentService {
     /**
      * 查询智能体。
      *
-     * @param query 查询条件
-     * @return 返回 Agent 数据。
+     * @param query 智能体编码查询条件
+     * @return Agent 详情
      */
     @Override
     public Agent queryByCode(AgentCodeQuery query) {
@@ -83,8 +109,8 @@ public class AgentServiceImpl implements IAgentService {
     /**
      * 创建并持久化智能体数据。
      *
-     * @param agent 智能体实体。
-     * @return 返回智能体保存结果。
+     * @param agent 智能体实体
+     * @return 创建后的智能体信息
      */
     @Override
     public Agent create(Agent agent) {
@@ -99,7 +125,7 @@ public class AgentServiceImpl implements IAgentService {
         }
         AgentCodeQuery codeQuery = new AgentCodeQuery(agent.getAgentCode());
         if (agentRepository.existsByCode(codeQuery)) {
-            throw new BusinessException("agentCode 已存在：" + agent.getAgentCode());
+            throw new BusinessException("agentCode 已存在" + agent.getAgentCode());
         }
         LocalDateTime now = LocalDateTime.now();
         if (agent.getStatus() == null || agent.getStatus().isBlank()) {
@@ -116,8 +142,8 @@ public class AgentServiceImpl implements IAgentService {
     /**
      * 更新智能体数据。
      *
-     * @param agent 智能体实体。
-     * @return 返回智能体更新结果。
+     * @param agent 智能体实体
+     * @return 更新后的智能体信息
      */
     @Override
     public Agent update(Agent agent) {
@@ -151,7 +177,7 @@ public class AgentServiceImpl implements IAgentService {
     /**
      * 删除智能体数据。
      *
-     * @param query 查询条件
+     * @param query 智能体编码查询条件
      */
     @Override
     public void remove(AgentCodeQuery query) {

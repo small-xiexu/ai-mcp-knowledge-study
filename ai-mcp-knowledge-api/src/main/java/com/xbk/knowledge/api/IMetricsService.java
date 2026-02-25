@@ -22,7 +22,7 @@ public interface IMetricsService {
 
     /**
      * 调用次数统计
-     *
+     * 
      * @param request 监控统计查询请求
      * @return 调用次数统计
      */
@@ -30,7 +30,7 @@ public interface IMetricsService {
 
     /**
      * 成功率统计
-     *
+     * 
      * @param request 监控统计查询请求
      * @return 成功率统计
      */
@@ -38,7 +38,7 @@ public interface IMetricsService {
 
     /**
      * 响应时间统计
-     *
+     * 
      * @param request 监控统计查询请求
      * @return 响应时间统计
      */
@@ -46,7 +46,7 @@ public interface IMetricsService {
 
     /**
      * 模型使用分布
-     *
+     * 
      * @param request 模型使用情况查询请求
      * @return 模型使用分布
      */

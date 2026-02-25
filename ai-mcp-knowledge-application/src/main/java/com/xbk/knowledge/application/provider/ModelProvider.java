@@ -16,27 +16,29 @@ public interface ModelProvider {
     /**
      * 创建 ChatModel（用于流式调用）
      *
-     * 为什么：流式调用需要直接使用 ChatModel
-     * 入参：模型配置
-     * 出参：ChatModel 实例
+     * 流式调用需要直接使用 ChatModel
+     * 
+     * @param config 配置信息。
+     * @return 可用于调用的 ChatModel。
      */
     ChatModel createChatModel(ModelConfig config);
 
     /**
      * 获取模型类型
      *
-     * 为什么：用于工厂路由 Provider
-     * 入参：无
-     * 出参：模型类型
+     * 用于工厂路由 Provider
+     * 
+     * @return 当前 Provider 对应的模型类型。
      */
     ModelType getModelType();
 
     /**
      * 检查模型健康状态
      *
-     * 为什么：用于预检配置有效性
-     * 入参：模型配置
-     * 出参：是否健康
+     * 用于预检配置有效性
+     * 
+     * @param config 配置信息。
+     * @return `true` 表示健康检查通过，`false` 表示不可用。
      */
     boolean isHealthy(ModelConfig config);
 }

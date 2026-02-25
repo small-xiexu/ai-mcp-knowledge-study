@@ -24,6 +24,7 @@ public final class JsonMapUtils {
 
     /**
      * 创建 JSON 映射工具并注入依赖组件。
+     * 
      */
     private JsonMapUtils() {
     }
@@ -31,10 +32,10 @@ public final class JsonMapUtils {
     /**
      * 将 JSON 文本读取为可变 Map。
      *
+     * @throws IOException JSON 解析异常
+     * 
      * @param objectMapper Jackson 对象
      * @param json JSON 文本
-     * @return 可变 Map
-     * @throws IOException JSON 解析异常
      */
     public static Map<String, Object> readMap(ObjectMapper objectMapper, String json) throws IOException {
         Objects.requireNonNull(objectMapper, "objectMapper 不能为空");
@@ -44,10 +45,9 @@ public final class JsonMapUtils {
 
     /**
      * 将任意对象转换为可变 Map。
-     *
+     * 
      * @param objectMapper Jackson 对象
      * @param source 源对象
-     * @return 可变 Map
      */
     public static Map<String, Object> convertToMap(ObjectMapper objectMapper, Object source) {
         Objects.requireNonNull(objectMapper, "objectMapper 不能为空");
@@ -61,10 +61,10 @@ public final class JsonMapUtils {
     /**
      * 将 JSON 文本读取为字符串键值 Map。
      *
+     * @throws IOException JSON 解析异常
+     * 
      * @param objectMapper Jackson 对象
      * @param json JSON 文本
-     * @return 可变字符串 Map
-     * @throws IOException JSON 解析异常
      */
     public static Map<String, String> readStringMap(ObjectMapper objectMapper, String json) throws IOException {
         Objects.requireNonNull(objectMapper, "objectMapper 不能为空");

@@ -23,11 +23,11 @@ public class ChatMemoryConfig {
 
     /**
      * 创建 Redis 会话记忆仓储。
-     *
+     * 
      * @param stringRedisTemplate Redis模板。
      * @param objectMapper JSON序列化器。
      * @param properties 配置属性。
-     * @return 返回ChatMemoryRepository对象。
+     * @return Redis 会话记忆仓储。
      */
     @Bean
     public ChatMemoryRepository chatMemoryRepository(StringRedisTemplate stringRedisTemplate,
@@ -39,10 +39,10 @@ public class ChatMemoryConfig {
 
     /**
      * 创建会话记忆实现。
-     *
+     * 
      * @param chatMemoryRepository 会话记忆仓储。
      * @param properties 配置属性。
-     * @return 返回ChatMemory对象。
+     * @return 会话记忆实现。
      */
     @Bean
     public ChatMemory chatMemory(ChatMemoryRepository chatMemoryRepository,

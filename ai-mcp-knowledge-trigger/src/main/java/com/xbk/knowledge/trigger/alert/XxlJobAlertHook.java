@@ -12,8 +12,8 @@ public interface XxlJobAlertHook {
     /**
      * 任务执行异常告警
      *
-     * 为什么：在异常发生时统一触发外部告警通道，避免任务静默失败。
-     *
+     * 在异常发生时统一触发外部告警通道，避免任务静默失败。
+     * 
      * @param jobHandler 任务 Handler 名称
      * @param throwable 异常
      */

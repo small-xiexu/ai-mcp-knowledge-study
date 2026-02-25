@@ -22,6 +22,9 @@ public interface WorkflowRuntimeAppService {
 
     /**
      * 审批通过后的续跑入口（方式B）。
+     * 
+     * @param approvalRequestId 标识 ID。
+     * @return 续跑后的平台标准输出。
      */
     PlatformContractV1 resumeFromApproval(Long approvalRequestId);
 

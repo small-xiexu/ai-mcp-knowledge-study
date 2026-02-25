@@ -22,11 +22,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SysAuditEventRepositoryImpl implements SysAuditEventRepository {
 
+    /**
+     * 审计事件数据访问对象。
+     */
     private final ISysAuditEventDao sysAuditEventMapper;
 
     /**
      * 写入审计事件。
-     *
+     * 
      * @param event 审计事件
      */
     @Override
@@ -39,8 +42,8 @@ public class SysAuditEventRepositoryImpl implements SysAuditEventRepository {
 
     /**
      * 分页查询审计事件。
-     *
-     * @param query 查询条件
+     * 
+     * @param query 分页查询条件。
      * @return 审计事件列表
      */
     @Override
@@ -50,8 +53,8 @@ public class SysAuditEventRepositoryImpl implements SysAuditEventRepository {
 
     /**
      * 统计审计事件总数。
-     *
-     * @param query 查询条件
+     * 
+     * @param query 分页查询条件。
      * @return 总数
      */
     @Override

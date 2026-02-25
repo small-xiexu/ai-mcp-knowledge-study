@@ -11,13 +11,14 @@ import org.springframework.stereotype.Component;
 /**
  * Google Gemini 模型提供者
  * 封装 Google Gemini 模型的创建和调用
- *
- * 实现说明：
+ * <p>
+ * 实现说明
  * - 使用 OpenAI 兼容协议调用 Gemini，避免 Spring AI 的 GoogleGenAiChatModel 在处理工具调用时的 bug
- * - Spring AI 1.1.2 版本的 GoogleGenAiChatModel 在处理工具调用响应时，当 text 字段为空时会抛出 NoSuchElementException
+ * - Spring AI 1.1.2 版本的 GoogleGenAiChatModel 在处理工具调用响应时，当 text 字段为空时抛出 NoSuchElementException
  * - 通过 OpenAI 兼容协议可以绕过这个问题，同时保持完整的功能支持（工具调用、MCP 集成等）
- *
+ * <p>
  * 职责：模型调用实现，用于适配具体厂商 SDK
+ *
  * @author sxie
  */
 @Slf4j
@@ -26,10 +27,11 @@ public class GeminiModelProvider extends AbstractGeminiProtocolAdapter implement
 
     /**
      * 构建 ChatModel
-     *
-     * 为什么：统一捕获 SDK 异常并输出可读日志
-     * 入参：模型配置
-     * 出参：ChatModel
+     * <p>
+     * 统一捕获 SDK 异常并输出可读日志
+     * 
+     * @param config 配置信息。
+     * @return 可用的对话模型。
      */
     @Override
     public ChatModel createChatModel(ModelConfig config) {
@@ -44,10 +46,10 @@ public class GeminiModelProvider extends AbstractGeminiProtocolAdapter implement
 
     /**
      * 对外暴露 getModelType 作为调用入口，便于上层复用。
-     *
-     * 为什么：工厂需要根据类型路由 Provider
-     * 入参：无
-     * 出参：模型类型
+     * <p>
+     * 工厂需要根据类型路由 Provider
+     * 
+     * @return Provider 对应的模型类型。
      */
     @Override
     public ModelType getModelType() {
@@ -56,10 +58,11 @@ public class GeminiModelProvider extends AbstractGeminiProtocolAdapter implement
 
     /**
      * 对外暴露 isHealthy 作为调用入口，便于上层复用。
-     *
-     * 为什么：快速验证模型配置可用性
-     * 入参：模型配置
-     * 出参：是否健康
+     * <p>
+     * 快速验证模型配置可用性
+     * 
+     * @param config 配置信息。
+     * @return `true` 表示配置可用，`false` 表示配置不可用。
      */
     @Override
     public boolean isHealthy(ModelConfig config) {

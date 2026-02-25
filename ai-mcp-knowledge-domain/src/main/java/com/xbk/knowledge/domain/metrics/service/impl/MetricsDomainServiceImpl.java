@@ -27,15 +27,18 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class MetricsDomainServiceImpl implements IMetricsDomainService {
-
+    /**
+     * 调用日志仓储，用于聚合调用量、成功率、耗时和模型分布。
+     */
     private final CallLogRepository callLogRepository;
 
     /**
      * 统计调用次数指标
      *
-     * 为什么：统一时间范围校验并规范化返回结构
-     * 入参：指标查询对象
-     * 出参：调用次数指标
+     * 统一时间范围校验并规范化返回结构
+     * 
+     * @param query 时间范围查询条件。
+     * @return 调用次数聚合指标。
      */
     @Override
     public CallMetrics collectCallMetrics(MetricsQuery query) {
@@ -57,9 +60,10 @@ public class MetricsDomainServiceImpl implements IMetricsDomainService {
     /**
      * 统计成功率指标
      *
-     * 为什么：统一时间范围校验并规范化成功率口径
-     * 入参：指标查询对象
-     * 出参：成功率指标
+     * 统一时间范围校验并规范化成功率口径
+     * 
+     * @param query 时间范围查询条件。
+     * @return 成功率聚合指标。
      */
     @Override
     public SuccessRate collectSuccessRate(MetricsQuery query) {
@@ -81,9 +85,10 @@ public class MetricsDomainServiceImpl implements IMetricsDomainService {
     /**
      * 统计响应时间指标
      *
-     * 为什么：统一时间范围校验并规范化响应时间数据
-     * 入参：指标查询对象
-     * 出参：响应时间指标
+     * 统一时间范围校验并规范化响应时间数据
+     * 
+     * @param query 时间范围查询条件。
+     * @return 响应时间聚合指标。
      */
     @Override
     public ResponseTime collectResponseTime(MetricsQuery query) {
@@ -105,9 +110,10 @@ public class MetricsDomainServiceImpl implements IMetricsDomainService {
     /**
      * 统计模型使用分布
      *
-     * 为什么：统一时间范围校验并保证返回列表稳定
-     * 入参：模型使用查询对象
-     * 出参：模型使用分布列表
+     * 统一时间范围校验并保证返回列表稳定
+     * 
+     * @param query 模型使用分布查询条件。
+     * @return 监控指标列表。
      */
     @Override
     public List<ModelUsage> collectModelUsage(ModelUsageQuery query) {
@@ -129,9 +135,10 @@ public class MetricsDomainServiceImpl implements IMetricsDomainService {
     /**
      * 验证时间范围
      *
-     * 为什么：防止开始时间晚于结束时间导致统计无意义
-     * 入参：开始时间、结束时间
-     * 出参：无
+     * 防止开始时间晚于结束时间导致统计无意义
+     * 
+     * @param startTime 开始时间。
+     * @param endTime 结束时间。
      */
     private void validateTimeRange(LocalDateTime startTime, LocalDateTime endTime) {
         if (startTime != null && endTime != null && startTime.isAfter(endTime)) {
@@ -142,9 +149,10 @@ public class MetricsDomainServiceImpl implements IMetricsDomainService {
     /**
      * 规范化调用次数指标
      *
-     * 为什么：保证指标字段始终有值，避免空指针
-     * 入参：调用次数指标
-     * 出参：规范化后的指标
+     * 保证指标字段始终有值，避免空指针
+     * 
+     * @param metrics 原始调用次数聚合结果。
+     * @return 规范化后的调用次数聚合结果。
      */
     private CallMetrics normalizeCallMetrics(CallMetrics metrics) {
         if (metrics == null) {
@@ -162,9 +170,10 @@ public class MetricsDomainServiceImpl implements IMetricsDomainService {
     /**
      * 规范化成功率指标
      *
-     * 为什么：保证成功率口径统一并避免空值
-     * 入参：成功率指标
-     * 出参：规范化后的指标
+     * 保证成功率口径统一并避免空值
+     * 
+     * @param successRate 原始成功率聚合结果。
+     * @return 规范化后的成功率聚合结果。
      */
     private SuccessRate normalizeSuccessRate(SuccessRate successRate) {
         if (successRate == null) {
@@ -196,9 +205,10 @@ public class MetricsDomainServiceImpl implements IMetricsDomainService {
     /**
      * 规范化响应时间指标
      *
-     * 为什么：保证时间字段完整并避免空值
-     * 入参：响应时间指标
-     * 出参：规范化后的指标
+     * 保证时间字段完整并避免空值
+     * 
+     * @param responseTime 原始响应时间聚合结果。
+     * @return 规范化后的响应时间聚合结果。
      */
     private ResponseTime normalizeResponseTime(ResponseTime responseTime) {
         if (responseTime == null) {

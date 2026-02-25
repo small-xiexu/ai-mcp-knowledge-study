@@ -23,6 +23,9 @@ import java.util.List;
 @AllArgsConstructor
 public class PageResult<T> implements Serializable {
 
+    /**
+     * 序列化版本号。
+     */
     private static final long serialVersionUID = 1L;
 
     /**
@@ -62,10 +65,10 @@ public class PageResult<T> implements Serializable {
 
     /**
      * 创建分页结果
-     *
-     * @param records  数据列表
-     * @param total    总记录数
-     * @param pageNum  当前页码
+     * 
+     * @param records 数据列表
+     * @param total 总记录数
+     * @param pageNum 当前页码
      * @param pageSize 每页大小
      * @return PageResult
      */
@@ -88,8 +91,8 @@ public class PageResult<T> implements Serializable {
 
     /**
      * 创建空的分页结果
-     *
-     * @param pageNum  当前页码
+     * 
+     * @param pageNum 当前页码
      * @param pageSize 每页大小
      * @return PageResult
      */

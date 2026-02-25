@@ -39,9 +39,19 @@ import java.math.BigDecimal;
 @RequestMapping("/api/agent-versions")
 @RequiredArgsConstructor
 public class AgentVersionController implements IAgentVersionService {
-
+    /**
+     * AgentVersion 应用服务，用于版本草稿、发布与回滚编排。
+     */
     private final AgentVersionAppService agentVersionAppService;
+
+    /**
+     * Agent 应用服务，用于按 agentCode 解析 Agent 主体信息。
+     */
     private final AgentAppService agentAppService;
+
+    /**
+     * 身份上下文服务，用于获取当前操作人 ID。
+     */
     private final IdentityContextService identityContextService;
 
     /**
@@ -52,7 +62,7 @@ public class AgentVersionController implements IAgentVersionService {
      * 3. 先按 `agentCode` 查询 Agent，再组装 `AgentVersionPageQuery`。
      * 4. 调用 `agentVersionAppService.queryPage` 获取版本分页数据。
      * 5. 转换为 `AgentVersionResponse` 分页并统一返回。
-     *
+     * 
      * @param request 查询参数
      * @return 版本分页
      */
@@ -78,7 +88,7 @@ public class AgentVersionController implements IAgentVersionService {
      * 3. Controller 组装 `AgentVersionIdQuery` 并调用 `agentVersionAppService.queryById`。
      * 4. 将领域实体转换为 `AgentVersionResponse`。
      * 5. 统一封装 `Result.success` 返回。
-     *
+     * 
      * @param request 版本 ID 请求
      * @return 版本详情
      */
@@ -100,7 +110,7 @@ public class AgentVersionController implements IAgentVersionService {
      * 3. 读取当前登录用户与 Agent 主体，组装 `AgentVersion` 草稿对象。
      * 4. 根据 `id` 是否为空分别调用 `createDraft` 或 `updateDraft`。
      * 5. 将保存结果转换为 `AgentVersionResponse` 并返回对应成功文案。
-     *
+     * 
      * @param request 草稿请求
      * @return 保存后的草稿
      */
@@ -152,7 +162,7 @@ public class AgentVersionController implements IAgentVersionService {
      * 3. Controller 获取当前用户 ID 并调用 `agentVersionAppService.publish`。
      * 4. 应用层完成版本状态流转与当前生效版本切换。
      * 5. 返回发布后的 `AgentVersionResponse`。
-     *
+     * 
      * @param request 发布请求
      * @return 发布后的版本
      */
@@ -173,7 +183,7 @@ public class AgentVersionController implements IAgentVersionService {
      * 3. Controller 获取当前用户 ID 并调用 `agentVersionAppService.rollback`。
      * 4. 应用层完成目标版本校验与当前生效版本回切。
      * 5. 返回回滚后的 `AgentVersionResponse`。
-     *
+     * 
      * @param request 回滚请求
      * @return 回滚后的目标版本
      */
@@ -188,7 +198,7 @@ public class AgentVersionController implements IAgentVersionService {
 
     /**
      * 领域对象转输出 DTO。
-     *
+     * 
      * @param v AgentVersion 实体
      * @return 响应 DTO
      */

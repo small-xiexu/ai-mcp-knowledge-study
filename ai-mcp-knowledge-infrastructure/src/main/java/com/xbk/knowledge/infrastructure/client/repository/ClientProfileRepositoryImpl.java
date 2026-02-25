@@ -25,14 +25,21 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ClientProfileRepositoryImpl implements ClientProfileRepository {
 
+    /**
+     * 客户端画像数据访问对象。
+     */
     private final IClientProfileDao clientProfileDao;
+
+    /**
+     * 客户端画像步骤数据访问对象。
+     */
     private final IClientProfileStepDao clientProfileStepDao;
 
     /**
      * 查询客户端画像。
-     *
+     * 
      * @param id 主键 ID
-     * @return 返回 ClientProfile 查询结果（可能为空）。
+     * @return ClientProfile 查询结果（可能为空）。
      */
     @Override
     public Optional<ClientProfile> findById(Long id) {
@@ -45,9 +52,9 @@ public class ClientProfileRepositoryImpl implements ClientProfileRepository {
 
     /**
      * 查询客户端画像。
-     *
+     * 
      * @param clientCode 客户端编码。
-     * @return 返回 ClientProfile 查询结果（可能为空）。
+     * @return ClientProfile 查询结果（可能为空）。
      */
     @Override
     public Optional<ClientProfile> findByCode(String clientCode) {
@@ -60,9 +67,9 @@ public class ClientProfileRepositoryImpl implements ClientProfileRepository {
 
     /**
      * 查询客户端画像。
-     *
-     * @param query 查询条件
-     * @return 返回 ClientProfile 列表数据。
+     * 
+     * @param query 分页查询条件。
+     * @return ClientProfile 列表数据。
      */
     @Override
     public List<ClientProfile> findPage(ClientProfilePageQuery query) {
@@ -75,8 +82,8 @@ public class ClientProfileRepositoryImpl implements ClientProfileRepository {
 
     /**
      * 按条件统计业务数量。
-     *
-     * @param query 查询条件
+     * 
+     * @param query 分页查询条件。
      * @return 统计数量
      */
     @Override
@@ -89,9 +96,9 @@ public class ClientProfileRepositoryImpl implements ClientProfileRepository {
 
     /**
      * 创建并持久化客户端画像数据。
-     *
+     * 
      * @param profile 客户端画像配置。
-     * @return 返回 ClientProfile 数据。
+     * @return ClientProfile 数据。
      */
     @Override
     public ClientProfile insert(ClientProfile profile) {
@@ -102,9 +109,9 @@ public class ClientProfileRepositoryImpl implements ClientProfileRepository {
 
     /**
      * 更新客户端画像数据。
-     *
+     * 
      * @param profile 客户端画像配置。
-     * @return 返回画像更新条数。
+     * @return 画像更新条数。
      */
     @Override
     public int update(ClientProfile profile) {
@@ -117,9 +124,9 @@ public class ClientProfileRepositoryImpl implements ClientProfileRepository {
 
     /**
      * 删除客户端画像数据。
-     *
+     * 
      * @param id 主键 ID
-     * @return 返回画像删除条数。
+     * @return 画像删除条数。
      */
     @Override
     public int removeById(Long id) {
@@ -131,9 +138,9 @@ public class ClientProfileRepositoryImpl implements ClientProfileRepository {
 
     /**
      * 根据筛选条件查询客户端画像列表。
-     *
+     * 
      * @param clientProfileId 客户端画像 ID。
-     * @return 返回 ClientProfileStep 列表数据。
+     * @return ClientProfileStep 列表数据。
      */
     @Override
     public List<ClientProfileStep> listSteps(Long clientProfileId) {
@@ -146,9 +153,9 @@ public class ClientProfileRepositoryImpl implements ClientProfileRepository {
 
     /**
      * 删除客户端画像数据。
-     *
+     * 
      * @param clientProfileId 客户端画像 ID。
-     * @return 返回步骤删除条数。
+     * @return 步骤删除条数。
      */
     @Override
     public int deleteStepsByProfileId(Long clientProfileId) {
@@ -160,9 +167,9 @@ public class ClientProfileRepositoryImpl implements ClientProfileRepository {
 
     /**
      * 批量插入客户端画像步骤。
-     *
+     * 
      * @param steps 步骤列表。
-     * @return 返回步骤新增条数。
+     * @return 步骤新增条数。
      */
     @Override
     public int batchInsertSteps(List<ClientProfileStep> steps) {

@@ -23,6 +23,9 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class PageRequest extends BaseRequest {
 
+    /**
+     * 序列化版本号。
+     */
     private static final long serialVersionUID = 1L;
 
     /**
@@ -58,7 +61,7 @@ public class PageRequest extends BaseRequest {
             pageNum = 1;
         }
 
-        // 每页大小范围：1-100
+        // 每页大小范围1-100
         if (pageSize == null || pageSize < 1) {
             pageSize = 10;
         } else if (pageSize > 100) {
@@ -73,7 +76,7 @@ public class PageRequest extends BaseRequest {
 
     /**
      * 计算偏移量（用于 SQL LIMIT OFFSET）
-     *
+     * 
      * @return 偏移量
      */
     public int getOffset() {

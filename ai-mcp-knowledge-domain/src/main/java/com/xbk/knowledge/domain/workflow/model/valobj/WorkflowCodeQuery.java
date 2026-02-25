@@ -16,5 +16,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class WorkflowCodeQuery {
 
+    /**
+     * Workflow 编码。
+     */
     private String workflowCode;
 }

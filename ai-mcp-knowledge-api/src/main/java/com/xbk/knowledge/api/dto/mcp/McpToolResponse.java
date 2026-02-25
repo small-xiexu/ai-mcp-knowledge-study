@@ -31,7 +31,7 @@ public class McpToolResponse {
     private String description;
 
     /**
-     * 入参 Schema(JSON)
+     * 输入 Schema(JSON)。
      */
     private String inputSchema;
 }

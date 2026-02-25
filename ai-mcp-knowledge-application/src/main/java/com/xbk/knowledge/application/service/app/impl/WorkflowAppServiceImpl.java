@@ -34,18 +34,33 @@ import java.util.List;
 @RequiredArgsConstructor
 public class WorkflowAppServiceImpl implements WorkflowAppService {
 
+    /**
+     * Workflow 仓储。
+     */
     private final WorkflowRepository workflowRepository;
+
+    /**
+     * Workflow 版本仓储。
+     */
     private final WorkflowVersionRepository workflowVersionRepository;
+
+    /**
+     * Workflow 图仓储。
+     */
     private final WorkflowGraphRepository workflowGraphRepository;
+
+    /**
+     * 当前用户身份上下文服务。
+     */
     private final IdentityContextService identityContextService;
 
     /**
      * 根据筛选条件查询工作流列表。
      *
-     * @param keyword 关键字。
+     * @param keyword 关键字
      * @param offset 分页偏移量
      * @param pageSize 分页大小
-     * @return 返回 Workflow 分页数据。
+     * @return Workflow 分页数据
      */
     @Override
     public PageResult<Workflow> list(String keyword, int offset, int pageSize) {
@@ -61,7 +76,7 @@ public class WorkflowAppServiceImpl implements WorkflowAppService {
      * 查询工作流。
      *
      * @param id 主键 ID
-     * @return 返回 Workflow 数据。
+     * @return Workflow 详情
      */
     @Override
     public Workflow get(Long id) {
@@ -72,8 +87,8 @@ public class WorkflowAppServiceImpl implements WorkflowAppService {
     /**
      * 创建并持久化工作流数据。
      *
-     * @param workflow 工作流实体。
-     * @return 返回 Workflow 数据。
+     * @param workflow 工作流实体
+     * @return 创建后的 Workflow 信息
      */
     @Override
     public Workflow create(Workflow workflow) {
@@ -101,8 +116,8 @@ public class WorkflowAppServiceImpl implements WorkflowAppService {
     /**
      * 更新工作流数据。
      *
-     * @param workflow 工作流实体。
-     * @return 返回 Workflow 数据。
+     * @param workflow 工作流实体
+     * @return 更新后的 Workflow 信息
      */
     @Override
     public Workflow update(Workflow workflow) {
@@ -128,8 +143,8 @@ public class WorkflowAppServiceImpl implements WorkflowAppService {
      * 创建并持久化工作流数据。
      *
      * @param workflowId Workflow ID
-     * @param changeSummary 变更说明。
-     * @return 返回 WorkflowVersion 数据。
+     * @param changeSummary 变更说明
+     * @return 新建的 WorkflowVersion 信息
      */
     @Override
     public WorkflowVersion createVersion(Long workflowId, String changeSummary) {
@@ -172,7 +187,7 @@ public class WorkflowAppServiceImpl implements WorkflowAppService {
      * 根据筛选条件查询工作流列表。
      *
      * @param workflowId Workflow ID
-     * @return 返回 WorkflowVersion 列表数据。
+     * @return WorkflowVersion 列表
      */
     @Override
     public List<WorkflowVersion> listVersions(Long workflowId) {
@@ -184,8 +199,8 @@ public class WorkflowAppServiceImpl implements WorkflowAppService {
     /**
      * 查询工作流。
      *
-     * @param workflowVersionId 工作流版本 ID。
-     * @return 返回 WorkflowVersion 数据。
+     * @param workflowVersionId 工作流版本 ID
+     * @return WorkflowVersion 详情
      */
     @Override
     public WorkflowVersion getVersion(Long workflowVersionId) {
@@ -199,8 +214,8 @@ public class WorkflowAppServiceImpl implements WorkflowAppService {
     /**
      * 发布业务配置。
      *
-     * @param workflowVersionId 工作流版本 ID。
-     * @return 返回 WorkflowVersion 数据。
+     * @param workflowVersionId 工作流版本 ID
+     * @return 发布后的 WorkflowVersion 信息
      */
     @Override
     public WorkflowVersion publishVersion(Long workflowVersionId) {
@@ -239,13 +254,13 @@ public class WorkflowAppServiceImpl implements WorkflowAppService {
 
     /**
      * 保存流程图。
-     *
+     * 
      * @param workflowVersionId 工作流版本ID。
      * @param graphJson 流程图JSON。
      * @param defaultConfigJson 默认配置JSON。
      * @param nodes 节点列表。
      * @param edges 边定义列表。
-     * @return 返回WorkflowVersion对象。
+     * @return 保存后的工作流版本。
      */
     @Override
     public WorkflowVersion saveGraph(Long workflowVersionId,

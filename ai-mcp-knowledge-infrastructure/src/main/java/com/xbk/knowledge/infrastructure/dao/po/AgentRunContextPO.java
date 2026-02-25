@@ -26,18 +26,36 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class AgentRunContextPO {
 
+    /**
+     * 主键 ID。
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 运行 ID。
+     */
     private String runId;
 
+    /**
+     * 状态。
+     */
     private String status;
 
+    /**
+     * 快照 JSON。
+     */
     private String snapshotJson;
 
+    /**
+     * 创建时间。
+     */
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
+    /**
+     * 更新时间。
+     */
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedAt;
 }

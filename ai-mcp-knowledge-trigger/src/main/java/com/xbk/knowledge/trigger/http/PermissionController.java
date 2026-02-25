@@ -29,7 +29,9 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/permissions")
 @RequiredArgsConstructor
 public class PermissionController implements IPermissionService {
-
+    /**
+     * 权限应用服务，用于权限分页查询能力编排。
+     */
     private final PermissionAppService permissionAppService;
 
     /**
@@ -40,9 +42,9 @@ public class PermissionController implements IPermissionService {
      * 3. Controller 组装 `PermissionPageQuery` 并调用 `permissionAppService.queryPermissionPage`。
      * 4. 将领域对象分页结果转换为 `PermissionResponse` 分页结果。
      * 5. 统一封装 `Result.success` 返回。
-     *
+     * 
      * @param request 查询参数
-     * @return 分页结果
+     * @return PageResult<PermissionResponse> 分页结果。
      */
     @SaCheckPermission("role:read")
     @PostMapping("/list")
@@ -62,7 +64,7 @@ public class PermissionController implements IPermissionService {
 
     /**
      * 转换权限响应。
-     *
+     * 
      * @param permission 权限实体
      * @return 响应 DTO
      */

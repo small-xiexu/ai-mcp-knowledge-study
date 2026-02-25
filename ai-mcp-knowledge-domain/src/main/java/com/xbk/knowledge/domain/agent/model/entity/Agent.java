@@ -20,6 +20,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Agent {
+
+    /**
+     * 主键 ID。
+     */
     private Long id;
 
     /**
@@ -27,12 +31,18 @@ public class Agent {
      */
     private String agentCode;
 
+    /**
+     * Agent 名称。
+     */
     private String agentName;
 
+    /**
+     * Agent 描述。
+     */
     private String description;
 
     /**
-     * 调用通道：agent/chat_stream。
+     * 调用通道agent/chat_stream。
      */
     private String channel;
 
@@ -46,9 +56,23 @@ public class Agent {
      */
     private Long currentPublishedVersionId;
 
+    /**
+     * 创建人 ID。
+     */
     private Long createdBy;
 
+    /**
+     * 更新人 ID。
+     */
     private Long updatedBy;
+
+    /**
+     * 创建时间。
+     */
     private LocalDateTime createdAt;
+
+    /**
+     * 更新时间。
+     */
     private LocalDateTime updatedAt;
 }

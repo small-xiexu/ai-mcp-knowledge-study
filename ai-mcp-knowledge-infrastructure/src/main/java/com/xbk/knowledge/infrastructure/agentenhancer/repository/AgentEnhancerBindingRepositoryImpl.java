@@ -23,11 +23,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AgentEnhancerBindingRepositoryImpl implements AgentEnhancerBindingRepository {
 
+    /**
+     * AgentEnhancer 绑定数据访问对象。
+     */
     private final IAgentEnhancerBindingDao mapper;
 
     /**
      * 查询指定绑定目标下的 AgentEnhancer 绑定关系。
-     *
+     * 
      * @param query 绑定查询条件（绑定类型 + 绑定目标 ID）
      * @return 绑定关系列表
      */
@@ -41,7 +44,7 @@ public class AgentEnhancerBindingRepositoryImpl implements AgentEnhancerBindingR
 
     /**
      * 查询绑定视图数据（含 AgentEnhancer 基础信息）。
-     *
+     * 
      * @param query 绑定查询条件（绑定类型 + 绑定目标 ID）
      * @return 绑定视图列表
      */
@@ -55,7 +58,7 @@ public class AgentEnhancerBindingRepositoryImpl implements AgentEnhancerBindingR
 
     /**
      * 删除指定绑定目标下的全部 AgentEnhancer 绑定关系。
-     *
+     * 
      * @param query 绑定查询条件（绑定类型 + 绑定目标 ID）
      * @return 删除影响行数
      */
@@ -69,7 +72,7 @@ public class AgentEnhancerBindingRepositoryImpl implements AgentEnhancerBindingR
 
     /**
      * 新增一条 AgentEnhancer 绑定关系。
-     *
+     * 
      * @param binding 绑定实体
      * @return 新增影响行数
      */
@@ -84,7 +87,7 @@ public class AgentEnhancerBindingRepositoryImpl implements AgentEnhancerBindingR
 
     /**
      * 按 AgentEnhancer 主键删除其全部绑定关系。
-     *
+     * 
      * @param agentEnhancerId AgentEnhancer 主键
      * @return 删除影响行数
      */

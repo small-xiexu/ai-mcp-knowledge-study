@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 /**
  * OpenAI 大模型集成测试类
  * 演示基于 Spring AI 框架调用 OpenAI API（gpt-4o 模型）
- * 包含：同步调用、流式调用、图片识别、RAG 知识库问答等场景
+ * 包含同步调用、流式调用、图片识别、RAG 知识库问答等场景
  *
  * @author xiexu
  */
@@ -83,13 +83,13 @@ public class OpenAiTest {
 
     /**
      * 创建 OpenAI 测试实例并注入依赖组件。
-     *
+     * 
      * @param openAiChatModel OpenAI对话模型。
-     * @param imageResource 测试图片资源。
+     * @param imageResource 图片资源。
      * @param simpleVectorStore 内存向量库。
-     * @param pgVectorStore PgVector向量库。
+     * @param pgVectorStore PgVector 向量库。
      * @param tokenTextSplitter 文本切分器。
-     * @param openAiApi OpenAI API客户端。
+     * @param openAiApi OpenAI API 客户端。
      */
     @Autowired
     public OpenAiTest(OpenAiChatModel openAiChatModel,
@@ -166,7 +166,7 @@ public class OpenAiTest {
         Prompt prompt = new Prompt("1+1", chatOptions);
         Flux<ChatResponse> stream = openAiChatModel.stream(prompt);
 
-        // 订阅响应流：逐块处理、错误处理、完成回调
+        // 订阅响应流逐块处理、错误处理、完成回调
         Consumer<ChatResponse> responseConsumer = chatResponse -> {
             AssistantMessage output = chatResponse
                     .getResult()
@@ -196,7 +196,7 @@ public class OpenAiTest {
      */
     @Test
     public void upload() {
-        // 1. 使用 Tika 读取文档（支持多种格式：txt、pdf、docx 等）
+        // 1. 使用 Tika 读取文档（支持多种格式txt、pdf、docx 等）
         TikaDocumentReader reader = new TikaDocumentReader("./data/file.txt");
 
         List<Document> documents = reader.get();
@@ -226,7 +226,7 @@ public class OpenAiTest {
     public void chat() {
         String message = "王大瓜今年几岁";
 
-        // 系统提示词模板：指导模型基于检索到的文档回答问题
+        // 系统提示词模板指导模型基于检索到的文档回答问题
         String SYSTEM_PROMPT = """
                 Use the information from the DOCUMENTS section to provide accurate answers but act as if you knew this information innately.
                 If unsure, simply state that you don't know.
@@ -235,7 +235,7 @@ public class OpenAiTest {
                     {documents}
                 """;
 
-        // 1. 构建向量搜索请求：查询语句、返回 Top5、按知识库过滤
+        // 1. 构建向量搜索请求查询语句、返回 Top5、按知识库过滤
         SearchRequest request = SearchRequest.builder()
                 .query(message)
                 .topK(5)
@@ -261,7 +261,7 @@ public class OpenAiTest {
         Map<String, Object> promptVariables = Collections.<String, Object>singletonMap("documents", documentsCollectors);
         Message ragMessage = promptTemplate.createMessage(promptVariables);
 
-        // 5. 组装消息列表：用户问题 + 系统提示（含检索上下文）
+        // 5. 组装消息列表用户问题 + 系统提示（含检索上下文）
         ArrayList<Message> messages = new ArrayList<>();
         UserMessage userMessage = new UserMessage(message);
         messages.add(userMessage);

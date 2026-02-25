@@ -51,21 +51,43 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Component
 public class RagTaskProcessor {
 
+    /**
+     * Git 扫描单文件大小上限（1MB）。
+     */
     private static final int MAX_FILE_BYTES = 1024 * 1024;
 
+    /**
+     * RAG 向量检索服务。
+     */
     private final RagVectorStoreService ragVectorStoreService;
+
+    /**
+     * RAG 任务仓储。
+     */
     private final RagTaskRepository ragTaskRepository;
+
+    /**
+     * 文本切分器。
+     */
     private final TokenTextSplitter tokenTextSplitter;
+
+    /**
+     * RAG 异步任务执行器。
+     */
     private final ThreadPoolTaskExecutor ragTaskExecutor;
+
+    /**
+     * JSON 序列化/反序列化组件。
+     */
     private final ObjectMapper objectMapper;
 
     /**
      * 创建 RAG 任务处理器并注入依赖组件。
-     *
+     * 
      * @param ragVectorStoreService RAG向量存储服务。
      * @param ragTaskRepository RAG任务仓储。
      * @param tokenTextSplitter 文本切分器。
-     * @param ragTaskExecutor RAG任务执行器。
+     * @param ragTaskExecutor RAG 异步任务执行器。
      */
     public RagTaskProcessor(
             RagVectorStoreService ragVectorStoreService,
@@ -82,7 +104,7 @@ public class RagTaskProcessor {
 
     /**
      * 异步处理 Git 仓库任务
-     *
+     * 
      * @param taskId 任务ID
      * @param repoUrl 仓库地址
      * @param userName 用户名
@@ -95,7 +117,7 @@ public class RagTaskProcessor {
         String localPath = "./git-cloned-repo/" + UUID.randomUUID();
         Git git = null;
         try {
-            // 阶段 1：准备本地工作目录并克隆仓库。
+            // 阶段 1准备本地工作目录并克隆仓库。
             updateTask(taskId, RagTaskStatus.PROCESSING, 5, "正在连接远程仓库...");
 
             File repoDir = new File(localPath);
@@ -120,15 +142,15 @@ public class RagTaskProcessor {
 
             updateTask(taskId, RagTaskStatus.PROCESSING, 30, "克隆完成，开始扫描文件...");
 
-            // 阶段 2：先统计可处理文件数量，用于后续进度计算更平滑准确。
+            // 阶段 2先统计可处理文件数量，用于后续进度计算更平滑准确。
             AtomicInteger totalFiles = new AtomicInteger(0);
             Files.walkFileTree(repoDir.toPath(), new SimpleFileVisitor<Path>() {
                 /**
                  * 遍历仓库文件并统计可处理文件数。
-                 *
-                 * @param file 文件对象。
+                 * 
+                 * @param file 当前文件路径。
                  * @param attrs 文件属性。
-                 * @return 返回 FileVisitResult 数据。
+                 * @return 文件遍历控制标识。
                  */
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
@@ -150,16 +172,17 @@ public class RagTaskProcessor {
             int total = totalFiles.get() > 0 ? totalFiles.get() : 1;
             updateTask(taskId, RagTaskStatus.PROCESSING, 35, "扫描完成，共 " + total + " 个文件，开始解析...");
 
-            // 阶段 3：二次遍历执行解析入库，进度区间控制在 35%~95%。
+            // 阶段 3二次遍历执行解析入库，进度区间控制在 35%~95%。
             AtomicInteger current = new AtomicInteger(0);
             Files.walkFileTree(repoDir.toPath(), new SimpleFileVisitor<Path>() {
                 /**
                  * 逐文件解析并写入向量库。
                  *
+                 * @throws IOException IO 异常
+                 * 
                  * @param file 文件路径
                  * @param attrs 文件属性
                  * @return 遍历控制结果
-                 * @throws IOException IO 异常
                  */
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
@@ -216,7 +239,7 @@ public class RagTaskProcessor {
 
     /**
      * 异步处理文件上传任务（支持并行）
-     *
+     * 
      * @param taskId 任务 ID
      * @param ragTag 知识库标签
      * @param files 文件列表
@@ -245,7 +268,7 @@ public class RagTaskProcessor {
                             // 处理文件（带重试）
                             processFileWithRetry(file, ragTag);
 
-                            // 更新进度（节流：每 10 个文件或进度变化 10% 时更新）
+                            // 更新进度（节流每 10 个文件或进度变化 10% 时更新）
                             int processed = processedFiles.incrementAndGet();
                             int progress = 5 + (int) ((processed * 90.0) / totalFiles);
                             if (processed % 10 == 0 || progress % 10 == 0) {
@@ -311,9 +334,10 @@ public class RagTaskProcessor {
     /**
      * 处理单个文件（支持自动重试）
      *
+     * @throws IOException 处理失败
+     * 
      * @param file 文件
      * @param ragTag 标签
-     * @throws IOException 处理失败
      */
     private void processFileWithRetry(MultipartFile file, String ragTag) throws IOException {
         int maxRetries = 3;
@@ -337,7 +361,7 @@ public class RagTaskProcessor {
                 retryCount++;
 
                 if (retryCount < maxRetries) {
-                    // 计算退避时间（指数退避：2s、4s、8s）
+                    // 计算退避时间（指数退避2s、4s、8s）
                     long backoffMs = (long) Math.pow(2, retryCount) * 1000;
 
                     log.warn("文件处理失败，将在 {} 秒后重试 {}/{}: {}",
@@ -367,6 +391,9 @@ public class RagTaskProcessor {
 
     /**
      * 处理单个文件
+     * 
+     * @param file 上传文件。
+     * @param ragTag RAG 标签。
      */
     private void processFile(MultipartFile file, String ragTag) throws IOException {
         File tempFile = null;
@@ -409,6 +436,9 @@ public class RagTaskProcessor {
 
     /**
      * 保存失败详情
+     * 
+     * @param taskId 任务 ID。
+     * @param errors 文件处理失败详情列表。
      */
     private void saveFailureDetails(String taskId, List<FileProcessError> errors) {
         if (errors.isEmpty()) {
@@ -432,6 +462,9 @@ public class RagTaskProcessor {
 
     /**
      * 获取异常堆栈信息
+     * 
+     * @param e 异常信息。
+     * @return 异常堆栈文本。
      */
     private String getStackTrace(Exception e) {
         StringWriter sw = new StringWriter();
@@ -491,7 +524,7 @@ public class RagTaskProcessor {
 
     /**
      * 递归删除目录。
-     *
+     * 
      * @param directory 目录路径。
      */
     private void deleteDirectory(File directory) throws IOException {
@@ -502,10 +535,11 @@ public class RagTaskProcessor {
             /**
              * 删除遍历到的文件。
              *
+             * @throws IOException IO 异常
+             * 
              * @param file 文件路径
              * @param attrs 文件属性
              * @return 遍历控制结果
-             * @throws IOException IO 异常
              */
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
@@ -516,10 +550,11 @@ public class RagTaskProcessor {
             /**
              * 删除遍历完成的目录。
              *
+             * @throws IOException IO 异常
+             * 
              * @param dir 目录路径
              * @param exc 异常信息
              * @return 遍历控制结果
-             * @throws IOException IO 异常
              */
             @Override
             public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {

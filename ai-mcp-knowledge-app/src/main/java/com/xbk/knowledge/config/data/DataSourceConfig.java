@@ -25,7 +25,7 @@ public class DataSourceConfig {
 
     /**
      * MySQL 数据源配置属性
-     *
+     * 
      * @return 配置属性
      */
     @Bean
@@ -37,7 +37,8 @@ public class DataSourceConfig {
 
     /**
      * MySQL 数据源
-     *
+     * 
+     * @param properties MySQL 数据源配置属性。
      * @return MySQL 数据源
      */
     @Bean(name = "mysqlDataSource")
@@ -50,7 +51,7 @@ public class DataSourceConfig {
 
     /**
      * PostgreSQL(pgvector) 数据源配置属性
-     *
+     * 
      * @return 配置属性
      */
     @Bean
@@ -63,7 +64,8 @@ public class DataSourceConfig {
 
     /**
      * PostgreSQL(pgvector) 数据源
-     *
+     * 
+     * @param properties PostgreSQL 数据源配置属性。
      * @return PostgreSQL 数据源
      */
     @Bean(name = "pgvectorDataSource")
@@ -77,8 +79,8 @@ public class DataSourceConfig {
 
     /**
      * PostgreSQL(pgvector) JDBC 模板
-     *
-     * @param dataSource pgvector 数据源
+     * 
+     * @param dataSource PostgreSQL 数据源。
      * @return JdbcTemplate
      */
     @Bean
@@ -89,8 +91,8 @@ public class DataSourceConfig {
 
     /**
      * MySQL 事务管理器
-     *
-     * @param dataSource MySQL 数据源
+     * 
+     * @param dataSource MySQL 数据源。
      * @return 事务管理器
      */
     @Bean(name = "transactionManager")

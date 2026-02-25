@@ -25,13 +25,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ClientProfileServiceImpl implements IClientProfileService {
 
+    /**
+     * 客户端画像仓储。
+     */
     private final ClientProfileRepository clientProfileRepository;
 
     /**
      * 查询分页数据。
-     *
-     * @param query 查询条件。
-     * @return 返回PageResult对象。
+     * 
+     * @param query 分页查询条件。
+     * @return 客户画像分页结果。
      */
     @Override
     public PageResult<ClientProfile> queryPage(ClientProfilePageQuery query) {
@@ -54,9 +57,9 @@ public class ClientProfileServiceImpl implements IClientProfileService {
 
     /**
      * 获取业务数据。
-     *
+     * 
      * @param id 主键ID。
-     * @return 返回ClientProfile对象。
+     * @return 客户画像详情。
      */
     @Override
     public ClientProfile get(Long id) {
@@ -69,10 +72,10 @@ public class ClientProfileServiceImpl implements IClientProfileService {
 
     /**
      * 保存业务数据。
-     *
-     * @param profile 画像对象。
+     * 
+     * @param profile 客户画像实体。
      * @param steps 步骤列表。
-     * @return 返回ClientProfile对象。
+     * @return 保存后的客户画像。
      */
     @Override
     public ClientProfile save(ClientProfile profile, List<ClientProfileStep> steps) {
@@ -93,7 +96,7 @@ public class ClientProfileServiceImpl implements IClientProfileService {
         ClientProfile saved;
         if (profile.getId() == null) {
             if (clientProfileRepository.findByCode(profile.getClientCode()).isPresent()) {
-                throw new BusinessException("clientCode 已存在：" + profile.getClientCode());
+                throw new BusinessException("clientCode 已存在" + profile.getClientCode());
             }
             profile.setCreatedAt(now);
             profile.setUpdatedAt(now);
@@ -102,7 +105,7 @@ public class ClientProfileServiceImpl implements IClientProfileService {
             ClientProfile existed = get(profile.getId());
             if (!existed.getClientCode().equals(profile.getClientCode())
                     && clientProfileRepository.findByCode(profile.getClientCode()).isPresent()) {
-                throw new BusinessException("clientCode 已存在：" + profile.getClientCode());
+                throw new BusinessException("clientCode 已存在" + profile.getClientCode());
             }
             existed.setClientCode(profile.getClientCode());
             existed.setClientName(profile.getClientName());
@@ -153,9 +156,9 @@ public class ClientProfileServiceImpl implements IClientProfileService {
 
     /**
      * 查询步骤列表。
-     *
+     * 
      * @param clientProfileId 客户端画像ID。
-     * @return 返回步骤集合。
+     * @return 步骤集合。
      */
     @Override
     public List<ClientProfileStep> listSteps(Long clientProfileId) {

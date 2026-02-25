@@ -12,7 +12,7 @@ public enum ToolBindType {
      */
      MODEL,
     /**
-     * 按会话绑定
+     * 按话绑定
      */
      SESSION
 }

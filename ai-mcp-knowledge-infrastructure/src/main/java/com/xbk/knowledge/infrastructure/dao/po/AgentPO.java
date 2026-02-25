@@ -26,28 +26,61 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class AgentPO {
 
+    /**
+     * 主键 ID。
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * Agent 编码。
+     */
     private String agentCode;
 
+    /**
+     * Agent 名称。
+     */
     private String agentName;
 
+    /**
+     * Agent 描述。
+     */
     private String description;
 
+    /**
+     * 调用通道。
+     */
     private String channel;
 
+    /**
+     * 状态。
+     */
     private String status;
 
+    /**
+     * 当前发布版本 ID。
+     */
     private Long currentPublishedVersionId;
 
+    /**
+     * 创建人 ID。
+     */
     private Long createdBy;
 
+    /**
+     * 更新人 ID。
+     */
     private Long updatedBy;
 
+    /**
+     * 创建时间。
+     */
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
+    /**
+     * 更新时间。
+     */
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedAt;
 }

@@ -23,13 +23,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class McpToolMappingRepositoryImpl implements McpToolMappingRepository {
 
+    /**
+     * 工具映射 DAO。
+     */
     private final IMcpToolMappingDao mapper;
 
     /**
      * 查询MCP 工具映射。
-     *
-     * @param query 查询条件
-     * @return 返回 McpToolMapping 列表数据。
+     * 
+     * @param query 工具映射查询条件。
+     * @return McpToolMapping 列表数据。
      */
     @Override
     public List<McpToolMapping> findByToolIdAndMappingType(ToolMappingQuery query) {
@@ -41,9 +44,9 @@ public class McpToolMappingRepositoryImpl implements McpToolMappingRepository {
 
     /**
      * 创建或更新MCP 工具映射数据。
-     *
+     * 
      * @param mapping 工具映射配置。
-     * @return 返回 McpToolMapping 数据。
+     * @return McpToolMapping 数据。
      */
     @Override
     public McpToolMapping save(McpToolMapping mapping) {
@@ -60,8 +63,8 @@ public class McpToolMappingRepositoryImpl implements McpToolMappingRepository {
 
     /**
      * 删除MCP 工具映射数据。
-     *
-     * @param query 查询条件
+     * 
+     * @param query 主键查询条件。
      */
     @Override
     public void deleteById(IdQuery query) {
@@ -73,7 +76,7 @@ public class McpToolMappingRepositoryImpl implements McpToolMappingRepository {
 
     /**
      * 删除MCP 工具映射数据。
-     *
+     * 
      * @param toolId 工具 ID
      */
     @Override

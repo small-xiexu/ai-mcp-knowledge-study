@@ -35,9 +35,11 @@ public class MyBatisConfig {
     /**
      * 使用 MyBatis-Plus 的 SqlSessionFactory
      *
-     * @param dataSource MySQL 数据源
-     * @return SqlSessionFactory
      * @throws Exception 初始化异常
+     * 
+     * @param dataSource MySQL 数据源。
+     * @param mybatisPlusInterceptor MyBatis-Plus 拦截器。
+     * @return SqlSessionFactory
      */
     @Bean
     public SqlSessionFactory sqlSessionFactory(@Qualifier("mysqlDataSource") DataSource dataSource,
@@ -60,7 +62,7 @@ public class MyBatisConfig {
 
     /**
      * SqlSessionTemplate
-     *
+     * 
      * @param sqlSessionFactory SqlSessionFactory
      * @return SqlSessionTemplate
      */

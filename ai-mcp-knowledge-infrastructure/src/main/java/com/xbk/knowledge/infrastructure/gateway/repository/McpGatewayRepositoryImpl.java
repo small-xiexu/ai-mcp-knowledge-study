@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Gateway 实例仓储实现
+ * Gateway 实例仓储实现。
  *
  * @author sxie
  */
@@ -24,13 +24,16 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class McpGatewayRepositoryImpl implements McpGatewayRepository {
 
+    /**
+     * Gateway DAO。
+     */
     private final IMcpGatewayDao mapper;
 
     /**
      * 查询MCP 网关。
      *
-     * @param query 查询条件
-     * @return 返回 McpGateway 查询结果（可能为空）。
+     * @param query 主键查询条件
+     * @return McpGateway 查询结果（可能为空）
      */
     @Override
     public Optional<McpGateway> findByGatewayId(GatewayIdQuery query) {
@@ -44,8 +47,8 @@ public class McpGatewayRepositoryImpl implements McpGatewayRepository {
     /**
      * 查询MCP 网关。
      *
-     * @param query 查询条件
-     * @return 返回 McpGateway 查询结果（可能为空）。
+     * @param query 主键查询条件
+     * @return McpGateway 查询结果（可能为空）
      */
     @Override
     public Optional<McpGateway> findById(IdQuery query) {
@@ -59,8 +62,8 @@ public class McpGatewayRepositoryImpl implements McpGatewayRepository {
     /**
      * 创建或更新MCP 网关数据。
      *
-     * @param gateway 网关配置。
-     * @return 返回 McpGateway 数据。
+     * @param gateway 网关配置
+     * @return 保存后的 McpGateway 信息
      */
     @Override
     public McpGateway save(McpGateway gateway) {
@@ -78,7 +81,7 @@ public class McpGatewayRepositoryImpl implements McpGatewayRepository {
     /**
      * 删除MCP 网关数据。
      *
-     * @param query 查询条件
+     * @param query 主键查询条件
      */
     @Override
     public void deleteById(IdQuery query) {
@@ -91,8 +94,8 @@ public class McpGatewayRepositoryImpl implements McpGatewayRepository {
     /**
      * 查询MCP 网关。
      *
-     * @param query 查询条件
-     * @return 返回 McpGateway 列表数据。
+     * @param query 分页查询条件
+     * @return McpGateway 列表
      */
     @Override
     public List<McpGateway> findPage(GatewayPageQuery query) {
@@ -105,7 +108,7 @@ public class McpGatewayRepositoryImpl implements McpGatewayRepository {
     /**
      * 查询MCP 网关。
      *
-     * @return 返回 McpGateway 列表数据。
+     * @return 已启用 McpGateway 列表
      */
     @Override
     public List<McpGateway> findAllEnabled() {

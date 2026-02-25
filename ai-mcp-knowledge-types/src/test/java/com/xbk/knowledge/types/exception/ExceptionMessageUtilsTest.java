@@ -32,6 +32,6 @@ public class ExceptionMessageUtilsTest {
 
         String message = ExceptionMessageUtils.resolveMessage(exception, "默认错误", true);
 
-        assertEquals("默认错误：RuntimeException", message);
+        assertEquals("默认错误RuntimeException", message);
     }
 }

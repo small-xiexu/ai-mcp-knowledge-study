@@ -16,15 +16,15 @@ public interface AiChatAppService {
 
     /**
      * 同步对话
-     *
+     * 
      * @param command 请求
-     * @return 返回 AICallResult 数据。
+     * @return AICallResult 数据。
      */
     AICallResult chat(AICallCommand command);
 
     /**
      * 流式对话
-     *
+     * 
      * @param command 请求
      * @return 流式响应
      */

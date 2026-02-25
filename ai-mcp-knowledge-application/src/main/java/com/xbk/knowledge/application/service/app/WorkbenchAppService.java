@@ -13,7 +13,7 @@ public interface WorkbenchAppService {
 
     /**
      * 获取工作台汇总信息。
-     *
+     * 
      * @return 工作台汇总
      */
     WorkbenchSummary summary();

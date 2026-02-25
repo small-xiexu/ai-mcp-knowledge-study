@@ -32,15 +32,18 @@ import java.util.function.Supplier;
 @Service
 @RequiredArgsConstructor
 public class ModelConfigServiceImpl implements IModelConfigService {
-
+    /**
+     * 模型配置仓储，用于模型配置读写与唯一性校验。
+     */
     private final ModelConfigRepository modelConfigRepository;
 
     /**
      * 分页查询模型配置
      *
-     * 为什么：统一分页口径，避免前端传参与仓储不一致
-     * 入参：分页查询对象
-     * 出参：分页结果
+     * 统一分页口径，避免前端传参与仓储不一致
+     * 
+     * @param query 分页查询条件。
+     * @return 模型配置分页结果。
      */
     @Override
     public PageResult<ModelConfig> queryModelConfigPage(ModelConfigPageQuery query) {
@@ -59,9 +62,10 @@ public class ModelConfigServiceImpl implements IModelConfigService {
     /**
      * 根据 ID 查询模型配置
      *
-     * 为什么：统一详情查询入口，不存在时抛出明确异常
-     * 入参：ID 查询对象
-     * 出参：模型配置
+     * 统一详情查询入口，不存在时抛出明确异常
+     * 
+     * @param query 主键查询条件。
+     * @return 模型配置详情。
      */
     @Override
     public ModelConfig queryModelConfigById(IdQuery query) {
@@ -80,16 +84,17 @@ public class ModelConfigServiceImpl implements IModelConfigService {
     /**
      * 创建模型配置
      *
-     * 为什么：创建时保证唯一性与聚合一致性
-     * 入参：模型配置实体
-     * 出参：创建后的模型配置
+     * 创建时保证唯一性与聚合一致性
+     * 
+     * @param modelConfig 模型配置。
+     * @return 创建后的模型配置。
      */
     @Override
     public ModelConfig createModelConfig(ModelConfig modelConfig) {
         String modelName = modelConfig.getModelName();
         ModelNameQuery modelNameQuery = new ModelNameQuery(modelName);
         if (modelConfigRepository.findByModelName(modelNameQuery).isPresent()) {
-            throw new IllegalArgumentException("模型名称已存在：" + modelName);
+            throw new IllegalArgumentException("模型名称已存在" + modelName);
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -106,9 +111,10 @@ public class ModelConfigServiceImpl implements IModelConfigService {
     /**
      * 更新模型配置
      *
-     * 为什么：更新前校验存在性与唯一性，保证聚合一致
-     * 入参：模型配置实体
-     * 出参：更新后的模型配置
+     * 更新前校验存在性与唯一性，保证聚合一致
+     * 
+     * @param modelConfig 模型配置。
+     * @return 更新后的模型配置。
      */
     @Override
     public ModelConfig updateModelConfig(ModelConfig modelConfig) {
@@ -128,7 +134,7 @@ public class ModelConfigServiceImpl implements IModelConfigService {
         ModelNameQuery modelNameQuery = new ModelNameQuery(modelName);
         Consumer<ModelConfig> duplicateChecker = existing -> {
             if (!existing.getId().equals(modelConfigId)) {
-                throw new IllegalArgumentException("模型名称已存在：" + modelName);
+                throw new IllegalArgumentException("模型名称已存在" + modelName);
             }
         };
         modelConfigRepository.findByModelName(modelNameQuery).ifPresent(duplicateChecker);
@@ -158,9 +164,9 @@ public class ModelConfigServiceImpl implements IModelConfigService {
     /**
      * 删除模型配置
      *
-     * 为什么：防止删除不存在的模型，确保操作语义清晰
-     * 入参：ID 查询对象
-     * 出参：无
+     * 防止删除不存在的模型，确保操作语义清晰
+     * 
+     * @param query 主键查询条件。
      */
     @Override
     public void deleteModelConfig(IdQuery query) {
@@ -178,9 +184,10 @@ public class ModelConfigServiceImpl implements IModelConfigService {
     /**
      * 启用模型
      *
-     * 为什么：启用模型以供业务选择，并更新审计时间
-     * 入参：ID 查询对象
-     * 出参：启用后的模型配置
+     * 启用模型以供业务选择，并更新审计时间
+     * 
+     * @param query 主键查询条件。
+     * @return 启用后的模型配置。
      */
     @Override
     public ModelConfig enableModel(IdQuery query) {
@@ -208,9 +215,10 @@ public class ModelConfigServiceImpl implements IModelConfigService {
     /**
      * 禁用模型
      *
-     * 为什么：禁用模型以防误用，并更新审计时间
-     * 入参：ID 查询对象
-     * 出参：禁用后的模型配置
+     * 禁用模型以防误用，并更新审计时间
+     * 
+     * @param query 主键查询条件。
+     * @return 禁用后的模型配置。
      */
     @Override
     public ModelConfig disableModel(IdQuery query) {
@@ -238,9 +246,10 @@ public class ModelConfigServiceImpl implements IModelConfigService {
     /**
      * 查询所有启用的模型
      *
-     * 为什么：提供可用模型集合供选择与推荐
-     * 入参：启用状态查询对象
-     * 出参：模型列表
+     * 提供可用模型集合供选择与推荐
+     * 
+     * @param query 启用状态查询条件。
+     * @return 模型配置列表。
      */
     @Override
     public List<ModelConfig> queryEnabledModels(EnabledQuery query) {

@@ -23,6 +23,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RagTaskTimeoutJob {
 
+    /**
+     * RAG 任务仓储。
+     */
     private final RagTaskRepository ragTaskRepository;
 
     /**
@@ -30,11 +33,10 @@ public class RagTaskTimeoutJob {
      * XXL-Job Handler: ragTaskTimeoutHandler
      * 建议 Cron: 0 0 * * * ? (每小时执行一次)
      *
-     * 为什么：按小时扫描可及时释放卡住的任务，避免无穷等待。
+     * 按小时扫描可及时释放卡住的任务，避免无穷等待。
      */
     @XxlJob("ragTaskTimeoutHandler")
     public void handleTimeoutTasks() {
-        
         // 查询超过 2 小时仍处于 PROCESSING 状态的任务
         LocalDateTime twoHoursAgo = LocalDateTime.now().minusHours(2);
         List<RagTask> timeoutTasks = ragTaskRepository.findProcessingTasksBefore(twoHoursAgo);
@@ -51,7 +53,6 @@ public class RagTaskTimeoutJob {
         int successCount = 0;
         for (RagTask task : timeoutTasks) {
             try {
-                
                 task.setStatus(RagTaskStatus.FAILED);
                 task.setMessage("任务超时（超过 2 小时未完成）");
                 ragTaskRepository.update(task);

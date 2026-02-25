@@ -25,16 +25,34 @@ import java.util.List;
 @Service
 public class McpToolCatalogServiceImpl implements McpToolCatalogService {
 
-    private static final String TOOL_PROMPT_HEADER = "可用工具列表：";
+    /**
+     * 工具提示词标题前缀。
+     */
+    private static final String TOOL_PROMPT_HEADER = "可用工具列表";
+
+    /**
+     * 空工具集缓存秒数。
+     */
     private static final int EMPTY_CACHE_SECONDS = 3;
 
+    /**
+     * 工具回调提供器。
+     */
     private final ToolCallbackProvider toolCallbackProvider;
+
+    /**
+     * MCP 工具配置属性。
+     */
     private final McpToolProperties properties;
+
+    /**
+     * 当前工具快照缓存。
+     */
     private volatile ToolSnapshot snapshot;
 
     /**
      * 创建 MCP 工具目录服务并注入依赖组件。
-     *
+     * 
      * @param toolCallbackProvider 工具回调提供器。
      * @param properties 配置属性。
      */
@@ -47,9 +65,9 @@ public class McpToolCatalogServiceImpl implements McpToolCatalogService {
     /**
      * 构建工具提示词
      * <p>
-     * 为什么：减少频繁拼接带来的成本，使用缓存提升性能
-     * 入参：无
-     * 出参：工具提示词
+     * 减少频繁拼接带来的成本，使用缓存提升性能
+     * 
+     * @return 工具提示词文本。
      */
     @Override
     public String buildToolPrompt() {
@@ -72,9 +90,9 @@ public class McpToolCatalogServiceImpl implements McpToolCatalogService {
     /**
      * 列出可用工具
      * <p>
-     * 为什么：为前端展示与提示词构建提供数据
-     * 入参：无
-     * 出参：工具列表
+     * 为前端展示与提示词构建提供数据
+     * 
+     * @return McpToolInfo 列表。
      */
     @Override
     public List<McpToolInfo> listTools() {
@@ -114,7 +132,10 @@ public class McpToolCatalogServiceImpl implements McpToolCatalogService {
     /**
      * 刷新缓存快照
      * <p>
-     * 为什么：统一生成提示词并设置过期时间
+     * 统一生成提示词并设置过期时间
+     * 
+     * @param now 当前时间。
+     * @return 工具快照。
      */
     private ToolSnapshot refreshSnapshot(long now) {
         List<McpToolInfo> tools = listTools();
@@ -148,10 +169,17 @@ public class McpToolCatalogServiceImpl implements McpToolCatalogService {
     /**
      * 工具提示词缓存快照
      * <p>
-     * 为什么：避免重复构建提示词
+     * 避免重复构建提示词
      */
     private static class ToolSnapshot {
+        /**
+         * 工具提示词文本。
+         */
         private final String prompt;
+
+        /**
+         * 缓存过期时间戳（毫秒）。
+         */
         private final long expireAt;
 
         private ToolSnapshot(String prompt, long expireAt) {

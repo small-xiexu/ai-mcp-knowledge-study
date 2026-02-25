@@ -21,99 +21,111 @@ public interface IXxlJobService {
     /**
      * 分页查询 XXL 任务
      *
-     * 为什么：统一分页查询能力入口
-     * 入参：分页查询条件
-     * 出参：分页结果
+     * 统一分页查询能力入口
+     * 
+     * @param query 分页查询条件。
+     * @return 任务分页结果。
      */
     PageResult<XxlJobInfo> queryJobPage(XxlJobPageQuery query);
 
     /**
      * 查询全部 XXL 任务（用于下拉缓存）
      *
-     * 为什么：提供下拉或缓存数据源
-     * 入参：执行器名称、是否强制刷新缓存
-     * 出参：任务列表
+     * 提供下拉或缓存数据源
+     * 
+     * @param appName 应用名称。
+     * @param refresh 是否刷新缓存。
+     * @return 任务列表。
      */
     List<XxlJobInfo> queryAllJobs(String appName, boolean refresh);
 
     /**
      * 查询 XXL 任务详情
      *
-     * 为什么：详情页需要单条任务信息
-     * 入参：执行器名称、任务 ID
-     * 出参：任务详情
+     * 详情页需要单条任务信息
+     * 
+     * @param appName 应用名称。
+     * @param jobId 标识 ID。
+     * @return 任务详情。
      */
     XxlJobInfo queryJobDetail(String appName, Long jobId);
 
     /**
      * 创建 XXL 任务
      *
-     * 为什么：统一创建入口以保障规则一致
-     * 入参：任务信息
-     * 出参：创建结果内容
+     * 统一创建入口以保障规则一致
+     * 
+     * @param jobInfo 待创建的任务信息。
+     * @return 创建后的任务 ID。
      */
     String createJob(XxlJobInfo jobInfo);
 
     /**
      * 更新 XXL 任务
      *
-     * 为什么：统一更新入口以保障规则一致
-     * 入参：任务信息
-     * 出参：无
+     * 统一更新入口以保障规则一致
+     * 
+     * @param jobInfo 待更新的任务信息。
      */
     void updateJob(XxlJobInfo jobInfo);
 
     /**
      * 删除 XXL 任务
      *
-     * 为什么：统一删除入口以保障规则一致
-     * 入参：任务 ID
-     * 出参：无
+     * 统一删除入口以保障规则一致
+     * 
+     * @param jobId 标识 ID。
      */
     void removeJob(Long jobId);
 
     /**
      * 启动 XXL 任务
      *
-     * 为什么：统一启动入口以保障规则一致
-     * 入参：任务 ID
-     * 出参：无
+     * 统一启动入口以保障规则一致
+     * 
+     * @param jobId 标识 ID。
      */
     void startJob(Long jobId);
 
     /**
      * 停止 XXL 任务
      *
-     * 为什么：统一停止入口以保障规则一致
-     * 入参：任务 ID
-     * 出参：无
+     * 统一停止入口以保障规则一致
+     * 
+     * @param jobId 标识 ID。
      */
     void stopJob(Long jobId);
 
     /**
      * 手动触发 XXL 任务
      *
-     * 为什么：支持即时触发执行
-     * 入参：任务 ID、执行参数、指定机器列表
-     * 出参：触发结果内容
+     * 支持即时触发执行
+     * 
+     * @param jobId 标识 ID。
+     * @param executorParam 执行参数。
+     * @param addressList 执行器地址列表。
+     * @return 触发结果消息。
      */
     String triggerJob(Long jobId, String executorParam, String addressList);
 
     /**
      * 分页查询 XXL 任务日志
      *
-     * 为什么：日志量大，需要分页
-     * 入参：分页查询条件
-     * 出参：分页结果
+     * 日志量大，需要分页
+     * 
+     * @param query 分页查询条件。
+     * @return XxlJobLogInfo 分页结果。
      */
     PageResult<XxlJobLogInfo> queryJobLogPage(XxlJobLogPageQuery query);
 
     /**
      * 查询 XXL 任务日志详情
      *
-     * 为什么：按行读取日志，支持增量加载
-     * 入参：日志 ID、起始行号
-     * 出参：日志详情
+     * 按行读取日志，支持增量加载
+     * 
+     * @param logId 日志 ID。
+     * @param fromLineNum 起始行号。
+     * @return 任务日志详情。
      */
     XxlJobLogDetail queryLogDetail(Long logId, Integer fromLineNum);
 }

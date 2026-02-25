@@ -26,13 +26,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RoleAppServiceImpl implements RoleAppService {
 
+    /**
+     * 身份仓储。
+     */
     private final IdentityRepository identityRepository;
 
     /**
      * 分页查询角色。
-     *
-     * @param query 查询条件
-     * @return 分页结果
+     * 
+     * @param query 分页查询条件。
+     * @return SysRole 分页结果。
      */
     @Override
     public PageResult<SysRole> queryRolePage(RolePageQuery query) {
@@ -52,7 +55,7 @@ public class RoleAppServiceImpl implements RoleAppService {
 
     /**
      * 创建角色。
-     *
+     * 
      * @param role 角色实体
      * @return 创建后的角色
      */
@@ -63,7 +66,7 @@ public class RoleAppServiceImpl implements RoleAppService {
             throw new BusinessException("角色编码不能为空");
         }
         if (identityRepository.existsRoleCode(role.getRoleCode(), null)) {
-            throw new BusinessException("角色编码已存在：" + role.getRoleCode());
+            throw new BusinessException("角色编码已存在" + role.getRoleCode());
         }
         if (role.getStatus() == null) {
             role.setStatus(1);
@@ -76,7 +79,7 @@ public class RoleAppServiceImpl implements RoleAppService {
 
     /**
      * 更新角色。
-     *
+     * 
      * @param role 角色实体
      * @return 更新后的角色
      */
@@ -88,7 +91,7 @@ public class RoleAppServiceImpl implements RoleAppService {
                 .findRoleById(roleId)
                 .orElseThrow(() -> new NotFoundException("角色不存在，id: " + roleId));
         if (identityRepository.existsRoleCode(existing.getRoleCode(), roleId)) {
-            throw new BusinessException("角色编码已存在：" + existing.getRoleCode());
+            throw new BusinessException("角色编码已存在" + existing.getRoleCode());
         }
         existing.setRoleName(role.getRoleName());
         existing.setStatus(role.getStatus());
@@ -100,7 +103,7 @@ public class RoleAppServiceImpl implements RoleAppService {
 
     /**
      * 查询角色已绑定的权限 ID 列表。
-     *
+     * 
      * @param roleId 角色ID
      * @return 权限ID列表
      */
@@ -114,7 +117,7 @@ public class RoleAppServiceImpl implements RoleAppService {
 
     /**
      * 绑定角色权限。
-     *
+     * 
      * @param roleId 角色ID
      * @param permissionIds 权限ID列表
      * @param operatorId 操作人ID

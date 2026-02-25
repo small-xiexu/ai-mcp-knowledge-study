@@ -26,15 +26,22 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class GatewayToolsListHandler implements IRequestHandler {
 
+    /**
+     * Gateway 工具服务。
+     */
     private final GatewayToolService gatewayToolService;
+
+    /**
+     * JSON 序列化/反序列化组件。
+     */
     private final ObjectMapper objectMapper;
 
     /**
      * 处理业务请求。
-     *
+     * 
      * @param gatewayId 网关 ID
      * @param request tools/list 协议请求参数。
-     * @return 返回 McpSchemaVO.JSONRPCResponse 数据。
+     * @return McpSchemaVO.JSONRPCResponse 数据。
      */
     @Override
     public McpSchemaVO.JSONRPCResponse handle(String gatewayId, McpSchemaVO.JSONRPCRequest request) {

@@ -21,13 +21,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PermissionAppServiceImpl implements PermissionAppService {
 
+    /**
+     * 身份仓储。
+     */
     private final IdentityRepository identityRepository;
 
     /**
      * 分页查询权限。
-     *
-     * @param query 查询条件
-     * @return 分页结果
+     * 
+     * @param query 分页查询条件。
+     * @return SysPermission 分页结果。
      */
     @Override
     public PageResult<SysPermission> queryPermissionPage(PermissionPageQuery query) {

@@ -38,7 +38,14 @@ import jakarta.validation.Valid;
 @RequiredArgsConstructor
 public class AgentScheduleController implements IAgentScheduleService {
 
+    /**
+     * Agent 调度应用服务。
+     */
     private final AgentScheduleAppService agentScheduleAppService;
+
+    /**
+     * Agent 应用服务。
+     */
     private final AgentAppService agentAppService;
 
     /**
@@ -49,7 +56,7 @@ public class AgentScheduleController implements IAgentScheduleService {
      * 3. 若传入 `agentCode`，先查询 Agent 再得到 `agentId`。
      * 4. 组装 `AgentSchedulePageQuery` 并调用 `agentScheduleAppService.queryPage`。
      * 5. 转换分页结果并统一封装 `Result.success` 返回。
-     *
+     * 
      * @param request 分页查询参数
      * @return 调度分页结果
      */
@@ -81,7 +88,7 @@ public class AgentScheduleController implements IAgentScheduleService {
      * 3. Controller 组装 `AgentScheduleIdQuery` 并调用 `agentScheduleAppService.queryById`。
      * 4. 将领域实体转换为 `AgentScheduleResponse`。
      * 5. 统一封装 `Result.success` 返回。
-     *
+     * 
      * @param request 调度 ID 请求
      * @return 调度详情
      */
@@ -101,7 +108,7 @@ public class AgentScheduleController implements IAgentScheduleService {
      * 3. Controller 组装 `AgentSchedule` 领域对象。
      * 4. 调用 `agentScheduleAppService.create` 创建调度并注册对应任务。
      * 5. 将创建结果转换为 `AgentScheduleResponse` 并统一返回。
-     *
+     * 
      * @param request 创建请求
      * @return 创建后的调度配置
      */
@@ -128,7 +135,7 @@ public class AgentScheduleController implements IAgentScheduleService {
      * 3. Controller 组装更新对象并调用 `agentScheduleAppService.update`。
      * 4. 应用层完成调度配置更新与任务同步。
      * 5. 将更新结果转换为 `AgentScheduleResponse` 并统一返回。
-     *
+     * 
      * @param request 更新请求
      * @return 更新后的调度配置
      */
@@ -155,7 +162,7 @@ public class AgentScheduleController implements IAgentScheduleService {
      * 3. Controller 调用 `agentScheduleAppService.enable` 启用调度。
      * 4. 应用层完成任务状态切换。
      * 5. 返回启用后的 `AgentScheduleResponse`。
-     *
+     * 
      * @param request 调度 ID 请求
      * @return 启用后的调度配置
      */
@@ -175,7 +182,7 @@ public class AgentScheduleController implements IAgentScheduleService {
      * 3. Controller 调用 `agentScheduleAppService.disable` 禁用调度。
      * 4. 应用层完成任务状态切换。
      * 5. 返回禁用后的 `AgentScheduleResponse`。
-     *
+     * 
      * @param request 调度 ID 请求
      * @return 禁用后的调度配置
      */
@@ -195,7 +202,7 @@ public class AgentScheduleController implements IAgentScheduleService {
      * 3. Controller 调用 `agentScheduleAppService.remove` 执行删除。
      * 4. 应用层完成调度与关联任务清理。
      * 5. 统一返回空成功结果。
-     *
+     * 
      * @param request 调度 ID 请求
      * @return 空成功结果
      */
@@ -209,9 +216,9 @@ public class AgentScheduleController implements IAgentScheduleService {
 
     /**
      * 将输入数据转换为响应。
-     *
+     * 
      * @param schedule 调度配置。
-     * @return 返回AgentScheduleResponse对象。
+     * @return 调度配置响应。
      */
     private AgentScheduleResponse toResponse(AgentSchedule schedule) {
         if (schedule == null) {

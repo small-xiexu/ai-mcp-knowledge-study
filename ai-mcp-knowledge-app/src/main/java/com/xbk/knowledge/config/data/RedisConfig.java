@@ -15,7 +15,7 @@ public class RedisConfig {
 
     /**
      * StringRedisTemplate 仅处理字符串键值，适配当前聊天记忆存储。
-     *
+     * 
      * @param connectionFactory Redis 连接工厂
      * @return StringRedisTemplate
      */

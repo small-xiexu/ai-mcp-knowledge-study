@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * 会话更新请求
+ * 话更新请求
  *
  * @author sxie
  */
@@ -13,17 +13,17 @@ import java.util.List;
 public class ChatSessionUpdateRequest {
 
     /**
-     * 会话ID
+     * 会话 ID
      */
     private Long id;
 
     /**
-     * 会话标题
+     * 话标题
      */
     private String title;
 
     /**
-     * 会话默认模型ID
+     * 话默认模型ID
      */
     private Long modelId;
 

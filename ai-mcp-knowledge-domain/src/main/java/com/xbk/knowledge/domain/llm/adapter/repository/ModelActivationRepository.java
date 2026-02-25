@@ -13,18 +13,18 @@ public interface ModelActivationRepository {
     /**
      * 查询当前激活配置
      *
-     * 为什么：全局只有一份激活配置
-     * 入参：无
-     * 出参：激活配置
+     * 全局只有一份激活配置
+     * 
+     * @return 当前激活配置。
      */
     ModelActivation queryActivation();
 
     /**
      * 保存或更新激活配置
      * <p>
-     * 为什么：激活配置可能已存在，需要覆盖更新
-     * 入参：激活配置
-     * 出参：保存后的激活配置
+     * 激活配置可能已存在，需要覆盖更新
+     * 
+     * @param activation 待保存的激活配置。
      */
     void saveOrUpdate(ModelActivation activation);
 }

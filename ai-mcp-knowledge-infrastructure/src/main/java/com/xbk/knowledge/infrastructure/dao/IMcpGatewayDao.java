@@ -18,41 +18,63 @@ public interface IMcpGatewayDao extends BaseMapper<McpGatewayPO> {
 
     /**
      * 新增网关实例
+     * 
+     * @param gateway 网关持久化实体。
+     * @return 影响行数。
      */
      int insertGateway(McpGatewayPO gateway);
 
     /**
      * 更新网关实例
+     * 
+     * @param gateway 网关持久化实体。
+     * @return 影响行数。
      */
      int updateGateway(McpGatewayPO gateway);
 
     /**
      * 按主键删除网关实例
+     * 
+     * @param query 主键查询条件。
+     * @return 影响行数。
      */
      int deleteGatewayById(IdQuery query);
 
     /**
      * 按主键查询网关实例
+     * 
+     * @param query 主键查询条件。
+     * @return 网关持久化实体。
      */
      McpGatewayPO findById(IdQuery query);
 
     /**
      * 按 gatewayId（业务唯一标识）查询网关实例
+     * 
+     * @param query 主键查询条件。
+     * @return 网关持久化实体。
      */
      McpGatewayPO findByGatewayId(GatewayIdQuery query);
 
     /**
      * 分页查询网关列表
+     * 
+     * @param query 分页查询条件。
+     * @return 网关配置列表。
      */
      List<McpGatewayPO> findPage(GatewayPageQuery query);
 
     /**
      * 查询所有已启用的网关实例
+     * 
+     * @return 网关配置列表。
      */
      List<McpGatewayPO> findAllEnabled();
 
     /**
      * 统计网关总数
+     * 
+     * @return 统计数量。
      */
      long countAll();
 }

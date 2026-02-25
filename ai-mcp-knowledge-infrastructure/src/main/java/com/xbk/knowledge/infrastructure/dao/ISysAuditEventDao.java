@@ -19,7 +19,7 @@ public interface ISysAuditEventDao extends BaseMapper<SysAuditEventPO> {
 
     /**
      * 插入审计事件。
-     *
+     * 
      * @param event 审计事件
      * @return 影响行数
      */
@@ -27,16 +27,16 @@ public interface ISysAuditEventDao extends BaseMapper<SysAuditEventPO> {
 
     /**
      * 分页查询审计事件。
-     *
-     * @param query 查询条件
+     * 
+     * @param query 分页查询条件。
      * @return 列表
      */
     List<SysAuditEventPO> findPage(AuditEventPageQuery query);
 
     /**
      * 统计审计事件数量。
-     *
-     * @param query 查询条件
+     * 
+     * @param query 分页查询条件。
      * @return 总数
      */
     long count(AuditEventPageQuery query);

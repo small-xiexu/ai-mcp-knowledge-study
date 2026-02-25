@@ -74,7 +74,7 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * Workflow 运行面应用服务实现（DAG：当前实现为“可达节点的拓扑就绪队列”，并支持条件边）。
+ * Workflow 运行面应用服务实现（DAG当前实现为“可达节点的拓扑就绪队列”，并支持条件边）。
  *
  * @author sxie
  */
@@ -83,47 +83,113 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService {
 
+    /**
+     * 节点输出文本最大长度。
+     */
     private static final int MAX_OUTPUT_TEXT_CHARS = 16000;
+
+    /**
+     * 节点摘要文本最大长度。
+     */
     private static final int MAX_DIGEST_CHARS = 500;
 
+    /**
+     * Workflow 仓储。
+     */
     private final WorkflowRepository workflowRepository;
+
+    /**
+     * Workflow 版本仓储。
+     */
     private final WorkflowVersionRepository workflowVersionRepository;
+
+    /**
+     * Workflow 图仓储。
+     */
     private final WorkflowGraphRepository workflowGraphRepository;
+
+    /**
+     * Workflow 运行仓储。
+     */
     private final WorkflowRunRepository workflowRunRepository;
+
+    /**
+     * Workflow 运行上下文仓储。
+     */
     private final WorkflowRunContextRepository workflowRunContextRepository;
+
+    /**
+     * Workflow 节点运行仓储。
+     */
     private final WorkflowNodeRunRepository workflowNodeRunRepository;
+
+    /**
+     * 审批单仓储。
+     */
     private final ApprovalRequestRepository approvalRequestRepository;
 
+    /**
+     * 模型配置领域服务。
+     */
     private final IModelConfigService modelConfigService;
+
+    /**
+     * ChatClient 组装服务。
+     */
     private final ChatClientAssemblyService chatClientAssemblyService;
+
+    /**
+     * Agent 增强器运行时服务。
+     */
     private final AgentEnhancerRuntimeService agentEnhancerRuntimeService;
+
+    /**
+     * 工具回调提供器。
+     */
     private final ToolCallbackProvider toolCallbackProvider;
+
+    /**
+     * JSON 序列化/反序列化组件。
+     */
     private final ObjectMapper objectMapper;
+
+    /**
+     * 平台协议输出支持组件。
+     */
     private final PlatformContractV1OutputSupport outputSupport;
+
+    /**
+     * 当前用户身份上下文服务。
+     */
     private final IdentityContextService identityContextService;
+
+    /**
+     * RAG 向量检索服务。
+     */
     private final RagVectorStoreService ragVectorStoreService;
-    // 节点执行器注册表：key=节点类型，value=该类型的执行策略
+    // 节点执行器注册表key=节点类型，value=该类型的执行策略
     // 运行时只做 O(1) 查表，不再走大段 if/else
+    /**
+     * 节点类型到执行器的注册表。
+     */
     private final Map<String, WorkflowNodeExecutor> nodeExecutors = initNodeExecutors();
 
     /**
      * 初始化节点执行器注册表
-     *
-     * @return 不可变的节点类型与执行器映射
      */
     private Map<String, WorkflowNodeExecutor> initNodeExecutors() {
         // 使用 LinkedHashMap 保持注册顺序，排查问题时更直观
         Map<String, WorkflowNodeExecutor> executors = new LinkedHashMap<>();
 
-        // 1、流程结构节点：只负责图结构控制，不做业务计算
+        // 1、流程结构节点只负责图结构控制，不做业务计算
         registerExecutors(executors, List.of("START", "PARALLEL", "JOIN", "END"), this::executePassThroughNode);
 
-        // 2、业务节点：每个节点类型绑定各自处理函数
+        // 2、业务节点每个节点类型绑定各自处理函数
         registerExecutor(executors, "RAG_RETRIEVE", this::executeRagRetrieveNode);
         registerExecutor(executors, "IF", this::executeIfNode);
         registerExecutor(executors, "TOOL_CALL", this::executeToolCallNode);
 
-        // 3、模型输出节点：LLM 与 OUTPUT 走同一条执行逻辑
+        // 3、模型输出节点LLM 与 OUTPUT 走同一条执行逻辑
         registerExecutors(executors, List.of("LLM", "OUTPUT"), this::executeLlmOrOutputNode);
 
         // 返回只读视图，避免运行中被意外改写
@@ -132,7 +198,7 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
 
     /**
      * 批量注册节点执行器。
-     *
+     * 
      * @param executors 节点执行器注册表。
      * @param nodeTypes 节点类型列表。
      * @param executor 节点执行器。
@@ -147,7 +213,7 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
 
     /**
      * 注册单个节点执行器。
-     *
+     * 
      * @param executors 节点执行器注册表。
      * @param nodeType 节点类型。
      * @param executor 节点执行器。
@@ -164,13 +230,13 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
 
     /**
      * 执行主流程并返回协议结果。
-     *
+     * 
      * @param workflowCode 工作流编码。
-     * @param sessionId 会话ID。
+     * @param sessionId 会话 ID。
      * @param content 用户输入内容。
      * @param variablesJson 运行变量JSON。
      * @param workflowVersionId 工作流版本ID。
-     * @return 返回平台协议结果对象。
+     * @return 工作流执行结果（平台协议）。
      */
     @Override
     public PlatformContractV1 run(String workflowCode,
@@ -275,9 +341,9 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
 
     /**
      * 在审批通过后恢复工作流运行。
-     *
+     * 
      * @param approvalRequestId 审批单 ID。
-     * @return 返回 PlatformContractV1 数据。
+     * @return 审批续跑后的平台协议结果。
      */
     @Override
     public PlatformContractV1 resumeFromApproval(Long approvalRequestId) {
@@ -304,7 +370,7 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
         // 读取上下文快照
         WorkflowSnapshot snap = loadSnapshot(req.getRunId());
         if (snap == null || snap.sessionId == null || !StringUtils.hasText(snap.content)) {
-            // 快照缺失不阻断：用空输入兜底
+            // 快照缺失不阻断用空输入兜底
             snap = snap == null ? new WorkflowSnapshot(null, "", new LinkedHashMap<>(), new LinkedHashMap<>(), req.getNodeKey()) : snap;
         }
 
@@ -360,11 +426,11 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
 
     /**
      * 根据筛选条件查询工作流运行列表。
-     *
-     * @param status   状态值
-     * @param offset   分页偏移量
+     * 
+     * @param status 状态值
+     * @param offset 分页偏移量
      * @param pageSize 分页大小
-     * @return 返回 WorkflowRun 分页数据。
+     * @return 工作流运行分页数据。
      */
     @Override
     public PageResult<WorkflowRun> listRuns(String status, int offset, int pageSize) {
@@ -378,9 +444,9 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
 
     /**
      * 查询工作流运行。
-     *
+     * 
      * @param runId 运行 ID
-     * @return 返回 WorkflowRun 数据。
+     * @return 工作流运行详情。
      */
     @Override
     public WorkflowRun getRun(String runId) {
@@ -393,9 +459,9 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
 
     /**
      * 根据筛选条件查询工作流运行列表。
-     *
+     * 
      * @param runId 运行 ID
-     * @return 返回 WorkflowNodeRun 列表数据。
+     * @return 节点运行记录列表。
      */
     @Override
     public List<WorkflowNodeRun> listNodeRuns(String runId) {
@@ -407,10 +473,10 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
 
     /**
      * 解析版本。
-     *
+     * 
      * @param wf 工作流定义。
      * @param workflowVersionId 工作流版本ID。
-     * @return 返回WorkflowVersion对象。
+     * @return 选定的工作流版本。
      */
     private WorkflowVersion resolveVersion(Workflow wf, Long workflowVersionId) {
         if (workflowVersionId != null) {
@@ -437,7 +503,7 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
 
     /**
      * 校验流程图。
-     *
+     * 
      * @param graph 流程图。
      */
     private void validateGraph(Graph graph) {
@@ -461,17 +527,17 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
 
     /**
      * 执行主流程并返回协议结果。
-     *
+     * 
      * @param runId 运行ID。
      * @param wf 工作流定义。
      * @param version 工作流版本。
      * @param graph 流程图。
-     * @param sessionId 会话ID。
+     * @param sessionId 会话 ID。
      * @param content 用户输入内容。
      * @param variables 运行变量。
      * @param stepOutputs 步骤输出映射。
      * @param nodeRuns 节点运行记录。
-     * @return 返回ExecutionResult对象。
+     * @return 流程执行结果。
      */
     private ExecutionResult executeGraph(String runId,
                                          Workflow wf,
@@ -487,19 +553,19 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
 
     /**
      * 执行主流程并返回协议结果。
-     *
+     * 
      * @param runId 运行ID。
      * @param wf 工作流定义。
      * @param version 工作流版本。
      * @param graph 流程图。
-     * @param sessionId 会话ID。
+     * @param sessionId 会话 ID。
      * @param content 用户输入内容。
      * @param variables 运行变量。
      * @param stepOutputs 步骤输出映射。
      * @param nodeRuns 节点运行记录。
      * @param startFromNodeKey 起始节点Key。
      * @param approvedToolResult 审批后的工具结果。
-     * @return 返回ExecutionResult对象。
+     * @return 流程执行结果。
      */
     private ExecutionResult executeGraphFromNode(String runId,
                                                  Workflow wf,
@@ -517,19 +583,19 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
 
     /**
      * 执行主流程并返回协议结果。
-     *
+     * 
      * @param runId 运行ID。
      * @param wf 工作流定义。
      * @param version 工作流版本。
      * @param graph 流程图。
-     * @param sessionId 会话ID。
+     * @param sessionId 会话 ID。
      * @param content 用户输入内容。
      * @param variables 运行变量。
      * @param stepOutputs 步骤输出映射。
      * @param nodeRuns 节点运行记录。
      * @param startFromNodeKey 起始节点Key。
      * @param approvedToolResult 审批后的工具结果。
-     * @return 返回ExecutionResult对象。
+     * @return 流程执行结果。
      */
     private ExecutionResult executeGraphInternal(String runId,
                                                  Workflow wf,
@@ -574,7 +640,7 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
             throw new BusinessException("Workflow 图缺少 START");
         }
 
-        // 可达就绪队列：通过“激活边”累计 expectedPred，避免 join 被未激活分支卡住
+        // 可达就绪队列通过“激活边”累计 expectedPred，避免 join 被未激活分支卡住
         Set<String> completed = new HashSet<>();
         Set<String> reached = new HashSet<>();
         Map<String, Integer> expectedPred = new HashMap<>();
@@ -632,7 +698,7 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
                     .endedAt(null)
                     .build();
 
-            // 若为续跑，从同一 runId 继续：避免重复插入（可多次执行），优先更新
+            // 若为续跑，从同一 runId 继续避免重复插入（可多次执行），优先更新
             WorkflowNodeRun existed = workflowNodeRunRepository.findByRunIdAndNodeKey(runId, nodeKey).orElse(null);
             if (existed != null && existed.getId() != null && StringUtils.hasText(startFromNodeKey)) {
                 nodeRun.setId(existed.getId());
@@ -698,7 +764,7 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
         }
 
         if (finalContract == null) {
-            // 无 OUTPUT 节点时兜底：把最后一个成功节点 output 当 answer
+            // 无 OUTPUT 节点时兜底把最后一个成功节点 output 当 answer
             String last = "";
             if (!nodeRuns.isEmpty()) {
                 WorkflowNodeRun tail = nodeRuns.get(nodeRuns.size() - 1);
@@ -712,18 +778,18 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
 
     /**
      * 执行主流程并返回协议结果。
-     *
+     * 
      * @param runId 运行ID。
      * @param wf 工作流定义。
      * @param version 工作流版本。
      * @param node 节点定义。
-     * @param sessionId 会话ID。
+     * @param sessionId 会话 ID。
      * @param content 用户输入内容。
      * @param variables 运行变量。
      * @param stepOutputs 步骤输出映射。
      * @param workflowAdvisors 工作流增强器数组。
      * @param approvedToolResult 审批后的工具结果。
-     * @return 返回NodeResult对象。
+     * @return 节点执行结果。
      */
     private NodeResult executeNode(String runId,
                                    Workflow wf,
@@ -846,7 +912,7 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
             if (ragTextObj != null) {
                 String ragText = String.valueOf(ragTextObj);
                 if (StringUtils.hasText(ragText)) {
-                    systemMessages.add(new SystemMessage("你可以参考以下【参考文档】回答用户问题：\n" + ragText));
+                    systemMessages.add(new SystemMessage("你可以参考以下【参考文档】回答用户问题\n" + ragText));
                 }
             }
         }
@@ -927,12 +993,12 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
 
     /**
      * 判断边条件是否满足并允许流转。
-     *
+     * 
      * @param edge 流程连线。
      * @param ifResult 条件节点计算结果。
      * @param variables 运行变量。
      * @param stepOutputs 步骤输出映射。
-     * @return 返回是否满足边的启用条件。
+     * @return `true` 表示边可启用，`false` 表示边不可启用。
      */
     private boolean isEdgeEnabled(WorkflowEdge edge, Boolean ifResult, Map<String, Object> variables, Map<String, Object> stepOutputs) {
         if (edge == null) {
@@ -949,7 +1015,7 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
             return Boolean.FALSE.equals(ifResult);
         }
         if ("CONDITION".equals(type)) {
-            // 最小实现：支持 ${vars.xxx} / ${steps.xxx} 的存在性/等值判断（非常轻量）
+            // 最小实现支持 ${vars.xxx} / ${steps.xxx} 的存在性/等值判断（非常轻量）
             String expr = edge.getConditionExpr();
             if (!StringUtils.hasText(expr)) {
                 return false;
@@ -983,7 +1049,7 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
 
     private boolean evaluateConditionExpr(String expr, Map<String, Object> root) {
         String e = expr.trim();
-        // 仅支持：{{path}} == 'x' / != / exists({{path}})
+        // 仅支持{{path}} == 'x' / != / exists({{path}})
         if (e.startsWith("exists(") && e.endsWith(")")) {
             String inner = e.substring("exists(".length(), e.length() - 1).trim();
             String path = stripBraces(inner);
@@ -1094,7 +1160,7 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
         Prompt prompt = new Prompt(
                 new SystemMessage("你是 JSON 修复器。你必须仅输出合法 JSON，不要输出任何额外文字。"),
                 new SystemMessage(outputSupport.contractInstruction()),
-                new UserMessage("请将以下内容修复为符合要求的 JSON：\n" + safe)
+                new UserMessage("请将以下内容修复为符合要求的 JSON\n" + safe)
         );
         ChatResponse resp = client.prompt(prompt).call().chatResponse();
         if (resp == null) {
@@ -1429,17 +1495,65 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
     }
 
     private static final class WorkflowNodeExecutionContext {
+
+        /**
+         * 节点类型。
+         */
         private final String type;
+
+        /**
+         * 节点执行开始时间戳（毫秒）。
+         */
         private final long start;
+
+        /**
+         * 运行 ID。
+         */
         private final String runId;
+
+        /**
+         * Workflow 实体。
+         */
         private final Workflow wf;
+
+        /**
+         * Workflow 版本实体。
+         */
         private final WorkflowVersion version;
+
+        /**
+         * 当前节点实体。
+         */
         private final WorkflowNode node;
+
+        /**
+         * 会话 ID。
+         */
         private final Long sessionId;
+
+        /**
+         * 节点配置。
+         */
         private final Map<String, Object> cfg;
+
+        /**
+         * 根上下文变量。
+         */
         private final Map<String, Object> root;
+
+        /**
+         * 步骤输出集合。
+         */
         private final Map<String, Object> stepOutputs;
+
+        /**
+         * Workflow 级增强器链。
+         */
         private final CallAdvisor[] workflowAdvisors;
+
+        /**
+         * 审批通过后回填的工具结果。
+         */
         private final String approvedToolResult;
 
         private WorkflowNodeExecutionContext(String type,
@@ -1470,7 +1584,15 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
     }
 
     private static final class Graph {
+
+        /**
+         * 节点列表。
+         */
         private final List<WorkflowNode> nodes;
+
+        /**
+         * 边列表。
+         */
         private final List<WorkflowEdge> edges;
 
         private Graph(List<WorkflowNode> nodes, List<WorkflowEdge> edges) {
@@ -1480,12 +1602,40 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
     }
 
     private static final class ExecutionResult {
+
+        /**
+         * 执行状态。
+         */
         private final String status;
+
+        /**
+         * 协议输出结果。
+         */
         private final PlatformContractV1 contract;
+
+        /**
+         * 错误信息。
+         */
         private final String errorMessage;
+
+        /**
+         * 待审批节点键。
+         */
         private final String pendingNodeKey;
+
+        /**
+         * 审批请求 ID。
+         */
         private final Long approvalRequestId;
+
+        /**
+         * 待审批工具键。
+         */
         private final String pendingToolKey;
+
+        /**
+         * 待审批风险等级。
+         */
         private final String pendingRiskLevel;
 
         private ExecutionResult(String status,
@@ -1518,16 +1668,55 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
     }
 
     private static final class NodeResult {
+
+        /**
+         * 节点输出文本。
+         */
         private String outputText;
+
+        /**
+         * 输出是否被截断。
+         */
         private boolean outputTruncated;
+
+        /**
+         * 节点耗时（毫秒）。
+         */
         private long costMs;
+
+        /**
+         * 节点协议结果。
+         */
         private PlatformContractV1 contract;
+
+        /**
+         * IF 节点布尔结果。
+         */
         private Boolean ifResult;
 
+        /**
+         * 节点使用模型 ID。
+         */
         private Long modelIdUsed;
+
+        /**
+         * 节点使用模型名称。
+         */
         private String modelNameUsed;
+
+        /**
+         * 输入 token 数。
+         */
         private int promptTokens;
+
+        /**
+         * 输出 token 数。
+         */
         private int completionTokens;
+
+        /**
+         * 总 token 数。
+         */
         private int totalTokens;
 
         static NodeResult text(String text, long costMs) {
@@ -1555,7 +1744,15 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
     }
 
     private static final class DigestText {
+
+        /**
+         * 摘要文本。
+         */
         private final String text;
+
+        /**
+         * 摘要是否截断。
+         */
         private final boolean truncated;
 
         private DigestText(String text, boolean truncated) {
@@ -1565,10 +1762,30 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
     }
 
     private static final class WorkflowSnapshot {
+
+        /**
+         * 会话 ID。
+         */
         private Long sessionId;
+
+        /**
+         * 用户输入内容。
+         */
         private String content;
+
+        /**
+         * 运行变量快照。
+         */
         private Map<String, Object> variables;
+
+        /**
+         * 步骤输出快照。
+         */
         private Map<String, Object> stepOutputs;
+
+        /**
+         * 待审批节点键。
+         */
         private String pendingNodeKey;
 
         private WorkflowSnapshot(Long sessionId, String content, Map<String, Object> variables, Map<String, Object> stepOutputs, String pendingNodeKey) {

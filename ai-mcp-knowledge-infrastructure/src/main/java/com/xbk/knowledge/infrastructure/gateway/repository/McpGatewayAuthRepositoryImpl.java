@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Gateway 鉴权仓储实现
+ * Gateway 鉴权仓储实现。
  *
  * @author sxie
  */
@@ -22,13 +22,16 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class McpGatewayAuthRepositoryImpl implements McpGatewayAuthRepository {
 
+    /**
+     * Gateway 鉴权 DAO。
+     */
     private final IMcpGatewayAuthDao mapper;
 
     /**
      * 查询MCP 网关鉴权。
      *
      * @param id 主键 ID
-     * @return 返回 McpGatewayAuth 查询结果（可能为空）。
+     * @return McpGatewayAuth 查询结果（可能为空）
      */
     @Override
     public Optional<McpGatewayAuth> findById(Long id) {
@@ -42,8 +45,8 @@ public class McpGatewayAuthRepositoryImpl implements McpGatewayAuthRepository {
     /**
      * 查询MCP 网关鉴权。
      *
-     * @param apiKey API Key。
-     * @return 返回 McpGatewayAuth 查询结果（可能为空）。
+     * @param apiKey API Key
+     * @return McpGatewayAuth 查询结果（可能为空）
      */
     @Override
     public Optional<McpGatewayAuth> findByApiKey(String apiKey) {
@@ -57,8 +60,8 @@ public class McpGatewayAuthRepositoryImpl implements McpGatewayAuthRepository {
     /**
      * 查询MCP 网关鉴权。
      *
-     * @param query 查询条件
-     * @return 返回 McpGatewayAuth 列表数据。
+     * @param query 主键查询条件
+     * @return McpGatewayAuth 列表
      */
     @Override
     public List<McpGatewayAuth> findByGatewayId(GatewayIdQuery query) {
@@ -71,8 +74,8 @@ public class McpGatewayAuthRepositoryImpl implements McpGatewayAuthRepository {
     /**
      * 创建或更新MCP 网关鉴权数据。
      *
-     * @param auth 鉴权配置。
-     * @return 返回 McpGatewayAuth 数据。
+     * @param auth 鉴权配置
+     * @return 保存后的 McpGatewayAuth 信息
      */
     @Override
     public McpGatewayAuth save(McpGatewayAuth auth) {
@@ -103,7 +106,7 @@ public class McpGatewayAuthRepositoryImpl implements McpGatewayAuthRepository {
     /**
      * 删除MCP 网关鉴权数据。
      *
-     * @param query 查询条件
+     * @param query 主键查询条件
      */
     @Override
     public void deleteByGatewayId(GatewayIdQuery query) {

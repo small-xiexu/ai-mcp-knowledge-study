@@ -20,7 +20,14 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class ChatHistoryCleanupJob {
 
+    /**
+     * 聊天历史清理应用服务。
+     */
     private final ChatHistoryCleanupAppService chatHistoryCleanupAppService;
+
+    /**
+     * 聊天历史清理配置。
+     */
     private final ChatHistoryProperties chatHistoryProperties;
 
     /**
@@ -28,11 +35,10 @@ public class ChatHistoryCleanupJob {
      * XXL-Job Handler: chatHistoryCleanupHandler
      * 建议 Cron: 0 0 3 * * ? (每天凌晨 3 点执行)
      *
-     * 为什么：避免聊天历史无限增长导致存储成本与查询性能问题。
+     * 避免聊天历史无限增长导致存储成本与查询性能问题。
      */
     @XxlJob("chatHistoryCleanupHandler")
     public void cleanupExpiredChatHistory() {
-        
         int retentionDays = chatHistoryProperties.getRetentionDays();
         LocalDateTime cutoff = LocalDateTime.now().minusDays(retentionDays);
         int deletedSessions = chatHistoryCleanupAppService.cleanupExpired(cutoff);

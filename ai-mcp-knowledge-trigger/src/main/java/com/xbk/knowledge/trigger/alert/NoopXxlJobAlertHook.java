@@ -15,8 +15,8 @@ public class NoopXxlJobAlertHook implements XxlJobAlertHook {
     /**
      * 任务执行异常告警
      *
-     * 为什么：提供默认空实现，避免未配置告警时影响主流程。
-     *
+     * 提供默认空实现，避免未配置告警时影响主流程。
+     * 
      * @param jobHandler 任务 Handler 名称
      * @param throwable 异常
      */

@@ -21,13 +21,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AuditEventAppServiceImpl implements AuditEventAppService {
 
+    /**
+     * 审计事件仓储。
+     */
     private final SysAuditEventRepository sysAuditEventRepository;
 
     /**
      * 分页查询审计事件。
-     *
-     * @param query 查询条件
-     * @return 分页结果
+     * 
+     * @param query 分页查询条件。
+     * @return SysAuditEvent 分页结果。
      */
     @Override
     public PageResult<SysAuditEvent> queryPage(AuditEventPageQuery query) {

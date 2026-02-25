@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * Agent 客户端串联步骤配置。
  *
- * 用途：
+ * 用途
  * - 对齐 ai-agent-station 的“Agent -> Client 顺序执行”使用形态
  * - 作为 AgentVersion.clientChainJson 的结构化对象
  *

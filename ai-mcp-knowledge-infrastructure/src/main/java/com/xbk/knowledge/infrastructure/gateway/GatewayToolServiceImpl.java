@@ -51,12 +51,12 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Gateway 工具域服务实现
+ * Gateway 工具域服务实现。
  *
- * 职责：实现 Gateway 工具的核心业务逻辑，包括：
- * 1. 工具清单查询（listTools）：加载已启用工具并生成 JSON Schema
- * 2. 工具调用执行（callTool）：参数映射 → HTTP 请求 → 响应提取 → 指标记录
- * 3. 协议初始化（initialize）：返回网关能力声明
+ * 职责：实现 Gateway 工具的核心业务逻辑，包括
+ * 1. 工具清单查询（listTools）加载已启用工具并生成 JSON Schema
+ * 2. 工具调用执行（callTool）参数映射 → HTTP 请求 → 响应提取 → 指标记录
+ * 3. 协议初始化（initialize）返回网关能力声明
  *
  * @author sxie
  */
@@ -65,29 +65,74 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class GatewayToolServiceImpl implements GatewayToolService {
 
+    /**
+     * 工具调用链路追踪 ID 的 MDC 键。
+     */
     private static final String CALL_ID_MDC_KEY = "gatewayToolCallId";
+
     /**
-     * MCP 协议版本号
+     * MCP 协议版本号。
      */
-     private static final String PROTOCOL_VERSION = "2024-11-05";
+    private static final String PROTOCOL_VERSION = "2024-11-05";
+
     /**
-     * 参数映射类型：请求方向
+     * 参数映射类型请求方向。
      */
-     private static final String REQUEST_MAPPING_TYPE = "request";
+    private static final String REQUEST_MAPPING_TYPE = "request";
+
     /**
-     * 参数映射类型：响应方向
+     * 参数映射类型响应方向。
      */
-     private static final String RESPONSE_MAPPING_TYPE = "response";
+    private static final String RESPONSE_MAPPING_TYPE = "response";
+
+    /**
+     * 默认请求超时时间（毫秒）。
+     */
     private static final int DEFAULT_TIMEOUT_MS = 30000;
+
+    /**
+     * 默认重试次数。
+     */
     private static final int DEFAULT_RETRY_TIMES = 0;
 
+    /**
+     * 网关仓储。
+     */
     private final McpGatewayRepository gatewayRepository;
+
+    /**
+     * 工具注册表仓储。
+     */
     private final McpToolRegistryRepository toolRegistryRepository;
+
+    /**
+     * 工具映射仓储。
+     */
     private final McpToolMappingRepository toolMappingRepository;
+
+    /**
+     * 工具 Schema 仓储。
+     */
     private final McpToolSchemaRepository toolSchemaRepository;
+
+    /**
+     * 网关可观测性应用服务。
+     */
     private final GatewayObservabilityAppService gatewayObservabilityAppService;
+
+    /**
+     * JSON 序列化/反序列化组件。
+     */
     private final ObjectMapper objectMapper;
+
+    /**
+     * WebClient 构建器。
+     */
     private final WebClient.Builder webClientBuilder;
+
+    /**
+     * WebClient 实例。
+     */
     private WebClient webClient;
 
     @PostConstruct
@@ -98,6 +143,9 @@ public class GatewayToolServiceImpl implements GatewayToolService {
     /**
      * 查询网关下所有已启用工具的定义列表
      * 每个工具包含 name、description 和根据参数映射生成的 inputSchema
+     * 
+     * @param gatewayId 标识 ID。
+     * @return ToolDefinition 列表。
      */
     @Override
     public List<ToolDefinition> listTools(String gatewayId) {
@@ -125,6 +173,11 @@ public class GatewayToolServiceImpl implements GatewayToolService {
     /**
      * 执行工具调用
      * 流程：校验工具 → 加载参数映射 → 构建 HTTP 请求 → 带重试执行 → 提取响应 → 记录指标
+     * 
+     * @param gatewayId 标识 ID。
+     * @param toolName 工具名称。
+     * @param arguments 工具调用参数。
+     * @return 工具调用结果。
      */
     @Override
     public ToolCallResult callTool(String gatewayId, String toolName, Map<String, Object> arguments) {
@@ -174,6 +227,9 @@ public class GatewayToolServiceImpl implements GatewayToolService {
 
     /**
      * 处理 MCP initialize 握手，返回网关能力声明
+     * 
+     * @param gatewayId 标识 ID。
+     * @return 网关信息。
      */
      @Override
     public GatewayInfo initialize(String gatewayId) {
@@ -186,6 +242,9 @@ public class GatewayToolServiceImpl implements GatewayToolService {
 
     /**
      * 校验网关存在且已启用，否则抛出 BusinessException
+     * 
+     * @param gatewayId 标识 ID。
+     * @return 网关配置。
      */
      private McpGateway requireEnabledGateway(String gatewayId) {
         if (!StringUtils.hasText(gatewayId)) {
@@ -205,6 +264,10 @@ public class GatewayToolServiceImpl implements GatewayToolService {
     /**
      * 解析工具的 inputSchema
      * 优先从 Schema 缓存中读取（通过 hash 比对判断是否过期），缓存未命中时重新生成并持久化
+     * 
+     * @param gatewayId 标识 ID。
+     * @param tool 工具注册配置。
+     * @param mappings 工具参数映射列表。
      */
     private Map<String, Object> resolveInputSchema(String gatewayId,
                                                    McpToolRegistry tool,
@@ -230,6 +293,12 @@ public class GatewayToolServiceImpl implements GatewayToolService {
 
     /**
      * 持久化 inputSchema 缓存（新增或更新版本号）
+     * 
+     * @param gatewayId 标识 ID。
+     * @param toolId 标识 ID。
+     * @param mappingHash 映射哈希。
+     * @param schema 工具 schema 映射。
+     * @param oldSchema 历史 schema 记录。
      */
      private void saveInputSchemaCache(String gatewayId,
                                       Long toolId,
@@ -255,6 +324,8 @@ public class GatewayToolServiceImpl implements GatewayToolService {
 
     /**
      * 根据参数映射树形结构生成 JSON Schema（支持嵌套 object/array）
+     * 
+     * @param mappings 参数映射列表。
      */
      private Map<String, Object> buildInputSchema(List<McpToolMapping> mappings) {
         if (mappings == null || mappings.isEmpty()) {
@@ -291,12 +362,11 @@ public class GatewayToolServiceImpl implements GatewayToolService {
 
     /**
      * 根据子节点关系构建对象 Schema。
-     *
+     * 
      * @param parentId 父节点ID。
      * @param childrenMap 子节点映射。
      * @param nodeMap 节点索引映射。
      * @param visiting 递归访问链路。
-     * @return 返回构建后的Schema映射。
      */
     private Map<String, Object> buildObjectSchemaFromChildren(Long parentId,
                                                               Map<Long, List<McpToolMapping>> childrenMap,
@@ -312,12 +382,11 @@ public class GatewayToolServiceImpl implements GatewayToolService {
 
     /**
      * 根据节点集合构建对象 Schema。
-     *
+     * 
      * @param nodes 节点列表。
      * @param childrenMap 子节点映射。
      * @param nodeMap 节点索引映射。
      * @param visiting 递归访问链路。
-     * @return 返回构建后的Schema映射。
      */
     private Map<String, Object> buildObjectSchemaFromNodes(List<McpToolMapping> nodes,
                                                            Map<Long, List<McpToolMapping>> childrenMap,
@@ -339,12 +408,11 @@ public class GatewayToolServiceImpl implements GatewayToolService {
 
     /**
      * 构建节点 Schema。
-     *
+     * 
      * @param node 节点定义。
      * @param childrenMap 子节点映射。
      * @param nodeMap 节点索引映射。
      * @param visiting 递归访问链路。
-     * @return 返回构建后的Schema映射。
      */
     private Map<String, Object> buildNodeSchema(McpToolMapping node,
                                                 Map<Long, List<McpToolMapping>> childrenMap,
@@ -413,6 +481,11 @@ public class GatewayToolServiceImpl implements GatewayToolService {
     /**
      * 构建 HTTP 调用载荷
      * 根据参数映射规则将 MCP arguments 分发到 header/query/path/body 各位置
+     * 
+     * @param tool 工具注册配置。
+     * @param requestMappings 请求参数映射列表。
+     * @param arguments 工具调用参数。
+     * @return HTTP 调用载荷。
      */
     private HttpInvokePayload buildInvokePayload(McpToolRegistry tool,
                                                  List<McpToolMapping> requestMappings,
@@ -461,6 +534,11 @@ public class GatewayToolServiceImpl implements GatewayToolService {
 
     /**
      * 将参数值写入 HTTP 载荷的指定位置（header/query/path/body）
+     * 
+     * @param payload HTTP 调用载荷。
+     * @param httpLocation String 参数。
+     * @param httpPath 路径。
+     * @param value 参数值。
      */
      private void applyValueToPayload(HttpInvokePayload payload,
                                      String httpLocation,
@@ -487,6 +565,11 @@ public class GatewayToolServiceImpl implements GatewayToolService {
 
     /**
      * 带重试的 HTTP 调用执行
+     * 
+     * @param payload HTTP 调用载荷。
+     * @param retryTimes 重试次数。
+     * @param timeout 超时时间。
+     * @return HTTP 响应文本。
      */
      private String executeWithRetry(HttpInvokePayload payload, Integer retryTimes, Integer timeout) {
         int attempts = normalizeRetryTimes(retryTimes) + 1;
@@ -508,6 +591,10 @@ public class GatewayToolServiceImpl implements GatewayToolService {
 
     /**
      * 执行单次 HTTP 请求（WebClient 同步阻塞）
+     * 
+     * @param payload HTTP 调用载荷。
+     * @param timeoutMs 超时时间（毫秒）。
+     * @return HTTP 响应文本。
      */
      private String executeOnce(HttpInvokePayload payload, int timeoutMs) {
         String finalUrl = buildFinalUrl(payload.url, payload.query);
@@ -543,6 +630,10 @@ public class GatewayToolServiceImpl implements GatewayToolService {
 
     /**
      * 根据响应映射规则从原始响应中提取指定字段
+     * 
+     * @param rawResponse 原始响应。
+     * @param responseMappings 响应字段映射列表。
+     * @return 处理后的响应文本。
      */
      private String extractResponse(String rawResponse,
                                    List<McpToolMapping> responseMappings) {
@@ -588,6 +679,10 @@ public class GatewayToolServiceImpl implements GatewayToolService {
 
     /**
      * 按路径表达式从 JSON 树中提取值（支持嵌套路径和数组下标 [n]/[*]）
+     * 
+     * @param root JSON 根节点。
+     * @param expression 表达式。
+     * @return 表达式解析结果。
      */
      private Object extractByPathExpression(JsonNode root, String expression) {
         if (root == null || !StringUtils.hasText(expression)) {
@@ -652,6 +747,9 @@ public class GatewayToolServiceImpl implements GatewayToolService {
 
     /**
      * 将路径表达式按 '.' 分割为 token 列表（方括号内的 '.' 不分割）
+     * 
+     * @param expression 表达式。
+     * @return 路径片段列表。
      */
      private List<String> splitPathTokens(String expression) {
         List<String> tokens = new ArrayList<>();
@@ -681,9 +779,9 @@ public class GatewayToolServiceImpl implements GatewayToolService {
 
     /**
      * 将 JSON 节点转换为可序列化对象。
-     *
+     * 
      * @param node 节点定义。
-     * @return 返回转换后的对象。
+     * @return 转换后的 Java 值。
      */
     private Object convertJsonNode(JsonNode node) {
         if (node == null || node.isNull() || node.isMissingNode()) {
@@ -706,6 +804,9 @@ public class GatewayToolServiceImpl implements GatewayToolService {
 
     /**
      * 计算参数映射列表的 SHA-256 哈希值（用于 Schema 缓存失效判断）
+     * 
+     * @param mappings 参数映射列表。
+     * @return 参数映射摘要。
      */
      private String computeMappingHash(List<McpToolMapping> mappings) {
         if (mappings == null || mappings.isEmpty()) {
@@ -749,6 +850,10 @@ public class GatewayToolServiceImpl implements GatewayToolService {
 
     /**
      * 从映射节点向上遍历父节点，拼接完整的源路径（用于从 arguments 中读取值）
+     * 
+     * @param mapping 字段映射配置。
+     * @param nodeMap 字段节点映射。
+     * @return 映射后的字段值。
      */
      private String resolveSourcePath(McpToolMapping mapping, Map<Long, McpToolMapping> nodeMap) {
         List<String> names = new ArrayList<>();
@@ -778,6 +883,10 @@ public class GatewayToolServiceImpl implements GatewayToolService {
 
     /**
      * 按路径从 Map 中读取嵌套值（支持 '.' 分隔和数组下标）
+     * 
+     * @param source 源参数映射。
+     * @param path 路径。
+     * @return 路径命中的值。
      */
      private Object readValueByPath(Map<String, Object> source, String path) {
         if (source == null) {
@@ -829,6 +938,10 @@ public class GatewayToolServiceImpl implements GatewayToolService {
 
     /**
      * 按路径向 Map 中写入嵌套值（自动创建中间层 Map）
+     * 
+     * @param target 目标参数映射。
+     * @param path 路径。
+     * @param value 写入值。
      */
      @SuppressWarnings("unchecked")
     private void setPathValue(Map<String, Object> target, String path, Object value) {
@@ -859,6 +972,11 @@ public class GatewayToolServiceImpl implements GatewayToolService {
 
     /**
      * 替换 URL 中的路径变量（支持 {key} 和 :key 两种风格）
+     * 
+     * @param url URL 地址。
+     * @param key 键名。
+     * @param value 查询参数值。
+     * @return 追加查询参数后的 URL。
      */
      private String replacePathVariable(String url, String key, Object value) {
         if (!StringUtils.hasText(url) || !StringUtils.hasText(key) || value == null) {
@@ -871,6 +989,10 @@ public class GatewayToolServiceImpl implements GatewayToolService {
 
     /**
      * 将 query 参数拼接到 URL 上
+     * 
+     * @param url URL 地址。
+     * @param query 查询参数集合。
+     * @return 追加查询参数后的 URL。
      */
      private String buildFinalUrl(String url, Map<String, Object> query) {
         if (query == null || query.isEmpty()) {
@@ -895,7 +1017,7 @@ public class GatewayToolServiceImpl implements GatewayToolService {
 
     /**
      * 合并并应用 HTTP 请求头。
-     *
+     * 
      * @param headers 请求头集合。
      * @param sourceHeaders 原始请求头映射。
      */
@@ -912,6 +1034,8 @@ public class GatewayToolServiceImpl implements GatewayToolService {
 
     /**
      * 解析工具配置中的 JSON 格式请求头
+     * 
+     * @param headersJson 工具参数 JSON。
      */
      private Map<String, String> parseHeaders(String headersJson) {
         if (!StringUtils.hasText(headersJson)) {
@@ -949,8 +1073,8 @@ public class GatewayToolServiceImpl implements GatewayToolService {
     /**
      * 归一化重试次数。
      *
-     * @param retryTimes 重试次数。
-     * @return 返回归一化后的重试次数。
+     * @param retryTimes 重试次数
+     * @return 归一化后的重试次数
      */
     private int normalizeRetryTimes(Integer retryTimes) {
         if (retryTimes == null || retryTimes < 0) {
@@ -962,8 +1086,8 @@ public class GatewayToolServiceImpl implements GatewayToolService {
     /**
      * 归一化超时。
      *
-     * @param timeout 超时时间。
-     * @return 返回归一化后的超时时间（毫秒）。
+     * @param timeout 超时时间
+     * @return 归一化后的超时时间（毫秒）
      */
     private int normalizeTimeout(Integer timeout) {
         if (timeout == null || timeout <= 0) {
@@ -975,8 +1099,8 @@ public class GatewayToolServiceImpl implements GatewayToolService {
     /**
      * 计算安全的排序值。
      *
-     * @param mapping 字段映射。
-     * @return 返回排序序号（空值时返回 0）。
+     * @param mapping 字段映射
+     * @return 排序序号（空值时返回 0）
      */
     private int safeSortOrder(McpToolMapping mapping) {
         if (mapping == null || mapping.getSortOrder() == null) {
@@ -988,8 +1112,8 @@ public class GatewayToolServiceImpl implements GatewayToolService {
     /**
      * 归一化 Schema 类型。
      *
-     * @param type 类型标识。
-     * @return 返回归一化结果。
+     * @param type 类型标识
+     * @return 归一化结果
      */
     private String normalizeSchemaType(String type) {
         if (!StringUtils.hasText(type)) {
@@ -1018,8 +1142,7 @@ public class GatewayToolServiceImpl implements GatewayToolService {
     /**
      * 解析 JSON 映射。
      *
-     * @param text 原始文本。
-     * @return 返回解析后的键值映射。
+     * @param text 原始文本
      */
     private Map<String, Object> parseJsonMap(String text) {
         if (!StringUtils.hasText(text)) {
@@ -1036,8 +1159,8 @@ public class GatewayToolServiceImpl implements GatewayToolService {
     /**
      * 将对象序列化为JSON 字符串。
      *
-     * @param value 输入值。
-     * @return 返回 JSON 字符串。
+     * @param value 值
+     * @return JSON 字符串
      */
     private String toJson(Object value) {
         if (value == null) {
@@ -1056,7 +1179,7 @@ public class GatewayToolServiceImpl implements GatewayToolService {
 
     /**
      * 构建工具调用成功结果。
-     *
+     * 
      * @param callId 调用ID。
      * @param gatewayId 网关ID。
      * @param toolName 工具名称。
@@ -1064,7 +1187,7 @@ public class GatewayToolServiceImpl implements GatewayToolService {
      * @param timeoutMs 超时时间（毫秒）。
      * @param startAt 开始时间戳。
      * @param arguments 工具入参。
-     * @return 返回ToolCallResult对象。
+     * @return 工具调用结果。
      */
     private ToolCallResult buildSuccessResult(String callId,
                                               String gatewayId,
@@ -1087,7 +1210,7 @@ public class GatewayToolServiceImpl implements GatewayToolService {
 
     /**
      * 构建工具调用失败结果。
-     *
+     * 
      * @param callId 调用ID。
      * @param gatewayId 网关ID。
      * @param toolName 工具名称。
@@ -1096,7 +1219,7 @@ public class GatewayToolServiceImpl implements GatewayToolService {
      * @param timeoutMs 超时时间（毫秒）。
      * @param startAt 开始时间戳。
      * @param arguments 工具入参。
-     * @return 返回ToolCallResult对象。
+     * @return 工具调用结果。
      */
     private ToolCallResult buildFailureResult(String callId,
                                               String gatewayId,
@@ -1120,6 +1243,13 @@ public class GatewayToolServiceImpl implements GatewayToolService {
 
     /**
      * 记录工具调用指标到可观测性服务
+     * 
+     * @param gatewayId 标识 ID。
+     * @param toolName 工具名称。
+     * @param success boolean 参数。
+     * @param errorCode 编码。
+     * @param timeoutMs 超时时间（毫秒）。
+     * @param startAt long 参数。
      */
      private void recordMetrics(String gatewayId,
                                String toolName,
@@ -1142,8 +1272,11 @@ public class GatewayToolServiceImpl implements GatewayToolService {
 
     /**
      * 根据异常信息分类错误码（超时 vs 通用失败）
+     * 
+     * @param e 异常信息。
+     * @return 异常堆栈文本。
      */
-     private String classifyErrorCode(Exception e) {
+    private String classifyErrorCode(Exception e) {
         if (e == null || !StringUtils.hasText(e.getMessage())) {
             return "TOOL_EXEC_FAILED";
         }
@@ -1165,11 +1298,31 @@ public class GatewayToolServiceImpl implements GatewayToolService {
     /**
      * HTTP 调用载荷，封装 URL、方法、请求头、查询参数和请求体
      */
-     private static class HttpInvokePayload {
+    private static class HttpInvokePayload {
+
+        /**
+         * 请求 URL。
+         */
         private String url;
+
+        /**
+         * HTTP 方法。
+         */
         private HttpMethod method;
+
+        /**
+         * 请求头参数。
+         */
         private Map<String, String> headers;
+
+        /**
+         * Query 参数。
+         */
         private Map<String, Object> query;
+
+        /**
+         * 请求体参数。
+         */
         private Map<String, Object> body;
     }
 }

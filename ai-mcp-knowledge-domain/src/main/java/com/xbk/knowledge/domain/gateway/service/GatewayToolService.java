@@ -17,9 +17,9 @@ public interface GatewayToolService {
     /**
      * 查询指定网关下所有已启用工具的清单（含 inputSchema）
      *
-     * 为什么：等价于 MCP 协议的 tools/list，供内部 ToolCallbackProvider 和外部 SSE 路径共用。
-     * 内部会自动处理 Schema 缓存（基于 SHA-256 hash 判断是否需要重新生成）。
-     *
+     * 等价于 MCP 协议的 tools/list，供内部 ToolCallbackProvider 和外部 SSE 路径共用。
+     * 内部自动处理 Schema 缓存（基于 SHA-256 hash 判断是否需要重新生成）。
+     * 
      * @param gatewayId 网关唯一标识
      * @return 工具清单列表，每个元素包含 name、description、inputSchema
      */
@@ -28,12 +28,12 @@ public interface GatewayToolService {
     /**
      * 执行工具调用（调用外部 HTTP 接口）
      *
-     * 为什么：等价于 MCP 协议的 tools/call，核心链路为：
+     * 等价于 MCP 协议的 tools/call，核心链路为
      * 参数映射 → 鉴权注入 → HTTP 请求 → 响应提取。
      * 支持超时控制和重试机制。
-     *
+     * 
      * @param gatewayId 网关唯一标识
-     * @param toolName  工具名称
+     * @param toolName 工具名称
      * @param arguments 调用参数（模型传入的 JSON 参数）
      * @return 工具调用结果（结构化文本）
      */
@@ -42,8 +42,8 @@ public interface GatewayToolService {
     /**
      * 获取网关能力声明（供外部 SSE 路径的 initialize 握手使用）
      *
-     * 为什么：等价于 MCP 协议的 initialize 响应，返回网关名称、版本、支持的能力等信息。
-     *
+     * 等价于 MCP 协议的 initialize 响应，返回网关名称、版本、支持的能力等信息。
+     * 
      * @param gatewayId 网关唯一标识
      * @return 网关能力声明
      */

@@ -43,7 +43,7 @@ public class AgentCreateRequest extends BaseRequest {
     private String description;
 
     /**
-     * 调用通道：agent/chat_stream，默认 agent。
+     * 调用通道agent/chat_stream，默认 agent。
      */
     @Builder.Default
     private String channel = "agent";

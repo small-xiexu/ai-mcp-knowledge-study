@@ -31,11 +31,14 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class IdentityRepositoryImpl implements IdentityRepository {
 
+    /**
+     * 身份域数据访问对象。
+     */
     private final IIdentityDao identityMapper;
 
     /**
      * 按用户名查询用户。
-     *
+     * 
      * @param username 用户名
      * @return 用户
      */
@@ -47,7 +50,7 @@ public class IdentityRepositoryImpl implements IdentityRepository {
 
     /**
      * 按用户ID查询用户。
-     *
+     * 
      * @param userId 用户ID
      * @return 用户
      */
@@ -59,7 +62,7 @@ public class IdentityRepositoryImpl implements IdentityRepository {
 
     /**
      * 查询用户的角色编码集合。
-     *
+     * 
      * @param userId 用户ID
      * @return 角色编码列表
      */
@@ -70,7 +73,7 @@ public class IdentityRepositoryImpl implements IdentityRepository {
 
     /**
      * 查询用户的权限编码集合。
-     *
+     * 
      * @param userId 用户ID
      * @return 权限编码列表
      */
@@ -81,7 +84,7 @@ public class IdentityRepositoryImpl implements IdentityRepository {
 
     /**
      * 查询所有启用权限编码。
-     *
+     * 
      * @return 权限编码列表
      */
     @Override
@@ -91,8 +94,8 @@ public class IdentityRepositoryImpl implements IdentityRepository {
 
     /**
      * 分页查询用户。
-     *
-     * @param query 查询条件
+     * 
+     * @param query 分页查询条件。
      * @return 用户列表
      */
     @Override
@@ -102,8 +105,8 @@ public class IdentityRepositoryImpl implements IdentityRepository {
 
     /**
      * 统计用户数量。
-     *
-     * @param query 查询条件
+     * 
+     * @param query 分页查询条件。
      * @return 总数
      */
     @Override
@@ -113,7 +116,7 @@ public class IdentityRepositoryImpl implements IdentityRepository {
 
     /**
      * 新增用户。
-     *
+     * 
      * @param user 用户实体
      * @return 新增后的用户
      */
@@ -125,7 +128,7 @@ public class IdentityRepositoryImpl implements IdentityRepository {
 
     /**
      * 更新用户基础信息。
-     *
+     * 
      * @param user 用户实体
      * @return 影响行数
      */
@@ -136,7 +139,7 @@ public class IdentityRepositoryImpl implements IdentityRepository {
 
     /**
      * 判断用户名是否已存在。
-     *
+     * 
      * @param username 用户名
      * @return 是否存在
      */
@@ -147,9 +150,9 @@ public class IdentityRepositoryImpl implements IdentityRepository {
 
     /**
      * 更新最后登录信息。
-     *
-     * @param userId    用户ID
-     * @param loginIp   登录IP
+     * 
+     * @param userId 用户ID
+     * @param loginIp 登录IP
      * @param loginTime 登录时间
      * @return 影响行数
      */
@@ -160,7 +163,7 @@ public class IdentityRepositoryImpl implements IdentityRepository {
 
     /**
      * 更新用户密码哈希。
-     *
+     * 
      * @param userId 用户ID
      * @param passwordHash 密码哈希
      * @param updateTime 更新时间
@@ -173,8 +176,8 @@ public class IdentityRepositoryImpl implements IdentityRepository {
 
     /**
      * 分页查询角色。
-     *
-     * @param query 查询条件
+     * 
+     * @param query 分页查询条件。
      * @return 角色列表
      */
     @Override
@@ -184,8 +187,8 @@ public class IdentityRepositoryImpl implements IdentityRepository {
 
     /**
      * 统计角色数量。
-     *
-     * @param query 查询条件
+     * 
+     * @param query 分页查询条件。
      * @return 总数
      */
     @Override
@@ -195,7 +198,7 @@ public class IdentityRepositoryImpl implements IdentityRepository {
 
     /**
      * 新增角色。
-     *
+     * 
      * @param role 角色实体
      * @return 新增后的角色
      */
@@ -207,7 +210,7 @@ public class IdentityRepositoryImpl implements IdentityRepository {
 
     /**
      * 更新角色。
-     *
+     * 
      * @param role 角色实体
      * @return 影响行数
      */
@@ -218,7 +221,7 @@ public class IdentityRepositoryImpl implements IdentityRepository {
 
     /**
      * 按ID查询角色。
-     *
+     * 
      * @param roleId 角色ID
      * @return 角色
      */
@@ -230,7 +233,7 @@ public class IdentityRepositoryImpl implements IdentityRepository {
 
     /**
      * 判断角色编码是否存在。
-     *
+     * 
      * @param roleCode 角色编码
      * @param excludeRoleId 排除的角色ID
      * @return 是否存在
@@ -242,7 +245,7 @@ public class IdentityRepositoryImpl implements IdentityRepository {
 
     /**
      * 查询角色绑定的权限 ID 列表。
-     *
+     * 
      * @param roleId 角色ID
      * @return 权限ID列表
      */
@@ -253,7 +256,7 @@ public class IdentityRepositoryImpl implements IdentityRepository {
 
     /**
      * 重建角色权限绑定。
-     *
+     * 
      * @param roleId 角色ID
      * @param permissionIds 权限ID列表
      * @param grantedBy 授权人
@@ -271,8 +274,8 @@ public class IdentityRepositoryImpl implements IdentityRepository {
 
     /**
      * 分页查询权限。
-     *
-     * @param query 查询条件
+     * 
+     * @param query 分页查询条件。
      * @return 权限列表
      */
     @Override
@@ -282,8 +285,8 @@ public class IdentityRepositoryImpl implements IdentityRepository {
 
     /**
      * 统计权限数量。
-     *
-     * @param query 查询条件
+     * 
+     * @param query 分页查询条件。
      * @return 总数
      */
     @Override
@@ -293,7 +296,7 @@ public class IdentityRepositoryImpl implements IdentityRepository {
 
     /**
      * 校验权限ID集合是否全部存在。
-     *
+     * 
      * @param permissionIds 权限ID集合
      * @return 命中数量
      */
@@ -307,7 +310,7 @@ public class IdentityRepositoryImpl implements IdentityRepository {
 
     /**
      * 查询用户绑定的角色 ID 列表。
-     *
+     * 
      * @param userId 用户ID
      * @return 角色ID列表
      */
@@ -322,7 +325,7 @@ public class IdentityRepositoryImpl implements IdentityRepository {
 
     /**
      * 校验角色ID集合是否全部存在。
-     *
+     * 
      * @param roleIds 角色ID集合
      * @return 命中数量
      */
@@ -336,7 +339,7 @@ public class IdentityRepositoryImpl implements IdentityRepository {
 
     /**
      * 重建用户角色绑定。
-     *
+     * 
      * @param userId 用户ID
      * @param roleIds 角色ID集合
      * @param grantedBy 授权人

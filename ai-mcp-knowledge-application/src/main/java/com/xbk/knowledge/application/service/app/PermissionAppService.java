@@ -15,9 +15,9 @@ public interface PermissionAppService {
 
     /**
      * 分页查询权限。
-     *
-     * @param query 查询条件
-     * @return 分页结果
+     * 
+     * @param query 分页查询条件。
+     * @return SysPermission 分页结果。
      */
     PageResult<SysPermission> queryPermissionPage(PermissionPageQuery query);
 }

@@ -21,14 +21,14 @@ public class ModelUsageQuery {
     /**
      * 开始时间（可选）
      *
-     * 为什么：限定统计时间范围
+     * 限定统计时间范围
      */
     private LocalDateTime startTime;
 
     /**
      * 结束时间（可选）
      *
-     * 为什么：限定统计时间范围
+     * 限定统计时间范围
      */
     private LocalDateTime endTime;
 }

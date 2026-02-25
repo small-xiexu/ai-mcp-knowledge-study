@@ -29,12 +29,34 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ApprovalExpireJob {
 
+    /**
+     * 每批处理审批单数量。
+     */
     private static final int BATCH_SIZE = 200;
+
+    /**
+     * 最大循环批次数。
+     */
     private static final int MAX_LOOP = 50;
 
+    /**
+     * 审批单仓储。
+     */
     private final ApprovalRequestRepository approvalRequestRepository;
+
+    /**
+     * Agent 运行记录仓储。
+     */
     private final AgentRunRepository agentRunRepository;
+
+    /**
+     * Agent 运行上下文仓储。
+     */
     private final AgentRunContextRepository agentRunContextRepository;
+
+    /**
+     * 系统审计事件仓储。
+     */
     private final SysAuditEventRepository sysAuditEventRepository;
 
     /**
@@ -77,7 +99,7 @@ public class ApprovalExpireJob {
         }
 
         if (StringUtils.hasText(runId)) {
-            // run 终态：FAILED（可解释）
+            // run 终态FAILED（可解释）
             agentRunRepository.updateStatus(runId, "FAILED", "审批超时（EXPIRED）", now);
             try {
                 agentRunContextRepository.updateStatus(runId, "EXPIRED");
@@ -91,8 +113,8 @@ public class ApprovalExpireJob {
 
     /**
      * 记录审批过期审计日志。
-     *
-     * @param req 请求对象。
+     * 
+     * @param req 审批请求记录。
      * @param now 当前时间。
      */
     private void recordExpireAudit(ApprovalRequest req, LocalDateTime now) {
@@ -101,7 +123,7 @@ public class ApprovalExpireJob {
         }
         String runId = req.getRunId();
 
-        // 过期任务是平台内部流程：operator 为空，operator_type=system
+        // 过期任务是平台内部流程operator 为空，operator_type=system
         String previousTraceId = MDC.get(TraceIdUtils.TRACE_ID_KEY);
         if (StringUtils.hasText(runId)) {
             MDC.put(TraceIdUtils.TRACE_ID_KEY, runId);

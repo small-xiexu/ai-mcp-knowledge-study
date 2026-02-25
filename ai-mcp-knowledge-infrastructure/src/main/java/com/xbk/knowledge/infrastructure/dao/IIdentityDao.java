@@ -25,62 +25,62 @@ public interface IIdentityDao extends BaseMapper<SysUserPO> {
 
     /**
      * 按用户名查询用户。
-     *
-     * @param username 用户名
+     * 
+     * @param username 用户名。
      * @return 用户实体
      */
     SysUserPO findByUsername(@Param("username") String username);
 
     /**
      * 按用户ID查询用户。
-     *
-     * @param userId 用户ID
+     * 
+     * @param userId 标识 ID。
      * @return 用户实体
      */
     SysUserPO findById(@Param("userId") Long userId);
 
     /**
      * 查询角色编码集合。
-     *
-     * @param userId 用户ID
+     * 
+     * @param userId 标识 ID。
      * @return 角色编码列表
      */
     List<String> findRoleCodes(@Param("userId") Long userId);
 
     /**
      * 查询权限编码集合。
-     *
-     * @param userId 用户ID
+     * 
+     * @param userId 标识 ID。
      * @return 权限编码列表
      */
     List<String> findPermissionCodes(@Param("userId") Long userId);
 
     /**
      * 查询全部启用权限编码。
-     *
+     * 
      * @return 权限编码列表
      */
     List<String> findAllPermissionCodes();
 
     /**
      * 分页查询用户。
-     *
-     * @param query 查询条件
+     * 
+     * @param query 分页查询条件。
      * @return 用户列表
      */
     List<SysUserPO> findPage(UserPageQuery query);
 
     /**
      * 统计用户总数。
-     *
-     * @param query 查询条件
+     * 
+     * @param query 分页查询条件。
      * @return 用户总数
      */
     long count(UserPageQuery query);
 
     /**
      * 插入用户。
-     *
+     * 
      * @param user 用户实体
      * @return 影响行数
      */
@@ -88,7 +88,7 @@ public interface IIdentityDao extends BaseMapper<SysUserPO> {
 
     /**
      * 更新用户基础信息。
-     *
+     * 
      * @param user 用户实体
      * @return 影响行数
      */
@@ -96,18 +96,18 @@ public interface IIdentityDao extends BaseMapper<SysUserPO> {
 
     /**
      * 判断用户名是否存在。
-     *
-     * @param username 用户名
+     * 
+     * @param username 用户名。
      * @return 数量
      */
     long countByUsername(@Param("username") String username);
 
     /**
      * 更新用户最后登录信息。
-     *
-     * @param userId 用户ID
-     * @param loginIp 登录IP
-     * @param loginTime 登录时间
+     * 
+     * @param userId 标识 ID。
+     * @param loginIp IP 地址。
+     * @param loginTime 最后登录时间。
      * @return 影响行数
      */
     int updateLastLogin(@Param("userId") Long userId,
@@ -116,10 +116,10 @@ public interface IIdentityDao extends BaseMapper<SysUserPO> {
 
     /**
      * 更新用户密码哈希。
-     *
-     * @param userId 用户ID
-     * @param passwordHash 密码哈希
-     * @param updateTime 更新时间
+     * 
+     * @param userId 标识 ID。
+     * @param passwordHash 密码哈希。
+     * @param updateTime 密码更新时间。
      * @return 影响行数
      */
     int updatePassword(@Param("userId") Long userId,
@@ -128,23 +128,23 @@ public interface IIdentityDao extends BaseMapper<SysUserPO> {
 
     /**
      * 分页查询角色。
-     *
-     * @param query 查询条件
+     * 
+     * @param query 分页查询条件。
      * @return 角色列表
      */
     List<SysRolePO> findRolePage(RolePageQuery query);
 
     /**
      * 统计角色数量。
-     *
-     * @param query 查询条件
+     * 
+     * @param query 分页查询条件。
      * @return 总数
      */
     long countRole(RolePageQuery query);
 
     /**
      * 新增角色。
-     *
+     * 
      * @param role 角色实体
      * @return 影响行数
      */
@@ -152,7 +152,7 @@ public interface IIdentityDao extends BaseMapper<SysUserPO> {
 
     /**
      * 更新角色。
-     *
+     * 
      * @param role 角色实体
      * @return 影响行数
      */
@@ -160,17 +160,17 @@ public interface IIdentityDao extends BaseMapper<SysUserPO> {
 
     /**
      * 按ID查询角色。
-     *
-     * @param roleId 角色ID
+     * 
+     * @param roleId 标识 ID。
      * @return 角色实体
      */
     SysRolePO findRoleById(@Param("roleId") Long roleId);
 
     /**
      * 统计角色编码数量。
-     *
-     * @param roleCode 角色编码
-     * @param excludeRoleId 排除角色ID
+     * 
+     * @param roleCode 角色编码。
+     * @param excludeRoleId 标识 ID。
      * @return 数量
      */
     long countByRoleCode(@Param("roleCode") String roleCode,
@@ -178,26 +178,26 @@ public interface IIdentityDao extends BaseMapper<SysUserPO> {
 
     /**
      * 查询角色绑定权限 ID 列表。
-     *
-     * @param roleId 角色ID
+     * 
+     * @param roleId 标识 ID。
      * @return 权限ID列表
      */
     List<Long> findRolePermissionIds(@Param("roleId") Long roleId);
 
     /**
      * 删除角色权限关系。
-     *
-     * @param roleId 角色ID
+     * 
+     * @param roleId 标识 ID。
      * @return 影响行数
      */
     int deleteRolePermissions(@Param("roleId") Long roleId);
 
     /**
      * 插入角色权限关系。
-     *
-     * @param roleId 角色ID
-     * @param permissionId 权限ID
-     * @param grantedBy 授权人ID
+     * 
+     * @param roleId 标识 ID。
+     * @param permissionId 标识 ID。
+     * @param grantedBy 授权人。
      * @return 影响行数
      */
     int insertRolePermission(@Param("roleId") Long roleId,
@@ -206,58 +206,58 @@ public interface IIdentityDao extends BaseMapper<SysUserPO> {
 
     /**
      * 分页查询权限。
-     *
-     * @param query 查询条件
+     * 
+     * @param query 分页查询条件。
      * @return 权限列表
      */
     List<SysPermissionPO> findPermissionPage(PermissionPageQuery query);
 
     /**
      * 统计权限数量。
-     *
-     * @param query 查询条件
+     * 
+     * @param query 分页查询条件。
      * @return 总数
      */
     long countPermission(PermissionPageQuery query);
 
     /**
      * 统计权限ID数量。
-     *
-     * @param permissionIds 权限ID集合
+     * 
+     * @param permissionIds 待统计的权限 ID 列表。
      * @return 命中数量
      */
     long countPermissionByIds(@Param("permissionIds") List<Long> permissionIds);
 
     /**
      * 查询用户绑定的角色 ID 列表。
-     *
-     * @param userId 用户ID
+     * 
+     * @param userId 标识 ID。
      * @return 角色ID列表
      */
     List<Long> findUserRoleIds(@Param("userId") Long userId);
 
     /**
      * 统计角色ID数量。
-     *
-     * @param roleIds 角色ID集合
+     * 
+     * @param roleIds 待统计的角色 ID 列表。
      * @return 命中数量
      */
     long countRolesByIds(@Param("roleIds") List<Long> roleIds);
 
     /**
      * 删除用户角色关系。
-     *
-     * @param userId 用户ID
+     * 
+     * @param userId 标识 ID。
      * @return 影响行数
      */
     int deleteUserRoles(@Param("userId") Long userId);
 
     /**
      * 插入用户角色关系。
-     *
-     * @param userId 用户ID
-     * @param roleId 角色ID
-     * @param grantedBy 授权人
+     * 
+     * @param userId 标识 ID。
+     * @param roleId 标识 ID。
+     * @param grantedBy 授权人。
      * @return 影响行数
      */
     int insertUserRole(@Param("userId") Long userId,

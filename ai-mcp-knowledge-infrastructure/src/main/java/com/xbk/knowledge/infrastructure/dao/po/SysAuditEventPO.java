@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 
 /**
  * 身份域审计事件实体。
- * 对应数据库表：sys_audit_event
+ * 对应数据库表sys_audit_event
  *
  * 职责：领域实体，用于承载关键操作审计记录。
  *
@@ -96,7 +96,7 @@ public class SysAuditEventPO {
     private String newValue;
 
     /**
-     * 结果：1成功、0失败。
+     * 结果1成功、0失败。
      */
     private Integer result;
 

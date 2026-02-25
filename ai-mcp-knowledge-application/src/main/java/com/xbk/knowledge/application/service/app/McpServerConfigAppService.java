@@ -19,15 +19,15 @@ public interface McpServerConfigAppService {
 
     /**
      * 分页查询 MCP Server 配置
-     *
+     * 
      * @param query 分页查询条件
-     * @return 分页结果
+     * @return MCP 服务配置分页结果。
      */
     PageResult<McpServerConfig> queryMcpServerConfigPage(McpServerConfigPageQuery query);
 
     /**
      * 根据 ID 查询 MCP Server 配置
-     *
+     * 
      * @param query ID 查询条件
      * @return MCP Server 配置
      */
@@ -35,7 +35,7 @@ public interface McpServerConfigAppService {
 
     /**
      * 创建 MCP Server 配置
-     *
+     * 
      * @param config MCP Server 配置
      * @return 创建后的配置
      */
@@ -43,7 +43,7 @@ public interface McpServerConfigAppService {
 
     /**
      * 更新 MCP Server 配置
-     *
+     * 
      * @param config MCP Server 配置（必须包含 ID）
      * @return 更新后的配置
      */
@@ -51,14 +51,14 @@ public interface McpServerConfigAppService {
 
     /**
      * 删除 MCP Server 配置
-     *
+     * 
      * @param query ID 查询条件
      */
     void deleteMcpServerConfig(IdQuery query);
 
     /**
      * 启用 MCP Server
-     *
+     * 
      * @param query ID 查询条件
      * @return 更新后的配置
      */
@@ -66,7 +66,7 @@ public interface McpServerConfigAppService {
 
     /**
      * 禁用 MCP Server
-     *
+     * 
      * @param query ID 查询条件
      * @return 更新后的配置
      */
@@ -74,7 +74,7 @@ public interface McpServerConfigAppService {
 
     /**
      * 查询启用的 MCP Server
-     *
+     * 
      * @param query 启用状态查询条件
      * @return MCP Server 列表
      */
@@ -87,7 +87,7 @@ public interface McpServerConfigAppService {
 
     /**
      * 刷新指定 MCP Server 运行时连接
-     *
+     * 
      * @param query ID 查询条件
      */
     void refreshServer(IdQuery query);

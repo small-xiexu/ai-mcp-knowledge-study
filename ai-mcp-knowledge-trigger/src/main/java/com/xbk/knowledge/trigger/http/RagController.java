@@ -31,6 +31,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RagController implements IRagService {
 
+    /**
+     * RAG 应用服务。
+     */
     private final RagAppService ragAppService;
 
     /**
@@ -41,7 +44,7 @@ public class RagController implements IRagService {
      * 3. 应用层汇总可用标签并去重返回。
      * 4. Controller 接收结果并封装响应。
      * 5. 统一返回 `Result.success(tags)`。
-     *
+     * 
      * @return 标签列表
      */
     @PostMapping("/tags")
@@ -60,8 +63,8 @@ public class RagController implements IRagService {
      * 3. Controller 调用 `ragAppService.deleteRagTag` 执行删除。
      * 4. 应用层清理标签对应文档与向量索引。
      * 5. 返回删除结果布尔值。
-     *
-     * @param ragTag RAG 标签
+     * 
+     * @param ragTag RAG 标签。
      * @return 删除结果
      */
     @PostMapping("/delete")
@@ -80,8 +83,8 @@ public class RagController implements IRagService {
      * 3. Controller 调用 `ragAppService.countByRagTag` 查询数量。
      * 4. 应用层从向量库或索引层返回统计值。
      * 5. 返回数量结果。
-     *
-     * @param ragTag RAG 标签
+     * 
+     * @param ragTag RAG 标签。
      * @return 向量数量
      */
     @PostMapping("/count")
@@ -100,9 +103,9 @@ public class RagController implements IRagService {
      * 3. Controller 调用 `ragAppService.uploadFiles` 执行同步导入。
      * 4. 应用层完成解析、切片、向量化和入库。
      * 5. 返回上传成功布尔值。
-     *
-     * @param ragTag RAG 标签
-     * @param files 文件列表
+     * 
+     * @param ragTag RAG 标签。
+     * @param files 上传文件列表。
      * @return 上传结果
      */
     @PostMapping(value = "/upload", headers = "content-type=multipart/form-data")
@@ -122,9 +125,9 @@ public class RagController implements IRagService {
      * 3. Controller 调用 `ragAppService.uploadFilesAsync` 创建任务。
      * 4. 应用层写入任务记录并异步执行导入流程。
      * 5. 返回“任务已创建”和任务 ID。
-     *
-     * @param ragTag RAG 标签
-     * @param files 文件列表
+     * 
+     * @param ragTag RAG 标签。
+     * @param files 上传文件列表。
      * @return 异步任务 ID
      */
     @PostMapping(value = "/upload/async", headers = "content-type=multipart/form-data")
@@ -144,7 +147,7 @@ public class RagController implements IRagService {
      * 3. Controller 提取仓库参数并调用 `analyzeGitRepository`。
      * 4. 应用层拉取仓库、分析文件并提交异步向量化任务。
      * 5. 返回“任务已提交”和任务 ID。
-     *
+     * 
      * @param request Git 分析请求
      * @return 异步任务 ID
      */
@@ -169,7 +172,7 @@ public class RagController implements IRagService {
      * 3. Controller 调用 `ragAppService.queryTask` 查询任务实体。
      * 4. 任务存在时转换为 `RagTaskResponse`，不存在返回 null。
      * 5. 统一封装 `Result.success` 返回。
-     *
+     * 
      * @param request 任务 ID 请求
      * @return 任务状态详情
      */
@@ -193,7 +196,7 @@ public class RagController implements IRagService {
      * 3. Controller 调用 `ragAppService.cancelTask` 发起取消。
      * 4. 应用层更新任务状态并尝试中断执行。
      * 5. 返回取消是否成功。
-     *
+     * 
      * @param request 任务 ID 请求
      * @return 取消结果
      */
@@ -213,7 +216,7 @@ public class RagController implements IRagService {
      * 3. Controller 调用 `ragAppService.retryTask` 创建重试任务。
      * 4. 应用层复制原任务关键参数并重新排队执行。
      * 5. 返回“重试任务已创建”和新任务 ID。
-     *
+     * 
      * @param request 任务 ID 请求
      * @return 新任务 ID
      */
@@ -233,7 +236,7 @@ public class RagController implements IRagService {
      * 3. Controller 调用 `ragAppService.queryTaskPage` 查询分页任务。
      * 4. 将 `RagTask` 分页结果转换为 `RagTaskResponse` 分页结构。
      * 5. 统一封装 `Result.success` 返回。
-     *
+     * 
      * @param request 分页请求
      * @return 任务列表分页结果
      */

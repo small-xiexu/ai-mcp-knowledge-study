@@ -19,12 +19,15 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AgentRunRepositoryImpl implements AgentRunRepository {
 
+    /**
+     * Agent 运行记录数据访问对象。
+     */
     private final IAgentRunDao agentRunDao;
 
     /**
      * 创建并持久化Agent 运行记录数据。
      *
-     * @param run 运行记录。
+     * @param run 运行记录
      */
     @Override
     public void insert(AgentRun run) {
@@ -40,7 +43,7 @@ public class AgentRunRepositoryImpl implements AgentRunRepository {
     /**
      * 更新Agent 运行记录数据。
      *
-     * @param run 运行记录。
+     * @param run 运行记录
      */
     @Override
     public void updateStatusAndMetrics(AgentRun run) {
@@ -57,7 +60,7 @@ public class AgentRunRepositoryImpl implements AgentRunRepository {
      * 查询Agent 运行记录。
      *
      * @param runId 运行 ID
-     * @return 返回 AgentRun 查询结果（可能为空）。
+     * @return AgentRun 查询结果（可能为空）
      */
     @Override
     public Optional<AgentRun> findByRunId(String runId) {
@@ -73,8 +76,8 @@ public class AgentRunRepositoryImpl implements AgentRunRepository {
      * @param runId 运行 ID
      * @param status 状态值
      * @param errorMessage 错误信息
-     * @param endedAt 结束时间。
-     * @return 返回 Agent 运行记录处理条数。
+     * @param endedAt 结束时间
+     * @return Agent 运行记录处理条数
      */
     @Override
     public int updateStatus(String runId, String status, String errorMessage, LocalDateTime endedAt) {
@@ -89,7 +92,7 @@ public class AgentRunRepositoryImpl implements AgentRunRepository {
      *
      * @param runId 运行 ID
      * @param delta 增量值
-     * @return 返回 Agent 运行记录处理条数。
+     * @return Agent 运行记录处理条数
      */
     @Override
     public int incrementToolCallCount(String runId, int delta) {
@@ -104,7 +107,7 @@ public class AgentRunRepositoryImpl implements AgentRunRepository {
      *
      * @param runId 运行 ID
      * @param delta 增量值
-     * @return 返回 Agent 运行记录处理条数。
+     * @return Agent 运行记录处理条数
      */
     @Override
     public int incrementToolDeniedCount(String runId, int delta) {
@@ -118,7 +121,7 @@ public class AgentRunRepositoryImpl implements AgentRunRepository {
      * 删除Agent 运行记录数据。
      *
      * @param agentId Agent ID
-     * @return 返回 Agent 运行记录处理条数。
+     * @return Agent 运行记录处理条数
      */
     @Override
     public int deleteByAgentId(Long agentId) {
@@ -130,6 +133,9 @@ public class AgentRunRepositoryImpl implements AgentRunRepository {
 
     /**
      * 实体转持久化对象。
+     *
+     * @param run 运行记录实体
+     * @return 运行记录持久化实体。
      */
     private AgentRunPO toPO(AgentRun run) {
         if (run == null) {
@@ -163,6 +169,9 @@ public class AgentRunRepositoryImpl implements AgentRunRepository {
 
     /**
      * 持久化对象转实体。
+     *
+     * @param po 运行记录持久化实体
+     * @return 运行记录实体。
      */
     private AgentRun toEntity(AgentRunPO po) {
         if (po == null) {

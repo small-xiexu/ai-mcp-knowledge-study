@@ -14,11 +14,23 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AgentPageQuery {
 
+    /**
+     * 关键字。
+     */
     private String keyword;
 
+    /**
+     * 状态。
+     */
     private String status;
 
+    /**
+     * 分页偏移量。
+     */
     private Integer offset;
 
+    /**
+     * 分页大小。
+     */
     private Integer pageSize;
 }

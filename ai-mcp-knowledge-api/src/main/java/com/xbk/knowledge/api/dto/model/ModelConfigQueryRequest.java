@@ -20,7 +20,7 @@ public class ModelConfigQueryRequest extends PageRequest {
      */
     private static final long serialVersionUID = 1L;
 
-    // 可以在这里添加额外的查询条件，如：
+    // 可以在这里添加额外的查询条件，如
     // private Boolean enabled; // 是否启用
     // private ModelType modelType; // 模型类型
 }

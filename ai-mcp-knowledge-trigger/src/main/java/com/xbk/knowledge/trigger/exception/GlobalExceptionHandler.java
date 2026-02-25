@@ -35,9 +35,9 @@ public class GlobalExceptionHandler {
     /**
      * 处理 Sa-Token 未登录异常
      *
-     * 为什么：前端需要稳定识别 401 语义并触发重新登录。
-     *
-     * @param e       未登录异常
+     * 前端需要稳定识别 401 语义并触发重新登录。
+     * 
+     * @param e 未登录异常
      * @param request HTTP 请求
      * @return 错误响应
      */
@@ -53,9 +53,9 @@ public class GlobalExceptionHandler {
     /**
      * 处理 Sa-Token 无权限异常
      *
-     * 为什么：明确区分 403，便于前端做权限提示。
-     *
-     * @param e       无权限异常
+     * 明确区分 403，便于前端做权限提示。
+     * 
+     * @param e 无权限异常
      * @param request HTTP 请求
      * @return 错误响应
      */
@@ -71,9 +71,9 @@ public class GlobalExceptionHandler {
     /**
      * 处理业务异常
      *
-     * 为什么：业务异常需要按业务码返回，避免被统一为 500。
-     *
-     * @param e       业务异常
+     * 业务异常需要按业务码返回，避免被统一为 500。
+     * 
+     * @param e 业务异常
      * @param request HTTP 请求
      * @return 错误响应
      */
@@ -90,9 +90,9 @@ public class GlobalExceptionHandler {
     /**
      * 处理资源未找到异常
      *
-     * 为什么：区分 404 语义，便于前端与监控系统识别。
-     *
-     * @param e       资源未找到异常
+     * 区分 404 语义，便于前端与监控系统识别。
+     * 
+     * @param e 资源未找到异常
      * @param request HTTP 请求
      * @return 错误响应
      */
@@ -109,9 +109,9 @@ public class GlobalExceptionHandler {
     /**
      * 处理参数校验异常（@Valid 注解触发）
      *
-     * 为什么：集中收敛校验错误，返回字段级错误信息便于前端提示。
-     *
-     * @param e       校验异常对象
+     * 集中收敛校验错误，返回字段级错误信息便于前端提示。
+     * 
+     * @param e 校验异常对象
      * @param request HTTP 请求
      * @return 错误响应
      */
@@ -140,9 +140,9 @@ public class GlobalExceptionHandler {
     /**
      * 处理绑定异常（表单提交时触发）
      *
-     * 为什么：表单绑定失败需给出具体字段错误，避免泛化为 500。
-     *
-     * @param e       绑定异常
+     * 表单绑定失败需给出具体字段错误，避免泛化为 500。
+     * 
+     * @param e 绑定异常
      * @param request HTTP 请求
      * @return 错误响应
      */
@@ -171,9 +171,9 @@ public class GlobalExceptionHandler {
     /**
      * 处理非法参数异常
      *
-     * 为什么：参数非法属于客户端问题，应返回 400 便于纠错。
-     *
-     * @param e       非法参数异常
+     * 参数非法属于客户端问题，应返回 400 便于纠错。
+     * 
+     * @param e 非法参数异常
      * @param request HTTP 请求
      * @return 错误响应
      */
@@ -189,9 +189,9 @@ public class GlobalExceptionHandler {
     /**
      * 处理运行时异常
      *
-     * 为什么：运行时异常统一兜底，确保接口返回结构稳定。
-     *
-     * @param e       运行时异常
+     * 运行时异常统一兜底，确保接口返回结构稳定。
+     * 
+     * @param e 运行时异常
      * @param request HTTP 请求
      * @return 错误响应
      */
@@ -200,7 +200,7 @@ public class GlobalExceptionHandler {
     public Result<Object> handleRuntimeException(RuntimeException e, HttpServletRequest request) {
         String requestUri = request.getRequestURI();
         String message = e.getMessage();
-        String responseMessage = "系统内部错误：" + message;
+        String responseMessage = "系统内部错误" + message;
         log.error("运行时异常: path={}, message={}", requestUri, message, e);
         return Result.error(ResultCode.INTERNAL_ERROR, responseMessage);
     }
@@ -208,9 +208,9 @@ public class GlobalExceptionHandler {
     /**
      * 处理所有未捕获的异常
      *
-     * 为什么：最后一道兜底，防止异常逃逸导致非 JSON 响应。
-     *
-     * @param e       异常
+     * 最后一道兜底，防止异常逃逸导致非 JSON 响应。
+     * 
+     * @param e 异常
      * @param request HTTP 请求
      * @return 错误响应
      */

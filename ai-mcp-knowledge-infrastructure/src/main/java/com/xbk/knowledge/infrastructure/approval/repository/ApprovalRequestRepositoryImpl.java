@@ -23,13 +23,16 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ApprovalRequestRepositoryImpl implements ApprovalRequestRepository {
 
+    /**
+     * 审批请求数据访问对象。
+     */
     private final IApprovalRequestDao mapper;
 
     /**
      * 创建并持久化审批请求数据。
-     *
+     * 
      * @param request 审批请求创建参数。
-     * @return 返回 ApprovalRequest 数据。
+     * @return ApprovalRequest 数据。
      */
     @Override
     public ApprovalRequest insert(ApprovalRequest request) {
@@ -50,9 +53,9 @@ public class ApprovalRequestRepositoryImpl implements ApprovalRequestRepository 
 
     /**
      * 查询审批请求。
-     *
+     * 
      * @param id 主键 ID
-     * @return 返回 ApprovalRequest 查询结果（可能为空）。
+     * @return ApprovalRequest 查询结果（可能为空）。
      */
     @Override
     public Optional<ApprovalRequest> findById(Long id) {
@@ -65,11 +68,11 @@ public class ApprovalRequestRepositoryImpl implements ApprovalRequestRepository 
 
     /**
      * 查询审批请求。
-     *
+     * 
      * @param runId 运行 ID
      * @param toolKey 工具标识
      * @param now 当前时间
-     * @return 返回 ApprovalRequest 查询结果（可能为空）。
+     * @return ApprovalRequest 查询结果（可能为空）。
      */
     @Override
     public Optional<ApprovalRequest> findLatestApproved(String runId, String toolKey, LocalDateTime now) {
@@ -82,11 +85,11 @@ public class ApprovalRequestRepositoryImpl implements ApprovalRequestRepository 
 
     /**
      * 查询审批请求。
-     *
+     * 
      * @param runId 运行 ID
      * @param toolKey 工具标识
      * @param now 当前时间
-     * @return 返回 ApprovalRequest 查询结果（可能为空）。
+     * @return ApprovalRequest 查询结果（可能为空）。
      */
     @Override
     public Optional<ApprovalRequest> findLatestPending(String runId, String toolKey, LocalDateTime now) {
@@ -99,12 +102,12 @@ public class ApprovalRequestRepositoryImpl implements ApprovalRequestRepository 
 
     /**
      * 标记业务状态。
-     *
+     * 
      * @param id 主键 ID
      * @param approverId 审批人 ID。
      * @param decisionComment 审批意见。
      * @param decidedAt 审批时间。
-     * @return 返回审批通过更新条数。
+     * @return 审批通过更新条数。
      */
     @Override
     public int markApproved(Long id, Long approverId, String decisionComment, LocalDateTime decidedAt) {
@@ -116,12 +119,12 @@ public class ApprovalRequestRepositoryImpl implements ApprovalRequestRepository 
 
     /**
      * 标记业务状态。
-     *
+     * 
      * @param id 主键 ID
      * @param approverId 审批人 ID。
      * @param decisionComment 审批意见。
      * @param decidedAt 审批时间。
-     * @return 返回审批拒绝更新条数。
+     * @return 审批拒绝更新条数。
      */
     @Override
     public int markRejected(Long id, Long approverId, String decisionComment, LocalDateTime decidedAt) {
@@ -133,11 +136,11 @@ public class ApprovalRequestRepositoryImpl implements ApprovalRequestRepository 
 
     /**
      * 根据筛选条件查询审批请求列表。
-     *
+     * 
      * @param status 状态值
      * @param offset 分页偏移量
      * @param pageSize 分页大小
-     * @return 返回 ApprovalRequest 列表数据。
+     * @return ApprovalRequest 列表数据。
      */
     @Override
     public List<ApprovalRequest> list(String status, int offset, int pageSize) {
@@ -148,7 +151,7 @@ public class ApprovalRequestRepositoryImpl implements ApprovalRequestRepository 
 
     /**
      * 按条件统计业务数量。
-     *
+     * 
      * @param status 状态值
      * @return 统计数量
      */
@@ -159,10 +162,10 @@ public class ApprovalRequestRepositoryImpl implements ApprovalRequestRepository 
 
     /**
      * 根据筛选条件查询审批请求列表。
-     *
+     * 
      * @param now 当前时间
      * @param limit 限制数量
-     * @return 返回 ApprovalRequest 列表数据。
+     * @return ApprovalRequest 列表数据。
      */
     @Override
     public List<ApprovalRequest> listExpiredPending(LocalDateTime now, int limit) {
@@ -176,11 +179,11 @@ public class ApprovalRequestRepositoryImpl implements ApprovalRequestRepository 
 
     /**
      * 标记业务状态。
-     *
+     * 
      * @param id 主键 ID
      * @param decisionComment 审批意见。
      * @param decidedAt 审批时间。
-     * @return 返回审批过期更新条数。
+     * @return 审批过期更新条数。
      */
     @Override
     public int markExpired(Long id, String decisionComment, LocalDateTime decidedAt) {
@@ -192,9 +195,9 @@ public class ApprovalRequestRepositoryImpl implements ApprovalRequestRepository 
 
     /**
      * 删除审批请求数据。
-     *
+     * 
      * @param agentId Agent ID
-     * @return 返回审批记录删除条数。
+     * @return 审批记录删除条数。
      */
     @Override
     public int deleteByAgentId(Long agentId) {

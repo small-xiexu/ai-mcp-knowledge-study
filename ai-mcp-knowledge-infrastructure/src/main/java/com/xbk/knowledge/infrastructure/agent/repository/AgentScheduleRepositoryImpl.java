@@ -24,13 +24,16 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AgentScheduleRepositoryImpl implements AgentScheduleRepository {
 
+    /**
+     * Agent 调度数据访问对象。
+     */
     private final IAgentScheduleDao agentScheduleDao;
 
     /**
      * 查询Agent 调度。
-     *
-     * @param query 查询条件
-     * @return 返回 AgentSchedule 查询结果（可能为空）。
+     * 
+     * @param query 主键查询条件。
+     * @return AgentSchedule 查询结果（可能为空）。
      */
     @Override
     public Optional<AgentSchedule> findById(AgentScheduleIdQuery query) {
@@ -42,9 +45,9 @@ public class AgentScheduleRepositoryImpl implements AgentScheduleRepository {
 
     /**
      * 按智能体ID查询调度配置列表。
-     *
+     * 
      * @param agentId 智能体ID。
-     * @return 返回智能体调度配置列表。
+     * @return 智能体调度配置列表。
      */
     @Override
     public List<AgentSchedule> listByAgentId(Long agentId) {
@@ -59,11 +62,11 @@ public class AgentScheduleRepositoryImpl implements AgentScheduleRepository {
 
     /**
      * 判断智能体下调度名称是否已存在。
-     *
+     * 
      * @param agentId 智能体ID。
      * @param scheduleName 调度名称。
      * @param excludeId 排除的记录ID。
-     * @return 返回是否满足业务条件。
+     * @return 是否满足业务条件。
      */
     @Override
     public boolean existsByAgentIdAndScheduleName(Long agentId, String scheduleName, Long excludeId) {
@@ -75,9 +78,9 @@ public class AgentScheduleRepositoryImpl implements AgentScheduleRepository {
 
     /**
      * 创建并持久化Agent 调度数据。
-     *
+     * 
      * @param schedule 调度配置。
-     * @return 返回 AgentSchedule 数据。
+     * @return AgentSchedule 数据。
      */
     @Override
     public AgentSchedule insert(AgentSchedule schedule) {
@@ -99,9 +102,9 @@ public class AgentScheduleRepositoryImpl implements AgentScheduleRepository {
 
     /**
      * 更新Agent 调度数据。
-     *
+     * 
      * @param schedule 调度配置。
-     * @return 返回调度更新条数。
+     * @return 调度更新条数。
      */
     @Override
     public int update(AgentSchedule schedule) {
@@ -116,11 +119,11 @@ public class AgentScheduleRepositoryImpl implements AgentScheduleRepository {
 
     /**
      * 更新Agent 调度数据。
-     *
+     * 
      * @param id 主键 ID
      * @param enabled 启用状态
      * @param updatedBy 更新人 ID
-     * @return 返回调度启停更新条数。
+     * @return 调度启停更新条数。
      */
     @Override
     public int updateEnabled(Long id, Boolean enabled, Long updatedBy) {
@@ -132,11 +135,11 @@ public class AgentScheduleRepositoryImpl implements AgentScheduleRepository {
 
     /**
      * 更新Agent 调度数据。
-     *
+     * 
      * @param id 主键 ID
      * @param xxlJobId XXL-JOB 任务 ID。
      * @param updatedBy 更新人 ID
-     * @return 返回调度绑定更新条数。
+     * @return 调度绑定更新条数。
      */
     @Override
     public int updateXxlJobId(Long id, Long xxlJobId, Long updatedBy) {
@@ -148,9 +151,9 @@ public class AgentScheduleRepositoryImpl implements AgentScheduleRepository {
 
     /**
      * 删除Agent 调度数据。
-     *
+     * 
      * @param id 主键 ID
-     * @return 返回调度删除条数。
+     * @return 调度删除条数。
      */
     @Override
     public int deleteById(Long id) {
@@ -162,9 +165,9 @@ public class AgentScheduleRepositoryImpl implements AgentScheduleRepository {
 
     /**
      * 删除Agent 调度数据。
-     *
+     * 
      * @param agentId Agent ID
-     * @return 返回调度删除条数。
+     * @return 调度删除条数。
      */
     @Override
     public int deleteByAgentId(Long agentId) {
@@ -176,8 +179,8 @@ public class AgentScheduleRepositoryImpl implements AgentScheduleRepository {
 
     /**
      * 按条件统计业务数量。
-     *
-     * @param query 查询条件
+     * 
+     * @param query 分页查询条件。
      * @return 统计数量
      */
     @Override
@@ -190,9 +193,9 @@ public class AgentScheduleRepositoryImpl implements AgentScheduleRepository {
 
     /**
      * 查询Agent 调度。
-     *
-     * @param query 查询条件
-     * @return 返回 AgentSchedule 列表数据。
+     * 
+     * @param query 分页查询条件。
+     * @return AgentSchedule 列表数据。
      */
     @Override
     public List<AgentSchedule> findPage(AgentSchedulePageQuery query) {
@@ -207,6 +210,9 @@ public class AgentScheduleRepositoryImpl implements AgentScheduleRepository {
 
     /**
      * 实体转持久化对象。
+     * 
+     * @param schedule 调度配置实体。
+     * @return 调度配置持久化实体。
      */
     private AgentSchedulePO toPO(AgentSchedule schedule) {
         if (schedule == null) {
@@ -231,6 +237,9 @@ public class AgentScheduleRepositoryImpl implements AgentScheduleRepository {
 
     /**
      * 持久化对象转实体。
+     * 
+     * @param po 调度配置持久化实体。
+     * @return 调度配置实体。
      */
     private AgentSchedule toEntity(AgentSchedulePO po) {
         if (po == null) {

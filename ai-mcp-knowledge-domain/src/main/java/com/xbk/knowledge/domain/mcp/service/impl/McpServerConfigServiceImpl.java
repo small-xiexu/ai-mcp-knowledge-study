@@ -28,15 +28,18 @@ import java.util.function.Supplier;
 @Service
 @RequiredArgsConstructor
 public class McpServerConfigServiceImpl implements IMcpServerConfigService {
-
+    /**
+     * MCP Server 配置仓储，用于配置项读写与启停管理。
+     */
     private final McpServerConfigRepository mcpServerConfigRepository;
 
     /**
      * 分页查询 MCP Server 配置
      *
-     * 为什么：统一分页口径，避免前端传参与仓储不一致
-     * 入参：分页查询对象
-     * 出参：分页结果
+     * 统一分页口径，避免前端传参与仓储不一致
+     * 
+     * @param query 分页查询条件。
+     * @return MCP 服务配置分页结果。
      */
     @Override
     public PageResult<McpServerConfig> queryMcpServerConfigPage(McpServerConfigPageQuery query) {
@@ -57,9 +60,10 @@ public class McpServerConfigServiceImpl implements IMcpServerConfigService {
     /**
      * 根据 ID 查询 MCP Server 配置
      *
-     * 为什么：不存在时抛出领域异常，避免空对象传播
-     * 入参：ID 查询对象
-     * 出参：配置详情
+     * 不存在时抛出领域异常，避免空对象传播
+     * 
+     * @param query 主键查询条件。
+     * @return MCP Server 配置详情。
      */
     @Override
     public McpServerConfig queryMcpServerConfigById(IdQuery query) {
@@ -78,9 +82,10 @@ public class McpServerConfigServiceImpl implements IMcpServerConfigService {
     /**
      * 创建 MCP Server 配置
      *
-     * 为什么：创建时确保名称唯一，避免重复配置
-     * 入参：配置实体
-     * 出参：创建后的配置
+     * 创建时确保名称唯一，避免重复配置
+     * 
+     * @param config 配置信息。
+     * @return 创建后的 MCP Server 配置。
      */
     @Override
     public McpServerConfig createMcpServerConfig(McpServerConfig config) {
@@ -90,7 +95,7 @@ public class McpServerConfigServiceImpl implements IMcpServerConfigService {
         if (mcpServerConfigRepository
                 .findByName(nameQuery)
                 .isPresent()) {
-            throw new IllegalArgumentException("MCP Server 名称已存在：" + serverName);
+            throw new IllegalArgumentException("MCP Server 名称已存在" + serverName);
         }
 
         // 补齐创建/更新时间，保证审计字段一致
@@ -103,9 +108,10 @@ public class McpServerConfigServiceImpl implements IMcpServerConfigService {
     /**
      * 更新 MCP Server 配置
      *
-     * 为什么：更新前校验唯一性与存在性，避免配置冲突
-     * 入参：配置实体
-     * 出参：更新后的配置
+     * 更新前校验唯一性与存在性，避免配置冲突
+     * 
+     * @param config 配置信息。
+     * @return 更新后的 MCP Server 配置。
      */
     @Override
     public McpServerConfig updateMcpServerConfig(McpServerConfig config) {
@@ -131,7 +137,7 @@ public class McpServerConfigServiceImpl implements IMcpServerConfigService {
                     if (!existing
                             .getId()
                             .equals(configId)) {
-                        throw new IllegalArgumentException("MCP Server 名称已存在：" + serverName);
+                        throw new IllegalArgumentException("MCP Server 名称已存在" + serverName);
                     }
                 });
 
@@ -157,9 +163,9 @@ public class McpServerConfigServiceImpl implements IMcpServerConfigService {
     /**
      * 删除 MCP Server 配置
      *
-     * 为什么：防止删除不存在的配置，保持操作语义清晰
-     * 入参：ID 查询对象
-     * 出参：无
+     * 防止删除不存在的配置，保持操作语义清晰
+     * 
+     * @param query 主键查询条件。
      */
     @Override
     public void deleteMcpServerConfig(IdQuery query) {
@@ -178,9 +184,10 @@ public class McpServerConfigServiceImpl implements IMcpServerConfigService {
     /**
      * 启用 MCP Server
      *
-     * 为什么：启用后可被运行时加载
-     * 入参：ID 查询对象
-     * 出参：启用后的配置
+     * 启用后可被运行时加载
+     * 
+     * @param query 主键查询条件。
+     * @return 启用后的 MCP Server 配置。
      */
     @Override
     public McpServerConfig enableMcpServer(IdQuery query) {
@@ -203,9 +210,10 @@ public class McpServerConfigServiceImpl implements IMcpServerConfigService {
     /**
      * 禁用 MCP Server
      *
-     * 为什么：禁用后避免运行时继续使用
-     * 入参：ID 查询对象
-     * 出参：禁用后的配置
+     * 禁用后避免运行时继续使用
+     * 
+     * @param query 主键查询条件。
+     * @return 禁用后的 MCP Server 配置。
      */
     @Override
     public McpServerConfig disableMcpServer(IdQuery query) {
@@ -228,9 +236,10 @@ public class McpServerConfigServiceImpl implements IMcpServerConfigService {
     /**
      * 查询启用的 MCP Server
      *
-     * 为什么：运行时只加载启用配置
-     * 入参：启用状态查询对象
-     * 出参：启用配置列表
+     * 运行时只加载启用配置
+     * 
+     * @param query 启用状态查询条件。
+     * @return MCP 服务配置列表。
      */
     @Override
     public List<McpServerConfig> queryEnabledServers(EnabledQuery query) {

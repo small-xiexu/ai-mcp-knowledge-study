@@ -24,14 +24,21 @@ import java.util.List;
 @RequiredArgsConstructor
 public class WorkflowGraphRepositoryImpl implements WorkflowGraphRepository {
 
+    /**
+     * 工作流节点数据访问对象。
+     */
     private final IWorkflowNodeDao nodeMapper;
+
+    /**
+     * 工作流连线数据访问对象。
+     */
     private final IWorkflowEdgeDao edgeMapper;
 
     /**
      * 根据筛选条件查询工作流图列表。
-     *
-     * @param query 查询条件
-     * @return 返回 WorkflowNode 列表数据。
+     * 
+     * @param query 工作流图节点查询条件。
+     * @return WorkflowNode 列表数据。
      */
     @Override
     public List<WorkflowNode> listNodes(WorkflowGraphQuery query) {
@@ -43,9 +50,9 @@ public class WorkflowGraphRepositoryImpl implements WorkflowGraphRepository {
 
     /**
      * 根据筛选条件查询工作流图列表。
-     *
-     * @param query 查询条件
-     * @return 返回 WorkflowEdge 列表数据。
+     * 
+     * @param query 工作流图连线查询条件。
+     * @return WorkflowEdge 列表数据。
      */
     @Override
     public List<WorkflowEdge> listEdges(WorkflowGraphQuery query) {
@@ -57,7 +64,7 @@ public class WorkflowGraphRepositoryImpl implements WorkflowGraphRepository {
 
     /**
      * 替换指定工作流版本的节点与边定义。
-     *
+     * 
      * @param workflowVersionId 工作流版本 ID。
      * @param nodes 节点列表。
      * @param edges 边列表。

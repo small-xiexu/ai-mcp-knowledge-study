@@ -12,7 +12,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ToolBindingQuery {
 
+    /**
+     * 绑定类型。
+     */
     private String bindType;
+
+    /**
+     * 绑定目标 ID。
+     */
     private Long bindTargetId;
 
     public ToolBindingQuery(String bindType, Long bindTargetId) {

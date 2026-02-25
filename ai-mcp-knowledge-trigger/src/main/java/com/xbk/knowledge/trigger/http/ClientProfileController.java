@@ -34,7 +34,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ClientProfileController implements IClientProfileService {
 
+    /**
+     * 客户端画像应用服务。
+     */
     private final ClientProfileAppService clientProfileAppService;
+
+    /**
+     * 当前用户身份上下文服务。
+     */
     private final IdentityContextService identityContextService;
 
     /**
@@ -45,9 +52,9 @@ public class ClientProfileController implements IClientProfileService {
      * 3. Controller 组装 `ClientProfilePageQuery` 并调用 `clientProfileAppService.queryPage`。
      * 4. 将领域分页结果转换为 `ClientProfileResponse`（列表接口不展开 steps）。
      * 5. 统一封装 `Result.success` 返回。
-     *
+     * 
      * @param request 客户端画像分页查询参数。
-     * @return 返回 ClientProfileResponse 分页数据。
+     * @return ClientProfileResponse 分页数据。
      */
     @PostMapping("/list")
     @SaCheckPermission("agent:read")
@@ -72,9 +79,9 @@ public class ClientProfileController implements IClientProfileService {
      * 3. Controller 调用 `clientProfileAppService.get` 查询主档。
      * 4. 再调用 `clientProfileAppService.listSteps` 查询步骤链。
      * 5. 聚合为 `ClientProfileResponse` 并统一返回。
-     *
+     * 
      * @param request 客户端画像查询参数。
-     * @return 返回 ClientProfileResponse 数据。
+     * @return ClientProfileResponse 数据。
      */
     @PostMapping("/get")
     @SaCheckPermission("agent:read")
@@ -93,9 +100,9 @@ public class ClientProfileController implements IClientProfileService {
      * 3. Controller 从登录上下文获取用户并组装 `ClientProfile` + `ClientProfileStep`。
      * 4. 调用 `clientProfileAppService.save` 执行保存。
      * 5. 保存后回查步骤链并组装完整响应返回。
-     *
+     * 
      * @param request 客户端画像保存参数。
-     * @return 返回 ClientProfileResponse 数据。
+     * @return ClientProfileResponse 数据。
      */
     @PostMapping("/save")
     @SaCheckPermission("agent:write")
@@ -125,9 +132,9 @@ public class ClientProfileController implements IClientProfileService {
      * 3. Controller 获取当前用户并调用 `clientProfileAppService.enable`。
      * 4. 回查步骤链并组装启用后的完整响应。
      * 5. 统一封装 `Result.success` 返回。
-     *
+     * 
      * @param request 客户端画像启停参数。
-     * @return 返回 ClientProfileResponse 数据。
+     * @return ClientProfileResponse 数据。
      */
     @PostMapping("/enable")
     @SaCheckPermission("agent:write")
@@ -147,9 +154,9 @@ public class ClientProfileController implements IClientProfileService {
      * 3. Controller 获取当前用户并调用 `clientProfileAppService.disable`。
      * 4. 回查步骤链并组装禁用后的完整响应。
      * 5. 统一封装 `Result.success` 返回。
-     *
+     * 
      * @param request 客户端画像启停参数。
-     * @return 返回 ClientProfileResponse 数据。
+     * @return ClientProfileResponse 数据。
      */
     @PostMapping("/disable")
     @SaCheckPermission("agent:write")
@@ -169,9 +176,9 @@ public class ClientProfileController implements IClientProfileService {
      * 3. Controller 调用 `clientProfileAppService.remove` 执行删除。
      * 4. 应用层负责清理主档与关联步骤数据。
      * 5. 统一返回空成功结果。
-     *
+     * 
      * @param request 客户端画像删除参数。
-     * @return 返回客户端画像删除状态。
+     * @return 客户端画像删除状态。
      */
     @PostMapping("/remove")
     @SaCheckPermission("agent:write")
@@ -183,9 +190,9 @@ public class ClientProfileController implements IClientProfileService {
 
     /**
      * 将输入数据转换为步骤列表。
-     *
+     * 
      * @param requestSteps 请求步骤列表。
-     * @return 返回步骤集合。
+     * @return 步骤集合。
      */
     private List<ClientProfileStep> toSteps(List<ClientProfileSaveRequest.ClientProfileStepItem> requestSteps) {
         if (requestSteps == null || requestSteps.isEmpty()) {
@@ -214,10 +221,10 @@ public class ClientProfileController implements IClientProfileService {
 
     /**
      * 将输入数据转换为响应。
-     *
-     * @param profile 画像对象。
+     * 
+     * @param profile 客户画像实体。
      * @param steps 步骤列表。
-     * @return 返回ClientProfileResponse对象。
+     * @return 客户画像响应。
      */
     private ClientProfileResponse toResponse(ClientProfile profile, List<ClientProfileStep> steps) {
         if (profile == null) {
@@ -237,9 +244,9 @@ public class ClientProfileController implements IClientProfileService {
 
     /**
      * 将输入数据转换为步骤响应列表。
-     *
+     * 
      * @param steps 步骤列表。
-     * @return 返回步骤集合。
+     * @return 步骤集合。
      */
     private List<ClientProfileResponse.ClientProfileStepResponse> toStepResponses(List<ClientProfileStep> steps) {
         if (steps == null || steps.isEmpty()) {

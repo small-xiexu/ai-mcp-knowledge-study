@@ -20,8 +20,15 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class WorkflowRunContext {
+
+    /**
+     * 主键 ID。
+     */
     private Long id;
 
+    /**
+     * 运行 ID。
+     */
     private String runId;
 
     /**
@@ -29,8 +36,18 @@ public class WorkflowRunContext {
      */
     private String status;
 
+    /**
+     * 运行快照 JSON。
+     */
     private String snapshotJson;
+
+    /**
+     * 创建时间。
+     */
     private LocalDateTime createdAt;
+
+    /**
+     * 更新时间。
+     */
     private LocalDateTime updatedAt;
 }
-

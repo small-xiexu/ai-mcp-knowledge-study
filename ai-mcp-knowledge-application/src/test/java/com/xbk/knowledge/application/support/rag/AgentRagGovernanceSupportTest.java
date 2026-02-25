@@ -20,6 +20,9 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class AgentRagGovernanceSupportTest {
 
+    /**
+     * RAG 向量检索服务。
+     */
     @Mock
     private RagVectorStoreService ragVectorStoreService;
 

@@ -11,7 +11,7 @@ public interface IMcpGatewayService {
 
     /**
      * 建立 SSE 长连接。
-     *
+     * 
      * @param gatewayId 网关 ID
      * @param apiKey Header 传入的 API Key
      * @param apiKeyQuery Query 传入的 API Key
@@ -21,7 +21,7 @@ public interface IMcpGatewayService {
 
     /**
      * 处理 MCP 消息请求。
-     *
+     * 
      * @param gatewayId 网关 ID
      * @param sessionId 会话 ID
      * @param body 请求报文

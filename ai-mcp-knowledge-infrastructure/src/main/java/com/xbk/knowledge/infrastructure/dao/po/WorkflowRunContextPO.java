@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 /**
  * Workflow 运行上下文快照（用于审批后续跑）。
  *
- * 对应表：workflow_run_context
+ * 对应表workflow_run_context
  *
  * @author sxie
  */
@@ -28,9 +28,15 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class WorkflowRunContextPO {
 
+    /**
+     * 主键 ID。
+     */
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    /**
+     * 运行 ID。
+     */
     private String runId;
 
     /**
@@ -38,12 +44,20 @@ public class WorkflowRunContextPO {
      */
     private String status;
 
+    /**
+     * 快照 JSON。
+     */
     private String snapshotJson;
 
+    /**
+     * 创建时间。
+     */
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
+    /**
+     * 更新时间。
+     */
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedAt;
 }
-

@@ -18,95 +18,95 @@ public interface IModelConfigService {
 
     /**
      * 分页查询模型列表。
-     *
+     * 
      * @param request 模型配置分页查询参数。
-     * @return 返回 ModelConfigResponse 分页数据。
+     * @return ModelConfigResponse 分页数据。
      */
     Result<PageResult<ModelConfigResponse>> listModels(ModelConfigQueryRequest request);
 
     /**
      * 查询模型详情。
-     *
+     * 
      * @param request 模型配置查询参数。
-     * @return 返回 ModelConfigResponse 数据。
+     * @return ModelConfigResponse 数据。
      */
     Result<ModelConfigResponse> getModel(IdRequest request);
 
     /**
      * 创建模型配置。
-     *
+     * 
      * @param request 模型配置创建参数。
-     * @return 返回 ModelConfigResponse 数据。
+     * @return ModelConfigResponse 数据。
      */
     Result<ModelConfigResponse> createModel(ModelConfigRequest request);
 
     /**
      * 更新模型配置。
-     *
+     * 
      * @param request 模型配置更新参数。
-     * @return 返回 ModelConfigResponse 数据。
+     * @return ModelConfigResponse 数据。
      */
     Result<ModelConfigResponse> updateModel(ModelConfigRequest request);
 
     /**
      * 删除模型配置。
-     *
+     * 
      * @param request 模型配置删除参数。
-     * @return 返回模型删除状态。
+     * @return 模型删除状态。
      */
     Result<Void> deleteModel(IdRequest request);
 
     /**
      * 启用模型。
-     *
+     * 
      * @param request 模型配置启停参数。
-     * @return 返回 ModelConfigResponse 数据。
+     * @return ModelConfigResponse 数据。
      */
     Result<ModelConfigResponse> enableModel(IdRequest request);
 
     /**
      * 禁用模型。
-     *
+     * 
      * @param request 模型配置启停参数。
-     * @return 返回 ModelConfigResponse 数据。
+     * @return ModelConfigResponse 数据。
      */
     Result<ModelConfigResponse> disableModel(IdRequest request);
 
     /**
      * 查询当前生效的对话模型。
-     *
-     * @return 返回 ModelConfigResponse 数据。
+     * 
+     * @return ModelConfigResponse 数据。
      */
     Result<ModelConfigResponse> getActiveChatModel();
 
     /**
      * 查询当前生效的向量模型。
-     *
-     * @return 返回 ModelConfigResponse 数据。
+     * 
+     * @return ModelConfigResponse 数据。
      */
     Result<ModelConfigResponse> getActiveEmbeddingModel();
 
     /**
      * 激活对话模型。
-     *
+     * 
      * @param request 对话模型激活参数。
-     * @return 返回 ModelConfigResponse 数据。
+     * @return ModelConfigResponse 数据。
      */
     Result<ModelConfigResponse> activateChatModel(IdRequest request);
 
     /**
      * 激活向量模型。
-     *
+     * 
      * @param request 向量模型激活参数。
-     * @return 返回 ModelConfigResponse 数据。
+     * @return ModelConfigResponse 数据。
      */
     Result<ModelConfigResponse> activateEmbeddingModel(IdRequest request);
 
     /**
      * 测试模型连通性。
-     *
+     * 
      * @param request 模型配置调用参数。
-     * @return 返回模型连通性测试结果。
+     * @return 模型连通性测试结果。
      */
     Result<Boolean> testModel(IdRequest request);
 }

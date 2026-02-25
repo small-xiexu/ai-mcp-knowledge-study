@@ -20,12 +20,25 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Workflow {
+
+    /**
+     * 主键 ID。
+     */
     private Long id;
 
+    /**
+     * Workflow 编码。
+     */
     private String workflowCode;
 
+    /**
+     * Workflow 名称。
+     */
     private String workflowName;
 
+    /**
+     * Workflow 描述。
+     */
     private String description;
 
     /**
@@ -33,12 +46,28 @@ public class Workflow {
      */
     private String status;
 
+    /**
+     * 当前发布版本 ID。
+     */
     private Long currentPublishedVersionId;
 
+    /**
+     * 创建人 ID。
+     */
     private Long createdBy;
 
+    /**
+     * 更新人 ID。
+     */
     private Long updatedBy;
+
+    /**
+     * 创建时间。
+     */
     private LocalDateTime createdAt;
+
+    /**
+     * 更新时间。
+     */
     private LocalDateTime updatedAt;
 }
-

@@ -19,7 +19,7 @@ public class ModelNameQuery {
     /**
      * 模型名称
      *
-     * 为什么：用于唯一性校验与定位配置
+     * 用于唯一性校验与定位配置
      */
     private String modelName;
 }

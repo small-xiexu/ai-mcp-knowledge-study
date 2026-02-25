@@ -16,65 +16,70 @@ import java.util.List;
 public interface ChatSessionRepository {
 
     /**
-     * 创建会话
-     *
-     * 为什么：持久化会话聚合根，便于后续追加消息
-     * 入参：会话实体
-     * 出参：持久化后的会话
+     * 创建会话。
+     * <p>
+     * 持久化会话聚合根，便于后续追加消息。
+     * 
+     * @param session 待创建的会话实体。
+     * @return 已持久化的会话实体。
      */
     ChatSession create(ChatSession session);
 
     /**
-     * 更新会话
-     *
-     * 为什么：更新会话元数据，保持一致性
-     * 入参：会话实体
-     * 出参：更新后的会话
+     * 更新会话。
+     * <p>
+     * 更新会话元数据，保持会话状态一致性。
+     * 
+     * @param session 待更新的会话实体。
+     * @return 更新后的会话实体。
      */
     ChatSession update(ChatSession session);
 
     /**
-     * 删除会话
-     *
-     * 为什么：清理会话聚合根
-     * 入参：会话 ID
-     * 出参：无
+     * 删除会话。
+     * <p>
+     * 清理会话聚合根。
+     * 
+     * @param sessionId 会话 ID。
      */
     void deleteById(Long sessionId);
 
     /**
-     * 根据ID查询会话
-     *
-     * 为什么：用于会话详情加载
-     * 入参：会话 ID
-     * 出参：会话实体
+     * 根据 ID 查询会话。
+     * <p>
+     * 用于加载会话详情。
+     * 
+     * @param sessionId 会话 ID。
+     * @return 会话实体。
      */
     ChatSession findById(Long sessionId);
 
     /**
-     * 分页查询会话
-     *
-     * 为什么：控制单次返回数量，避免响应过大
-     * 入参：分页查询条件
-     * 出参：会话列表
+     * 分页查询会话。
+     * <p>
+     * 控制单次返回数量，避免响应过大。
+     * 
+     * @param query 分页查询条件。
+     * @return 会话分页数据列表。
      */
     List<ChatSession> findPage(ChatSessionPageQuery query);
 
     /**
-     * 统计会话总数
-     *
-     * 为什么：分页展示需要总数
-     * 入参：无
-     * 出参：总数
+     * 统计会话总数。
+     * <p>
+     * 为分页展示提供总记录数。
+     * 
+     * @return 统计数量。
      */
     long countAll();
 
     /**
-     * 删除过期会话
-     *
-     * 为什么：清理历史会话，控制数据规模
-     * 入参：截止时间
-     * 出参：删除行数
+     * 删除过期会话。
+     * <p>
+     * 清理历史会话，控制数据规模。
+     * 
+     * @param updatedBefore 最后更新时间上限（早于该时间的会话会被删除）。
+     * @return 影响行数。
      */
     int deleteByUpdatedBefore(LocalDateTime updatedBefore);
 }

@@ -22,7 +22,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Gateway 可观测性应用服务实现
+ * Gateway 可观测性应用服务实现。
+ *
  * 在内存维护工具级统计窗口，提供统一指标口径与告警规则。
  *
  * @author sxie
@@ -31,22 +32,79 @@ import java.util.concurrent.atomic.AtomicLong;
 @Service
 public class GatewayObservabilityAppServiceImpl implements GatewayObservabilityAppService {
 
+    /**
+     * 默认最近统计窗口（分钟）。
+     */
     private static final int DEFAULT_RECENT_MINUTES = 60;
+
+    /**
+     * 最近统计窗口最大值（分钟）。
+     */
     private static final int MAX_RECENT_MINUTES = 24 * 60;
+
+    /**
+     * 指标数据内存保留时长（毫秒）。
+     */
     private static final long RETENTION_MILLIS = 24L * 60 * 60 * 1000;
+
+    /**
+     * 单工具最多保留事件数。
+     */
     private static final int MAX_EVENTS_PER_TOOL = 5000;
+
+    /**
+     * 默认超时阈值（毫秒）。
+     */
     private static final int DEFAULT_TIMEOUT_MS = 30_000;
 
+    /**
+     * 超时突增告警阈值（百分比）。
+     */
     private static final double TIMEOUT_SPIKE_RATE = 20.0;
+
+    /**
+     * 触发超时突增告警的最小请求量。
+     */
     private static final int TIMEOUT_SPIKE_MIN_REQUESTS = 10;
+
+    /**
+     * 错误码异常告警阈值（百分比）。
+     */
     private static final double ERROR_ANOMALY_RATE = 30.0;
+
+    /**
+     * 触发错误码异常告警的最小错误次数。
+     */
     private static final int ERROR_ANOMALY_MIN_COUNT = 5;
+
+    /**
+     * 连续失败告警阈值。
+     */
     private static final int CONSECUTIVE_FAILURE_THRESHOLD = 3;
+
+    /**
+     * 告警日志冷却时间（毫秒）。
+     */
     private static final long ALERT_LOG_COOLDOWN_MILLIS = 5 * 60 * 1000L;
+
+    /**
+     * 默认未知错误码。
+     */
     private static final String UNKNOWN_ERROR_CODE = "UNKNOWN";
+
+    /**
+     * 告警级别警告。
+     */
     private static final String ALERT_LEVEL_WARN = "WARN";
+
+    /**
+     * 告警级别严重。
+     */
     private static final String ALERT_LEVEL_CRITICAL = "CRITICAL";
 
+    /**
+     * 工具指标窗口缓存。
+     */
     private final Map<String, ToolMetricWindow> windows = new ConcurrentHashMap<>();
 
     @Override
@@ -70,8 +128,8 @@ public class GatewayObservabilityAppServiceImpl implements GatewayObservabilityA
     /**
      * 查询网关可观测性。
      *
-     * @param query 查询条件
-     * @return 返回 GatewayMetricsReport 数据。
+     * @param query 时间范围查询条件
+     * @return 网关指标报告
      */
     @Override
     public GatewayMetricsReport queryMetrics(MetricsQuery query) {
@@ -109,9 +167,9 @@ public class GatewayObservabilityAppServiceImpl implements GatewayObservabilityA
     /**
      * 判断是否命中筛选条件。
      *
-     * @param value 输入值。
-     * @param expected 期望值。
-     * @return 返回是否满足业务条件。
+     * @param value 值
+     * @param expected 期望值
+     * @return 是否满足筛选条件
      */
     private boolean match(String value, String expected) {
         if (!StringUtils.hasText(expected)) {
@@ -157,11 +215,11 @@ public class GatewayObservabilityAppServiceImpl implements GatewayObservabilityA
     /**
      * 构建监控告警列表。
      *
-     * @param metric 指标对象。
-     * @param maxErrorCode 最大错误码。
-     * @param maxErrorCount 最大错误次数。
-     * @param nowMillis 当前时间戳（毫秒）。
-     * @return 返回命中的告警列表。
+     * @param metric 工具指标快照
+     * @param maxErrorCode 最大错误码
+     * @param maxErrorCount 最大错误次数
+     * @param nowMillis 当前时间戳（毫秒）
+     * @return 命中的告警列表
      */
     private List<AlertSnapshot> buildAlerts(ToolMetricsSnapshot metric,
                                             String maxErrorCode,
@@ -209,9 +267,9 @@ public class GatewayObservabilityAppServiceImpl implements GatewayObservabilityA
     /**
      * 计算延迟分位值。
      *
-     * @param sortedLatencies 排序后的延迟列表。
-     * @param percentile 分位点。
-     * @return 返回指定分位点对应的延迟值。
+     * @param sortedLatencies 排序后的延迟列表
+     * @param percentile 分位点
+     * @return 指定分位点对应的延迟值
      */
     private long percentile(List<Long> sortedLatencies, double percentile) {
         if (sortedLatencies == null || sortedLatencies.isEmpty()) {
@@ -225,9 +283,9 @@ public class GatewayObservabilityAppServiceImpl implements GatewayObservabilityA
     /**
      * 归一化错误编码。
      *
-     * @param errorCode 错误码。
-     * @param success 调用是否成功。
-     * @return 返回归一化后的编码字符串。
+     * @param errorCode 错误码
+     * @param success 调用是否成功
+     * @return 归一化后的错误编码
      */
     private String normalizeErrorCode(String errorCode, boolean success) {
         if (success) {
@@ -242,8 +300,8 @@ public class GatewayObservabilityAppServiceImpl implements GatewayObservabilityA
     /**
      * 规范化延迟值。
      *
-     * @param latencyMs 延迟（毫秒）。
-     * @return 返回清洗后的延迟值（毫秒）。
+     * @param latencyMs 延迟（毫秒）
+     * @return 清洗后的延迟值（毫秒）
      */
     private long sanitizeLatency(long latencyMs) {
         if (latencyMs < 0) {
@@ -255,8 +313,8 @@ public class GatewayObservabilityAppServiceImpl implements GatewayObservabilityA
     /**
      * 归一化超时。
      *
-     * @param timeoutMs 超时时间（毫秒）。
-     * @return 返回归一化后的超时时间（毫秒）。
+     * @param timeoutMs 超时时间（毫秒）
+     * @return 归一化后的超时时间（毫秒）
      */
     private int normalizeTimeout(Integer timeoutMs) {
         if (timeoutMs == null || timeoutMs <= 0) {
@@ -268,8 +326,8 @@ public class GatewayObservabilityAppServiceImpl implements GatewayObservabilityA
     /**
      * 归一化最近时间窗口。
      *
-     * @param recentMinutes 最近时间窗口（分钟）。
-     * @return 返回归一化后的时间窗口（分钟）。
+     * @param recentMinutes 最近时间窗口（分钟）
+     * @return 归一化后的时间窗口（分钟）
      */
     private int normalizeRecentMinutes(Integer recentMinutes) {
         if (recentMinutes == null || recentMinutes <= 0) {
@@ -292,10 +350,29 @@ public class GatewayObservabilityAppServiceImpl implements GatewayObservabilityA
 
     private class ToolMetricWindow {
 
+        /**
+         * 网关标识。
+         */
         private final String gatewayId;
+
+        /**
+         * 工具名称。
+         */
         private final String toolName;
+
+        /**
+         * 工具事件队列。
+         */
         private final Deque<ToolEvent> events = new ArrayDeque<>();
+
+        /**
+         * 连续失败次数。
+         */
         private int consecutiveFailures;
+
+        /**
+         * 告警类型到最近日志时间的映射。
+         */
         private final Map<String, AtomicLong> alertLastLogTime = new ConcurrentHashMap<>();
 
         private ToolMetricWindow(String gatewayId, String toolName) {
@@ -381,10 +458,29 @@ public class GatewayObservabilityAppServiceImpl implements GatewayObservabilityA
 
     private static class ToolEvent {
 
+        /**
+         * 事件时间戳（毫秒）。
+         */
         private final long timestamp;
+
+        /**
+         * 调用耗时（毫秒）。
+         */
         private final long latency;
+
+        /**
+         * 是否成功。
+         */
         private final boolean success;
+
+        /**
+         * 错误码。
+         */
         private final String errorCode;
+
+        /**
+         * 超时阈值（毫秒）。
+         */
         private final int timeoutMs;
 
         private ToolEvent(long timestamp, long latency, boolean success, String errorCode, int timeoutMs) {
@@ -398,17 +494,64 @@ public class GatewayObservabilityAppServiceImpl implements GatewayObservabilityA
 
     private static class WindowSnapshot {
 
+        /**
+         * 网关标识。
+         */
         private final String gatewayId;
+
+        /**
+         * 工具名称。
+         */
         private final String toolName;
+
+        /**
+         * 连续失败次数。
+         */
         private final int consecutiveFailures;
+
+        /**
+         * 请求总数。
+         */
         private long totalCount;
+
+        /**
+         * 成功请求数。
+         */
         private long successCount;
+
+        /**
+         * 超时请求数。
+         */
         private long timeoutCount;
+
+        /**
+         * SLA 达标请求数。
+         */
         private long slaPassCount;
+
+        /**
+         * 总耗时（毫秒）。
+         */
         private long totalLatency;
+
+        /**
+         * 延迟采样列表。
+         */
         private List<Long> latencies = new ArrayList<>();
+
+        /**
+         * 错误码分布统计。
+         */
         private Map<String, Long> errorDistribution = new HashMap<>();
+
+        /**
+         * 最大错误码计数。
+         */
         private long maxErrorCount;
+
+        /**
+         * 错误数最高的错误码。
+         */
         private String maxErrorCode;
 
         private WindowSnapshot(String gatewayId, String toolName, int consecutiveFailures) {

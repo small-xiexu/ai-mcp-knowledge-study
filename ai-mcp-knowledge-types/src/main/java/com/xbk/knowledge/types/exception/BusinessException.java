@@ -13,6 +13,9 @@ import lombok.Getter;
 @Getter
 public class BusinessException extends RuntimeException {
 
+    /**
+     * 序列化版本号。
+     */
     private static final long serialVersionUID = 1L;
 
     /**
@@ -27,7 +30,7 @@ public class BusinessException extends RuntimeException {
 
     /**
      * 构造函数（仅消息）
-     *
+     * 
      * @param message 错误消息
      */
     public BusinessException(String message) {
@@ -41,8 +44,8 @@ public class BusinessException extends RuntimeException {
 
     /**
      * 构造函数（错误码 + 消息）
-     *
-     * @param code    错误码
+     * 
+     * @param code 错误码
      * @param message 错误消息
      */
     public BusinessException(Integer code, String message) {
@@ -53,10 +56,10 @@ public class BusinessException extends RuntimeException {
 
     /**
      * 构造函数（错误码 + 消息 + 数据）
-     *
-     * @param code    错误码
+     * 
+     * @param code 错误码
      * @param message 错误消息
-     * @param data    错误数据
+     * @param data 错误数据
      */
     public BusinessException(Integer code, String message, Object data) {
         super(message);
@@ -66,9 +69,9 @@ public class BusinessException extends RuntimeException {
 
     /**
      * 构造函数（消息 + 原因）
-     *
+     * 
      * @param message 错误消息
-     * @param cause   原因
+     * @param cause 原因
      */
     public BusinessException(String message, Throwable cause) {
         super(message, cause);

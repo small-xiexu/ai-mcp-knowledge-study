@@ -27,14 +27,16 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class AgentScheduleServiceImpl implements IAgentScheduleService {
-
+    /**
+     * Agent 调度仓储，用于调度配置的增删改查与启停。
+     */
     private final AgentScheduleRepository agentScheduleRepository;
 
     /**
      * 查询Agent 调度。
      *
-     * @param query 查询条件
-     * @return 返回 AgentSchedule 分页数据。
+     * @param query 分页查询条件
+     * @return AgentSchedule 分页数据
      */
     @Override
     public PageResult<AgentSchedule> queryPage(AgentSchedulePageQuery query) {
@@ -60,8 +62,8 @@ public class AgentScheduleServiceImpl implements IAgentScheduleService {
     /**
      * 查询Agent 调度。
      *
-     * @param query 查询条件
-     * @return 返回 AgentSchedule 数据。
+     * @param query 主键查询条件
+     * @return AgentSchedule 详情
      */
     @Override
     public AgentSchedule queryById(AgentScheduleIdQuery query) {
@@ -75,8 +77,8 @@ public class AgentScheduleServiceImpl implements IAgentScheduleService {
     /**
      * 创建并持久化Agent 调度数据。
      *
-     * @param schedule 调度配置。
-     * @return 返回 AgentSchedule 数据。
+     * @param schedule 调度配置
+     * @return 创建后的 AgentSchedule 信息
      */
     @Override
     public AgentSchedule create(AgentSchedule schedule) {
@@ -107,8 +109,8 @@ public class AgentScheduleServiceImpl implements IAgentScheduleService {
     /**
      * 更新Agent 调度数据。
      *
-     * @param schedule 调度配置。
-     * @return 返回 AgentSchedule 数据。
+     * @param schedule 调度配置
+     * @return 更新后的 AgentSchedule 信息
      */
     @Override
     public AgentSchedule update(AgentSchedule schedule) {
@@ -148,7 +150,7 @@ public class AgentScheduleServiceImpl implements IAgentScheduleService {
      *
      * @param id 主键 ID
      * @param operatorId 操作人 ID
-     * @return 返回 AgentSchedule 数据。
+     * @return 启用后的 AgentSchedule 信息
      */
     @Override
     public AgentSchedule enable(Long id, Long operatorId) {
@@ -168,7 +170,7 @@ public class AgentScheduleServiceImpl implements IAgentScheduleService {
      *
      * @param id 主键 ID
      * @param operatorId 操作人 ID
-     * @return 返回 AgentSchedule 数据。
+     * @return 禁用后的 AgentSchedule 信息
      */
     @Override
     public AgentSchedule disable(Long id, Long operatorId) {
@@ -187,9 +189,9 @@ public class AgentScheduleServiceImpl implements IAgentScheduleService {
      * 绑定调度任务与 XXL-JOB 任务 ID。
      *
      * @param id 主键 ID
-     * @param xxlJobId XXL-JOB 任务 ID。
+     * @param xxlJobId XXL-JOB 任务 ID
      * @param operatorId 操作人 ID
-     * @return 返回 AgentSchedule 数据。
+     * @return 绑定后的 AgentSchedule 信息
      */
     @Override
     public AgentSchedule bindXxlJobId(Long id, Long xxlJobId, Long operatorId) {
@@ -206,7 +208,7 @@ public class AgentScheduleServiceImpl implements IAgentScheduleService {
 
     /**
      * 删除Agent 调度数据。
-     *
+     * 
      * @param id 主键 ID
      */
     @Override

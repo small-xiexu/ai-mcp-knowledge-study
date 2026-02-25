@@ -32,12 +32,11 @@ public class ModelProviderFactoryImpl implements ModelProviderFactory {
 
     /**
      * 构造函数注入所有 ModelProvider 实现
-     *
+     * 
      * @param providers 所有 ModelProvider 实现的列表
      */
     @Autowired
     public ModelProviderFactoryImpl(List<ModelProvider> providers) {
-        
         Function<ModelProvider, ModelType> typeMapper = ModelProvider::getModelType;
         Function<ModelProvider, ModelProvider> identityMapper = Function.identity();
         Collector<ModelProvider, ?, Map<ModelType, ModelProvider>> collector = Collectors.toMap(
@@ -56,15 +55,15 @@ public class ModelProviderFactoryImpl implements ModelProviderFactory {
     /**
      * 根据模型类型获取对应的 Provider
      *
-     * @param modelType 模型类型
-     * @return ModelProvider 实例
      * @throws IllegalArgumentException 如果模型类型不支持
      *
-     * 为什么：统一 Provider 路由逻辑，避免上层分散判断
+     * 统一 Provider 路由逻辑，避免上层分散判断
+     * 
+     * @param modelType 模型类型
+     * @return ModelProvider 实例
      */
     @Override
     public ModelProvider getProvider(ModelType modelType) {
-        
         ModelProvider provider = providerMap.get(modelType);
         if (provider == null) {
             // 直接抛错以便快速暴露配置问题，避免静默降级造成错误选择
@@ -76,14 +75,13 @@ public class ModelProviderFactoryImpl implements ModelProviderFactory {
     /**
      * 检查指定模型类型是否支持
      *
+     * 供上层在调用前做能力探测
+     * 
      * @param modelType 模型类型
      * @return 是否支持
-     *
-     * 为什么：供上层在调用前做能力探测
      */
     @Override
     public boolean isSupported(ModelType modelType) {
-        
         return providerMap.containsKey(modelType);
     }
 }

@@ -22,14 +22,16 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class PromptTemplateServiceImpl implements IPromptTemplateService {
-
+    /**
+     * PromptTemplate 仓储，用于模板草稿/发布态持久化操作。
+     */
     private final PromptTemplateRepository promptTemplateRepository;
 
     /**
      * 查询提示词模板。
      *
-     * @param query 查询条件
-     * @return 返回 PromptTemplate 分页数据。
+     * @param query 分页查询条件
+     * @return PromptTemplate 分页数据
      */
     @Override
     public PageResult<PromptTemplate> queryPage(PromptTemplatePageQuery query) {
@@ -53,8 +55,8 @@ public class PromptTemplateServiceImpl implements IPromptTemplateService {
     /**
      * 查询提示词模板。
      *
-     * @param query 查询条件
-     * @return 返回 PromptTemplate 数据。
+     * @param query 主键查询条件
+     * @return PromptTemplate 详情
      */
     @Override
     public PromptTemplate queryById(PromptTemplateIdQuery query) {
@@ -69,8 +71,8 @@ public class PromptTemplateServiceImpl implements IPromptTemplateService {
     /**
      * 创建并持久化提示词模板数据。
      *
-     * @param template 模板实体。
-     * @return 返回 PromptTemplate 数据。
+     * @param template 模板实体
+     * @return 创建后的 PromptTemplate 信息
      */
     @Override
     public PromptTemplate create(PromptTemplate template) {
@@ -88,7 +90,7 @@ public class PromptTemplateServiceImpl implements IPromptTemplateService {
         }
 
         if (promptTemplateRepository.existsByCode(template.getTemplateCode())) {
-            throw new BusinessException("templateCode 已存在：" + template.getTemplateCode());
+            throw new BusinessException("templateCode 已存在" + template.getTemplateCode());
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -103,8 +105,8 @@ public class PromptTemplateServiceImpl implements IPromptTemplateService {
     /**
      * 更新提示词模板数据。
      *
-     * @param template 模板实体。
-     * @return 返回 PromptTemplate 数据。
+     * @param template 模板实体
+     * @return 更新后的 PromptTemplate 信息
      */
     @Override
     public PromptTemplate updateDraft(PromptTemplate template) {
@@ -136,9 +138,9 @@ public class PromptTemplateServiceImpl implements IPromptTemplateService {
     /**
      * 发布业务配置。
      *
-     * @param query 查询条件
+     * @param query 主键查询条件
      * @param updatedBy 更新人 ID
-     * @return 返回 PromptTemplate 数据。
+     * @return 发布后的 PromptTemplate 信息
      */
     @Override
     public PromptTemplate publish(PromptTemplateIdQuery query, Long updatedBy) {
@@ -156,9 +158,9 @@ public class PromptTemplateServiceImpl implements IPromptTemplateService {
     /**
      * 归档业务配置。
      *
-     * @param query 查询条件
+     * @param query 主键查询条件
      * @param updatedBy 更新人 ID
-     * @return 返回 PromptTemplate 数据。
+     * @return 归档后的 PromptTemplate 信息
      */
     @Override
     public PromptTemplate archive(PromptTemplateIdQuery query, Long updatedBy) {

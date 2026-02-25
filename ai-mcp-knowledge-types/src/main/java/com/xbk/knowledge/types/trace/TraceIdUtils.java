@@ -16,6 +16,9 @@ import java.util.UUID;
  */
 public final class TraceIdUtils {
 
+    /**
+     * MDC 中 traceId 的键名。
+     */
     public static final String TRACE_ID_KEY = "traceId";
 
     private TraceIdUtils() {
@@ -24,7 +27,7 @@ public final class TraceIdUtils {
 
     /**
      * 确保 MDC 中存在 traceId，便于链路日志统一关联。
-     *
+     * 
      * @return TraceIdContext
      */
     public static TraceIdContext ensureTraceId() {
@@ -39,7 +42,7 @@ public final class TraceIdUtils {
 
     /**
      * 获取或生成 traceId，并写回 MDC。
-     *
+     * 
      * @return traceId
      */
     public static String getOrCreateTraceId() {
@@ -49,7 +52,7 @@ public final class TraceIdUtils {
 
     /**
      * 仅在本次调用生成了 traceId 时清理 MDC，避免污染线程复用环境。
-     *
+     * 
      * @param generated 是否为本次生成
      */
     public static void clearIfGenerated(boolean generated) {
@@ -67,7 +70,7 @@ public final class TraceIdUtils {
 
     /**
      * 生成 16 位 traceId。
-     *
+     * 
      * @return traceId
      */
     private static String generateTraceId() {
@@ -88,10 +91,14 @@ public final class TraceIdUtils {
     @AllArgsConstructor
     public static class TraceIdContext {
 
-        
+        /**
+         * 当前 traceId。
+         */
         private final String traceId;
 
-        
+        /**
+         * 是否由当前调用生成。
+         */
         private final boolean generated;
     }
 }

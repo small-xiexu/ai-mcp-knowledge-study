@@ -29,19 +29,44 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GatewayManageAppServiceImpl implements GatewayManageAppService {
 
+    /**
+     * 网关实例仓储。
+     */
     private final McpGatewayRepository gatewayRepository;
+
+    /**
+     * 网关鉴权仓储。
+     */
     private final McpGatewayAuthRepository gatewayAuthRepository;
+
+    /**
+     * 工具注册仓储。
+     */
     private final McpToolRegistryRepository toolRegistryRepository;
+
+    /**
+     * 工具映射仓储。
+     */
     private final McpToolMappingRepository toolMappingRepository;
+
+    /**
+     * 工具绑定仓储。
+     */
     private final McpToolBindingRepository toolBindingRepository;
+
+    /**
+     * 工具 Schema 仓储。
+     */
     private final McpToolSchemaRepository toolSchemaRepository;
 
     /**
-     * 删除网关实例并执行应用层级联清理：
+     * 删除网关实例并执行应用层级联清理
      * 1. 删除网关下工具映射/绑定/schema
      * 2. 删除网关工具资产
      * 3. 删除网关凭证
      * 4. 删除网关实例
+     * 
+     * @param query 主键查询条件。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -64,11 +89,13 @@ public class GatewayManageAppServiceImpl implements GatewayManageAppService {
     }
 
     /**
-     * 删除工具并执行应用层级联清理：
+     * 删除工具并执行应用层级联清理
      * 1. 删除 request/response 参数映射
      * 2. 删除工具绑定
      * 3. 删除工具 schema
      * 4. 删除工具资产
+     * 
+     * @param query 主键查询条件。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)

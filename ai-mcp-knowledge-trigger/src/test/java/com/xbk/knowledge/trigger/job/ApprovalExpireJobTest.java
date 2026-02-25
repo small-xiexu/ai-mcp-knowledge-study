@@ -22,7 +22,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 /**
- * 验证审批过期任务的审计写入不会触发 operator_scope_id NOT NULL 约束风险。
+ * 验证审批过期任务的审计写入不触发 operator_scope_id NOT NULL 约束风险。
  *
  * @author xiexu
  */

@@ -16,28 +16,46 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class XxlJobConfig {
 
+    /**
+     * XXL-Admin 地址列表。
+     */
     @Value("${xxl.job.executor.admin-addresses}")
     private String adminAddresses;
 
+    /**
+     * 执行器应用名。
+     */
     @Value("${xxl.job.executor.appname}")
     private String appname;
 
+    /**
+     * 执行器端口。
+     */
     @Value("${xxl.job.executor.port}")
     private int port;
 
+    /**
+     * 执行器日志路径。
+     */
     @Value("${xxl.job.executor.logpath}")
     private String logPath;
 
+    /**
+     * 日志保留天数。
+     */
     @Value("${xxl.job.executor.logretentiondays}")
     private int logRetentionDays;
 
+    /**
+     * XXL-Admin 访问令牌。
+     */
     @Value("${xxl.job.accessToken}")
     private String accessToken;
 
     /**
      * 构建并注册 XXL-Job 执行器。
-     *
-     * @return 返回 XxlJobSpringExecutor 数据。
+     * 
+     * @return XxlJobSpringExecutor 数据。
      */
     @Bean
     public XxlJobSpringExecutor xxlJobExecutor() {

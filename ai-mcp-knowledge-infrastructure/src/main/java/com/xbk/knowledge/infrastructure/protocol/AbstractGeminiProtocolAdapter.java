@@ -26,9 +26,10 @@ public abstract class AbstractGeminiProtocolAdapter {
     /**
      * 创建基于 Gemini 协议的 ChatModel
      * <p>
-     * 为什么：使用 OpenAI 兼容协议避免工具调用异常
-     * 入参：模型配置
-     * 出参：ChatModel
+     * 使用 OpenAI 兼容协议避免工具调用异常
+     * 
+     * @param config 模型配置（模型名、baseUrl、apiKey、completionsPath）。
+     * @return 可直接发起对话调用的 ChatModel。
      */
     public ChatModel createChatModel(ModelConfig config) {
         String modelName = config.getModelName();
@@ -59,15 +60,16 @@ public abstract class AbstractGeminiProtocolAdapter {
      * 规范化 baseUrl
      * 自动去除可能导致路径重复的后缀，确保与 OpenAiApi 兼容
      * <p>
-     * OpenAiApi 会自动在 baseUrl 后拼接 /v1/chat/completions
-     * 因此需要去除用户可能传入的以下后缀：
+     * OpenAiApi 自动在 baseUrl 后拼接 /v1/chat/completions
+     * 因此需要去除用户可能传入的以下后缀
      * - /v1/chat/completions
      * - /v1
      * - 末尾的斜杠
      * <p>
-     * 为什么：避免自动拼接导致重复路径
-     * 入参：原始 baseUrl
-     * 出参：规范化后的 baseUrl
+     * 避免自动拼接导致重复路径
+     * 
+     * @param baseUrl 原始 baseUrl（可能包含 /v1 或 /v1/chat/completions 后缀）。
+     * @return 规范化后的 baseUrl（不包含会导致重复拼接的后缀）。
      */
     protected String normalizeBaseUrl(String baseUrl) {
         if (baseUrl == null || baseUrl.isEmpty()) {
@@ -102,6 +104,10 @@ public abstract class AbstractGeminiProtocolAdapter {
 
     /**
      * 规范化 OpenAI 兼容协议路径，保证以 '/' 开头并提供默认值。
+     * 
+     * @param rawPath 配置中的协议路径（允许为空）。
+     * @param defaultPath 默认协议路径（当 rawPath 为空时使用）。
+     * @return 以 '/' 开头的有效协议路径。
      */
     protected String normalizeApiPath(String rawPath, String defaultPath) {
         String path = StringUtils.hasText(rawPath) ? rawPath.trim() : defaultPath;

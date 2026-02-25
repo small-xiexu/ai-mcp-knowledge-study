@@ -66,7 +66,7 @@ public class UserCreateRequest extends BaseRequest {
     private String mobile;
 
     /**
-     * 账号状态：1启用、0禁用、2锁定。
+     * 账号状态1启用、0禁用、2锁定。
      */
     private Integer status;
 

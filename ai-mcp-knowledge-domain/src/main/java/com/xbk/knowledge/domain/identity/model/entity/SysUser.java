@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 /**
  * 系统用户实体。
- * 对应数据库表：sys_user
+ * 对应数据库表sys_user
  *
  * 职责：领域实体，用于承载用户身份状态。
  *
@@ -54,12 +54,12 @@ public class SysUser {
     private String passwordHash;
 
     /**
-     * 账号状态：1启用、0禁用、2锁定。
+     * 账号状态1启用、0禁用、2锁定。
      */
     private Integer status;
 
     /**
-     * 是否平台超管：1是、0否。
+     * 是否平台超管1是、0否。
      */
     private Integer isSuperAdmin;
 

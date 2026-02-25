@@ -24,7 +24,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RagTaskAutoRetryJob {
 
+    /**
+     * RAG 任务仓储。
+     */
     private final RagTaskRepository ragTaskRepository;
+
+    /**
+     * RAG 应用服务。
+     */
     private final RagAppService ragAppService;
 
     /**
@@ -32,11 +39,10 @@ public class RagTaskAutoRetryJob {
      * XXL-Job Handler: ragTaskAutoRetryHandler
      * 建议 Cron: 0 0 2 * * ? (每天凌晨 2 点执行)
      *
-     * 为什么：集中在离峰时间批量重试，降低白天资源竞争与用户体验波动。
+     * 集中在离峰时间批量重试，降低白天资源竞争与用户体验波动。
      */
     @XxlJob("ragTaskAutoRetryHandler")
     public void autoRetryFailedTasks() {
-        
         // 查询昨天失败的任务（状态为 FAILED 或 COMPLETED 但有失败详情）
         LocalDateTime yesterday = LocalDateTime.now().minusDays(1);
         List<RagTask> failedTasks = ragTaskRepository.findFailedTasksSince(yesterday);
@@ -55,7 +61,6 @@ public class RagTaskAutoRetryJob {
 
         for (RagTask task : failedTasks) {
             try {
-                
                 // 检查重试次数（最多自动重试 3 次）
                 Integer retryCount = task.getRetryCount();
                 if (retryCount != null && retryCount >= 3) {

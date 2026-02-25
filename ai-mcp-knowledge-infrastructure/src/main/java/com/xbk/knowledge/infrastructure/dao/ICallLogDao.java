@@ -28,90 +28,100 @@ public interface ICallLogDao extends BaseMapper<CallLogPO> {
     /**
      * 新增调用日志
      *
-     * 为什么：落库记录调用信息
-     * 入参：调用日志
-     * 出参：影响行数
+     * 落库记录调用信息
+     * 
+     * @param callLog 调用日志持久化实体。
+     * @return 影响行数。
      */
     int insertCallLog(CallLogPO callLog);
 
     /**
      * 根据模型ID查询调用日志
      *
-     * 为什么：按模型维度查询日志
-     * 入参：模型ID查询条件
-     * 出参：调用日志列表
+     * 按模型维度查询日志
+     * 
+     * @param query 主键查询条件。
+     * @return CallLogPO 列表。
      */
     List<CallLogPO> selectByModelId(ModelIdQuery query);
 
     /**
      * 根据状态查询调用日志
      *
-     * 为什么：按状态筛选日志
-     * 入参：调用状态查询条件
-     * 出参：调用日志列表
+     * 按状态筛选日志
+     * 
+     * @param query 调用状态查询条件。
+     * @return CallLogPO 列表。
      */
     List<CallLogPO> selectByStatus(CallStatusQuery query);
 
     /**
      * 根据时间范围查询调用日志
      *
-     * 为什么：按时间范围筛选日志
-     * 入参：时间范围查询条件
-     * 出参：调用日志列表
+     * 按时间范围筛选日志
+     * 
+     * @param query 时间范围查询条件。
+     * @return CallLogPO 列表。
      */
     List<CallLogPO> selectByCreatedAtBetween(TimeRangeQuery query);
 
     /**
      * 统计指定模型的调用次数
      *
-     * 为什么：按模型统计调用量
-     * 入参：模型ID查询条件
-     * 出参：调用次数
+     * 按模型统计调用量
+     * 
+     * @param query 主键查询条件。
+     * @return 统计数量。
      */
     long countByModelId(ModelIdQuery query);
 
     /**
      * 统计指定模型的调用次数（按状态）
      *
-     * 为什么：按状态统计调用量
-     * 入参：模型ID与调用状态查询条件
-     * 出参：调用次数
+     * 按状态统计调用量
+     * 
+     * @param query 模型与状态查询条件。
+     * @return 统计数量。
      */
     long countByModelIdAndStatus(ModelIdStatusQuery query);
 
     /**
      * 聚合统计调用次数
      *
-     * 为什么：为监控统计提供数据
-     * 入参：指标查询条件
-     * 出参：调用次数统计
+     * 为监控统计提供数据
+     * 
+     * @param query 时间范围查询条件。
+     * @return 调用次数指标。
      */
     CallMetrics aggregateCallMetrics(MetricsQuery query);
 
     /**
      * 聚合统计成功率
      *
-     * 为什么：为监控统计提供数据
-     * 入参：指标查询条件
-     * 出参：成功率统计
+     * 为监控统计提供数据
+     * 
+     * @param query 时间范围查询条件。
+     * @return 成功率指标。
      */
     SuccessRate aggregateSuccessRate(MetricsQuery query);
 
     /**
      * 聚合统计响应时间
      *
-     * 为什么：为监控统计提供数据
-     * 入参：指标查询条件
-     * 出参：响应时间统计
+     * 为监控统计提供数据
+     * 
+     * @param query 时间范围查询条件。
+     * @return 响应时间指标。
      */
     ResponseTime aggregateResponseTime(MetricsQuery query);
 
     /**
      * 聚合统计模型使用分布
      *
-     * 为什么：为监控统计提供数据
-     * 入参：模型使用查询条件
-     * 出参：模型使用分布
+     * 为监控统计提供数据
+     * 
+     * @param query 模型使用分布查询条件。
+     * @return 监控指标列表。
      */
     List<ModelUsage> aggregateModelUsage(ModelUsageQuery query);
 }

@@ -18,14 +18,14 @@ public interface RagAppService {
 
     /**
      * 查询知识库标签列表
-     *
+     * 
      * @return 标签列表
      */
     List<String> listRagTags();
 
     /**
      * 删除知识库标签
-     *
+     * 
      * @param ragTag 标签
      * @return 是否成功
      */
@@ -33,7 +33,7 @@ public interface RagAppService {
 
     /**
      * 统计标签向量数量
-     *
+     * 
      * @param ragTag 标签
      * @return 数量
      */
@@ -41,25 +41,25 @@ public interface RagAppService {
 
     /**
      * 上传知识库文件
-     *
+     * 
      * @param ragTag 标签
-     * @param files  文件
+     * @param files 文件
      * @return 是否成功
      */
     boolean uploadFiles(String ragTag, List<MultipartFile> files);
 
     /**
      * 异步上传知识库文件（支持进度跟踪）
-     *
+     * 
      * @param ragTag 标签
-     * @param files  文件
+     * @param files 文件
      * @return 任务 ID
      */
     String uploadFilesAsync(String ragTag, List<MultipartFile> files);
 
     /**
      * 提交 Git 仓库分析任务
-     *
+     * 
      * @param repoUrl 仓库地址
      * @param userName 用户名
      * @param token 访问令牌
@@ -70,7 +70,7 @@ public interface RagAppService {
 
     /**
      * 查询任务进度
-     *
+     * 
      * @param taskId 任务ID
      * @return 任务
      */
@@ -78,7 +78,7 @@ public interface RagAppService {
 
     /**
      * 取消任务
-     *
+     * 
      * @param taskId 任务ID
      * @return 是否成功
      */
@@ -86,16 +86,16 @@ public interface RagAppService {
 
     /**
      * 查询任务列表
-     *
+     * 
      * @param offset 偏移量
      * @param pageSize 每页大小
-     * @return 分页结果
+     * @return 任务分页结果。
      */
     PageResult<RagTask> queryTaskPage(int offset, int pageSize);
 
     /**
      * 重试失败的任务
-     *
+     * 
      * @param taskId 任务 ID
      * @return 新任务 ID
      */

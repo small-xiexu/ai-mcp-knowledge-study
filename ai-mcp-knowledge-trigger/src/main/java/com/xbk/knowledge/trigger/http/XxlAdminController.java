@@ -38,10 +38,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * XXL 调度中心 Controller
- * 负责接收 HTTP 请求，调用应用服务，转换响应
+ * XXL 调度中心 Controller。
  *
- * 职责：HTTP 接口适配，用于转发应用层能力
+ * 职责：HTTP 接口适配，用于转发应用层能力。
+ *
  * @author sxie
  */
 @Slf4j
@@ -50,8 +50,19 @@ import java.util.List;
 @RequiredArgsConstructor
 public class XxlAdminController implements IXxlAdminService {
 
+    /**
+     * XXL 作业应用服务。
+     */
     private final XxlJobAppService xxlJobAppService;
+
+    /**
+     * XXL 管理端配置。
+     */
     private final XxlAdminProperties xxlAdminProperties;
+
+    /**
+     * XXL 权限守卫。
+     */
     private final XxlPermissionGuard xxlPermissionGuard;
 
     /**
@@ -64,7 +75,7 @@ public class XxlAdminController implements IXxlAdminService {
      * 5. 统一封装 `Result.success` 返回。
      *
      * @param request 分页查询参数
-     * @return 分页结果
+     * @return PageResult<XxlJobResponse> 分页结果。
      */
     @PostMapping("/jobs/list")
     @Override
@@ -89,7 +100,7 @@ public class XxlAdminController implements IXxlAdminService {
      * 4. 将任务实体逐条转换为 `XxlJobResponse`。
      * 5. 统一封装 `Result.success` 返回。
      *
-     * @param request 查询参数
+     * @param request 请求体参数
      * @return 任务列表
      */
     @PostMapping("/jobs/options")
@@ -137,7 +148,7 @@ public class XxlAdminController implements IXxlAdminService {
      * 5. 返回“任务创建成功”与结果标识。
      *
      * @param request 任务创建参数
-     * @return 返回任务创建结果标识。
+     * @return 任务创建结果标识
      */
     @PostMapping("/jobs/create")
     @Override
@@ -158,7 +169,7 @@ public class XxlAdminController implements IXxlAdminService {
      * 5. 返回“任务更新成功”的统一结果。
      *
      * @param request 任务更新参数
-     * @return 返回任务更新状态。
+     * @return 任务更新状态
      */
     @PostMapping("/jobs/update")
     @Override
@@ -180,7 +191,7 @@ public class XxlAdminController implements IXxlAdminService {
      * 5. 返回“任务删除成功”的统一结果。
      *
      * @param request 任务删除参数
-     * @return 返回任务删除状态。
+     * @return 任务删除状态
      */
     @PostMapping("/jobs/remove")
     @Override
@@ -260,7 +271,7 @@ public class XxlAdminController implements IXxlAdminService {
      * 5. 统一封装 `Result.success` 返回。
      *
      * @param request 分页查询参数
-     * @return 分页结果
+     * @return PageResult<XxlJobLogResponse> 分页结果。
      */
     @PostMapping("/logs/list")
     @Override

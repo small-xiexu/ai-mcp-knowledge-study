@@ -19,15 +19,15 @@ public interface ModelConfigAppService {
 
     /**
      * 分页查询模型配置
-     *
+     * 
      * @param query 分页查询条件
-     * @return 分页结果
+     * @return 模型配置分页结果。
      */
     PageResult<ModelConfig> queryModelConfigPage(ModelConfigPageQuery query);
 
     /**
      * 根据 ID 查询模型配置
-     *
+     * 
      * @param query ID 查询条件
      * @return 模型配置
      */
@@ -35,7 +35,7 @@ public interface ModelConfigAppService {
 
     /**
      * 创建模型配置
-     *
+     * 
      * @param modelConfig 模型配置实体
      * @return 创建后的模型配置
      */
@@ -43,7 +43,7 @@ public interface ModelConfigAppService {
 
     /**
      * 更新模型配置
-     *
+     * 
      * @param modelConfig 模型配置实体（必须包含 ID）
      * @return 更新后的模型配置
      */
@@ -51,14 +51,14 @@ public interface ModelConfigAppService {
 
     /**
      * 删除模型配置
-     *
+     * 
      * @param query ID 查询条件
      */
     void deleteModelConfig(IdQuery query);
 
     /**
      * 启用模型
-     *
+     * 
      * @param query ID 查询条件
      * @return 更新后的模型配置
      */
@@ -66,7 +66,7 @@ public interface ModelConfigAppService {
 
     /**
      * 禁用模型
-     *
+     * 
      * @param query ID 查询条件
      * @return 更新后的模型配置
      */
@@ -74,7 +74,7 @@ public interface ModelConfigAppService {
 
     /**
      * 查询所有启用的模型
-     *
+     * 
      * @param query 启用状态查询条件
      * @return 启用的模型列表
      */
@@ -82,21 +82,21 @@ public interface ModelConfigAppService {
 
     /**
      * 获取当前激活的对话模型
-     *
+     * 
      * @return 对话模型配置
      */
     ModelConfig getActiveChatModel();
 
     /**
      * 获取当前激活的嵌入模型
-     *
+     * 
      * @return 嵌入模型配置
      */
     ModelConfig getActiveEmbeddingModel();
 
     /**
      * 激活对话模型
-     *
+     * 
      * @param query 模型ID
      * @return 激活后的模型配置
      */
@@ -104,7 +104,7 @@ public interface ModelConfigAppService {
 
     /**
      * 激活嵌入模型
-     *
+     * 
      * @param query 模型ID
      * @return 激活后的模型配置
      */
@@ -112,7 +112,7 @@ public interface ModelConfigAppService {
 
     /**
      * 测试模型配置连接
-     *
+     * 
      * @param modelConfig 模型配置
      * @return 是否可用
      */

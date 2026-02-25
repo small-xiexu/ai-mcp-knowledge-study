@@ -24,13 +24,16 @@ import java.io.IOException;
 @Component
 public class TraceIdFilter extends OncePerRequestFilter {
 
+    /**
+     * TraceId 请求头名称。
+     */
     private static final String TRACE_ID_HEADER = "X-Trace-Id";
 
     /**
      * 执行 TraceId 过滤链路处理。
-     *
-     * @param request 请求参数。
-     * @param response 响应对象。
+     * 
+     * @param request HTTP 请求。
+     * @param response HTTP 响应。
      * @param filterChain 过滤器链。
      */
     @Override

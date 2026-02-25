@@ -13,8 +13,8 @@ import java.time.temporal.ChronoUnit;
 /**
  * 网关会话状态
  * <p>
- * 职责：维护单个 SSE 会话的运行时状态，包括 sessionId、SSE sink、创建时间、
- * 最后访问时间和活跃标记，用于会话管理和过期清理
+ * 职责：维护单个 SSE 话的运行时状态，包括 sessionId、SSE sink、创建时间、
+ * 最后访问时间和活跃标记，用于话管理和过期清理
  *
  * @author sxie
  */
@@ -25,7 +25,7 @@ import java.time.temporal.ChronoUnit;
 public class SessionConfigVO {
 
     /**
-     * 会话唯一标识
+     * 话唯一标识
      */
     private String sessionId;
 
@@ -35,7 +35,7 @@ public class SessionConfigVO {
     private Sinks.Many<ServerSentEvent<String>> sink;
 
     /**
-     * 会话创建时间
+     * 话创建时间
      */
     private Instant createTime;
 
@@ -45,13 +45,13 @@ public class SessionConfigVO {
     private volatile Instant lastAccessedTime;
 
     /**
-     * 会话是否活跃
+     * 话是否活跃
      */
     private volatile boolean active;
 
     /**
      * 标记业务状态。
-     *
+     * 
      * @param sessionId 会话 ID
      * @param sink 输出流。
      */
@@ -64,7 +64,7 @@ public class SessionConfigVO {
     }
 
     /**
-     * 标记会话为非活跃状态
+     * 标记话为非活跃状态
      */
     public void markInactive() {
         this.active = false;
@@ -78,7 +78,10 @@ public class SessionConfigVO {
     }
 
     /**
-     * 判断会话是否已超过指定分钟数未活跃
+     * 判断话是否已超过指定分钟数未活跃
+     * 
+     * @param timeoutMinutes 超时时长（分钟）。
+     * @return `true` 表示会话已超时，`false` 表示会话仍有效。
      */
     public boolean isExpired(long timeoutMinutes) {
         if (lastAccessedTime == null) {

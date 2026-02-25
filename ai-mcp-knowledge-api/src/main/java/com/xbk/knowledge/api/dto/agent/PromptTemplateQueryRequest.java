@@ -24,7 +24,7 @@ public class PromptTemplateQueryRequest extends PageRequest {
     private String keyword;
 
     /**
-     * state：DRAFT/PUBLISHED/ARCHIVED（可选）。
+     * stateDRAFT/PUBLISHED/ARCHIVED（可选）。
      */
     private String state;
 }

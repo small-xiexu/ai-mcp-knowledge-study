@@ -71,18 +71,64 @@ import java.util.UUID;
 @RequestMapping("/api/gateway/manage")
 public class GatewayManageController implements IGatewayManageService {
 
+    /**
+     * 默认网关标识。
+     */
     private static final String DEFAULT_GATEWAY_ID = "default_gateway";
+
+    /**
+     * 日志链路追踪 ID 的 MDC 键。
+     */
     private static final String CALL_ID_MDC_KEY = "gatewayToolCallId";
 
+    /**
+     * 网关实例仓储。
+     */
     private final McpGatewayRepository gatewayRepository;
+
+    /**
+     * 网关鉴权配置仓储。
+     */
     private final McpGatewayAuthRepository gatewayAuthRepository;
+
+    /**
+     * 工具注册表仓储。
+     */
     private final McpToolRegistryRepository toolRegistryRepository;
+
+    /**
+     * 工具映射关系仓储。
+     */
     private final McpToolMappingRepository toolMappingRepository;
+
+    /**
+     * 工具绑定关系仓储。
+     */
     private final McpToolBindingRepository toolBindingRepository;
+
+    /**
+     * 工具输入输出 Schema 仓储。
+     */
     private final McpToolSchemaRepository toolSchemaRepository;
+
+    /**
+     * 模型配置仓储。
+     */
     private final ModelConfigRepository modelConfigRepository;
+
+    /**
+     * 网关工具调试服务。
+     */
     private final GatewayToolService gatewayToolService;
+
+    /**
+     * 网关可观测性应用服务。
+     */
     private final GatewayObservabilityAppService gatewayObservabilityAppService;
+
+    /**
+     * 网关管理应用服务。
+     */
     private final GatewayManageAppService gatewayManageAppService;
 
     /**
@@ -93,9 +139,8 @@ public class GatewayManageController implements IGatewayManageService {
      * 3. Controller 组装 `GatewayPageQuery` 并查询网关分页数据与总数。
      * 4. 逐条补充工具数量等展示字段，组装列表行数据。
      * 5. 统一封装 `PageResult` 并返回 `Result.success`。
-     *
+     * 
      * @param request 网关管理分页查询参数。
-     * @return 返回网关实例分页视图数据。
      */
     @PostMapping("/instances/list")
     @SaCheckPermission("tool:read")
@@ -132,9 +177,8 @@ public class GatewayManageController implements IGatewayManageService {
      * 3. 按是否携带 id 决定新建或查询现有实例，并准备默认网关 ID。
      * 4. 回填网关基础字段后调用 `gatewayRepository.save` 持久化。
      * 5. 转换为展示结构并统一封装返回。
-     *
+     * 
      * @param request 网关管理保存参数。
-     * @return 返回保存后的网关实例视图数据。
      */
     @PostMapping("/instances/save")
     @SaCheckPermission("tool:write")
@@ -179,9 +223,9 @@ public class GatewayManageController implements IGatewayManageService {
      * 3. Controller 调用 `gatewayManageAppService.deleteGatewayInstance`。
      * 4. 应用层执行关联数据清理与删除。
      * 5. 统一封装空成功结果返回。
-     *
+     * 
      * @param request 网关实例删除参数。
-     * @return 返回网关实例删除状态。
+     * @return 网关实例删除状态。
      */
     @PostMapping("/instances/delete")
     @SaCheckPermission("tool:write")
@@ -202,9 +246,8 @@ public class GatewayManageController implements IGatewayManageService {
      * 3. 从仓储查询凭证列表，并按状态与 apiKey 关键字过滤。
      * 4. 执行内存分页并转换为前端展示结构。
      * 5. 统一封装 `PageResult` 返回。
-     *
+     * 
      * @param request 网关管理分页查询参数。
-     * @return 返回网关凭证分页视图数据。
      */
     @PostMapping("/auth/list")
     @SaCheckPermission("tool:read")
@@ -266,9 +309,8 @@ public class GatewayManageController implements IGatewayManageService {
      * 3. 按新增/更新分支加载凭证与网关信息，补齐默认值。
      * 4. 执行 API Key 唯一性检查后持久化保存。
      * 5. 转换为凭证视图结构并统一封装返回。
-     *
+     * 
      * @param request 网关管理保存参数。
-     * @return 返回保存后的网关凭证视图数据。
      */
     @PostMapping("/auth/save")
     @SaCheckPermission("tool:write")
@@ -330,9 +372,9 @@ public class GatewayManageController implements IGatewayManageService {
      * 3. Controller 调用统一方法 `updateGatewayAuthStatus(id, 1)`。
      * 4. 统一方法校验凭证存在并更新状态为启用。
      * 5. 返回统一成功结果。
-     *
+     * 
      * @param request 网关凭证启用参数。
-     * @return 返回网关凭证启用状态。
+     * @return 网关凭证启用状态。
      */
     @PostMapping("/auth/enable")
     @SaCheckPermission("tool:write")
@@ -349,9 +391,9 @@ public class GatewayManageController implements IGatewayManageService {
      * 3. Controller 调用统一方法 `updateGatewayAuthStatus(id, 0)`。
      * 4. 统一方法校验凭证存在并更新状态为禁用。
      * 5. 返回统一成功结果。
-     *
+     * 
      * @param request 网关凭证禁用参数。
-     * @return 返回网关凭证禁用状态。
+     * @return 网关凭证禁用状态。
      */
     @PostMapping("/auth/disable")
     @SaCheckPermission("tool:write")
@@ -368,9 +410,8 @@ public class GatewayManageController implements IGatewayManageService {
      * 3. 计算分页偏移量并查询工具分页数据与总数。
      * 4. 逐条转换为前端展示字段。
      * 5. 统一封装 `PageResult` 返回。
-     *
+     * 
      * @param request 网关管理分页查询参数。
-     * @return 返回工具分页视图数据。
      */
     @PostMapping("/tools/list")
     @SaCheckPermission("tool:read")
@@ -414,9 +455,8 @@ public class GatewayManageController implements IGatewayManageService {
      * 3. 查询工具主记录，不存在直接返回业务错误。
      * 4. 分别查询 request/response 映射并组装详情对象。
      * 5. 统一封装 `Result.success` 返回。
-     *
+     * 
      * @param request 工具详情查询参数。
-     * @return 返回工具详情视图数据。
      */
     @PostMapping("/tools/get")
     @SaCheckPermission("tool:read")
@@ -452,9 +492,8 @@ public class GatewayManageController implements IGatewayManageService {
      * 3. 按新增/更新分支组装 `McpToolRegistry` 并保存主记录。
      * 4. 清理旧映射后重建 request/response 映射与 schema 数据。
      * 5. 返回保存后的工具视图数据。
-     *
+     * 
      * @param request 网关管理保存参数。
-     * @return 返回保存后的工具视图数据。
      */
     @PostMapping("/tools/save")
     @SaCheckPermission("tool:write")
@@ -503,9 +542,9 @@ public class GatewayManageController implements IGatewayManageService {
      * 3. Controller 调用 `gatewayManageAppService.deleteTool`。
      * 4. 应用层执行工具与关联映射/绑定清理。
      * 5. 统一封装空成功结果返回。
-     *
+     * 
      * @param request 工具删除参数。
-     * @return 返回工具删除状态。
+     * @return 工具删除状态。
      */
     @PostMapping("/tools/delete")
     @SaCheckPermission("tool:write")
@@ -526,9 +565,9 @@ public class GatewayManageController implements IGatewayManageService {
      * 3. 查询目标工具，不存在返回业务错误。
      * 4. 更新状态为启用并持久化。
      * 5. 返回统一成功结果。
-     *
+     * 
      * @param request 工具启用参数。
-     * @return 返回工具启用状态。
+     * @return 工具启用状态。
      */
     @PostMapping("/tools/enable")
     @SaCheckPermission("tool:write")
@@ -555,9 +594,9 @@ public class GatewayManageController implements IGatewayManageService {
      * 3. 查询目标工具，不存在返回业务错误。
      * 4. 更新状态为禁用并持久化。
      * 5. 返回统一成功结果。
-     *
+     * 
      * @param request 工具禁用参数。
-     * @return 返回工具禁用状态。
+     * @return 工具禁用状态。
      */
     @PostMapping("/tools/disable")
     @SaCheckPermission("tool:write")
@@ -584,9 +623,8 @@ public class GatewayManageController implements IGatewayManageService {
      * 3. 解析 gatewayId、准备调用参数并写入 callId 到 MDC。
      * 4. 调用 `gatewayToolService.callTool` 执行工具并记录耗时日志。
      * 5. 组装 success/content/errorCode 并统一封装返回。
-     *
+     * 
      * @param request 网关管理调用参数。
-     * @return 返回工具调试执行结果数据。
      */
     @PostMapping("/tools/debug")
     @SaCheckPermission("tool:invoke")
@@ -643,9 +681,8 @@ public class GatewayManageController implements IGatewayManageService {
      * 3. 查询 MODEL 维度绑定记录并过滤掉禁用项。
      * 4. 汇总 toolId 列表并计算 `globalVisible` 标记。
      * 5. 统一封装 `Result.success` 返回。
-     *
+     * 
      * @param request 网关管理查询参数。
-     * @return 返回模型工具绑定视图数据。
      */
     @PostMapping("/bindings/model/get")
     @SaCheckPermission("tool:read")
@@ -682,9 +719,9 @@ public class GatewayManageController implements IGatewayManageService {
      * 3. 先删除该模型历史绑定，保证保存语义为“全量覆盖”。
      * 4. 遍历 toolIds 校验工具存在后逐条创建绑定记录。
      * 5. 统一封装空成功结果返回。
-     *
+     * 
      * @param request 网关管理保存参数。
-     * @return 返回模型工具绑定保存状态。
+     * @return 模型工具绑定保存状态。
      */
     @PostMapping("/bindings/model/save")
     @SaCheckPermission("tool:write")
@@ -738,8 +775,6 @@ public class GatewayManageController implements IGatewayManageService {
      * 3. 按网关逐个查询启用工具列表。
      * 4. 转换为统一的简化工具视图集合。
      * 5. 统一封装 `Result.success` 返回。
-     *
-     * @return 返回已启用工具视图列表数据。
      */
     @PostMapping("/tools/all-enabled")
     @SaCheckPermission("tool:read")
@@ -771,8 +806,6 @@ public class GatewayManageController implements IGatewayManageService {
      * 3. 逐条提取 id、modelName、modelType 关键字段。
      * 4. 组装前端使用的模型下拉数据结构。
      * 5. 统一封装 `Result.success` 返回。
-     *
-     * @return 返回已启用模型视图列表数据。
      */
     @PostMapping("/models/enabled")
     @SaCheckPermission("tool:read")
@@ -798,9 +831,8 @@ public class GatewayManageController implements IGatewayManageService {
      * 3. Controller 组装 `MetricsQuery` 调用观测应用服务。
      * 4. 将报告对象转换为 `generatedAt/toolMetrics/alerts` 结构。
      * 5. 统一封装 `Result.success` 返回。
-     *
+     * 
      * @param request 网关管理查询参数。
-     * @return 返回网关监控指标视图数据。
      */
     @PostMapping("/metrics/overview")
     @SaCheckPermission("tool:read")
@@ -876,7 +908,7 @@ public class GatewayManageController implements IGatewayManageService {
 
     /**
      * 保存字段映射。
-     *
+     * 
      * @param toolId 工具ID。
      * @param gatewayId 网关ID。
      * @param mappings 映射定义列表。
@@ -964,10 +996,10 @@ public class GatewayManageController implements IGatewayManageService {
 
     /**
      * 更新网关鉴权状态。
-     *
+     * 
      * @param id 主键ID。
      * @param status 状态值。
-     * @return 返回Result对象。
+     * @return 更新结果。
      */
     private Result<Void> updateGatewayAuthStatus(Long id, int status) {
         if (id == null) {
@@ -985,9 +1017,9 @@ public class GatewayManageController implements IGatewayManageService {
 
     /**
      * 解析限流值。
-     *
+     * 
      * @param rateLimit 限流值。
-     * @return 返回解析结果。
+     * @return 解析结果。
      */
     private int resolveRateLimit(Integer rateLimit) {
         if (rateLimit == null || rateLimit <= 0) {
@@ -998,9 +1030,9 @@ public class GatewayManageController implements IGatewayManageService {
 
     /**
      * 解析状态。
-     *
+     * 
      * @param status 状态值。
-     * @return 返回解析结果。
+     * @return 解析结果。
      */
     private int resolveStatus(Integer status) {
         if (status == null || (status != 0 && status != 1)) {
@@ -1011,11 +1043,11 @@ public class GatewayManageController implements IGatewayManageService {
 
     /**
      * 解析 API Key。
-     *
+     * 
      * @param inputApiKey 输入的API Key。
      * @param existingApiKey 已存在API Key。
      * @param createMode 创建模式。
-     * @return 返回标识Key。
+     * @return 标识 Key。
      */
     private String resolveApiKey(String inputApiKey, String existingApiKey, boolean createMode) {
         if (StringUtils.hasText(inputApiKey)) {

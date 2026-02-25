@@ -15,7 +15,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * 工具绑定关系仓储实现
+ * 工具绑定关系仓储实现。
  *
  * @author sxie
  */
@@ -23,13 +23,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class McpToolBindingRepositoryImpl implements McpToolBindingRepository {
 
+    /**
+     * 工具绑定 DAO。
+     */
     private final IMcpToolBindingDao mapper;
 
     /**
      * 查询MCP 工具绑定。
      *
-     * @param query 查询条件
-     * @return 返回 McpToolBinding 列表数据。
+     * @param query 绑定目标查询条件
+     * @return McpToolBinding 列表
      */
     @Override
     public List<McpToolBinding> findByBindTypeAndTargetId(ToolBindingQuery query) {
@@ -43,7 +46,7 @@ public class McpToolBindingRepositoryImpl implements McpToolBindingRepository {
      * 查询MCP 工具绑定。
      *
      * @param toolId 工具 ID
-     * @return 返回 McpToolBinding 列表数据。
+     * @return McpToolBinding 列表
      */
     @Override
     public List<McpToolBinding> findByToolId(Long toolId) {
@@ -57,8 +60,8 @@ public class McpToolBindingRepositoryImpl implements McpToolBindingRepository {
     /**
      * 创建或更新MCP 工具绑定数据。
      *
-     * @param binding 绑定实体。
-     * @return 返回 McpToolBinding 数据。
+     * @param binding 绑定实体
+     * @return 保存后的 McpToolBinding 信息
      */
     @Override
     public McpToolBinding save(McpToolBinding binding) {
@@ -102,7 +105,7 @@ public class McpToolBindingRepositoryImpl implements McpToolBindingRepository {
     /**
      * 删除MCP 工具绑定数据。
      *
-     * @param query 查询条件
+     * @param query 待删除的绑定目标查询条件
      */
     @Override
     public void deleteByBindTypeAndTargetId(ToolBindingQuery query) {
