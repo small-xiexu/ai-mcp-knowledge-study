@@ -1,7 +1,6 @@
 package com.xbk.knowledge.application.service.app.impl;
 
 import com.xbk.knowledge.application.model.dto.AICallCommand;
-import com.xbk.knowledge.application.model.dto.AICallResult;
 import com.xbk.knowledge.application.service.app.AiChatAppService;
 import com.xbk.knowledge.application.service.app.ChatClientAssemblyService;
 import com.xbk.knowledge.application.service.app.ModelConfigAppService;
@@ -44,7 +43,7 @@ import java.time.LocalDateTime;
 
 /**
  * AI 对话应用服务实现
- * 支持同步与流式对话，并兼容 RAG
+ * 支持流式对话，并兼容 RAG
  * <p>
  * 职责：应用层用例实现，用于协调领域能力
  *
@@ -100,67 +99,6 @@ public class AiChatAppServiceImpl implements AiChatAppService {
     private final McpToolCatalogService mcpToolCatalogService;
 
     /**
-     * 同步对话
-     * <p>
-     * 提供简单调用入口，便于同步场景接入
-     * 
-     * @param command AI 调用命令。
-     * @return 对话调用结果。
-     */
-    @Override
-    public AICallResult chat(AICallCommand command) {
-        long startTime = System.currentTimeMillis();
-        // 1、顺序准备调用上下文模型、工具开关、提示词与日志骨架
-        ChatCallContext context = prepareChatContext(command);
-        ModelConfig modelConfig = context.modelConfig;
-        boolean toolEnabled = context.toolEnabled;
-        Prompt prompt = context.prompt;
-        CallLog callLog = context.callLog;
-        String conversationId = context.conversationId;
-        // 2、绑定网关工具上下文，保证工具回调能感知 runId/sessionId
-        String runId = TraceIdUtils.getOrCreateTraceId();
-        GatewayToolBindingContextHolder.set(modelConfig.getId(), command.getSessionId(), null, runId, null);
-        try {
-            // 3、发起同步调用并提取文本与 token 用量
-            ChatClient chatClient = resolveChatClient(modelConfig, toolEnabled);
-            ChatResponse response = chatClient.prompt(prompt).call().chatResponse();
-            String content = extractContent(response);
-            Usage usage = response != null && response.getMetadata() != null
-                    ? response.getMetadata().getUsage()
-                    : null;
-            Integer tokensUsed = resolveTokensUsed(usage);
-            long responseTime = System.currentTimeMillis() - startTime;
-
-            // 4、成功后写入记忆与调用日志，便于多轮上下文与审计追踪
-            appendChatMemory(conversationId, command.getContent(), content);
-            CallLogAggregate aggregate = CallLogAggregate.builder()
-                    .callLog(fillSuccessLog(callLog, content, tokensUsed, responseTime))
-                    .build();
-            callLogRepository.save(aggregate);
-
-            return AICallResult.builder()
-                    .success(true)
-                    .content(content)
-                    .modelUsed(modelConfig.getModelName())
-                    .tokensUsed(tokensUsed)
-                    .responseTime(responseTime)
-                    .retryCount(0)
-                    .fallback(false)
-                    .build();
-        } catch (Exception e) {
-            // 5、失败分支同样落日志，避免调用链路出现观测盲区
-            long responseTime = System.currentTimeMillis() - startTime;
-            CallLogAggregate aggregate = CallLogAggregate.builder()
-                    .callLog(fillFailureLog(callLog, e.getMessage(), responseTime))
-                    .build();
-            callLogRepository.save(aggregate);
-            throw e;
-        } finally {
-            GatewayToolBindingContextHolder.clear();
-        }
-    }
-
-    /**
      * 流式对话
      * <p>
      * 满足前端流式渲染与大模型逐字输出场景
@@ -171,7 +109,7 @@ public class AiChatAppServiceImpl implements AiChatAppService {
     @Override
     public Flux<ChatResponse> streamChat(AICallCommand command) {
         long startTime = System.currentTimeMillis();
-        // 1、与同步调用复用同一套顺序准备逻辑，避免两条链路行为漂移
+        // 1、按统一顺序准备调用上下文，避免流式行为漂移
         ChatCallContext context = prepareChatContext(command);
         ModelConfig modelConfig = context.modelConfig;
         boolean toolEnabled = context.toolEnabled;
@@ -216,15 +154,15 @@ public class AiChatAppServiceImpl implements AiChatAppService {
     }
 
     private ChatCallContext prepareChatContext(AICallCommand command) {
-        // 步骤 1确定本次调用使用的模型
+        // 1、确定本次调用使用的模型
         ModelConfig modelConfig = resolveChatModel(command);
-        // 步骤 2根据模型配置计算工具开关
+        // 2、根据模型配置计算工具开关
         boolean toolEnabled = resolveToolEnabled(modelConfig);
-        // 步骤 3基于用户输入 + 历史记忆 + RAG 组装 Prompt
+        // 3、基于用户输入 + 历史记忆 + RAG 组装 Prompt
         Prompt prompt = buildPrompt(command, toolEnabled);
-        // 步骤 4创建调用日志骨架，后续只补充结果字段
+        // 4、创建调用日志骨架，后续只补充结果字段
         CallLog callLog = buildCallLog(modelConfig, command);
-        // 步骤 5计算会话 ID，供记忆读写使用
+        // 5、计算会话 ID，供记忆读写使用
         String conversationId = resolveConversationId(command);
         return new ChatCallContext(modelConfig, toolEnabled, prompt, callLog, conversationId);
     }
@@ -412,26 +350,6 @@ public class AiChatAppServiceImpl implements AiChatAppService {
     }
 
     /**
-     * 提取模型回复内容
-     * <p>
-     * 统一处理空响应与空输出
-     * 
-     * @param response 模型响应数据。
-     * @return 助手回复文本。
-     */
-    private String extractContent(ChatResponse response) {
-        if (response == null || response.getResult() == null) {
-            return "";
-        }
-        AssistantMessage output = response.getResult().getOutput();
-        if (output == null) {
-            return "";
-        }
-        String content = output.getText();
-        return content != null ? content : "";
-    }
-
-    /**
      * 构建调用日志
      * <p>
      * 为后续落库提供基础字段
@@ -476,31 +394,6 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         callLog.setErrorMessage(errorMessage);
         callLog.setCreatedAt(LocalDateTime.now());
         return callLog;
-    }
-
-    /**
-     * 解析 token 使用量
-     * <p>
-     * 兼容不同模型返回的 token 字段
-     * 
-     * @param usage token 使用量。
-     * @return 本次调用使用的 token 总数。
-     */
-    private Integer resolveTokensUsed(Usage usage) {
-        if (usage == null) {
-            return 0;
-        }
-        // 优先读取 totalTokens，兼容只返回总量的模型实现
-        Integer totalTokens = usage.getTotalTokens();
-        if (totalTokens != null) {
-            return totalTokens;
-        }
-        // 兜底按 prompt + completion 累加
-        Integer promptTokens = usage.getPromptTokens();
-        Integer completionTokens = usage.getCompletionTokens();
-        int prompt = promptTokens != null ? promptTokens : 0;
-        int completion = completionTokens != null ? completionTokens : 0;
-        return prompt + completion;
     }
 
     /**

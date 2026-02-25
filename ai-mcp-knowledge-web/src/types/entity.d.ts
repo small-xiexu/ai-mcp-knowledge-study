@@ -57,19 +57,6 @@ export interface AIRequest {
 }
 
 /**
- * AI 响应
- */
-export interface AIResponse {
-  content: string
-  modelUsed: string
-  responseTime: number
-  success: boolean
-  errorMessage?: string
-  fallback?: boolean
-  retryCount?: number
-}
-
-/**
  * 聊天会话
  */
 export interface ChatSession {

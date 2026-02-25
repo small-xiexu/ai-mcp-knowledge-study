@@ -44,6 +44,7 @@ import java.util.function.Function;
 @RequestMapping("/api/ai")
 @RequiredArgsConstructor
 public class AICallController implements IAICallService {
+
     /**
      * 模型配置应用服务，用于查询可用模型列表。
      */
@@ -97,6 +98,7 @@ public class AICallController implements IAICallService {
             // 将当前分片文本通过 SSE 发送给前端，前端可实时拼接渲染
             sendChunk(emitter, chatResponse);
         };
+        // 一旦流式调用出现异常，立即以错误态结束 SSE 连接并把异常抛给前端
         Consumer<Throwable> onError = emitter::completeWithError;
         Runnable onComplete = () -> {
             // 流结束时回传累计 usage，便于前端展示 token 消耗
@@ -104,8 +106,10 @@ public class AICallController implements IAICallService {
             // 明确关闭 SSE 连接，通知前端“已完成”
             emitter.complete();
         };
-
-        aiChatAppService.streamChat(command).subscribe(onChunk, onError, onComplete);
+        // 调用应用服务执行流式对话，并传入三段回调逻辑
+        aiChatAppService
+                .streamChat(command)
+                .subscribe(onChunk, onError, onComplete);
         return emitter;
     }
 
@@ -149,43 +153,77 @@ public class AICallController implements IAICallService {
         return Result.success(modelInfos);
     }
 
+    /**
+     * 发送单个流式分片。
+     *
+     * @param emitter SSE 发送器
+     * @param response 当前分片响应
+     */
     private void sendChunk(SseEmitter emitter, ChatResponse response) {
         try {
+            // 1、分片或结果对象为空时直接忽略，避免空指针
             if (response == null || response.getResult() == null) {
                 return;
             }
+
+            // 2、仅处理 Assistant 输出文本，非文本分片直接跳过
             AssistantMessage output = response.getResult().getOutput();
             if (output == null || output.getText() == null) {
                 return;
             }
+
+            // 3、按默认 message 事件推送文本分片，前端可实时拼接
             emitter.send(SseEmitter.event().data(output.getText()));
         } catch (IOException e) {
+            // 4、连接写出失败时终止 SSE，避免僵尸连接
             emitter.completeWithError(e);
         }
     }
 
+    /**
+     * 捕获并累计 usage 快照。
+     *
+     * @param response 当前分片响应
+     * @param usageStats usage 累计容器
+     */
     private void captureUsage(ChatResponse response, UsageStats usageStats) {
+        // 1、metadata 缺失时直接返回（部分分片可能不携带 usage）
         if (response == null || response.getMetadata() == null) {
             return;
         }
+
+        // 2、提取当前分片 usage；为空则忽略
         Usage usage = response.getMetadata().getUsage();
         if (usage == null) {
             return;
         }
+
+        // 3、写入累计容器（仅覆盖非 null 字段）
         usageStats.update(usage.getPromptTokens(), usage.getCompletionTokens(), usage.getTotalTokens());
     }
 
+    /**
+     * 发送整次流式调用的 usage 事件。
+     *
+     * @param emitter SSE 发送器
+     * @param usageStats usage 累计容器
+     */
     private void sendUsage(SseEmitter emitter, UsageStats usageStats) {
+        // 1、没有可用统计值时不发送 usage 事件
         if (!usageStats.hasData()) {
             return;
         }
         try {
+            // 2、组装前端约定的 usage 载荷
             Map<String, Integer> payload = new HashMap<>();
             payload.put("promptTokens", usageStats.getPromptTokens());
             payload.put("completionTokens", usageStats.getCompletionTokens());
             payload.put("totalTokens", usageStats.getTotalTokens());
+
+            // 3、以命名事件 usage 推送，便于前端按事件类型处理
             emitter.send(SseEmitter.event().name("usage").data(payload));
         } catch (IOException e) {
+            // 4、发送失败时终止 SSE
             emitter.completeWithError(e);
         }
     }

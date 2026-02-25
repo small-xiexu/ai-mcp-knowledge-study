@@ -1,9 +1,7 @@
 package com.xbk.knowledge.trigger.converter;
 
 import com.xbk.knowledge.api.dto.ai.AIRequest;
-import com.xbk.knowledge.api.dto.ai.AIResponse;
 import com.xbk.knowledge.application.model.dto.AICallCommand;
-import com.xbk.knowledge.application.model.dto.AICallResult;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
@@ -34,28 +32,6 @@ public class DTOConverterTest {
         assertEquals("hi", command.getContent());
         assertEquals("sys", command.getSystemPrompt());
         assertEquals(Boolean.TRUE, command.getStreaming());
-    }
-
-    /**
-     * 对外暴露 shouldConvertAppResultToApiResponse 作为调用入口，便于上层复用。
-     */
-    @Test
-    public void shouldConvertAppResultToApiResponse() {
-        AICallResult result = AICallResult.builder()
-                .content("ok")
-                .modelUsed("m1")
-                .responseTime(5L)
-                .success(true)
-                .fallback(false)
-                .retryCount(1)
-                .build();
-
-        AIResponse response = DTOConverter.toApiAIResponse(result);
-
-        assertEquals("ok", response.getContent());
-        assertEquals("m1", response.getModelUsed());
-        assertEquals(Long.valueOf(5L), response.getResponseTime());
-        assertEquals(Boolean.TRUE, response.getSuccess());
     }
 
 }

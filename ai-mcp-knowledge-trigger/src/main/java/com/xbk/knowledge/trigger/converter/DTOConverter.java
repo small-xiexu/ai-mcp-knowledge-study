@@ -1,9 +1,7 @@
 package com.xbk.knowledge.trigger.converter;
 
 import com.xbk.knowledge.api.dto.ai.AIRequest;
-import com.xbk.knowledge.api.dto.ai.AIResponse;
 import com.xbk.knowledge.application.model.dto.AICallCommand;
-import com.xbk.knowledge.application.model.dto.AICallResult;
 
 import java.util.List;
 import java.util.Map;
@@ -30,12 +28,19 @@ public class DTOConverter {
         if (api == null) {
             return null;
         }
+        // 请求内容
         String content = api.getContent();
+        // 系统提示词
         String systemPrompt = api.getSystemPrompt();
+        // 模型参数
         Map<String, Object> parameters = api.getParameters();
+        // 流式返回
         Boolean streaming = api.getStreaming();
+        // 模型ID
         Long modelId = api.getModelId();
+        // 会话ID
         Long sessionId = api.getSessionId();
+        // RAG标签
         List<String> ragTags = api.getRagTags();
         return AICallCommand.builder()
                 .content(content)
@@ -48,33 +53,4 @@ public class DTOConverter {
                 .build();
     }
 
-    /**
-     * 应用层 AICallResult -> API AIResponse
-     *
-     * 统一响应字段映射，保证对外返回结构稳定。
-     * 
-     * @param result AI 调用结果。
-     * @return API 响应数据。
-     */
-    public static AIResponse toApiAIResponse(AICallResult result) {
-        if (result == null) {
-            return null;
-        }
-        String content = result.getContent();
-        String modelUsed = result.getModelUsed();
-        Long responseTime = result.getResponseTime();
-        Boolean success = result.getSuccess();
-        String errorMessage = result.getErrorMessage();
-        Boolean fallback = result.getFallback();
-        Integer retryCount = result.getRetryCount();
-        return AIResponse.builder()
-                .content(content)
-                .modelUsed(modelUsed)
-                .responseTime(responseTime)
-                .success(success)
-                .errorMessage(errorMessage)
-                .fallback(fallback)
-                .retryCount(retryCount)
-                .build();
-    }
 }
