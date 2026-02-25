@@ -177,7 +177,29 @@
 
       <!-- 底部悬浮输入框 (Floating Capsule) -->
       <footer class="chat-footer">
+        <div v-if="selectedMediaList.length" class="media-chip-list">
+          <div
+            v-for="(item, index) in selectedMediaList"
+            :key="`${item.name}-${index}`"
+            class="media-chip"
+          >
+            <span class="media-chip-kind">{{ item.kind === 'image' ? '图片' : '附件' }}</span>
+            <span class="media-chip-name">{{ item.name }}</span>
+            <button type="button" class="media-chip-remove" @click="removeMedia(index)">×</button>
+          </div>
+        </div>
         <div class="floating-input-capsule no-plugins">
+           <button type="button" class="media-upload-btn" @click="openMediaPicker">
+             <el-icon><Paperclip /></el-icon>
+           </button>
+           <input
+             ref="mediaInputRef"
+             class="media-file-input"
+             type="file"
+             multiple
+             accept="image/*,.txt,.md,.json,.csv,.xml,.yaml,.yml,.log,.java,.js,.ts,.py,.sql"
+             @change="handleMediaChange"
+           >
            <div class="input-wrapper">
              <el-input
                v-model="input"
@@ -194,7 +216,7 @@
               <div class="model-info-sm">{{ resolveSelectedModelName() || 'Pro' }}</div>
               <el-button 
                 class="send-btn"
-                :disabled="!input.trim() && !sending"
+                :disabled="sending || (!input.trim() && selectedMediaList.length === 0)"
                 @click="handleSend"
               >
                 <el-icon v-if="sending" class="is-loading"><Loading /></el-icon>
@@ -237,7 +259,7 @@ import {
   listChatMessages
 } from '@/api/ai'
 import { listRagTags } from '@/api/rag'
-import type { AIRequest, ModelInfo, ChatSession, ChatMessage } from '@/types/entity'
+import type { AIRequest, AIRequestMedia, ModelInfo, ChatSession, ChatMessage } from '@/types/entity'
 
 interface ChatMessageView extends ChatMessage {
   thinkingContent?: string
@@ -247,6 +269,12 @@ interface ChatMessageView extends ChatMessage {
   renderedContentMode?: 'markdown' | 'plain'
   renderedThinkingMode?: 'markdown' | 'plain'
 }
+
+const MAX_MEDIA_FILES = 6
+const MAX_MEDIA_SIZE_BYTES = 5 * 1024 * 1024
+const TEXT_ATTACHMENT_EXTENSIONS = new Set([
+  'txt', 'md', 'json', 'csv', 'xml', 'yaml', 'yml', 'log', 'java', 'js', 'ts', 'py', 'sql'
+])
 
 hljs.registerLanguage('bash', bash)
 hljs.registerLanguage('shell', bash)
@@ -278,6 +306,8 @@ const input = ref('')
 const sending = ref(false)
 const messages = ref<ChatMessageView[]>([])
 const chatBodyRef = ref<HTMLElement>()
+const mediaInputRef = ref<HTMLInputElement>()
+const selectedMediaList = ref<AIRequestMedia[]>([])
 
 const formatMessageTime = (value?: string) => {
   if (!value) return '-'
@@ -320,6 +350,141 @@ const resolveMessageSenderName = (msg: ChatMessageView) => {
 
 const toggleThinking = (message: ChatMessageView) => {
   message.thinkingFolded = !message.thinkingFolded
+}
+
+const openMediaPicker = () => {
+  mediaInputRef.value?.click()
+}
+
+const removeMedia = (index: number) => {
+  if (index < 0 || index >= selectedMediaList.value.length) {
+    return
+  }
+  selectedMediaList.value.splice(index, 1)
+}
+
+const isImageFile = (file: File) => file.type.startsWith('image/')
+
+const resolveFileExtension = (fileName: string) => {
+  const parts = fileName.split('.')
+  if (parts.length < 2) {
+    return ''
+  }
+  return parts[parts.length - 1].toLowerCase()
+}
+
+const isTextAttachment = (file: File) => {
+  if (file.type.startsWith('text/')) {
+    return true
+  }
+  const extension = resolveFileExtension(file.name)
+  return TEXT_ATTACHMENT_EXTENSIONS.has(extension)
+}
+
+const readFileAsDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
+  const reader = new FileReader()
+  reader.onload = () => resolve(String(reader.result || ''))
+  reader.onerror = () => reject(new Error(`读取文件失败: ${file.name}`))
+  reader.readAsDataURL(file)
+})
+
+const readFileAsText = (file: File) => new Promise<string>((resolve, reject) => {
+  const reader = new FileReader()
+  reader.onload = () => resolve(String(reader.result || ''))
+  reader.onerror = () => reject(new Error(`读取文件失败: ${file.name}`))
+  reader.readAsText(file, 'utf-8')
+})
+
+const createMediaItem = async (file: File): Promise<AIRequestMedia | null> => {
+  if (file.size > MAX_MEDIA_SIZE_BYTES) {
+    ElMessage.warning(`文件过大（最大 5MB）：${file.name}`)
+    return null
+  }
+  const mimeType = file.type || 'application/octet-stream'
+  const data = await readFileAsDataUrl(file)
+  if (isImageFile(file)) {
+    return {
+      kind: 'image',
+      name: file.name,
+      mimeType,
+      data
+    }
+  }
+  let text: string | undefined
+  if (isTextAttachment(file)) {
+    text = await readFileAsText(file)
+  }
+  return {
+    kind: 'attachment',
+    name: file.name,
+    mimeType,
+    data,
+    text
+  }
+}
+
+const handleMediaChange = async (event: Event) => {
+  const inputElement = event.target as HTMLInputElement
+  const fileList = Array.from(inputElement.files || [])
+  if (fileList.length === 0) {
+    return
+  }
+  let remaining = MAX_MEDIA_FILES - selectedMediaList.value.length
+  if (remaining <= 0) {
+    ElMessage.warning(`最多只能上传 ${MAX_MEDIA_FILES} 个文件`)
+    inputElement.value = ''
+    return
+  }
+  for (const file of fileList) {
+    if (remaining <= 0) {
+      break
+    }
+    try {
+      // eslint-disable-next-line no-await-in-loop
+      const mediaItem = await createMediaItem(file)
+      if (!mediaItem) {
+        continue
+      }
+      selectedMediaList.value.push(mediaItem)
+      remaining -= 1
+    } catch (error: any) {
+      ElMessage.error(error.message || `读取文件失败: ${file.name}`)
+    }
+  }
+  if (fileList.length > MAX_MEDIA_FILES) {
+    ElMessage.warning(`超出数量上限，最多保留 ${MAX_MEDIA_FILES} 个文件`)
+  }
+  inputElement.value = ''
+}
+
+const resolveUserDisplayContent = (text: string, mediaList: AIRequestMedia[]) => {
+  if (text) {
+    return text
+  }
+  if (!mediaList || mediaList.length === 0) {
+    return ''
+  }
+  const imageCount = mediaList.filter(item => item.kind === 'image').length
+  const attachmentCount = mediaList.length - imageCount
+  const chunks: string[] = []
+  if (imageCount > 0) {
+    chunks.push(`图片 ${imageCount} 张`)
+  }
+  if (attachmentCount > 0) {
+    chunks.push(`附件 ${attachmentCount} 个`)
+  }
+  return `[上传了${chunks.join('，')}]`
+}
+
+const resolveSessionTitle = (text: string, mediaList: AIRequestMedia[]) => {
+  if (text) {
+    return text.slice(0, 20)
+  }
+  if (!mediaList || mediaList.length === 0) {
+    return '新对话'
+  }
+  const firstName = mediaList[0].name || '附件'
+  return `文件: ${firstName}`.slice(0, 20)
 }
 
 const toChatMessageView = (message: ChatMessage): ChatMessageView => ({
@@ -511,7 +676,7 @@ const handleModelChange = (modelId: number) => {
 }
 
 const handleSend = async () => {
-  if (!input.value.trim()) {
+  if (!input.value.trim() && selectedMediaList.value.length === 0) {
     return
   }
   if (sending.value) {
@@ -521,13 +686,16 @@ const handleSend = async () => {
     await createChat()
   }
   const userContent = input.value.trim()
+  const mediaPayload = selectedMediaList.value.map(item => ({ ...item }))
+  const userDisplayContent = resolveUserDisplayContent(userContent, mediaPayload)
   input.value = ''
   const currentChat = chats.value.find(item => item.id === activeChatId.value)
   if (!currentChat) {
     return
   }
+  selectedMediaList.value = []
   if (!currentChat.title || currentChat.title === '新对话') {
-    const newTitle = userContent.slice(0, 20)
+    const newTitle = resolveSessionTitle(userContent, mediaPayload)
     const res = await updateChatSession(currentChat.id, {
       title: newTitle,
       modelId: selectedModelId.value,
@@ -544,7 +712,7 @@ const handleSend = async () => {
 
   const userMessageRes = await appendChatMessage(currentChat.id, {
     role: 'user',
-    content: userContent,
+    content: userDisplayContent,
     modelId: selectedModelId.value
   })
   const userMessage = toChatMessageView(userMessageRes.data)
@@ -571,7 +739,8 @@ const handleSend = async () => {
     modelId: selectedModelId.value,
     sessionId: currentChat.id,
     ragTags: selectedTags.value,
-    streaming: true
+    streaming: true,
+    mediaList: mediaPayload
   }
   let streamCompleted = false
   let streamAnimationFrameId: number | null = null
@@ -1306,6 +1475,73 @@ watch(selectedTags, value => {
   align-items: center; /* Center the capsule */
   background: linear-gradient(transparent, var(--gemini-bg-primary) 80%);
   z-index: 20;
+}
+
+.media-chip-list {
+  width: 100%;
+  max-width: 800px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.media-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  background: rgba(138, 180, 248, 0.14);
+  border: 1px solid rgba(138, 180, 248, 0.28);
+  max-width: 100%;
+}
+
+.media-chip-kind {
+  font-size: 11px;
+  color: var(--gemini-text-secondary);
+}
+
+.media-chip-name {
+  font-size: 12px;
+  color: var(--gemini-text-primary);
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.media-chip-remove {
+  border: none;
+  background: transparent;
+  color: var(--gemini-text-secondary);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+}
+
+.media-upload-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--gemini-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.media-upload-btn:hover {
+  color: var(--gemini-text-primary);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.media-file-input {
+  display: none;
 }
 
 .floating-input-capsule {

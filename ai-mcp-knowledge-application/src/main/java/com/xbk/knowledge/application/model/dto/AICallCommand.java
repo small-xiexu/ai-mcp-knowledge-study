@@ -72,4 +72,11 @@ public class AICallCommand {
      * 用于 RAG 检索过滤
      */
     private List<String> ragTags;
+
+    /**
+     * 多模态媒体输入（可选）
+     *
+     * 支持图片与附件上传
+     */
+    private List<AICallMedia> mediaList;
 }

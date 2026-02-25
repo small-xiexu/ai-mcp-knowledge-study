@@ -58,6 +58,18 @@ export interface AIRequest {
   modelId?: number
   sessionId?: number
   ragTags?: string[]
+  mediaList?: AIRequestMedia[]
+}
+
+/**
+ * AI 请求媒体项
+ */
+export interface AIRequestMedia {
+  kind: 'image' | 'attachment'
+  name: string
+  mimeType?: string
+  data?: string
+  text?: string
 }
 
 /**

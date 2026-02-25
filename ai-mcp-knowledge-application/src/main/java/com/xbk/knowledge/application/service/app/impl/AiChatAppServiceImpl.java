@@ -1,5 +1,6 @@
 package com.xbk.knowledge.application.service.app.impl;
 
+import com.xbk.knowledge.application.model.dto.AICallMedia;
 import com.xbk.knowledge.application.model.dto.AICallCommand;
 import com.xbk.knowledge.application.service.app.AiChatAppService;
 import com.xbk.knowledge.application.service.app.ChatClientAssemblyService;
@@ -31,18 +32,25 @@ import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.metadata.Usage;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.SystemPromptTemplate;
+import org.springframework.ai.content.Media;
 import org.springframework.ai.document.Document;
 import org.springframework.stereotype.Service;
+import org.springframework.util.InvalidMimeTypeException;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.MimeType;
+import org.springframework.util.MimeTypeUtils;
 import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.time.LocalDateTime;
+import java.nio.charset.StandardCharsets;
 
 /**
  * AI 对话应用服务实现
@@ -65,6 +73,16 @@ public class AiChatAppServiceImpl implements AiChatAppService {
             + "如果文档中没有相关信息，请直接说\"我不太清楚这个问题\"。\n\n"
             + "【参考文档】\n"
             + "{documents}";
+
+    /**
+     * 附件文本片段单项最大字符数。
+     */
+    private static final int MAX_ATTACHMENT_TEXT_CHARS = 12000;
+
+    /**
+     * 附件文本总字符上限。
+     */
+    private static final int MAX_ATTACHMENT_TOTAL_CHARS = 40000;
 
     /**
      * Anthropic 思考分片签名字段。
@@ -332,21 +350,22 @@ public class AiChatAppServiceImpl implements AiChatAppService {
             }
         }
         List<String> ragTags = command.getRagTags();
+        Message userMessage = buildUserMessage(content, command.getMediaList());
         // 3、未启用 RAG 时直接走纯对话路径
         if (CollectionUtils.isEmpty(ragTags)) {
             if (messages.isEmpty()) {
-                return new Prompt(content);
+                return new Prompt(List.of(userMessage));
             }
-            messages.add(new UserMessage(content));
+            messages.add(userMessage);
             return new Prompt(messages);
         }
         // 4、启用 RAG 时先检索语料，检索为空则回退到纯对话
         List<Document> documents = ragVectorStoreService.similaritySearch(content, ragTags);
         if (CollectionUtils.isEmpty(documents)) {
             if (messages.isEmpty()) {
-                return new Prompt(content);
+                return new Prompt(List.of(userMessage));
             }
-            messages.add(new UserMessage(content));
+            messages.add(userMessage);
             return new Prompt(messages);
         }
         // 将检索到的文档注入系统提示，增强回答依据
@@ -356,8 +375,247 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         Message ragMessage = new SystemPromptTemplate(RAG_SYSTEM_PROMPT)
                 .createMessage(Map.of("documents", documentText));
         messages.add(ragMessage);
-        messages.add(new UserMessage(content));
+        messages.add(userMessage);
         return new Prompt(messages);
+    }
+
+    /**
+     * 构建用户消息（支持文本、图片与附件文本）。
+     *
+     * @param content 用户文本内容。
+     * @param mediaList 媒体输入列表。
+     * @return 用户消息对象。
+     */
+    private Message buildUserMessage(String content, List<AICallMedia> mediaList) {
+        if (CollectionUtils.isEmpty(mediaList)) {
+            return new UserMessage(content);
+        }
+        List<Media> imageMediaList = new ArrayList<>();
+        String attachmentText = buildAttachmentText(mediaList);
+        for (AICallMedia media : mediaList) {
+            if (!isImageMedia(media)) {
+                continue;
+            }
+            byte[] data = decodeMediaData(media.getData());
+            if (data == null || data.length == 0) {
+                continue;
+            }
+            MimeType mimeType = resolveMimeType(media, MimeTypeUtils.IMAGE_PNG);
+            imageMediaList.add(Media.builder()
+                    .name(media.getName())
+                    .mimeType(mimeType)
+                    .data(data)
+                    .build());
+        }
+        String finalText = mergeUserContent(content, attachmentText);
+        if (CollectionUtils.isEmpty(imageMediaList)) {
+            return new UserMessage(finalText);
+        }
+        return UserMessage.builder()
+                .text(finalText)
+                .media(imageMediaList)
+                .build();
+    }
+
+    /**
+     * 合并用户文本与附件文本片段。
+     *
+     * @param content 用户输入文本。
+     * @param attachmentText 附件文本片段。
+     * @return 合并后的文本内容。
+     */
+    private String mergeUserContent(String content, String attachmentText) {
+        if (!StringUtils.hasText(attachmentText)) {
+            return content;
+        }
+        if (!StringUtils.hasText(content)) {
+            return attachmentText;
+        }
+        return content + "\n\n" + attachmentText;
+    }
+
+    /**
+     * 构建附件文本片段。
+     *
+     * @param mediaList 媒体输入列表。
+     * @return 附件文本片段。
+     */
+    private String buildAttachmentText(List<AICallMedia> mediaList) {
+        if (CollectionUtils.isEmpty(mediaList)) {
+            return "";
+        }
+        List<String> sections = new ArrayList<>();
+        int totalChars = 0;
+        for (AICallMedia media : mediaList) {
+            if (media == null || isImageMedia(media)) {
+                continue;
+            }
+            String text = resolveAttachmentText(media);
+            if (!StringUtils.hasText(text)) {
+                continue;
+            }
+            String normalized = text;
+            if (normalized.length() > MAX_ATTACHMENT_TEXT_CHARS) {
+                normalized = normalized.substring(0, MAX_ATTACHMENT_TEXT_CHARS);
+            }
+            if (totalChars >= MAX_ATTACHMENT_TOTAL_CHARS) {
+                break;
+            }
+            int remaining = MAX_ATTACHMENT_TOTAL_CHARS - totalChars;
+            if (normalized.length() > remaining) {
+                normalized = normalized.substring(0, remaining);
+            }
+            totalChars += normalized.length();
+            sections.add("【附件 " + resolveAttachmentName(media) + "】\n" + normalized);
+        }
+        if (sections.isEmpty()) {
+            return "";
+        }
+        return "以下是用户上传的附件内容：\n\n" + String.join("\n\n", sections);
+    }
+
+    /**
+     * 解析附件文本。
+     *
+     * @param media 媒体输入项。
+     * @return 附件文本。
+     */
+    private String resolveAttachmentText(AICallMedia media) {
+        if (media == null) {
+            return null;
+        }
+        if (StringUtils.hasText(media.getText())) {
+            return media.getText();
+        }
+        String mimeType = resolveMimeTypeText(media);
+        if (!isTextMimeType(mimeType)) {
+            return null;
+        }
+        byte[] data = decodeMediaData(media.getData());
+        if (data == null || data.length == 0) {
+            return null;
+        }
+        return new String(data, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * 判断媒体项是否为图片。
+     *
+     * @param media 媒体输入项。
+     * @return `true` 表示图片，`false` 表示非图片。
+     */
+    private boolean isImageMedia(AICallMedia media) {
+        if (media == null) {
+            return false;
+        }
+        if ("image".equalsIgnoreCase(media.getKind())) {
+            return true;
+        }
+        String mimeType = resolveMimeTypeText(media);
+        return StringUtils.hasText(mimeType) && mimeType.toLowerCase(Locale.ROOT).startsWith("image/");
+    }
+
+    /**
+     * 判断是否为可解析文本 MIME。
+     *
+     * @param mimeType MIME 文本。
+     * @return `true` 表示文本 MIME。
+     */
+    private boolean isTextMimeType(String mimeType) {
+        if (!StringUtils.hasText(mimeType)) {
+            return false;
+        }
+        String normalized = mimeType.toLowerCase(Locale.ROOT);
+        return normalized.startsWith("text/")
+                || "application/json".equals(normalized)
+                || "application/xml".equals(normalized)
+                || "application/yaml".equals(normalized)
+                || "application/x-yaml".equals(normalized)
+                || "application/csv".equals(normalized);
+    }
+
+    /**
+     * 解析媒体名称。
+     *
+     * @param media 媒体输入项。
+     * @return 媒体名称。
+     */
+    private String resolveAttachmentName(AICallMedia media) {
+        if (media == null || !StringUtils.hasText(media.getName())) {
+            return "未命名附件";
+        }
+        return media.getName();
+    }
+
+    /**
+     * 解析媒体 MIME 文本。
+     *
+     * @param media 媒体输入项。
+     * @return MIME 文本。
+     */
+    private String resolveMimeTypeText(AICallMedia media) {
+        if (media == null) {
+            return null;
+        }
+        if (StringUtils.hasText(media.getMimeType())) {
+            return media.getMimeType().trim();
+        }
+        String data = media.getData();
+        if (!StringUtils.hasText(data) || !data.startsWith("data:")) {
+            return null;
+        }
+        int endIndex = data.indexOf(';');
+        if (endIndex < 0) {
+            endIndex = data.indexOf(',');
+        }
+        if (endIndex <= "data:".length()) {
+            return null;
+        }
+        return data.substring("data:".length(), endIndex);
+    }
+
+    /**
+     * 解析媒体 MIME 对象。
+     *
+     * @param media 媒体输入项。
+     * @param defaultMimeType 默认 MIME。
+     * @return MIME 对象。
+     */
+    private MimeType resolveMimeType(AICallMedia media, MimeType defaultMimeType) {
+        String mimeTypeText = resolveMimeTypeText(media);
+        if (!StringUtils.hasText(mimeTypeText)) {
+            return defaultMimeType;
+        }
+        try {
+            return MimeTypeUtils.parseMimeType(mimeTypeText);
+        } catch (InvalidMimeTypeException e) {
+            return defaultMimeType;
+        }
+    }
+
+    /**
+     * 解码媒体数据。
+     *
+     * @param data 媒体数据文本。
+     * @return 解码后的字节数组。
+     */
+    private byte[] decodeMediaData(String data) {
+        if (!StringUtils.hasText(data)) {
+            return null;
+        }
+        String payload = data.trim();
+        if (payload.startsWith("data:")) {
+            int index = payload.indexOf(',');
+            if (index < 0 || index + 1 >= payload.length()) {
+                return null;
+            }
+            payload = payload.substring(index + 1);
+        }
+        try {
+            return Base64.getDecoder().decode(payload);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     /**

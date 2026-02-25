@@ -1,6 +1,8 @@
 package com.xbk.knowledge.trigger.converter;
 
 import com.xbk.knowledge.api.dto.ai.AIRequest;
+import com.xbk.knowledge.api.dto.ai.AIRequestMedia;
+import com.xbk.knowledge.application.model.dto.AICallMedia;
 import com.xbk.knowledge.application.model.dto.AICallCommand;
 
 import java.util.List;
@@ -42,6 +44,17 @@ public class DTOConverter {
         Long sessionId = api.getSessionId();
         // RAG标签
         List<String> ragTags = api.getRagTags();
+        // 媒体输入
+        List<AIRequestMedia> mediaList = api.getMediaList();
+        List<AICallMedia> commandMediaList = mediaList == null ? null : mediaList.stream()
+                .map(media -> AICallMedia.builder()
+                        .kind(media.getKind())
+                        .name(media.getName())
+                        .mimeType(media.getMimeType())
+                        .data(media.getData())
+                        .text(media.getText())
+                        .build())
+                .toList();
         return AICallCommand.builder()
                 .content(content)
                 .systemPrompt(systemPrompt)
@@ -50,6 +63,7 @@ public class DTOConverter {
                 .modelId(modelId)
                 .sessionId(sessionId)
                 .ragTags(ragTags)
+                .mediaList(commandMediaList)
                 .build();
     }
 
