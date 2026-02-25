@@ -93,9 +93,12 @@ public class ChatSessionController implements IChatSessionService {
     @Override
     public Result<ChatSessionResponse> updateSession(@RequestBody ChatSessionUpdateRequest request) {
         Long id = request.getId();
+        if (id == null) {
+            return Result.error(400, "会话ID不能为空");
+        }
         ChatSession existing = chatSessionAppService.getSession(id);
         if (existing == null) {
-            return Result.error(404, "话不存在");
+            return Result.error(404, "会话不存在");
         }
         existing.setTitle(request.getTitle());
         existing.setModelId(request.getModelId());
@@ -146,9 +149,12 @@ public class ChatSessionController implements IChatSessionService {
     @Override
     public Result<ChatSessionResponse> getSession(@RequestBody IdRequest request) {
         Long id = request.getId();
+        if (id == null) {
+            return Result.error(400, "会话ID不能为空");
+        }
         ChatSession session = chatSessionAppService.getSession(id);
         if (session == null) {
-            return Result.error(404, "话不存在");
+            return Result.error(404, "会话不存在");
         }
         return Result.success(toSessionResponse(session));
     }

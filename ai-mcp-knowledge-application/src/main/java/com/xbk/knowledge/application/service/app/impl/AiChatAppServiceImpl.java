@@ -67,6 +67,11 @@ public class AiChatAppServiceImpl implements AiChatAppService {
             + "{documents}";
 
     /**
+     * Anthropic 思考分片签名字段。
+     */
+    private static final String THINKING_SIGNATURE_KEY = "signature";
+
+    /**
      * 模型配置应用服务。
      */
     private final ModelConfigAppService modelConfigAppService;
@@ -584,10 +589,31 @@ public class AiChatAppServiceImpl implements AiChatAppService {
             return;
         }
         AssistantMessage output = response.getResult().getOutput();
-        if (output == null || output.getText() == null) {
+        if (output == null) {
             return;
         }
-        buffer.append(output.getText());
+        String text = output.getText();
+        if (!StringUtils.hasText(text)) {
+            return;
+        }
+        // 思考分片不写入会话记忆，避免污染后续上下文
+        if (isThinkingChunk(output)) {
+            return;
+        }
+        buffer.append(text);
+    }
+
+    /**
+     * 判断当前分片是否属于模型思考内容。
+     *
+     * @param output 助手分片消息。
+     * @return `true` 表示思考分片，`false` 表示最终回答分片。
+     */
+    private boolean isThinkingChunk(AssistantMessage output) {
+        if (output == null || output.getMetadata() == null) {
+            return false;
+        }
+        return output.getMetadata().containsKey(THINKING_SIGNATURE_KEY);
     }
 
     /**

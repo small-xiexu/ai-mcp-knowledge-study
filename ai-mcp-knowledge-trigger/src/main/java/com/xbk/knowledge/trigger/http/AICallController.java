@@ -17,6 +17,7 @@ import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.metadata.Usage;
 import org.springframework.http.MediaType;
+import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,6 +45,16 @@ import java.util.function.Function;
 @RequestMapping("/api/ai")
 @RequiredArgsConstructor
 public class AICallController implements IAICallService {
+
+    /**
+     * 思考分片事件名。
+     */
+    private static final String THINKING_EVENT = "thinking";
+
+    /**
+     * Anthropic 思考分片签名字段。
+     */
+    private static final String THINKING_SIGNATURE_KEY = "signature";
 
     /**
      * 模型配置应用服务，用于查询可用模型列表。
@@ -168,16 +179,39 @@ public class AICallController implements IAICallService {
 
             // 2、仅处理 Assistant 输出文本，非文本分片直接跳过
             AssistantMessage output = response.getResult().getOutput();
-            if (output == null || output.getText() == null) {
+            if (output == null) {
+                return;
+            }
+            String text = output.getText();
+            if (!StringUtils.hasText(text)) {
                 return;
             }
 
-            // 3、按默认 message 事件推送文本分片，前端可实时拼接
-            emitter.send(SseEmitter.event().data(output.getText()));
+            // 3、思考分片发送为 thinking 事件，最终回答保持默认 message 事件
+            if (isThinkingChunk(output)) {
+                emitter.send(SseEmitter.event().name(THINKING_EVENT).data(text));
+                return;
+            }
+
+            // 4、按默认 message 事件推送文本分片，前端可实时拼接
+            emitter.send(SseEmitter.event().data(text));
         } catch (IOException e) {
-            // 4、连接写出失败时终止 SSE，避免僵尸连接
+            // 5、连接写出失败时终止 SSE，避免僵尸连接
             emitter.completeWithError(e);
         }
+    }
+
+    /**
+     * 判断当前分片是否属于模型思考内容。
+     *
+     * @param output 助手分片消息。
+     * @return `true` 表示思考分片，`false` 表示最终回答分片。
+     */
+    private boolean isThinkingChunk(AssistantMessage output) {
+        if (output == null || output.getMetadata() == null) {
+            return false;
+        }
+        return output.getMetadata().containsKey(THINKING_SIGNATURE_KEY);
     }
 
     /**

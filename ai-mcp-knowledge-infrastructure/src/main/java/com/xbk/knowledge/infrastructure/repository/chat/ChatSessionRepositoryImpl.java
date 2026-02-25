@@ -42,7 +42,10 @@ public class ChatSessionRepositoryImpl implements ChatSessionRepository {
         LocalDateTime now = LocalDateTime.now();
         session.setCreatedAt(now);
         session.setUpdatedAt(now);
-        chatSessionMapper.insertSession(BeanMappingUtils.map(session, ChatSessionPO.class));
+        ChatSessionPO sessionPO = BeanMappingUtils.map(session, ChatSessionPO.class);
+        chatSessionMapper.insertSession(sessionPO);
+        // MyBatis 会将自增主键回填到 PO，需要同步回领域对象避免上层拿到空 ID
+        session.setId(sessionPO.getId());
         return session;
     }
 

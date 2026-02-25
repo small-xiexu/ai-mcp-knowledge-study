@@ -143,8 +143,31 @@
               </div>
               <div class="bubble">
                 <div
+                  v-if="msg.role === 'assistant' && msg.thinkingContent"
+                  class="thinking-panel"
+                >
+                  <button
+                    type="button"
+                    class="thinking-toggle"
+                    @click.stop="toggleThinking(msg)"
+                  >
+                    <span
+                      class="thinking-toggle-icon"
+                      :class="{ folded: msg.thinkingFolded }"
+                    >▾</span>
+                    <span>{{ msg.thinkingFolded ? '展开思考过程' : '收起思考过程' }}</span>
+                  </button>
+                  <div
+                    v-show="!msg.thinkingFolded"
+                    class="thinking-content markdown-body"
+                    :class="{ 'streaming-plain': msg.renderedThinkingMode === 'plain' }"
+                    v-html="msg.renderedThinkingContent"
+                  />
+                </div>
+                <div
                   class="content markdown-body"
-                  v-html="renderMarkdown(msg.content)"
+                  :class="{ 'streaming-plain': msg.renderedContentMode === 'plain' }"
+                  v-html="msg.renderedContent"
                 />
               </div>
             </div>
@@ -216,6 +239,15 @@ import {
 import { listRagTags } from '@/api/rag'
 import type { AIRequest, ModelInfo, ChatSession, ChatMessage } from '@/types/entity'
 
+interface ChatMessageView extends ChatMessage {
+  thinkingContent?: string
+  thinkingFolded?: boolean
+  renderedContent: string
+  renderedThinkingContent?: string
+  renderedContentMode?: 'markdown' | 'plain'
+  renderedThinkingMode?: 'markdown' | 'plain'
+}
+
 hljs.registerLanguage('bash', bash)
 hljs.registerLanguage('shell', bash)
 hljs.registerLanguage('java', java)
@@ -244,7 +276,7 @@ const chats = ref<ChatSession[]>([])
 const activeChatId = ref<number | null>(null)
 const input = ref('')
 const sending = ref(false)
-const messages = ref<ChatMessage[]>([])
+const messages = ref<ChatMessageView[]>([])
 const chatBodyRef = ref<HTMLElement>()
 
 const formatMessageTime = (value?: string) => {
@@ -277,13 +309,47 @@ const buildModelLockMessage = () => {
   }
   return '该会话已绑定模型，发送第一条消息后不可切换。如需切换，请新建会话。'
 }
-const resolveMessageSenderName = (msg: ChatMessage) => {
+const resolveMessageSenderName = (msg: ChatMessageView) => {
   if (msg.role === 'user') return '我'
   if (msg.modelId) {
     const match = models.value.find(item => item.modelId === msg.modelId)
     if (match) return match.modelName
   }
   return resolveSelectedModelName() || 'Assistant'
+}
+
+const toggleThinking = (message: ChatMessageView) => {
+  message.thinkingFolded = !message.thinkingFolded
+}
+
+const toChatMessageView = (message: ChatMessage): ChatMessageView => ({
+  ...message,
+  thinkingContent: '',
+  thinkingFolded: true,
+  renderedThinkingContent: '',
+  renderedContent: renderMarkdown(message.content),
+  renderedContentMode: 'markdown',
+  renderedThinkingMode: 'markdown'
+})
+
+const setMessageContent = (message: ChatMessageView, content: string, mode: 'markdown' | 'plain' = 'markdown') => {
+  const normalized = content || ''
+  if (message.content === normalized && message.renderedContentMode === mode && message.renderedContent) {
+    return
+  }
+  message.content = normalized
+  message.renderedContentMode = mode
+  message.renderedContent = mode === 'markdown' ? renderMarkdown(normalized) : renderPlainText(normalized)
+}
+
+const setMessageThinking = (message: ChatMessageView, thinking: string, mode: 'markdown' | 'plain' = 'markdown') => {
+  const normalized = thinking || ''
+  if (message.thinkingContent === normalized && message.renderedThinkingMode === mode && message.renderedThinkingContent !== undefined) {
+    return
+  }
+  message.thinkingContent = normalized
+  message.renderedThinkingMode = mode
+  message.renderedThinkingContent = mode === 'markdown' ? renderMarkdown(normalized) : renderPlainText(normalized)
 }
 
 
@@ -302,7 +368,7 @@ const loadSessions = async () => {
 const loadMessages = async (sessionId: number) => {
   try {
     const res = await listChatMessages(sessionId, 1, 200)
-    messages.value = res.data.records || []
+    messages.value = (res.data.records || []).map(toChatMessageView)
     await nextTick()
     scrollToBottom()
   } catch (error: any) {
@@ -481,13 +547,17 @@ const handleSend = async () => {
     content: userContent,
     modelId: selectedModelId.value
   })
-  const userMessage = userMessageRes.data
+  const userMessage = toChatMessageView(userMessageRes.data)
   messages.value.push(userMessage)
-  const assistantMessage: ChatMessage = {
+  const assistantMessage: ChatMessageView = {
     id: Date.now(),
     sessionId: currentChat.id,
     role: 'assistant',
     content: '',
+    renderedContent: '',
+    thinkingContent: '',
+    renderedThinkingContent: '',
+    thinkingFolded: true,
     modelId: selectedModelId.value,
     createdAt: new Date().toISOString()
   }
@@ -503,6 +573,8 @@ const handleSend = async () => {
     ragTags: selectedTags.value,
     streaming: true
   }
+  let streamCompleted = false
+  let streamAnimationFrameId: number | null = null
 
   try {
     const response = await chatStream(payload)
@@ -512,8 +584,113 @@ const handleSend = async () => {
     const reader = response.body.getReader()
     const decoder = new TextDecoder('utf-8')
     let buffer = ''
+    let answerBuffer = ''
+    let thinkingBuffer = ''
     let currentEvent = 'message'
-    let eventDataBuffer: string[] = [] // 缓冲当前事件的多行数据
+    let eventDataBuffer: string[] = []
+    let displayedAnswerLength = 0
+    let displayedThinkingLength = 0
+    let scrollQueued = false
+
+    const queueScrollToBottom = () => {
+      if (scrollQueued) {
+        return
+      }
+      scrollQueued = true
+      requestAnimationFrame(() => {
+        scrollQueued = false
+        scrollToBottom()
+      })
+    }
+
+    const resolveFrameStep = (pendingChars: number) => {
+      if (pendingChars > 2000) {
+        return 120
+      }
+      if (pendingChars > 1000) {
+        return 80
+      }
+      if (pendingChars > 400) {
+        return 40
+      }
+      return 18
+    }
+
+    const hasPendingRender = () =>
+      displayedAnswerLength < answerBuffer.length || displayedThinkingLength < thinkingBuffer.length
+
+    const scheduleStreamFrame = () => {
+      if (streamAnimationFrameId !== null) {
+        return
+      }
+      streamAnimationFrameId = requestAnimationFrame(() => {
+        streamAnimationFrameId = null
+
+        let updated = false
+        const answerPending = answerBuffer.length - displayedAnswerLength
+        if (answerPending > 0) {
+          displayedAnswerLength += Math.min(resolveFrameStep(answerPending), answerPending)
+          updated = true
+        }
+        const thinkingPending = thinkingBuffer.length - displayedThinkingLength
+        if (thinkingPending > 0) {
+          displayedThinkingLength += Math.min(resolveFrameStep(thinkingPending), thinkingPending)
+          updated = true
+        }
+
+        if (updated) {
+          setMessageContent(assistantMessage, answerBuffer.slice(0, displayedAnswerLength), 'plain')
+          setMessageThinking(assistantMessage, thinkingBuffer.slice(0, displayedThinkingLength), 'plain')
+          queueScrollToBottom()
+        }
+
+        if (!streamCompleted || hasPendingRender()) {
+          scheduleStreamFrame()
+        }
+      })
+    }
+
+    const waitForStreamFrameDrain = async () => {
+      while (!streamCompleted || hasPendingRender() || streamAnimationFrameId !== null) {
+        // 等待下一帧继续消化缓冲，保证视觉输出连续
+        // eslint-disable-next-line no-await-in-loop
+        await new Promise<void>(resolve => {
+          requestAnimationFrame(() => resolve())
+        })
+      }
+    }
+
+    const flushEventData = () => {
+      if (eventDataBuffer.length === 0) {
+        currentEvent = 'message'
+        return
+      }
+      const fullData = eventDataBuffer.join('\n')
+      eventDataBuffer = []
+      if (currentEvent === 'thinking') {
+        thinkingBuffer += fullData
+      } else if (currentEvent === 'message') {
+        answerBuffer += fullData
+      }
+      currentEvent = 'message'
+      scheduleStreamFrame()
+    }
+
+    const processSseLine = (line: string) => {
+      const cleanLine = line.trimEnd()
+      if (!cleanLine) {
+        flushEventData()
+        return
+      }
+      if (cleanLine.startsWith('event:')) {
+        currentEvent = cleanLine.replace(/^event:\s?/, '') || 'message'
+        return
+      }
+      if (cleanLine.startsWith('data:')) {
+        const dataContent = cleanLine.replace(/^data: ?/, '')
+        eventDataBuffer.push(dataContent)
+      }
+    }
 
     while (true) {
       const { value, done } = await reader.read()
@@ -521,45 +698,26 @@ const handleSend = async () => {
       buffer += decoder.decode(value, { stream: true })
       const lines = buffer.split('\n')
       buffer = lines.pop() || ''
-      
-      lines.forEach(line => {
-        // 去除行尾回车，保留行首可能的缩进（尽管标准 SSE data 应该在开头，但为了保险）
-        const cleanLine = line.trimEnd()
-        
-        // 空行代表一个事件的结束
-        if (!cleanLine) {
-          if (eventDataBuffer.length > 0) {
-            // 将缓冲的多行数据用换行符连接（还原 SSE 协议中的多行文本）
-            const fullData = eventDataBuffer.join('\n')
-            eventDataBuffer = [] // 清空缓冲
-
-            if (currentEvent === 'message') {
-              // 默认 message 事件，追加内容
-              assistantMessage.content += fullData
-            }
-          }
-          currentEvent = 'message' // 重置事件类型
-          return
-        }
-
-        // 处理 event: 行
-        if (cleanLine.startsWith('event:')) {
-          currentEvent = cleanLine.replace(/^event:\s?/, '') || 'message'
-          return
-        }
-
-        // 处理 data: 行
-        if (cleanLine.startsWith('data:')) {
-          // 移除前缀 "data:" 和其后的一个可选空格
-          const dataContent = cleanLine.replace(/^data: ?/, '')
-          eventDataBuffer.push(dataContent)
-        }
-      })
-      
-      await nextTick()
-      scrollToBottom()
+      lines.forEach(processSseLine)
     }
+    buffer += decoder.decode()
+    if (buffer) {
+      buffer.split('\n').forEach(processSseLine)
+    }
+    flushEventData()
+    streamCompleted = true
+    scheduleStreamFrame()
+    await waitForStreamFrameDrain()
+    setMessageContent(assistantMessage, answerBuffer, 'markdown')
+    setMessageThinking(assistantMessage, thinkingBuffer, 'markdown')
+    await nextTick()
+    scrollToBottom()
   } catch (error: any) {
+    streamCompleted = true
+    if (streamAnimationFrameId !== null) {
+      cancelAnimationFrame(streamAnimationFrameId)
+      streamAnimationFrameId = null
+    }
     ElMessage.error(error.message || '发送失败')
   } finally {
     if (assistantMessage.content) {
@@ -571,7 +729,14 @@ const handleSend = async () => {
         })
         const index = messages.value.findIndex(item => item.id === assistantMessage.id)
         if (index >= 0) {
-          messages.value[index] = saved.data
+          const savedMessage = saved.data
+          assistantMessage.id = savedMessage.id
+          assistantMessage.sessionId = savedMessage.sessionId
+          assistantMessage.role = savedMessage.role
+          assistantMessage.modelId = savedMessage.modelId
+          assistantMessage.createdAt = savedMessage.createdAt
+          setMessageContent(assistantMessage, savedMessage.content)
+          messages.value[index] = assistantMessage
         }
       } catch (error: any) {
         ElMessage.error(error.message || '保存消息失败')
@@ -667,6 +832,11 @@ const renderMarkdown = (content?: string) => {
   // 将连续的3个或更多换行符压缩为2个，避免段落间距过大
   const normalized = content.replace(/\n{3,}/g, '\n\n')
   return markdown.render(normalized)
+}
+
+const renderPlainText = (content?: string) => {
+  if (!content) return ''
+  return markdown.utils.escapeHtml(content)
 }
 
 watch(selectedModelId, (value, oldValue) => {
@@ -1066,6 +1236,46 @@ watch(selectedTags, value => {
   word-break: break-word;
 }
 
+.thinking-panel {
+  margin-bottom: 10px;
+  border: 1px solid rgba(138, 180, 248, 0.3);
+  border-radius: 12px;
+  background: rgba(138, 180, 248, 0.08);
+  padding: 8px 10px;
+}
+
+.thinking-toggle {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--gemini-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.thinking-toggle:hover {
+  color: var(--gemini-text-primary);
+}
+
+.thinking-toggle-icon {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+.thinking-toggle-icon.folded {
+  transform: rotate(-90deg);
+}
+
+.thinking-content {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--gemini-text-secondary);
+}
+
 .message-row.user .bubble {
   background-color: #36373A;
   padding: 10px 18px !important;
@@ -1210,6 +1420,10 @@ watch(selectedTags, value => {
   font-family: inherit;
   color: var(--gemini-text-primary);
   line-height: 1.6;
+}
+
+.streaming-plain {
+  white-space: pre-wrap;
 }
 
 .markdown-body :deep(p) {

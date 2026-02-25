@@ -62,12 +62,24 @@
         <el-table-column
           prop="baseUrl"
           label="Base URL"
-          min-width="280"
+          min-width="360"
           show-overflow-tooltip
 
         >
           <template #default="{ row }">
-            <span class="url-text">{{ row.baseUrl }}</span>
+            <div class="endpoint-cell">
+              <div class="url-text">{{ row.baseUrl }}</div>
+              <div class="path-lines">
+                <div class="path-line">
+                  <span class="path-label">对话:</span>
+                  <span class="path-value">{{ resolvePath(row.completionsPath) }}</span>
+                </div>
+                <div class="path-line">
+                  <span class="path-label">嵌入:</span>
+                  <span class="path-value">{{ resolvePath(row.embeddingsPath) }}</span>
+                </div>
+              </div>
+            </div>
           </template>
         </el-table-column>
         
@@ -350,6 +362,13 @@ const tableRowClassName = () => {
   return 'gemini-row';
 }
 
+const resolvePath = (path?: string) => {
+  if (!path || !path.trim()) {
+    return '-'
+  }
+  return path
+}
+
 onMounted(() => {
   fetchData()
 })
@@ -445,6 +464,39 @@ onMounted(() => {
   color: #9aa0a6;
   font-family: 'Roboto Mono', monospace;
   font-size: 12px;
+}
+
+.endpoint-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.path-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.path-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 12px;
+}
+
+.path-label {
+  color: #7f8793;
+  flex: 0 0 auto;
+}
+
+.path-value {
+  color: #c2c7d0;
+  font-family: 'Roboto Mono', monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 :deep(.id-column-header),
