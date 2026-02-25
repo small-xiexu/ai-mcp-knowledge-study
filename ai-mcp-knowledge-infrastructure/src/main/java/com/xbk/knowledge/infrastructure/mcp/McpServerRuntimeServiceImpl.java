@@ -25,8 +25,11 @@ import java.net.http.HttpRequest;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -77,6 +80,11 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
     private final Map<Long, McpServerMeta> metaRegistry = new ConcurrentHashMap<>();
 
     /**
+     * 运行时配置快照注册表。
+     */
+    private final Map<Long, RuntimeConfigSnapshot> configSnapshotRegistry = new ConcurrentHashMap<>();
+
+    /**
      * MCP 协议 JSON 映射器。
      */
     private final McpJsonMapper mcpJsonMapper;
@@ -104,30 +112,7 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
      */
     @Override
     public void registerOrUpdate(McpServerConfig config) {
-        if (config == null) {
-            return;
-        }
-        Long configId = config.getId();
-        if (configId == null) {
-            return;
-        }
-        if (!Boolean.TRUE.equals(config.getEnabled())) {
-            unregister(configId);
-            return;
-        }
-
-        // 先关闭旧连接，避免资源泄露
-        McpSyncClient existing = clientRegistry.remove(configId);
-        closeQuietly(existing);
-        metaRegistry.remove(configId);
-
-        // 按配置创建客户端并完成初始化
-        McpSyncClient client = buildClient(config);
-        client.initialize();
-        clientRegistry.put(configId, client);
-        metaRegistry.put(configId, new McpServerMeta(config.getServerName()));
-        refreshToolCallbacks();
-        log.info("MCP Server 已注册，id: {}, name: {}", configId, config.getServerName());
+        registerOrUpdateInternal(config, true);
     }
 
     /**
@@ -140,14 +125,7 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
      */
     @Override
     public void unregister(Long id) {
-        if (id == null) {
-            return;
-        }
-        McpSyncClient client = clientRegistry.remove(id);
-        metaRegistry.remove(id);
-        closeQuietly(client);
-        refreshToolCallbacks();
-        log.info("MCP Server 已注销，id: {}", id);
+        unregisterInternal(id, true);
     }
 
     /**
@@ -160,20 +138,35 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
      */
     @Override
     public void refresh(List<McpServerConfig> configs) {
+        // 统一空值处理，避免调用方传 null 触发分支散落。
         List<McpServerConfig> safeConfigs = configs == null ? Collections.emptyList() : configs;
-        Set<Long> activeIds = ConcurrentHashMap.newKeySet();
+
+        // 按配置 ID 去重，若同一 ID 出现多次，以最后一次为准。
+        Map<Long, McpServerConfig> deduplicatedConfigs = new LinkedHashMap<>();
         for (McpServerConfig config : safeConfigs) {
             if (config == null || config.getId() == null) {
                 continue;
             }
-            activeIds.add(config.getId());
-            registerOrUpdate(config);
+            // 配置列表可能存在重复 ID，后出现的配置覆盖前面的配置。
+            deduplicatedConfigs.put(config.getId(), config);
         }
 
-        for (Long id : clientRegistry.keySet()) {
-            if (!activeIds.contains(id)) {
-                unregister(id);
-            }
+        // 增量注册/更新：内部会根据快照判断是否需要真正重连。
+        boolean changed = false;
+        for (McpServerConfig config : deduplicatedConfigs.values()) {
+            changed = registerOrUpdateInternal(config, false) || changed;
+        }
+
+        // 差集删除：运行中存在但本次配置不存在的连接全部下线。
+        Set<Long> staleIds = new HashSet<>(clientRegistry.keySet());
+        staleIds.removeAll(deduplicatedConfigs.keySet());
+        for (Long id : staleIds) {
+            changed = unregisterInternal(id, false) || changed;
+        }
+
+        // 批处理期间延迟刷新，最后仅在有变更时刷新一次工具回调。
+        if (changed) {
+            refreshToolCallbacks();
         }
     }
 
@@ -205,7 +198,86 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
         }
         clientRegistry.clear();
         metaRegistry.clear();
+        configSnapshotRegistry.clear();
         refreshToolCallbacks();
+    }
+
+    /**
+     * 注册或更新 MCP Server 连接。
+     *
+     * 根据配置快照判定是否需要重建连接，避免无变更时重复初始化
+     *
+     * @param config 配置信息。
+     * @param refreshCallbacks 是否立即刷新工具回调。
+     * @return `true` 表示运行时状态发生变化，`false` 表示无变化。
+     */
+    private boolean registerOrUpdateInternal(McpServerConfig config, boolean refreshCallbacks) {
+        // 配置或主键为空无法建立运行时连接，直接忽略。
+        if (config == null) {
+            return false;
+        }
+        Long configId = config.getId();
+        if (configId == null) {
+            return false;
+        }
+        // 未启用配置不参与运行时，转为注销流程。
+        if (!Boolean.TRUE.equals(config.getEnabled())) {
+            return unregisterInternal(configId, refreshCallbacks);
+        }
+
+        // 快照未变化且运行时数据完整时，跳过重连以避免无效初始化。
+        RuntimeConfigSnapshot newSnapshot = buildRuntimeConfigSnapshot(config);
+        RuntimeConfigSnapshot currentSnapshot = configSnapshotRegistry.get(configId);
+        if (newSnapshot.equals(currentSnapshot)
+                && clientRegistry.containsKey(configId)
+                && metaRegistry.containsKey(configId)) {
+            return false;
+        }
+
+        // 先关闭旧连接，避免资源泄露
+        McpSyncClient existing = clientRegistry.remove(configId);
+        closeQuietly(existing);
+        metaRegistry.remove(configId);
+
+        // 按最新配置创建并初始化客户端，再回填运行时注册表与快照。
+        McpSyncClient client = buildClient(config);
+        client.initialize();
+        clientRegistry.put(configId, client);
+        metaRegistry.put(configId, new McpServerMeta(config.getServerName()));
+        configSnapshotRegistry.put(configId, newSnapshot);
+        // 外部调用需要立即可见时刷新回调；批量刷新场景由调用方统一刷新一次。
+        if (refreshCallbacks) {
+            refreshToolCallbacks();
+        }
+        log.info("MCP Server 已注册，id: {}, name: {}", configId, config.getServerName());
+        return true;
+    }
+
+    /**
+     * 取消注册 MCP Server 连接。
+     *
+     * 释放客户端资源，并按需刷新工具回调
+     *
+     * @param id 主键 ID。
+     * @param refreshCallbacks 是否立即刷新工具回调。
+     * @return `true` 表示运行时状态发生变化，`false` 表示无变化。
+     */
+    private boolean unregisterInternal(Long id, boolean refreshCallbacks) {
+        if (id == null) {
+            return false;
+        }
+        McpSyncClient client = clientRegistry.remove(id);
+        McpServerMeta removedMeta = metaRegistry.remove(id);
+        RuntimeConfigSnapshot removedSnapshot = configSnapshotRegistry.remove(id);
+        if (client == null && removedMeta == null && removedSnapshot == null) {
+            return false;
+        }
+        closeQuietly(client);
+        if (refreshCallbacks) {
+            refreshToolCallbacks();
+        }
+        log.info("MCP Server 已注销，id: {}", id);
+        return true;
     }
 
     /**
@@ -479,6 +551,180 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
             descriptors.add(new DynamicMcpToolCallbackProvider.McpClientDescriptor(meta.serverName, client));
         }
         toolCallbackProvider.updateClients(descriptors);
+    }
+
+    /**
+     * 构建运行时配置快照。
+     *
+     * 仅包含会影响连接与工具暴露的字段
+     *
+     * @param config 配置信息。
+     * @return 运行时配置快照。
+     */
+    private RuntimeConfigSnapshot buildRuntimeConfigSnapshot(McpServerConfig config) {
+        return new RuntimeConfigSnapshot(
+                config.getServerName(),
+                config.getServerType(),
+                config.getEnabled(),
+                config.getCommand(),
+                config.getArgs(),
+                config.getEnv(),
+                config.getEndpoint(),
+                config.getSseEndpoint(),
+                config.getHeaders(),
+                config.getConnectTimeoutMs(),
+                config.getRequestTimeoutMs(),
+                config.getInitTimeoutMs()
+        );
+    }
+
+    /**
+     * 运行时配置快照。
+     *
+     * 用于判定配置是否变化，避免无效重连
+     */
+    private static final class RuntimeConfigSnapshot {
+        /**
+         * MCP 服务名称。
+         */
+        private final String serverName;
+
+        /**
+         * MCP 服务类型。
+         */
+        private final McpServerType serverType;
+
+        /**
+         * 是否启用。
+         */
+        private final Boolean enabled;
+
+        /**
+         * STDIO 命令。
+         */
+        private final String command;
+
+        /**
+         * STDIO 参数。
+         */
+        private final String args;
+
+        /**
+         * STDIO 环境变量。
+         */
+        private final String env;
+
+        /**
+         * 服务端点。
+         */
+        private final String endpoint;
+
+        /**
+         * SSE 端点。
+         */
+        private final String sseEndpoint;
+
+        /**
+         * HTTP 请求头。
+         */
+        private final String headers;
+
+        /**
+         * 连接超时时间。
+         */
+        private final Integer connectTimeoutMs;
+
+        /**
+         * 请求超时时间。
+         */
+        private final Integer requestTimeoutMs;
+
+        /**
+         * 初始化超时时间。
+         */
+        private final Integer initTimeoutMs;
+
+        /**
+         * 创建运行时配置快照对象。
+         *
+         * @param serverName MCP 服务名称。
+         * @param serverType MCP 服务类型。
+         * @param enabled 是否启用。
+         * @param command STDIO 命令。
+         * @param args STDIO 参数。
+         * @param env STDIO 环境变量。
+         * @param endpoint 服务端点。
+         * @param sseEndpoint SSE 端点。
+         * @param headers HTTP 请求头。
+         * @param connectTimeoutMs 连接超时时间。
+         * @param requestTimeoutMs 请求超时时间。
+         * @param initTimeoutMs 初始化超时时间。
+         */
+        private RuntimeConfigSnapshot(String serverName,
+                                      McpServerType serverType,
+                                      Boolean enabled,
+                                      String command,
+                                      String args,
+                                      String env,
+                                      String endpoint,
+                                      String sseEndpoint,
+                                      String headers,
+                                      Integer connectTimeoutMs,
+                                      Integer requestTimeoutMs,
+                                      Integer initTimeoutMs) {
+            this.serverName = serverName;
+            this.serverType = serverType;
+            this.enabled = enabled;
+            this.command = command;
+            this.args = args;
+            this.env = env;
+            this.endpoint = endpoint;
+            this.sseEndpoint = sseEndpoint;
+            this.headers = headers;
+            this.connectTimeoutMs = connectTimeoutMs;
+            this.requestTimeoutMs = requestTimeoutMs;
+            this.initTimeoutMs = initTimeoutMs;
+        }
+
+        /**
+         * 判断快照是否等价。
+         *
+         * @param obj 比较对象。
+         * @return `true` 表示等价，`false` 表示不等价。
+         */
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (!(obj instanceof RuntimeConfigSnapshot)) {
+                return false;
+            }
+            RuntimeConfigSnapshot that = (RuntimeConfigSnapshot) obj;
+            return Objects.equals(serverName, that.serverName)
+                    && serverType == that.serverType
+                    && Objects.equals(enabled, that.enabled)
+                    && Objects.equals(command, that.command)
+                    && Objects.equals(args, that.args)
+                    && Objects.equals(env, that.env)
+                    && Objects.equals(endpoint, that.endpoint)
+                    && Objects.equals(sseEndpoint, that.sseEndpoint)
+                    && Objects.equals(headers, that.headers)
+                    && Objects.equals(connectTimeoutMs, that.connectTimeoutMs)
+                    && Objects.equals(requestTimeoutMs, that.requestTimeoutMs)
+                    && Objects.equals(initTimeoutMs, that.initTimeoutMs);
+        }
+
+        /**
+         * 计算快照哈希值。
+         *
+         * @return 哈希值。
+         */
+        @Override
+        public int hashCode() {
+            return Objects.hash(serverName, serverType, enabled, command, args, env,
+                    endpoint, sseEndpoint, headers, connectTimeoutMs, requestTimeoutMs, initTimeoutMs);
+        }
     }
 
     private static final class McpServerMeta {

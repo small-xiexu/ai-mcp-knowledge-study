@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 /**
  * 模型配置领域服务实现
@@ -75,10 +74,9 @@ public class ModelConfigServiceImpl implements IModelConfigService {
         Long id = query.getId();
         IdQuery idQuery = new IdQuery(id);
         String notFoundMessage = "模型配置不存在，id: " + id;
-        Supplier<NotFoundException> exceptionSupplier = () -> new NotFoundException(notFoundMessage);
         return modelConfigRepository
                 .findById(idQuery)
-                .orElseThrow(exceptionSupplier);
+                .orElseThrow(() -> new NotFoundException(notFoundMessage));
     }
 
     /**
@@ -125,10 +123,9 @@ public class ModelConfigServiceImpl implements IModelConfigService {
         Long modelConfigId = modelConfig.getId();
         IdQuery idQuery = new IdQuery(modelConfigId);
         String notFoundMessage = "模型配置不存在，id: " + modelConfigId;
-        Supplier<NotFoundException> exceptionSupplier = () -> new NotFoundException(notFoundMessage);
         ModelConfig existingConfig = modelConfigRepository
                 .findById(idQuery)
-                .orElseThrow(exceptionSupplier);
+                .orElseThrow(() -> new NotFoundException(notFoundMessage));
 
         String modelName = modelConfig.getModelName();
         ModelNameQuery modelNameQuery = new ModelNameQuery(modelName);
@@ -201,10 +198,9 @@ public class ModelConfigServiceImpl implements IModelConfigService {
         Long id = query.getId();
         IdQuery idQuery = new IdQuery(id);
         String notFoundMessage = "模型配置不存在，id: " + id;
-        Supplier<NotFoundException> exceptionSupplier = () -> new NotFoundException(notFoundMessage);
         ModelConfig modelConfig = modelConfigRepository
                 .findById(idQuery)
-                .orElseThrow(exceptionSupplier);
+                .orElseThrow(() -> new NotFoundException(notFoundMessage));
 
         modelConfig.setEnabled(true);
         modelConfig.setUpdatedAt(LocalDateTime.now());
@@ -232,10 +228,9 @@ public class ModelConfigServiceImpl implements IModelConfigService {
         Long id = query.getId();
         IdQuery idQuery = new IdQuery(id);
         String notFoundMessage = "模型配置不存在，id: " + id;
-        Supplier<NotFoundException> exceptionSupplier = () -> new NotFoundException(notFoundMessage);
         ModelConfig modelConfig = modelConfigRepository
                 .findById(idQuery)
-                .orElseThrow(exceptionSupplier);
+                .orElseThrow(() -> new NotFoundException(notFoundMessage));
 
         modelConfig.setEnabled(false);
         modelConfig.setUpdatedAt(LocalDateTime.now());

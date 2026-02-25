@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * MCP Server 配置领域服务实现
@@ -51,8 +50,9 @@ public class McpServerConfigServiceImpl implements IMcpServerConfigService {
         // 规范化分页参数，避免异常分页导致性能问题
         McpServerConfigPageQuery pageQuery = new McpServerConfigPageQuery(offset, pageSize);
         List<McpServerConfig> configs = mcpServerConfigRepository.findPage(pageQuery);
-
+        // 获取总记录数
         long total = mcpServerConfigRepository.countAll();
+        // 获取当前页码
         int pageNum = (offset / pageSize) + 1;
         return PageResult.of(configs, total, pageNum, pageSize);
     }
@@ -73,10 +73,9 @@ public class McpServerConfigServiceImpl implements IMcpServerConfigService {
         Long id = query.getId();
         IdQuery idQuery = new IdQuery(id);
         String notFoundMessage = "MCP Server 配置不存在，id: " + id;
-        Supplier<NotFoundException> exceptionSupplier = () -> new NotFoundException(notFoundMessage);
         return mcpServerConfigRepository
                 .findById(idQuery)
-                .orElseThrow(exceptionSupplier);
+                .orElseThrow(() -> new NotFoundException(notFoundMessage));
     }
 
     /**
@@ -123,10 +122,9 @@ public class McpServerConfigServiceImpl implements IMcpServerConfigService {
         Long configId = config.getId();
         IdQuery idQuery = new IdQuery(configId);
         String notFoundMessage = "MCP Server 配置不存在，id: " + configId;
-        Supplier<NotFoundException> exceptionSupplier = () -> new NotFoundException(notFoundMessage);
         McpServerConfig existingConfig = mcpServerConfigRepository
                 .findById(idQuery)
-                .orElseThrow(exceptionSupplier);
+                .orElseThrow(() -> new NotFoundException(notFoundMessage));
 
         // 校验名称唯一性，避免冲突
         String serverName = config.getServerName();
@@ -197,10 +195,9 @@ public class McpServerConfigServiceImpl implements IMcpServerConfigService {
         Long id = query.getId();
         IdQuery idQuery = new IdQuery(id);
         String notFoundMessage = "MCP Server 配置不存在，id: " + id;
-        Supplier<NotFoundException> exceptionSupplier = () -> new NotFoundException(notFoundMessage);
         McpServerConfig config = mcpServerConfigRepository
                 .findById(idQuery)
-                .orElseThrow(exceptionSupplier);
+                .orElseThrow(() -> new NotFoundException(notFoundMessage));
 
         config.setEnabled(true);
         config.setUpdatedAt(LocalDateTime.now());
@@ -223,10 +220,9 @@ public class McpServerConfigServiceImpl implements IMcpServerConfigService {
         Long id = query.getId();
         IdQuery idQuery = new IdQuery(id);
         String notFoundMessage = "MCP Server 配置不存在，id: " + id;
-        Supplier<NotFoundException> exceptionSupplier = () -> new NotFoundException(notFoundMessage);
         McpServerConfig config = mcpServerConfigRepository
                 .findById(idQuery)
-                .orElseThrow(exceptionSupplier);
+                .orElseThrow(() -> new NotFoundException(notFoundMessage));
 
         config.setEnabled(false);
         config.setUpdatedAt(LocalDateTime.now());

@@ -164,6 +164,7 @@ public class McpServerConfigAppServiceImpl implements McpServerConfigAppService 
      */
     @Override
     public void refreshEnabledServers() {
+        // 查询所有启用的 MCP Server 配置
         List<McpServerConfig> enabledConfigs = mcpServerConfigService.queryEnabledServers(new EnabledQuery(true));
         mcpServerRuntimeService.refresh(enabledConfigs);
     }
