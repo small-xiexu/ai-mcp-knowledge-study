@@ -12,7 +12,7 @@ import com.xbk.knowledge.domain.client.model.entity.ClientProfile;
 import com.xbk.knowledge.domain.client.model.entity.ClientProfileStep;
 import com.xbk.knowledge.domain.client.model.valobj.ClientProfilePageQuery;
 import com.xbk.knowledge.types.common.PageResult;
-import com.xbk.knowledge.types.common.PageResultConverter;
+import com.xbk.knowledge.types.common.PageQueryExecutor;
 import com.xbk.knowledge.types.common.Result;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -60,15 +60,17 @@ public class ClientProfileController implements IClientProfileService {
     @SaCheckPermission("agent:read")
     @Override
     public Result<PageResult<ClientProfileResponse>> list(@Valid @RequestBody ClientProfileQueryRequest request) {
-        ClientProfilePageQuery query = ClientProfilePageQuery.builder()
-                .keyword(request.getKeyword())
-                .status(request.getStatus())
-                .offset(request.getOffset())
-                .pageSize(request.getPageSize())
-                .build();
-        PageResult<ClientProfile> page = clientProfileAppService.queryPage(query);
-        PageResult<ClientProfileResponse> resp = PageResultConverter.convert(page, this::toResponseWithoutSteps);
-        return Result.success(resp);
+        return PageQueryExecutor.execute(
+                request,
+                (offset, pageSize) -> ClientProfilePageQuery.builder()
+                        .keyword(request.getKeyword())
+                        .status(request.getStatus())
+                        .offset(offset)
+                        .pageSize(pageSize)
+                        .build(),
+                clientProfileAppService::queryPage,
+                this::toResponseWithoutSteps
+        );
     }
 
     /**

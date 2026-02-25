@@ -11,7 +11,7 @@ import com.xbk.knowledge.domain.agentenhancer.model.valobj.AgentEnhancerBindingQ
 import com.xbk.knowledge.domain.agentenhancer.model.valobj.AgentEnhancerBindingView;
 import com.xbk.knowledge.domain.agentenhancer.model.valobj.AgentEnhancerPageQuery;
 import com.xbk.knowledge.types.common.PageResult;
-import com.xbk.knowledge.types.common.PageResultConverter;
+import com.xbk.knowledge.types.common.PageQueryExecutor;
 import com.xbk.knowledge.types.common.Result;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.CollectionUtils;
@@ -62,15 +62,18 @@ public class AgentEnhancerController implements IAgentEnhancerService {
     @Override
     public Result<PageResult<AgentEnhancerResponse>> list(@Valid @RequestBody AgentEnhancerQueryRequest request) {
         Integer enabled = request.getEnabled() == null ? null : (request.getEnabled() ? 1 : 0);
-        AgentEnhancerPageQuery query = new AgentEnhancerPageQuery(request.getKeyword(),
-                enabled,
-                request.getAgentEnhancerType(),
-                request.getOffset(),
-                request.getPageSize()
+        return PageQueryExecutor.execute(
+                request,
+                (offset, pageSize) -> new AgentEnhancerPageQuery(
+                        request.getKeyword(),
+                        enabled,
+                        request.getAgentEnhancerType(),
+                        offset,
+                        pageSize
+                ),
+                agentEnhancerAppService::queryPage,
+                this::toResponse
         );
-        PageResult<AgentEnhancer> page = agentEnhancerAppService.queryPage(query);
-        PageResult<AgentEnhancerResponse> resp = PageResultConverter.convert(page, this::toResponse);
-        return Result.success(resp);
     }
 
     /**

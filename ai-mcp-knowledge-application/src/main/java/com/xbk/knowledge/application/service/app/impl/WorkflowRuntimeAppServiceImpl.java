@@ -31,6 +31,7 @@ import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowRunContextRe
 import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowRunRepository;
 import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowVersionRepository;
 import com.xbk.knowledge.domain.llm.service.IModelConfigService;
+import com.xbk.knowledge.types.common.PageParamUtils;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.contract.PlatformContractV1;
 import com.xbk.knowledge.types.exception.ApprovalRequiredException;
@@ -434,11 +435,11 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
      */
     @Override
     public PageResult<WorkflowRun> listRuns(String status, int offset, int pageSize) {
-        int safeOffset = Math.max(offset, 0);
-        int safeSize = pageSize <= 0 ? 20 : Math.min(pageSize, 200);
+        int safeOffset = PageParamUtils.normalizeOffset(offset);
+        int safeSize = PageParamUtils.normalizePageSize(pageSize, 20, 200);
         List<WorkflowRun> list = workflowRunRepository.list(status, safeOffset, safeSize);
         long total = workflowRunRepository.count(status);
-        int pageNum = safeSize == 0 ? 1 : (safeOffset / safeSize) + 1;
+        int pageNum = PageParamUtils.offsetToPageNum(safeOffset, safeSize);
         return PageResult.of(list, total, pageNum, safeSize);
     }
 

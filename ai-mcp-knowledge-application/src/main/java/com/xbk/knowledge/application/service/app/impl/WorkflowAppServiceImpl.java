@@ -13,6 +13,7 @@ import com.xbk.knowledge.domain.workflow.model.valobj.WorkflowVersionListQuery;
 import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowGraphRepository;
 import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowRepository;
 import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowVersionRepository;
+import com.xbk.knowledge.types.common.PageParamUtils;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.exception.BusinessException;
 import com.xbk.knowledge.types.exception.NotFoundException;
@@ -64,11 +65,11 @@ public class WorkflowAppServiceImpl implements WorkflowAppService {
      */
     @Override
     public PageResult<Workflow> list(String keyword, int offset, int pageSize) {
-        int safeOffset = Math.max(offset, 0);
-        int safeSize = pageSize <= 0 ? 20 : Math.min(pageSize, 200);
+        int safeOffset = PageParamUtils.normalizeOffset(offset);
+        int safeSize = PageParamUtils.normalizePageSize(pageSize, 20, 200);
         List<Workflow> list = workflowRepository.list(keyword, safeOffset, safeSize);
         long total = workflowRepository.count(keyword);
-        int pageNum = safeSize == 0 ? 1 : (safeOffset / safeSize) + 1;
+        int pageNum = PageParamUtils.offsetToPageNum(safeOffset, safeSize);
         return PageResult.of(list, total, pageNum, safeSize);
     }
 

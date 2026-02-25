@@ -16,7 +16,7 @@ import com.xbk.knowledge.application.service.app.UserIdentityAppService;
 import com.xbk.knowledge.domain.identity.model.entity.SysUser;
 import com.xbk.knowledge.domain.identity.model.valobj.UserPageQuery;
 import com.xbk.knowledge.types.common.PageResult;
-import com.xbk.knowledge.types.common.PageResultConverter;
+import com.xbk.knowledge.types.common.PageQueryExecutor;
 import com.xbk.knowledge.types.common.Result;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -69,15 +69,19 @@ public class UserIdentityController implements IUserIdentityService {
     @PostMapping("/list")
     @Override
     public Result<PageResult<UserResponse>> list(@Valid @RequestBody UserQueryRequest request) {
-        UserPageQuery query = new UserPageQuery(
-                request.getUsername(),
-                request.getStatus(),
+        return PageQueryExecutor.execute(
                 request.getOffset(),
-                request.getPageSize()
+                request.getPageSize(),
+                (offset, pageSize) -> userIdentityAppService.queryUserPage(
+                        new UserPageQuery(
+                                request.getUsername(),
+                                request.getStatus(),
+                                offset,
+                                pageSize
+                        )
+                ),
+                this::toUserResponse
         );
-        PageResult<SysUser> userPage = userIdentityAppService.queryUserPage(query);
-        PageResult<UserResponse> responsePage = PageResultConverter.convert(userPage, this::toUserResponse);
-        return Result.success(responsePage);
     }
 
     /**

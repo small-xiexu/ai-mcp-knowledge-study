@@ -8,6 +8,7 @@ import com.xbk.knowledge.application.service.rag.RagVectorStoreService;
 import com.xbk.knowledge.domain.rag.model.entity.RagTask;
 import com.xbk.knowledge.domain.rag.model.valobj.FileProcessError;
 import com.xbk.knowledge.domain.rag.adapter.repository.RagTaskRepository;
+import com.xbk.knowledge.types.common.PageParamUtils;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.enums.RagTaskStatus;
 import lombok.RequiredArgsConstructor;
@@ -316,12 +317,11 @@ public class RagAppServiceImpl implements RagAppService {
      */
     @Override
     public PageResult<RagTask> queryTaskPage(int offset, int pageSize) {
-        List<RagTask> tasks = ragTaskRepository.findPage(offset, pageSize);
+        int safeOffset = PageParamUtils.normalizeOffset(offset);
+        int safePageSize = PageParamUtils.normalizePageSize(pageSize, 10);
+        List<RagTask> tasks = ragTaskRepository.findPage(safeOffset, safePageSize);
         long total = ragTaskRepository.countAll();
-        // 修正分页参数，避免非法值导致异常
-        int safePageSize = pageSize > 0 ? pageSize : 10;
-        int safeOffset = Math.max(offset, 0);
-        int pageNum = safeOffset / safePageSize + 1;
+        int pageNum = PageParamUtils.offsetToPageNum(safeOffset, safePageSize);
         return PageResult.of(tasks, total, pageNum, safePageSize);
     }
 

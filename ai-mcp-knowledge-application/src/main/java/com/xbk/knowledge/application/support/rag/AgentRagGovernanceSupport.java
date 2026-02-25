@@ -97,7 +97,7 @@ public class AgentRagGovernanceSupport {
         }
 
         FilteredTags filtered = filterByAllowList(base, allowed);
-        List<String> effective = filtered.effective;
+        List<String> effective = filtered.effective();
         boolean required = "REQUIRED".equals(normalizedMode);
 
         if (effective.isEmpty()) {
@@ -107,7 +107,7 @@ public class AgentRagGovernanceSupport {
                     .defaultTags(defaults)
                     .allowedTags(allowed)
                     .effectiveTags(effective)
-                    .droppedTags(filtered.dropped)
+                    .droppedTags(filtered.dropped())
                     .documents(List.of())
                     .citations(List.of())
                     .required(required)
@@ -123,7 +123,7 @@ public class AgentRagGovernanceSupport {
                     .defaultTags(defaults)
                     .allowedTags(allowed)
                     .effectiveTags(effective)
-                    .droppedTags(filtered.dropped)
+                    .droppedTags(filtered.dropped())
                     .documents(List.of())
                     .citations(List.of())
                     .required(required)
@@ -146,7 +146,7 @@ public class AgentRagGovernanceSupport {
                     .defaultTags(defaults)
                     .allowedTags(allowed)
                     .effectiveTags(effective)
-                    .droppedTags(filtered.dropped)
+                    .droppedTags(filtered.dropped())
                     .documents(List.of())
                     .citations(List.of())
                     .required(required)
@@ -179,7 +179,7 @@ public class AgentRagGovernanceSupport {
                 .defaultTags(defaults)
                 .allowedTags(allowed)
                 .effectiveTags(effective)
-                .droppedTags(filtered.dropped)
+                .droppedTags(filtered.dropped())
                 .documents(topDocs)
                 .citations(citations)
                 .required(required)
@@ -311,25 +311,85 @@ public class AgentRagGovernanceSupport {
      * @param dropped 未命中标签集合。
      * @return 过滤标签记录。
      */
-    private record FilteredTags(List<String> effective, List<String> dropped) {
+    private static final class FilteredTags {
+        private final List<String> effective;
+        private final List<String> dropped;
+
+        private FilteredTags(List<String> effective, List<String> dropped) {
+            this.effective = effective;
+            this.dropped = dropped;
+        }
+
+        private List<String> effective() {
+            return effective;
+        }
+
+        private List<String> dropped() {
+            return dropped;
+        }
     }
 
     /**
      * RAG 解析与检索结果。
      */
     @lombok.Builder
-    public record ResolvedRag(
-            String mode,
-            List<String> requestedTags,
-            List<String> defaultTags,
-            List<String> allowedTags,
-            List<String> effectiveTags,
-            List<String> droppedTags,
-            List<Document> documents,
-            List<PlatformContractV1.Citation> citations,
-            boolean required,
-            boolean requiredMiss,
-            String missReason
-    ) {
+    @lombok.AllArgsConstructor
+    @lombok.Getter
+    public static class ResolvedRag {
+        private final String mode;
+        private final List<String> requestedTags;
+        private final List<String> defaultTags;
+        private final List<String> allowedTags;
+        private final List<String> effectiveTags;
+        private final List<String> droppedTags;
+        private final List<Document> documents;
+        private final List<PlatformContractV1.Citation> citations;
+        private final boolean required;
+        private final boolean requiredMiss;
+        private final String missReason;
+
+        public String mode() {
+            return mode;
+        }
+
+        public List<String> requestedTags() {
+            return requestedTags;
+        }
+
+        public List<String> defaultTags() {
+            return defaultTags;
+        }
+
+        public List<String> allowedTags() {
+            return allowedTags;
+        }
+
+        public List<String> effectiveTags() {
+            return effectiveTags;
+        }
+
+        public List<String> droppedTags() {
+            return droppedTags;
+        }
+
+        public List<Document> documents() {
+            return documents;
+        }
+
+        public List<PlatformContractV1.Citation> citations() {
+            return citations;
+        }
+
+        public boolean required() {
+            return required;
+        }
+
+        public boolean requiredMiss() {
+            return requiredMiss;
+        }
+
+        public String missReason() {
+            return missReason;
+        }
     }
 }

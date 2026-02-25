@@ -1,7 +1,7 @@
 <template>
   <div class="gemini-container">
     <div class="page-header">
-      <h2 class="page-title">网关工具配置</h2>
+      <h2 class="page-title">HTTP 工具配置</h2>
       <div>
         <el-button class="gemini-btn-primary" type="primary" @click="openCreate">新增工具</el-button>
       </div>
@@ -10,7 +10,16 @@
     <el-alert
       title="用途说明"
       type="warning"
-      description="本页用于配置网关工具详情，包括参数映射、测试、启停与工具-模型绑定。"
+      description="本页用于配置 HTTP 工具详情，包括参数映射、测试、启停与工具-模型绑定。适合对接公司内部业务接口。"
+      show-icon
+      :closable="false"
+      style="margin-bottom: 16px"
+    />
+
+    <el-alert
+      title="使用边界提示"
+      type="info"
+      description="如果你要接入的是标准 MCP Server（STDIO/SSE/HTTP），请前往「MCP 工具配置」页面。"
       show-icon
       :closable="false"
       style="margin-bottom: 16px"

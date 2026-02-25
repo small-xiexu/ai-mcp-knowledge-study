@@ -4,6 +4,7 @@ import com.xbk.knowledge.application.service.app.RoleAppService;
 import com.xbk.knowledge.domain.identity.model.entity.SysRole;
 import com.xbk.knowledge.domain.identity.model.valobj.RolePageQuery;
 import com.xbk.knowledge.domain.identity.adapter.repository.IdentityRepository;
+import com.xbk.knowledge.types.common.PageParamUtils;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.exception.BusinessException;
 import com.xbk.knowledge.types.exception.NotFoundException;
@@ -39,8 +40,8 @@ public class RoleAppServiceImpl implements RoleAppService {
      */
     @Override
     public PageResult<SysRole> queryRolePage(RolePageQuery query) {
-        Integer offset = query.getOffset() == null ? 0 : query.getOffset();
-        Integer pageSize = query.getPageSize() == null ? 10 : query.getPageSize();
+        Integer offset = PageParamUtils.normalizeOffset(query.getOffset());
+        Integer pageSize = PageParamUtils.normalizePageSize(query.getPageSize(), 10);
         RolePageQuery normalizedQuery = new RolePageQuery(
                 query.getRoleCode(),
                 query.getStatus(),
@@ -49,7 +50,7 @@ public class RoleAppServiceImpl implements RoleAppService {
         );
         List<SysRole> roles = identityRepository.findRolePage(normalizedQuery);
         long total = identityRepository.countRole(normalizedQuery);
-        int pageNum = (offset / pageSize) + 1;
+        int pageNum = PageParamUtils.offsetToPageNum(offset, pageSize);
         return PageResult.of(roles, total, pageNum, pageSize);
     }
 

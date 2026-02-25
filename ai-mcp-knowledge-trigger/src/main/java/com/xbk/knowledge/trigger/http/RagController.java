@@ -9,7 +9,7 @@ import com.xbk.knowledge.api.dto.rag.RagTaskResponse;
 import com.xbk.knowledge.application.service.app.RagAppService;
 import com.xbk.knowledge.domain.rag.model.entity.RagTask;
 import com.xbk.knowledge.types.common.PageResult;
-import com.xbk.knowledge.types.common.PageResultConverter;
+import com.xbk.knowledge.types.common.PageQueryExecutor;
 import com.xbk.knowledge.types.common.Result;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -244,12 +244,11 @@ public class RagController implements IRagService {
     @SaCheckPermission("agent:read")
     @Override
     public Result<PageResult<RagTaskResponse>> listTasks(@Valid @RequestBody RagTaskQueryRequest request) {
-        request.validate();
-        int offset = request.getOffset();
-        int pageSize = request.getPageSize();
-        PageResult<RagTask> page = ragAppService.queryTaskPage(offset, pageSize);
-        PageResult<RagTaskResponse> result = PageResultConverter.convert(page, this::toResponse);
-        return Result.success(result);
+        return PageQueryExecutor.execute(
+                request,
+                ragAppService::queryTaskPage,
+                this::toResponse
+        );
     }
 
     private RagTaskResponse toResponse(RagTask task) {

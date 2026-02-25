@@ -24,6 +24,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class McpServerConfigAppServiceImpl implements McpServerConfigAppService {
+
     /**
      * MCP Server 配置领域服务，用于配置项读写与启停。
      */

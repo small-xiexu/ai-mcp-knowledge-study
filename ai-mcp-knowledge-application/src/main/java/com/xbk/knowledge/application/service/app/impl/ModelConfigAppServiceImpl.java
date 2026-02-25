@@ -194,6 +194,7 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
      */
     @Override
     public ModelConfig getActiveChatModel() {
+        // 获取当前激活模型
         ModelActivation activation = modelActivationRepository.queryActivation();
         if (activation == null || activation.getChatModelId() == null) {
             return null;

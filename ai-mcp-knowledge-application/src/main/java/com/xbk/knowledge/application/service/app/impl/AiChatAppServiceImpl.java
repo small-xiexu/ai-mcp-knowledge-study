@@ -320,6 +320,7 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         }
         // 2、工具开启时注入工具提示词，引导模型按规范调用工具
         if (toolEnabled) {
+            // 构建工具提示词
             String toolPrompt = resolveToolPrompt();
             if (StringUtils.hasText(toolPrompt)) {
                 messages.add(new SystemMessage(toolPrompt));

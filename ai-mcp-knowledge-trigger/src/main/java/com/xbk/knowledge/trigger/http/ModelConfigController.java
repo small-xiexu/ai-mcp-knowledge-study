@@ -5,7 +5,7 @@ import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.xbk.knowledge.api.dto.common.IdRequest;
 import com.xbk.knowledge.api.dto.model.ModelConfigQueryRequest;
 import com.xbk.knowledge.types.common.PageResult;
-import com.xbk.knowledge.types.common.PageResultConverter;
+import com.xbk.knowledge.types.common.PageQueryExecutor;
 import com.xbk.knowledge.types.common.Result;
 import com.xbk.knowledge.types.common.ResultCode;
 import com.xbk.knowledge.api.dto.model.ModelConfigRequest;
@@ -57,28 +57,18 @@ public class ModelConfigController implements IModelConfigService {
     @SaCheckPermission("agent:read")
     @Override
     public Result<PageResult<ModelConfigResponse>> listModels(@Valid @RequestBody ModelConfigQueryRequest request) {
-        // 将分页参数转为领域查询对象，隔离接口层字段
-        int offset = request.getOffset();
-        Integer pageSize = request.getPageSize();
-        ModelConfigPageQuery query = new ModelConfigPageQuery(
-                offset,
-                pageSize
-        );
-        PageResult<ModelConfig> pageResult = modelConfigAppService.queryModelConfigPage(query);
-
         // 补充激活状态，前端无需额外查询
         ModelConfig activeChatModel = modelConfigAppService.getActiveChatModel();
         ModelConfig activeEmbeddingModel = modelConfigAppService.getActiveEmbeddingModel();
         Long activeChatId = activeChatModel != null ? activeChatModel.getId() : null;
         Long activeEmbeddingId = activeEmbeddingModel != null ? activeEmbeddingModel.getId() : null;
 
-        // 统一分页转换逻辑，确保响应结构与前端协议一致
-        PageResult<ModelConfigResponse> result = PageResultConverter.convert(
-                pageResult,
+        return PageQueryExecutor.execute(
+                request,
+                ModelConfigPageQuery::new,
+                modelConfigAppService::queryModelConfigPage,
                 modelConfig -> convertToResponse(modelConfig, activeChatId, activeEmbeddingId)
         );
-
-        return Result.success(result);
     }
 
     /**

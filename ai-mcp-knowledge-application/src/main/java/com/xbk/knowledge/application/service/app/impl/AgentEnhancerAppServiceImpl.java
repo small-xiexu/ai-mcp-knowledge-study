@@ -6,6 +6,7 @@ import com.xbk.knowledge.domain.agentenhancer.model.entity.AgentEnhancer;
 import com.xbk.knowledge.domain.agentenhancer.model.valobj.AgentEnhancerPageQuery;
 import com.xbk.knowledge.domain.agentenhancer.adapter.repository.AgentEnhancerBindingRepository;
 import com.xbk.knowledge.domain.agentenhancer.adapter.repository.AgentEnhancerRepository;
+import com.xbk.knowledge.types.common.PageParamUtils;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.exception.BusinessException;
 import com.xbk.knowledge.types.exception.NotFoundException;
@@ -52,8 +53,8 @@ public class AgentEnhancerAppServiceImpl implements AgentEnhancerAppService {
         if (query == null) {
             throw new IllegalArgumentException("query 不能为空");
         }
-        int offset = query.offset() == null ? 0 : Math.max(query.offset(), 0);
-        int pageSize = query.pageSize() == null ? 20 : Math.min(Math.max(query.pageSize(), 1), 200);
+        int offset = PageParamUtils.normalizeOffset(query.offset());
+        int pageSize = PageParamUtils.normalizePageSize(query.pageSize(), 20, 200);
         AgentEnhancerPageQuery normalized = new AgentEnhancerPageQuery(
                 StringUtils.hasText(query.keyword()) ? query.keyword().trim() : null,
                 query.enabled(),
@@ -63,7 +64,7 @@ public class AgentEnhancerAppServiceImpl implements AgentEnhancerAppService {
         );
         List<AgentEnhancer> records = agentEnhancerRepository.findPage(normalized);
         long total = agentEnhancerRepository.count(normalized);
-        int pageNum = (offset / pageSize) + 1;
+        int pageNum = PageParamUtils.offsetToPageNum(offset, pageSize);
         return PageResult.of(records, total, pageNum, pageSize);
     }
 

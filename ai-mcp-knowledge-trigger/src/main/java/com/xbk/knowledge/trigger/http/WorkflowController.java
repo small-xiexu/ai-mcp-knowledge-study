@@ -10,7 +10,7 @@ import com.xbk.knowledge.domain.workflow.model.entity.WorkflowEdge;
 import com.xbk.knowledge.domain.workflow.model.entity.WorkflowNode;
 import com.xbk.knowledge.domain.workflow.model.entity.WorkflowVersion;
 import com.xbk.knowledge.types.common.PageResult;
-import com.xbk.knowledge.types.common.PageResultConverter;
+import com.xbk.knowledge.types.common.PageQueryExecutor;
 import com.xbk.knowledge.types.common.Result;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -53,12 +53,13 @@ public class WorkflowController implements IWorkflowService {
     @SaCheckPermission("workflow:read")
     @Override
     public Result<PageResult<WorkflowResponse>> list(@Valid @RequestBody WorkflowListRequest request) {
-        PageResult<Workflow> page = workflowAppService.list(request.getKeyword(),
-                request.getOffset() == null ? 0 : request.getOffset(),
-                request.getPageSize() == null ? 20 : request.getPageSize()
+        return PageQueryExecutor.execute(
+                request.getOffset(),
+                request.getPageSize(),
+                20,
+                (offset, pageSize) -> workflowAppService.list(request.getKeyword(), offset, pageSize),
+                this::toResponse
         );
-        PageResult<WorkflowResponse> resp = PageResultConverter.convert(page, this::toResponse);
-        return Result.success(resp);
     }
 
     /**

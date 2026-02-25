@@ -8,7 +8,7 @@ import com.xbk.knowledge.application.service.app.PermissionAppService;
 import com.xbk.knowledge.domain.identity.model.entity.SysPermission;
 import com.xbk.knowledge.domain.identity.model.valobj.PermissionPageQuery;
 import com.xbk.knowledge.types.common.PageResult;
-import com.xbk.knowledge.types.common.PageResultConverter;
+import com.xbk.knowledge.types.common.PageQueryExecutor;
 import com.xbk.knowledge.types.common.Result;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -50,16 +50,20 @@ public class PermissionController implements IPermissionService {
     @PostMapping("/list")
     @Override
     public Result<PageResult<PermissionResponse>> list(@Valid @RequestBody PermissionQueryRequest request) {
-        PermissionPageQuery query = new PermissionPageQuery(
-                request.getResourceType(),
-                request.getAction(),
-                request.getStatus(),
+        return PageQueryExecutor.execute(
                 request.getOffset(),
-                request.getPageSize()
+                request.getPageSize(),
+                (offset, pageSize) -> permissionAppService.queryPermissionPage(
+                        new PermissionPageQuery(
+                                request.getResourceType(),
+                                request.getAction(),
+                                request.getStatus(),
+                                offset,
+                                pageSize
+                        )
+                ),
+                this::toResponse
         );
-        PageResult<SysPermission> permissionPage = permissionAppService.queryPermissionPage(query);
-        PageResult<PermissionResponse> responsePage = PageResultConverter.convert(permissionPage, this::toResponse);
-        return Result.success(responsePage);
     }
 
     /**

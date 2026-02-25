@@ -12,7 +12,7 @@ import com.xbk.knowledge.application.service.app.WorkflowRuntimeAppService;
 import com.xbk.knowledge.domain.workflow.model.entity.WorkflowNodeRun;
 import com.xbk.knowledge.domain.workflow.model.entity.WorkflowRun;
 import com.xbk.knowledge.types.common.PageResult;
-import com.xbk.knowledge.types.common.PageResultConverter;
+import com.xbk.knowledge.types.common.PageQueryExecutor;
 import com.xbk.knowledge.types.common.Result;
 import com.xbk.knowledge.types.contract.PlatformContractV1;
 import lombok.RequiredArgsConstructor;
@@ -83,12 +83,13 @@ public class WorkflowRuntimeController implements IWorkflowRuntimeService {
     @SaCheckPermission("workflow:read")
     @Override
     public Result<PageResult<WorkflowRunResponse>> listRuns(@Valid @RequestBody WorkflowRunListRequest request) {
-        PageResult<WorkflowRun> page = workflowRuntimeAppService.listRuns(request.getStatus(),
-                request.getOffset() == null ? 0 : request.getOffset(),
-                request.getPageSize() == null ? 20 : request.getPageSize()
+        return PageQueryExecutor.execute(
+                request.getOffset(),
+                request.getPageSize(),
+                20,
+                (offset, pageSize) -> workflowRuntimeAppService.listRuns(request.getStatus(), offset, pageSize),
+                this::toRunResponse
         );
-        PageResult<WorkflowRunResponse> responsePage = PageResultConverter.convert(page, this::toRunResponse);
-        return Result.success(responsePage);
     }
 
     /**

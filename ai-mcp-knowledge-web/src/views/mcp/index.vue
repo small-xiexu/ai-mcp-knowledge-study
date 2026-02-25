@@ -2,7 +2,7 @@
   <div class="gemini-container">
     <div class="page-header">
       <div>
-        <h2 class="page-title">MCP 配置</h2>
+        <h2 class="page-title">MCP 工具配置</h2>
         <p class="subtitle">管理外部 MCP Server 的连接方式、启停状态与运行健康。</p>
       </div>
     </div>
@@ -11,7 +11,16 @@
       <el-alert
         title="用途说明"
         type="warning"
-        description="本页用于配置和管理外部 MCP Server 连接（支持 STDIO/SSE/HTTP），并控制其运行状态。"
+        description="本页用于配置和管理外部 MCP Server 连接（支持 STDIO/SSE/HTTP），并控制其运行状态。适合接入第三方或现成 MCP 工具。"
+        show-icon
+        :closable="false"
+        style="margin-bottom: 12px"
+      />
+
+      <el-alert
+        title="使用边界提示"
+        type="info"
+        description="如果你要对接公司内部 HTTP 业务接口，请前往「HTTP 工具配置」；本页仅用于连接 MCP Server。"
         show-icon
         :closable="false"
         style="margin-bottom: 12px"

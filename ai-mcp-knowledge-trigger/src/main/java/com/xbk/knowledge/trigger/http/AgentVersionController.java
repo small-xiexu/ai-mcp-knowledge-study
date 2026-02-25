@@ -17,7 +17,7 @@ import com.xbk.knowledge.domain.agent.model.valobj.AgentCodeQuery;
 import com.xbk.knowledge.domain.agent.model.valobj.AgentVersionIdQuery;
 import com.xbk.knowledge.domain.agent.model.valobj.AgentVersionPageQuery;
 import com.xbk.knowledge.types.common.PageResult;
-import com.xbk.knowledge.types.common.PageResultConverter;
+import com.xbk.knowledge.types.common.PageQueryExecutor;
 import com.xbk.knowledge.types.common.Result;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -71,13 +71,12 @@ public class AgentVersionController implements IAgentVersionService {
     @Override
     public Result<PageResult<AgentVersionResponse>> list(@Valid @RequestBody AgentVersionQueryRequest request) {
         Agent agent = agentAppService.queryByCode(new AgentCodeQuery(request.getAgentCode()));
-        AgentVersionPageQuery query = new AgentVersionPageQuery(agent.getId(),
-                request.getOffset(),
-                request.getPageSize()
+        return PageQueryExecutor.execute(
+                request,
+                (offset, pageSize) -> new AgentVersionPageQuery(agent.getId(), offset, pageSize),
+                agentVersionAppService::queryPage,
+                this::toResponse
         );
-        PageResult<AgentVersion> page = agentVersionAppService.queryPage(query);
-        PageResult<AgentVersionResponse> resp = PageResultConverter.convert(page, this::toResponse);
-        return Result.success(resp);
     }
 
     /**

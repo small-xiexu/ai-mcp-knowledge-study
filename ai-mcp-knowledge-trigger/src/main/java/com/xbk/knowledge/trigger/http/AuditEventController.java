@@ -8,7 +8,7 @@ import com.xbk.knowledge.application.service.app.AuditEventAppService;
 import com.xbk.knowledge.domain.audit.model.entity.SysAuditEvent;
 import com.xbk.knowledge.domain.identity.model.valobj.AuditEventPageQuery;
 import com.xbk.knowledge.types.common.PageResult;
-import com.xbk.knowledge.types.common.PageResultConverter;
+import com.xbk.knowledge.types.common.PageQueryExecutor;
 import com.xbk.knowledge.types.common.Result;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -51,17 +51,21 @@ public class AuditEventController implements IAuditEventService {
     @PostMapping("/list")
     @Override
     public Result<PageResult<AuditEventResponse>> list(@Valid @RequestBody AuditEventQueryRequest request) {
-        AuditEventPageQuery query = new AuditEventPageQuery(
-                request.getOperatorKeyword(),
-                request.getEventType(),
-                request.getResourceType(),
-                request.getResult(),
+        return PageQueryExecutor.execute(
                 request.getOffset(),
-                request.getPageSize()
+                request.getPageSize(),
+                (offset, pageSize) -> auditEventAppService.queryPage(
+                        new AuditEventPageQuery(
+                                request.getOperatorKeyword(),
+                                request.getEventType(),
+                                request.getResourceType(),
+                                request.getResult(),
+                                offset,
+                                pageSize
+                        )
+                ),
+                this::toResponse
         );
-        PageResult<SysAuditEvent> page = auditEventAppService.queryPage(query);
-        PageResult<AuditEventResponse> responsePage = PageResultConverter.convert(page, this::toResponse);
-        return Result.success(responsePage);
     }
 
     /**

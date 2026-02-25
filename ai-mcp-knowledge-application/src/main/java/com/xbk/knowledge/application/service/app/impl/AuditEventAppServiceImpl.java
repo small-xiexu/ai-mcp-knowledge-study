@@ -4,6 +4,7 @@ import com.xbk.knowledge.application.service.app.AuditEventAppService;
 import com.xbk.knowledge.domain.audit.model.entity.SysAuditEvent;
 import com.xbk.knowledge.domain.identity.model.valobj.AuditEventPageQuery;
 import com.xbk.knowledge.domain.audit.adapter.repository.SysAuditEventRepository;
+import com.xbk.knowledge.types.common.PageParamUtils;
 import com.xbk.knowledge.types.common.PageResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -34,8 +35,8 @@ public class AuditEventAppServiceImpl implements AuditEventAppService {
      */
     @Override
     public PageResult<SysAuditEvent> queryPage(AuditEventPageQuery query) {
-        Integer offset = query.getOffset() == null ? 0 : query.getOffset();
-        Integer pageSize = query.getPageSize() == null ? 20 : query.getPageSize();
+        Integer offset = PageParamUtils.normalizeOffset(query.getOffset());
+        Integer pageSize = PageParamUtils.normalizePageSize(query.getPageSize(), 20);
         AuditEventPageQuery normalizedQuery = new AuditEventPageQuery(
                 query.getOperatorKeyword(),
                 query.getEventType(),
@@ -46,7 +47,7 @@ public class AuditEventAppServiceImpl implements AuditEventAppService {
         );
         List<SysAuditEvent> records = sysAuditEventRepository.findPage(normalizedQuery);
         long total = sysAuditEventRepository.count(normalizedQuery);
-        int pageNum = (offset / pageSize) + 1;
+        int pageNum = PageParamUtils.offsetToPageNum(offset, pageSize);
         return PageResult.of(records, total, pageNum, pageSize);
     }
 }

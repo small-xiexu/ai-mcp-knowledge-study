@@ -86,11 +86,12 @@ public class AgentScheduleJob {
         }
 
         Payload payload = parsePayload(schedule.getPayloadTemplateJson());
-        if (!StringUtils.hasText(payload.content)) {
+        if (!StringUtils.hasText(payload.content())) {
             throw new BusinessException("payloadTemplateJson 缺少 content，scheduleId=" + scheduleIdFinal);
         }
 
-        PlatformContractV1 result = agentRuntimeAppService.runJob(schedule.getAgentCode(), payload.content, payload.ragTagsJson);
+        PlatformContractV1 result =
+                agentRuntimeAppService.runJob(schedule.getAgentCode(), payload.content(), payload.ragTagsJson());
         if (result == null) {
             throw new BusinessException("Agent 运行返回为空");
         }
@@ -129,6 +130,21 @@ public class AgentScheduleJob {
         }
     }
 
-    private record Payload(String content, String ragTagsJson) {
+    private static final class Payload {
+        private final String content;
+        private final String ragTagsJson;
+
+        private Payload(String content, String ragTagsJson) {
+            this.content = content;
+            this.ragTagsJson = ragTagsJson;
+        }
+
+        private String content() {
+            return content;
+        }
+
+        private String ragTagsJson() {
+            return ragTagsJson;
+        }
     }
 }

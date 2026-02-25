@@ -23,7 +23,7 @@ import com.xbk.knowledge.domain.job.model.valobj.XxlJobLogPageQuery;
 import com.xbk.knowledge.domain.job.model.valobj.XxlJobPageQuery;
 import com.xbk.knowledge.trigger.security.XxlPermissionGuard;
 import com.xbk.knowledge.types.common.PageResult;
-import com.xbk.knowledge.types.common.PageResultConverter;
+import com.xbk.knowledge.types.common.PageQueryExecutor;
 import com.xbk.knowledge.types.common.Result;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -82,13 +82,12 @@ public class XxlAdminController implements IXxlAdminService {
     public Result<PageResult<XxlJobResponse>> listJobs(@Valid @RequestBody XxlJobListRequest request) {
         xxlPermissionGuard.assertCanView();
         String appName = resolveAppName(request.getAppName());
-        Integer pageNum = request.getPageNum();
-        Integer pageSize = request.getPageSize();
-        XxlJobPageQuery query = new XxlJobPageQuery(appName, pageNum, pageSize);
-        PageResult<XxlJobInfo> pageResult = xxlJobAppService.queryJobPage(query);
-
-        PageResult<XxlJobResponse> result = PageResultConverter.convert(pageResult, this::convertJobResponse);
-        return Result.success(result);
+        return PageQueryExecutor.executeByPageNum(
+                request.getPageNum(),
+                request.getPageSize(),
+                (pageNum, pageSize) -> xxlJobAppService.queryJobPage(new XxlJobPageQuery(appName, pageNum, pageSize)),
+                this::convertJobResponse
+        );
     }
 
     /**
@@ -278,18 +277,21 @@ public class XxlAdminController implements IXxlAdminService {
     public Result<PageResult<XxlJobLogResponse>> listLogs(@Valid @RequestBody XxlJobLogListRequest request) {
         xxlPermissionGuard.assertCanView();
         String appName = resolveAppName(null);
-        XxlJobLogPageQuery query = new XxlJobLogPageQuery(
-                appName,
-                request.getJobId(),
-                request.getStartTime(),
-                request.getEndTime(),
+        return PageQueryExecutor.executeByPageNum(
                 request.getPageNum(),
-                request.getPageSize()
+                request.getPageSize(),
+                (pageNum, pageSize) -> xxlJobAppService.queryJobLogPage(
+                        new XxlJobLogPageQuery(
+                                appName,
+                                request.getJobId(),
+                                request.getStartTime(),
+                                request.getEndTime(),
+                                pageNum,
+                                pageSize
+                        )
+                ),
+                this::convertLogResponse
         );
-        PageResult<XxlJobLogInfo> pageResult = xxlJobAppService.queryJobLogPage(query);
-
-        PageResult<XxlJobLogResponse> result = PageResultConverter.convert(pageResult, this::convertLogResponse);
-        return Result.success(result);
     }
 
     /**

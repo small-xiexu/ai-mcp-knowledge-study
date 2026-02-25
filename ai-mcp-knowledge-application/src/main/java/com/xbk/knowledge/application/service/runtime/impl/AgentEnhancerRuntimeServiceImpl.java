@@ -165,7 +165,7 @@ public class AgentEnhancerRuntimeServiceImpl implements AgentEnhancerRuntimeServ
         if (cached != null) {
             return cached;
         }
-        AgentEnhancerBindingQuery q = new AgentEnhancerBindingQuery(key.bindType, bindTargetId);
+        AgentEnhancerBindingQuery q = new AgentEnhancerBindingQuery(key.bindType(), bindTargetId);
         List<AgentEnhancerBindingView> views = agentEnhancerBindingRepository.listBindingViews(q);
         if (views == null || views.isEmpty()) {
             bindingCache.put(key, Collections.emptyList());
@@ -290,6 +290,24 @@ public class AgentEnhancerRuntimeServiceImpl implements AgentEnhancerRuntimeServ
         }
     }
 
-    private record BindingKey(String bindType, Long bindTargetId) {
+    @lombok.EqualsAndHashCode
+    @lombok.ToString
+    private static final class BindingKey {
+        private final String bindType;
+        private final Long bindTargetId;
+
+        private BindingKey(String bindType, Long bindTargetId) {
+            this.bindType = bindType;
+            this.bindTargetId = bindTargetId;
+        }
+
+        private String bindType() {
+            return bindType;
+        }
+
+        @SuppressWarnings("unused")
+        private Long bindTargetId() {
+            return bindTargetId;
+        }
     }
 }

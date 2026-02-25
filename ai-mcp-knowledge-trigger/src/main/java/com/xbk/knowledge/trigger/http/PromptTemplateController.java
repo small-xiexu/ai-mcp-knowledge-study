@@ -14,7 +14,7 @@ import com.xbk.knowledge.domain.agent.model.entity.PromptTemplate;
 import com.xbk.knowledge.domain.agent.model.valobj.PromptTemplateIdQuery;
 import com.xbk.knowledge.domain.agent.model.valobj.PromptTemplatePageQuery;
 import com.xbk.knowledge.types.common.PageResult;
-import com.xbk.knowledge.types.common.PageResultConverter;
+import com.xbk.knowledge.types.common.PageQueryExecutor;
 import com.xbk.knowledge.types.common.Result;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -62,14 +62,17 @@ public class PromptTemplateController implements IPromptTemplateService {
     @SaCheckPermission("agent:read")
     @Override
     public Result<PageResult<PromptTemplateResponse>> list(@Valid @RequestBody PromptTemplateQueryRequest request) {
-        PromptTemplatePageQuery query = new PromptTemplatePageQuery(request.getKeyword(),
-                request.getState(),
-                request.getOffset(),
-                request.getPageSize()
+        return PageQueryExecutor.execute(
+                request,
+                (offset, pageSize) -> new PromptTemplatePageQuery(
+                        request.getKeyword(),
+                        request.getState(),
+                        offset,
+                        pageSize
+                ),
+                promptTemplateAppService::queryPage,
+                this::toResponse
         );
-        PageResult<PromptTemplate> page = promptTemplateAppService.queryPage(query);
-        PageResult<PromptTemplateResponse> resp = PageResultConverter.convert(page, this::toResponse);
-        return Result.success(resp);
     }
 
     /**

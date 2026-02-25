@@ -15,7 +15,7 @@ import com.xbk.knowledge.application.service.app.RoleAppService;
 import com.xbk.knowledge.domain.identity.model.entity.SysRole;
 import com.xbk.knowledge.domain.identity.model.valobj.RolePageQuery;
 import com.xbk.knowledge.types.common.PageResult;
-import com.xbk.knowledge.types.common.PageResultConverter;
+import com.xbk.knowledge.types.common.PageQueryExecutor;
 import com.xbk.knowledge.types.common.Result;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -68,15 +68,19 @@ public class RoleController implements IRoleService {
     @PostMapping("/list")
     @Override
     public Result<PageResult<RoleResponse>> list(@Valid @RequestBody RoleQueryRequest request) {
-        RolePageQuery query = new RolePageQuery(
-                request.getRoleCode(),
-                request.getStatus(),
+        return PageQueryExecutor.execute(
                 request.getOffset(),
-                request.getPageSize()
+                request.getPageSize(),
+                (offset, pageSize) -> roleAppService.queryRolePage(
+                        new RolePageQuery(
+                                request.getRoleCode(),
+                                request.getStatus(),
+                                offset,
+                                pageSize
+                        )
+                ),
+                this::toResponse
         );
-        PageResult<SysRole> rolePage = roleAppService.queryRolePage(query);
-        PageResult<RoleResponse> responsePage = PageResultConverter.convert(rolePage, this::toResponse);
-        return Result.success(responsePage);
     }
 
     /**

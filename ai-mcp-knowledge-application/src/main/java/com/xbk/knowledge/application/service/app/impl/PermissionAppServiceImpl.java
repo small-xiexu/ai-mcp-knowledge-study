@@ -4,6 +4,7 @@ import com.xbk.knowledge.application.service.app.PermissionAppService;
 import com.xbk.knowledge.domain.identity.model.entity.SysPermission;
 import com.xbk.knowledge.domain.identity.model.valobj.PermissionPageQuery;
 import com.xbk.knowledge.domain.identity.adapter.repository.IdentityRepository;
+import com.xbk.knowledge.types.common.PageParamUtils;
 import com.xbk.knowledge.types.common.PageResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -34,8 +35,8 @@ public class PermissionAppServiceImpl implements PermissionAppService {
      */
     @Override
     public PageResult<SysPermission> queryPermissionPage(PermissionPageQuery query) {
-        Integer offset = query.getOffset() == null ? 0 : query.getOffset();
-        Integer pageSize = query.getPageSize() == null ? 20 : query.getPageSize();
+        Integer offset = PageParamUtils.normalizeOffset(query.getOffset());
+        Integer pageSize = PageParamUtils.normalizePageSize(query.getPageSize(), 20);
         PermissionPageQuery normalizedQuery = new PermissionPageQuery(
                 query.getResourceType(),
                 query.getAction(),
@@ -45,7 +46,7 @@ public class PermissionAppServiceImpl implements PermissionAppService {
         );
         List<SysPermission> permissions = identityRepository.findPermissionPage(normalizedQuery);
         long total = identityRepository.countPermission(normalizedQuery);
-        int pageNum = (offset / pageSize) + 1;
+        int pageNum = PageParamUtils.offsetToPageNum(offset, pageSize);
         return PageResult.of(permissions, total, pageNum, pageSize);
     }
 }

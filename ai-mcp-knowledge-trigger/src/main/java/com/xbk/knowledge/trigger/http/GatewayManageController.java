@@ -37,6 +37,7 @@ import com.xbk.knowledge.domain.gateway.adapter.repository.McpToolMappingReposit
 import com.xbk.knowledge.domain.gateway.adapter.repository.McpToolRegistryRepository;
 import com.xbk.knowledge.domain.gateway.adapter.repository.McpToolSchemaRepository;
 import com.xbk.knowledge.domain.gateway.service.GatewayToolService;
+import com.xbk.knowledge.types.common.PageQueryExecutor;
 import com.xbk.knowledge.types.common.PageRequest;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.common.Result;
@@ -146,27 +147,28 @@ public class GatewayManageController implements IGatewayManageService {
     @SaCheckPermission("tool:read")
     @Override
     public Result<PageResult<Map<String, Object>>> listGatewayInstances(@Valid @RequestBody PageRequest request) {
-        int offset = request.getOffset();
-        int pageSize = request.getPageSize();
-        GatewayPageQuery query = new GatewayPageQuery(offset, pageSize);
-        List<McpGateway> gateways = gatewayRepository.findPage(query);
-        long total = gatewayRepository.countAll();
+        return PageQueryExecutor.execute(request, (offset, pageSize) -> {
+            GatewayPageQuery query = new GatewayPageQuery(offset, pageSize);
+            List<McpGateway> gateways = gatewayRepository.findPage(query);
+            long total = gatewayRepository.countAll();
 
-        List<Map<String, Object>> records = new ArrayList<>();
-        for (McpGateway gateway : gateways) {
-            Map<String, Object> row = new LinkedHashMap<>();
-            row.put("id", gateway.getId());
-            row.put("gatewayId", gateway.getGatewayId());
-            row.put("gatewayName", gateway.getGatewayName());
-            row.put("gatewayVersion", gateway.getGatewayVersion());
-            row.put("status", gateway.getStatus());
-            row.put("toolCount", toolRegistryRepository.countByGatewayId(new GatewayIdQuery(gateway.getGatewayId())));
-            row.put("createdAt", gateway.getCreatedAt());
-            row.put("updatedAt", gateway.getUpdatedAt());
-            records.add(row);
-        }
+            List<Map<String, Object>> records = new ArrayList<>();
+            for (McpGateway gateway : gateways) {
+                Map<String, Object> row = new LinkedHashMap<>();
+                row.put("id", gateway.getId());
+                row.put("gatewayId", gateway.getGatewayId());
+                row.put("gatewayName", gateway.getGatewayName());
+                row.put("gatewayVersion", gateway.getGatewayVersion());
+                row.put("status", gateway.getStatus());
+                row.put("toolCount", toolRegistryRepository.countByGatewayId(new GatewayIdQuery(gateway.getGatewayId())));
+                row.put("createdAt", gateway.getCreatedAt());
+                row.put("updatedAt", gateway.getUpdatedAt());
+                records.add(row);
+            }
 
-        return Result.success(PageResult.of(records, total, request.getPageNum(), request.getPageSize()));
+            int pageNum = offset / pageSize + 1;
+            return PageResult.of(records, total, pageNum, pageSize);
+        }, row -> row);
     }
 
     /**
@@ -278,27 +280,28 @@ public class GatewayManageController implements IGatewayManageService {
             filtered.add(auth);
         }
 
-        int pageNum = request == null || request.getPageNum() == null || request.getPageNum() < 1 ? 1 : request.getPageNum();
-        int pageSize = request == null || request.getPageSize() == null || request.getPageSize() < 1 ? 10 : request.getPageSize();
-        int start = Math.min((pageNum - 1) * pageSize, filtered.size());
-        int end = Math.min(start + pageSize, filtered.size());
+        Integer pageNum = request == null ? null : request.getPageNum();
+        Integer pageSize = request == null ? null : request.getPageSize();
+        return PageQueryExecutor.executeByPageNum(pageNum, pageSize, (safePageNum, safePageSize) -> {
+            int start = Math.min((safePageNum - 1) * safePageSize, filtered.size());
+            int end = Math.min(start + safePageSize, filtered.size());
 
-        List<Map<String, Object>> records = new ArrayList<>();
-        for (int i = start; i < end; i++) {
-            McpGatewayAuth auth = filtered.get(i);
-            Map<String, Object> row = new LinkedHashMap<>();
-            row.put("id", auth.getId());
-            row.put("gatewayId", auth.getGatewayId());
-            row.put("apiKey", auth.getApiKey());
-            row.put("rateLimit", auth.getRateLimit());
-            row.put("expireTime", auth.getExpireTime());
-            row.put("status", auth.getStatus());
-            row.put("createdAt", auth.getCreatedAt());
-            row.put("updatedAt", auth.getUpdatedAt());
-            records.add(row);
-        }
-
-        return Result.success(PageResult.of(records, (long) filtered.size(), pageNum, pageSize));
+            List<Map<String, Object>> records = new ArrayList<>();
+            for (int i = start; i < end; i++) {
+                McpGatewayAuth auth = filtered.get(i);
+                Map<String, Object> row = new LinkedHashMap<>();
+                row.put("id", auth.getId());
+                row.put("gatewayId", auth.getGatewayId());
+                row.put("apiKey", auth.getApiKey());
+                row.put("rateLimit", auth.getRateLimit());
+                row.put("expireTime", auth.getExpireTime());
+                row.put("status", auth.getStatus());
+                row.put("createdAt", auth.getCreatedAt());
+                row.put("updatedAt", auth.getUpdatedAt());
+                records.add(row);
+            }
+            return PageResult.of(records, (long) filtered.size(), safePageNum, safePageSize);
+        }, row -> row);
     }
 
     /**
@@ -419,32 +422,34 @@ public class GatewayManageController implements IGatewayManageService {
     public Result<PageResult<Map<String, Object>>> listTools(@RequestBody ToolListRequest request) {
         String gatewayId = resolveGatewayId(request == null ? null : request.getGatewayId());
         ensureGatewayExists(gatewayId);
-        int pageNum = request.getPageNum() == null || request.getPageNum() < 1 ? 1 : request.getPageNum();
-        int pageSize = request.getPageSize() == null || request.getPageSize() < 1 ? 10 : request.getPageSize();
-        int offset = (pageNum - 1) * pageSize;
+        Integer pageNum = request == null ? null : request.getPageNum();
+        Integer pageSize = request == null ? null : request.getPageSize();
+        return PageQueryExecutor.executeByPageNum(pageNum, pageSize, (safePageNum, safePageSize) -> {
+            int offset = (safePageNum - 1) * safePageSize;
+            List<McpToolRegistry> records =
+                    toolRegistryRepository.findPage(new ToolRegistryPageQuery(gatewayId, offset, safePageSize));
+            long total = toolRegistryRepository.countByGatewayId(new GatewayIdQuery(gatewayId));
 
-        List<McpToolRegistry> records = toolRegistryRepository.findPage(new ToolRegistryPageQuery(gatewayId, offset, pageSize));
-        long total = toolRegistryRepository.countByGatewayId(new GatewayIdQuery(gatewayId));
+            List<Map<String, Object>> rows = new ArrayList<>();
+            for (McpToolRegistry tool : records) {
+                Map<String, Object> row = new LinkedHashMap<>();
+                row.put("id", tool.getId());
+                row.put("gatewayId", tool.getGatewayId());
+                row.put("toolName", tool.getToolName());
+                row.put("toolDescription", tool.getToolDescription());
+                row.put("httpMethod", tool.getHttpMethod());
+                row.put("httpUrl", tool.getHttpUrl());
+                row.put("status", tool.getStatus());
+                row.put("timeout", tool.getTimeout());
+                row.put("retryTimes", tool.getRetryTimes());
+                row.put("lastCallSummary", "-");
+                row.put("createdAt", tool.getCreatedAt());
+                row.put("updatedAt", tool.getUpdatedAt());
+                rows.add(row);
+            }
 
-        List<Map<String, Object>> rows = new ArrayList<>();
-        for (McpToolRegistry tool : records) {
-            Map<String, Object> row = new LinkedHashMap<>();
-            row.put("id", tool.getId());
-            row.put("gatewayId", tool.getGatewayId());
-            row.put("toolName", tool.getToolName());
-            row.put("toolDescription", tool.getToolDescription());
-            row.put("httpMethod", tool.getHttpMethod());
-            row.put("httpUrl", tool.getHttpUrl());
-            row.put("status", tool.getStatus());
-            row.put("timeout", tool.getTimeout());
-            row.put("retryTimes", tool.getRetryTimes());
-            row.put("lastCallSummary", "-");
-            row.put("createdAt", tool.getCreatedAt());
-            row.put("updatedAt", tool.getUpdatedAt());
-            rows.add(row);
-        }
-
-        return Result.success(PageResult.of(rows, total, pageNum, pageSize));
+            return PageResult.of(rows, total, safePageNum, safePageSize);
+        }, row -> row);
     }
 
     /**

@@ -28,90 +28,380 @@ public interface GatewayObservabilityAppService {
     GatewayMetricsReport queryMetrics(MetricsQuery query);
 
     /**
-     * 调用记录
-     *
-     * @param gatewayId 网关ID
-     * @param toolName 工具名
-     * @param success 是否成功
-     * @param errorCode 错误码
-     * @param latencyMs 调用耗时（毫秒）
-     * @param timeoutMs 超时阈值（毫秒）
+     * 调用记录。
      */
-    record CallRecord(String gatewayId,
-                      String toolName,
-                      boolean success,
-                      String errorCode,
-                      long latencyMs,
-                      Integer timeoutMs) {
+    @lombok.EqualsAndHashCode
+    @lombok.ToString
+    final class CallRecord {
+        private final String gatewayId;
+        private final String toolName;
+        private final boolean success;
+        private final String errorCode;
+        private final long latencyMs;
+        private final Integer timeoutMs;
+
+        public CallRecord(String gatewayId,
+                          String toolName,
+                          boolean success,
+                          String errorCode,
+                          long latencyMs,
+                          Integer timeoutMs) {
+            this.gatewayId = gatewayId;
+            this.toolName = toolName;
+            this.success = success;
+            this.errorCode = errorCode;
+            this.latencyMs = latencyMs;
+            this.timeoutMs = timeoutMs;
+        }
+
+        public String getGatewayId() {
+            return gatewayId;
+        }
+
+        public String gatewayId() {
+            return gatewayId;
+        }
+
+        public String getToolName() {
+            return toolName;
+        }
+
+        public String toolName() {
+            return toolName;
+        }
+
+        public boolean isSuccess() {
+            return success;
+        }
+
+        public boolean success() {
+            return success;
+        }
+
+        public String getErrorCode() {
+            return errorCode;
+        }
+
+        public String errorCode() {
+            return errorCode;
+        }
+
+        public long getLatencyMs() {
+            return latencyMs;
+        }
+
+        public long latencyMs() {
+            return latencyMs;
+        }
+
+        public Integer getTimeoutMs() {
+            return timeoutMs;
+        }
+
+        public Integer timeoutMs() {
+            return timeoutMs;
+        }
     }
 
     /**
-     * 指标查询条件
-     *
-     * @param gatewayId 网关ID（可选）
-     * @param toolName 工具名（可选）
-     * @param recentMinutes 查询窗口分钟数（可选）
+     * 指标查询条件。
      */
-    record MetricsQuery(String gatewayId, String toolName, Integer recentMinutes) {
+    @lombok.EqualsAndHashCode
+    @lombok.ToString
+    final class MetricsQuery {
+        private final String gatewayId;
+        private final String toolName;
+        private final Integer recentMinutes;
+
+        public MetricsQuery(String gatewayId, String toolName, Integer recentMinutes) {
+            this.gatewayId = gatewayId;
+            this.toolName = toolName;
+            this.recentMinutes = recentMinutes;
+        }
+
+        public String getGatewayId() {
+            return gatewayId;
+        }
+
+        public String gatewayId() {
+            return gatewayId;
+        }
+
+        public String getToolName() {
+            return toolName;
+        }
+
+        public String toolName() {
+            return toolName;
+        }
+
+        public Integer getRecentMinutes() {
+            return recentMinutes;
+        }
+
+        public Integer recentMinutes() {
+            return recentMinutes;
+        }
     }
 
     /**
-     * 工具指标快照
-     *
-     * @param gatewayId 网关ID
-     * @param toolName 工具名
-     * @param requestCount 请求量
-     * @param successRate 成功率（百分比）
-     * @param p95LatencyMs P95延迟
-     * @param p99LatencyMs P99延迟
-     * @param avgLatencyMs 平均延迟
-     * @param errorDistribution 错误分布
-     * @param slaRate 工具级SLA达标率（百分比）
-     * @param timeoutRate 超时占比（百分比）
-     * @param consecutiveFailures 连续失败次数
+     * 工具指标快照。
      */
-    record ToolMetricsSnapshot(String gatewayId,
-                               String toolName,
-                               long requestCount,
-                               double successRate,
-                               long p95LatencyMs,
-                               long p99LatencyMs,
-                               double avgLatencyMs,
-                               Map<String, Long> errorDistribution,
-                               double slaRate,
-                               double timeoutRate,
-                               int consecutiveFailures) {
+    @lombok.EqualsAndHashCode
+    @lombok.ToString
+    final class ToolMetricsSnapshot {
+        private final String gatewayId;
+        private final String toolName;
+        private final long requestCount;
+        private final double successRate;
+        private final long p95LatencyMs;
+        private final long p99LatencyMs;
+        private final double avgLatencyMs;
+        private final Map<String, Long> errorDistribution;
+        private final double slaRate;
+        private final double timeoutRate;
+        private final int consecutiveFailures;
+
+        public ToolMetricsSnapshot(String gatewayId,
+                                   String toolName,
+                                   long requestCount,
+                                   double successRate,
+                                   long p95LatencyMs,
+                                   long p99LatencyMs,
+                                   double avgLatencyMs,
+                                   Map<String, Long> errorDistribution,
+                                   double slaRate,
+                                   double timeoutRate,
+                                   int consecutiveFailures) {
+            this.gatewayId = gatewayId;
+            this.toolName = toolName;
+            this.requestCount = requestCount;
+            this.successRate = successRate;
+            this.p95LatencyMs = p95LatencyMs;
+            this.p99LatencyMs = p99LatencyMs;
+            this.avgLatencyMs = avgLatencyMs;
+            this.errorDistribution = errorDistribution;
+            this.slaRate = slaRate;
+            this.timeoutRate = timeoutRate;
+            this.consecutiveFailures = consecutiveFailures;
+        }
+
+        public String getGatewayId() {
+            return gatewayId;
+        }
+
+        public String gatewayId() {
+            return gatewayId;
+        }
+
+        public String getToolName() {
+            return toolName;
+        }
+
+        public String toolName() {
+            return toolName;
+        }
+
+        public long getRequestCount() {
+            return requestCount;
+        }
+
+        public long requestCount() {
+            return requestCount;
+        }
+
+        public double getSuccessRate() {
+            return successRate;
+        }
+
+        public double successRate() {
+            return successRate;
+        }
+
+        public long getP95LatencyMs() {
+            return p95LatencyMs;
+        }
+
+        public long p95LatencyMs() {
+            return p95LatencyMs;
+        }
+
+        public long getP99LatencyMs() {
+            return p99LatencyMs;
+        }
+
+        public long p99LatencyMs() {
+            return p99LatencyMs;
+        }
+
+        public double getAvgLatencyMs() {
+            return avgLatencyMs;
+        }
+
+        public double avgLatencyMs() {
+            return avgLatencyMs;
+        }
+
+        public Map<String, Long> getErrorDistribution() {
+            return errorDistribution;
+        }
+
+        public Map<String, Long> errorDistribution() {
+            return errorDistribution;
+        }
+
+        public double getSlaRate() {
+            return slaRate;
+        }
+
+        public double slaRate() {
+            return slaRate;
+        }
+
+        public double getTimeoutRate() {
+            return timeoutRate;
+        }
+
+        public double timeoutRate() {
+            return timeoutRate;
+        }
+
+        public int getConsecutiveFailures() {
+            return consecutiveFailures;
+        }
+
+        public int consecutiveFailures() {
+            return consecutiveFailures;
+        }
     }
 
     /**
-     * 告警快照
-     *
-     * @param alertType 告警类型
-     * @param level 告警等级
-     * @param gatewayId 网关ID
-     * @param toolName 工具名
-     * @param message 告警内容
-     * @param triggeredAt 触发时间
+     * 告警快照。
      */
-    record AlertSnapshot(String alertType,
-                         String level,
-                         String gatewayId,
-                         String toolName,
-                         String message,
-                         LocalDateTime triggeredAt) {
+    @lombok.EqualsAndHashCode
+    @lombok.ToString
+    final class AlertSnapshot {
+        private final String alertType;
+        private final String level;
+        private final String gatewayId;
+        private final String toolName;
+        private final String message;
+        private final LocalDateTime triggeredAt;
+
+        public AlertSnapshot(String alertType,
+                             String level,
+                             String gatewayId,
+                             String toolName,
+                             String message,
+                             LocalDateTime triggeredAt) {
+            this.alertType = alertType;
+            this.level = level;
+            this.gatewayId = gatewayId;
+            this.toolName = toolName;
+            this.message = message;
+            this.triggeredAt = triggeredAt;
+        }
+
+        public String getAlertType() {
+            return alertType;
+        }
+
+        public String alertType() {
+            return alertType;
+        }
+
+        public String getLevel() {
+            return level;
+        }
+
+        public String level() {
+            return level;
+        }
+
+        public String getGatewayId() {
+            return gatewayId;
+        }
+
+        public String gatewayId() {
+            return gatewayId;
+        }
+
+        public String getToolName() {
+            return toolName;
+        }
+
+        public String toolName() {
+            return toolName;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public String message() {
+            return message;
+        }
+
+        public LocalDateTime getTriggeredAt() {
+            return triggeredAt;
+        }
+
+        public LocalDateTime triggeredAt() {
+            return triggeredAt;
+        }
     }
 
     /**
-     * 观测报告
-     *
-     * @param generatedAt 生成时间
-     * @param recentMinutes 查询窗口分钟数
-     * @param toolMetrics 工具指标
-     * @param alerts 告警列表
+     * 观测报告。
      */
-    record GatewayMetricsReport(LocalDateTime generatedAt,
-                                int recentMinutes,
-                                List<ToolMetricsSnapshot> toolMetrics,
-                                List<AlertSnapshot> alerts) {
+    @lombok.EqualsAndHashCode
+    @lombok.ToString
+    final class GatewayMetricsReport {
+        private final LocalDateTime generatedAt;
+        private final int recentMinutes;
+        private final List<ToolMetricsSnapshot> toolMetrics;
+        private final List<AlertSnapshot> alerts;
+
+        public GatewayMetricsReport(LocalDateTime generatedAt,
+                                    int recentMinutes,
+                                    List<ToolMetricsSnapshot> toolMetrics,
+                                    List<AlertSnapshot> alerts) {
+            this.generatedAt = generatedAt;
+            this.recentMinutes = recentMinutes;
+            this.toolMetrics = toolMetrics;
+            this.alerts = alerts;
+        }
+
+        public LocalDateTime getGeneratedAt() {
+            return generatedAt;
+        }
+
+        public LocalDateTime generatedAt() {
+            return generatedAt;
+        }
+
+        public int getRecentMinutes() {
+            return recentMinutes;
+        }
+
+        public int recentMinutes() {
+            return recentMinutes;
+        }
+
+        public List<ToolMetricsSnapshot> getToolMetrics() {
+            return toolMetrics;
+        }
+
+        public List<ToolMetricsSnapshot> toolMetrics() {
+            return toolMetrics;
+        }
+
+        public List<AlertSnapshot> getAlerts() {
+            return alerts;
+        }
+
+        public List<AlertSnapshot> alerts() {
+            return alerts;
+        }
     }
 }

@@ -71,16 +71,20 @@ public class McpToolCatalogServiceImpl implements McpToolCatalogService {
      */
     @Override
     public String buildToolPrompt() {
+        // 第一段无锁快路径：大多数请求直接命中缓存，避免进入同步块。
         ToolSnapshot cached = snapshot;
         long now = Instant.now().toEpochMilli();
         if (cached != null && now < cached.getExpireAt()) {
             return cached.getPrompt();
         }
+        // 缓存未命中时再加锁：仅允许一个线程执行刷新，避免并发重复构建。
         synchronized (this) {
+            // 双重检查：等待锁期间可能已有其他线程刷新过缓存。
             ToolSnapshot refreshed = snapshot;
             if (refreshed != null && now < refreshed.getExpireAt()) {
                 return refreshed.getPrompt();
             }
+            // 真正需要刷新时才重建快照并覆盖缓存。
             ToolSnapshot newSnapshot = refreshSnapshot(now);
             snapshot = newSnapshot;
             return newSnapshot.getPrompt();
@@ -96,6 +100,7 @@ public class McpToolCatalogServiceImpl implements McpToolCatalogService {
      */
     @Override
     public List<McpToolInfo> listTools() {
+        // 从统一 ToolCallbackProvider 拉取当前可见工具集合（已包含底层合并/过滤逻辑）。
         ToolCallback[] callbacks = toolCallbackProvider != null
                 ? toolCallbackProvider.getToolCallbacks()
                 : new ToolCallback[0];
@@ -104,19 +109,23 @@ public class McpToolCatalogServiceImpl implements McpToolCatalogService {
         }
         List<McpToolInfo> result = new ArrayList<>();
         for (ToolCallback callback : callbacks) {
+            // 防御空对象，避免后续访问定义信息触发空指针。
             if (callback == null) {
                 continue;
             }
             ToolDefinition definition = callback.getToolDefinition();
+            // 工具名是提示词展示与调用绑定的关键字段，缺失则跳过。
             if (!StringUtils.hasText(definition.name())) {
                 continue;
             }
             String toolKey = null;
             String source = null;
+            // 识别治理包装后的工具，补充 toolKey/source 供可观测与排障使用。
             if (callback instanceof ToolKeyAware aware) {
                 toolKey = aware.toolKey();
                 source = aware.toolSource();
             }
+            // 转为上层展示结构，统一填充描述与输入 schema。
             McpToolInfo info = McpToolInfo.builder()
                     .name(definition.name())
                     .toolKey(toolKey)
@@ -138,6 +147,7 @@ public class McpToolCatalogServiceImpl implements McpToolCatalogService {
      * @return 工具快照。
      */
     private ToolSnapshot refreshSnapshot(long now) {
+        // 获取可用工具
         List<McpToolInfo> tools = listTools();
         List<String> lines = new ArrayList<>();
         if (!CollectionUtils.isEmpty(tools)) {

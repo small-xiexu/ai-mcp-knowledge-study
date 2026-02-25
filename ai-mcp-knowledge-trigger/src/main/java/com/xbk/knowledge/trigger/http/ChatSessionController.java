@@ -14,6 +14,7 @@ import com.xbk.knowledge.domain.chat.model.entity.ChatSession;
 import com.xbk.knowledge.api.dto.common.IdRequest;
 import com.xbk.knowledge.types.common.PageRequest;
 import com.xbk.knowledge.types.common.PageResult;
+import com.xbk.knowledge.types.common.PageQueryExecutor;
 import com.xbk.knowledge.types.common.Result;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -23,7 +24,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 聊天会话管理 Controller
@@ -171,13 +171,12 @@ public class ChatSessionController implements IChatSessionService {
     @SaCheckPermission("agent:read")
     @Override
     public Result<PageResult<ChatSessionResponse>> listSessions(@RequestBody PageRequest request) {
-        PageResult<ChatSession> page = chatSessionAppService.listSessions(request.getPageNum(), request.getPageSize());
-        List<ChatSessionResponse> records = page.getRecords()
-                .stream()
-                .map(this::toSessionResponse)
-                .collect(Collectors.toList());
-        PageResult<ChatSessionResponse> response = PageResult.of(records, page.getTotal(), page.getPageNum(), page.getPageSize());
-        return Result.success(response);
+        return PageQueryExecutor.executeByPageNum(
+                request == null ? null : request.getPageNum(),
+                request == null ? null : request.getPageSize(),
+                chatSessionAppService::listSessions,
+                this::toSessionResponse
+        );
     }
 
     /**
@@ -229,16 +228,13 @@ public class ChatSessionController implements IChatSessionService {
     @SaCheckPermission("agent:read")
     @Override
     public Result<PageResult<ChatMessageResponse>> listMessages(@RequestBody ChatMessagePageRequest request) {
-        PageResult<ChatMessage> page = chatSessionAppService.listMessages(
-                request.getSessionId(),
-                request.getPageNum(),
-                request.getPageSize());
-        List<ChatMessageResponse> records = page.getRecords()
-                .stream()
-                .map(this::toMessageResponse)
-                .collect(Collectors.toList());
-        PageResult<ChatMessageResponse> response = PageResult.of(records, page.getTotal(), page.getPageNum(), page.getPageSize());
-        return Result.success(response);
+        Long sessionId = request == null ? null : request.getSessionId();
+        return PageQueryExecutor.executeByPageNum(
+                request == null ? null : request.getPageNum(),
+                request == null ? null : request.getPageSize(),
+                (pageNum, pageSize) -> chatSessionAppService.listMessages(sessionId, pageNum, pageSize),
+                this::toMessageResponse
+        );
     }
 
     /**

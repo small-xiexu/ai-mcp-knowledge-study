@@ -470,6 +470,7 @@ npm run build
 ## 16. 参考文档
 - `docs/README-ARCH.md`（详细架构图文，建议二次开发先读）
 - `docs/API-INDEX.md`（方法级接口索引，联调/回归使用）
+- `docs/MCP-从0到1实战指南.md`（MCP/网关工具大白话实战指南，推荐先读）
 - `docs/任务编排入门指南.md`
 - `docs/Spring-AI任务编排落地方案综合对比.md`
 - `docs/RAG文档处理优化完整方案.md`

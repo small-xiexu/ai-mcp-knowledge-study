@@ -13,7 +13,7 @@ import com.xbk.knowledge.domain.agent.model.entity.Agent;
 import com.xbk.knowledge.domain.agent.model.valobj.AgentCodeQuery;
 import com.xbk.knowledge.domain.agent.model.valobj.AgentPageQuery;
 import com.xbk.knowledge.types.common.PageResult;
-import com.xbk.knowledge.types.common.PageResultConverter;
+import com.xbk.knowledge.types.common.PageQueryExecutor;
 import com.xbk.knowledge.types.common.Result;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -60,14 +60,17 @@ public class AgentController implements IAgentService {
     @SaCheckPermission("agent:read")
     @Override
     public Result<PageResult<AgentResponse>> list(@Valid @RequestBody AgentQueryRequest request) {
-        AgentPageQuery query = new AgentPageQuery(request.getKeyword(),
-                request.getStatus(),
-                request.getOffset(),
-                request.getPageSize()
+        return PageQueryExecutor.execute(
+                request,
+                (offset, pageSize) -> new AgentPageQuery(
+                        request.getKeyword(),
+                        request.getStatus(),
+                        offset,
+                        pageSize
+                ),
+                agentAppService::queryPage,
+                this::toResponse
         );
-        PageResult<Agent> page = agentAppService.queryPage(query);
-        PageResult<AgentResponse> resp = PageResultConverter.convert(page, this::toResponse);
-        return Result.success(resp);
     }
 
     /**

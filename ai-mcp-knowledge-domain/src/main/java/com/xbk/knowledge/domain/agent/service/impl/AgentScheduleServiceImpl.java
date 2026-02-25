@@ -43,13 +43,13 @@ public class AgentScheduleServiceImpl implements IAgentScheduleService {
         if (query == null) {
             throw new IllegalArgumentException("query 不能为空");
         }
-        int offset = query.offset() == null ? 0 : Math.max(query.offset(), 0);
-        int pageSize = query.pageSize() == null ? 20 : Math.min(Math.max(query.pageSize(), 1), 200);
-        String scheduleName = StringUtils.hasText(query.scheduleName()) ? query.scheduleName().trim() : null;
+        int offset = query.getOffset() == null ? 0 : Math.max(query.getOffset(), 0);
+        int pageSize = query.getPageSize() == null ? 20 : Math.min(Math.max(query.getPageSize(), 1), 200);
+        String scheduleName = StringUtils.hasText(query.getScheduleName()) ? query.getScheduleName().trim() : null;
         AgentSchedulePageQuery normalized = new AgentSchedulePageQuery(
-                query.agentId(),
+                query.getAgentId(),
                 scheduleName,
-                query.enabled(),
+                query.getEnabled(),
                 offset,
                 pageSize
         );

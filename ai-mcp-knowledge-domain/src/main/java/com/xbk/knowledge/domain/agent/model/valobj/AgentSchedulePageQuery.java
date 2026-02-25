@@ -1,20 +1,41 @@
 package com.xbk.knowledge.domain.agent.model.valobj;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 /**
  * Agent 调度分页查询参数。
  *
- * @param agentId   Agent ID（可空）
- * @param scheduleName 调度名称（可空，模糊匹配）
- * @param enabled   启用状态（可空）
- * @param offset    偏移
- * @param pageSize  页大小
- *
  * @author sxie
  */
-public record AgentSchedulePageQuery(Long agentId,
-        String scheduleName,
-        Boolean enabled,
-        Integer offset,
-        Integer pageSize
-) {
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class AgentSchedulePageQuery {
+
+    /**
+     * Agent ID（可空）。
+     */
+    private Long agentId;
+
+    /**
+     * 调度名称（可空，模糊匹配）。
+     */
+    private String scheduleName;
+
+    /**
+     * 启用状态（可空）。
+     */
+    private Boolean enabled;
+
+    /**
+     * 偏移量。
+     */
+    private Integer offset;
+
+    /**
+     * 页大小。
+     */
+    private Integer pageSize;
 }

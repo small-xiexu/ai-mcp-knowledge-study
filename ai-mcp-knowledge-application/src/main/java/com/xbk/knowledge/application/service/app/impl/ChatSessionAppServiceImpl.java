@@ -10,6 +10,7 @@ import com.xbk.knowledge.domain.chat.model.valobj.ChatSessionPageQuery;
 import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.chat.adapter.repository.ChatMessageRepository;
 import com.xbk.knowledge.domain.chat.adapter.repository.ChatSessionRepository;
+import com.xbk.knowledge.types.common.PageParamUtils;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
@@ -135,12 +136,14 @@ public class ChatSessionAppServiceImpl implements ChatSessionAppService {
      */
     @Override
     public PageResult<ChatSession> listSessions(int pageNum, int pageSize) {
+        int safePageNum = PageParamUtils.normalizePageNum(pageNum);
+        int safePageSize = PageParamUtils.normalizePageSize(pageSize, 10);
         // 将页码转换为偏移量以适配仓储分页
-        int offset = Math.max(pageNum - 1, 0) * pageSize;
-        ChatSessionPageQuery query = new ChatSessionPageQuery(offset, pageSize);
+        int offset = PageParamUtils.pageNumToOffset(safePageNum, safePageSize);
+        ChatSessionPageQuery query = new ChatSessionPageQuery(offset, safePageSize);
         List<ChatSession> sessions = chatSessionRepository.findPage(query);
         long total = chatSessionRepository.countAll();
-        return PageResult.of(sessions, total, pageNum, pageSize);
+        return PageResult.of(sessions, total, safePageNum, safePageSize);
     }
 
     /**
@@ -169,12 +172,14 @@ public class ChatSessionAppServiceImpl implements ChatSessionAppService {
      */
     @Override
     public PageResult<ChatMessage> listMessages(Long sessionId, int pageNum, int pageSize) {
+        int safePageNum = PageParamUtils.normalizePageNum(pageNum);
+        int safePageSize = PageParamUtils.normalizePageSize(pageSize, 10);
         // 将页码转换为偏移量以适配仓储分页
-        int offset = Math.max(pageNum - 1, 0) * pageSize;
-        ChatMessagePageQuery query = new ChatMessagePageQuery(sessionId, offset, pageSize);
+        int offset = PageParamUtils.pageNumToOffset(safePageNum, safePageSize);
+        ChatMessagePageQuery query = new ChatMessagePageQuery(sessionId, offset, safePageSize);
         List<ChatMessage> messages = chatMessageRepository.findPage(query);
         long total = chatMessageRepository.countBySessionId(sessionId);
-        return PageResult.of(messages, total, pageNum, pageSize);
+        return PageResult.of(messages, total, safePageNum, safePageSize);
     }
 
     /**

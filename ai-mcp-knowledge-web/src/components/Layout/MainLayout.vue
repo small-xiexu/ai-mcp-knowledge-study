@@ -203,15 +203,15 @@ const featureGuideMap: Record<string, FeatureGuide> = {
     steps: ['先定义 Agent 增强器参数', '按顺序组织处理链路', '在 Client Profile 中挂载并验证']
   },
   McpServers: {
-    summary: '管理外部 MCP Server 的连接与启停，控制工具来源。',
-    steps: ['新增服务并填写连接方式', '校验连接参数与状态', '启用后在工具页确认可见']
+    summary: '管理外部 MCP 工具连接（STDIO/SSE/HTTP），用于接入第三方或现成 MCP 服务。',
+    steps: ['新增服务并填写连接方式', '校验连接参数与状态', '启用后在工具列表确认可见']
   },
   GatewayTools: {
-    summary: '管理网关工具与参数映射，确保 AI 调用外部能力可控。',
-    steps: ['先定位网关实例', '配置工具参数与响应提取', '调试通过后再发布使用']
+    summary: '管理内部 HTTP 工具与参数映射，适合对接公司内部业务接口。',
+    steps: ['先定位网关实例', '配置请求参数与响应提取', '调试通过后再启用使用']
   },
   GatewayToolList: {
-    summary: '管理指定网关下的工具清单与配置明细。',
+    summary: '管理指定网关下的 HTTP 工具清单与配置明细。',
     steps: ['先确认目标网关', '逐项维护工具参数映射', '调试通过后再启用到生产流量']
   },
   Credentials: {

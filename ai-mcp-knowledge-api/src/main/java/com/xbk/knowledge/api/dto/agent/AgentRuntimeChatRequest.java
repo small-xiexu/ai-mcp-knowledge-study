@@ -26,7 +26,7 @@ public class AgentRuntimeChatRequest extends BaseRequest {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 可选会话 ID（用于未来绑定话/记忆/RAG）。
+     * 可选会话 ID（用于未来绑定会话/记忆/RAG）。
      */
     private Long sessionId;
 
@@ -42,4 +42,3 @@ public class AgentRuntimeChatRequest extends BaseRequest {
      */
     private String ragTagsJson;
 }
-

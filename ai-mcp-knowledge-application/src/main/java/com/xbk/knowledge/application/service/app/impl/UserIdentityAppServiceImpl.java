@@ -4,6 +4,7 @@ import com.xbk.knowledge.application.service.app.UserIdentityAppService;
 import com.xbk.knowledge.domain.identity.model.entity.SysUser;
 import com.xbk.knowledge.domain.identity.model.valobj.UserPageQuery;
 import com.xbk.knowledge.domain.identity.adapter.repository.IdentityRepository;
+import com.xbk.knowledge.types.common.PageParamUtils;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.exception.BusinessException;
 import com.xbk.knowledge.types.exception.NotFoundException;
@@ -44,8 +45,8 @@ public class UserIdentityAppServiceImpl implements UserIdentityAppService {
      */
     @Override
     public PageResult<SysUser> queryUserPage(UserPageQuery query) {
-        Integer offset = query.getOffset() == null ? 0 : query.getOffset();
-        Integer pageSize = query.getPageSize() == null ? 10 : query.getPageSize();
+        Integer offset = PageParamUtils.normalizeOffset(query.getOffset());
+        Integer pageSize = PageParamUtils.normalizePageSize(query.getPageSize(), 10);
         UserPageQuery normalizedQuery = new UserPageQuery(
                 query.getUsername(),
                 query.getStatus(),
@@ -54,7 +55,7 @@ public class UserIdentityAppServiceImpl implements UserIdentityAppService {
         );
         List<SysUser> users = identityRepository.findPage(normalizedQuery);
         long total = identityRepository.count(normalizedQuery);
-        int pageNum = (offset / pageSize) + 1;
+        int pageNum = PageParamUtils.offsetToPageNum(offset, pageSize);
         return PageResult.of(users, total, pageNum, pageSize);
     }
 

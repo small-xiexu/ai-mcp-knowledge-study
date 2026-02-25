@@ -9,7 +9,7 @@ import com.xbk.knowledge.api.dto.approval.ApprovalResponse;
 import com.xbk.knowledge.application.service.app.ApprovalAppService;
 import com.xbk.knowledge.domain.approval.model.entity.ApprovalRequest;
 import com.xbk.knowledge.types.common.PageResult;
-import com.xbk.knowledge.types.common.PageResultConverter;
+import com.xbk.knowledge.types.common.PageQueryExecutor;
 import com.xbk.knowledge.types.common.Result;
 import com.xbk.knowledge.types.contract.PlatformContractV1;
 import lombok.RequiredArgsConstructor;
@@ -55,12 +55,13 @@ public class ApprovalController implements IApprovalService {
     @SaCheckPermission("tool:approve")
     @Override
     public Result<PageResult<ApprovalResponse>> list(@Valid @RequestBody ApprovalListRequest request) {
-        PageResult<ApprovalRequest> page = approvalAppService.list(request.getStatus(),
-                request.getOffset() == null ? 0 : request.getOffset(),
-                request.getPageSize() == null ? 20 : request.getPageSize()
+        return PageQueryExecutor.execute(
+                request.getOffset(),
+                request.getPageSize(),
+                20,
+                (offset, pageSize) -> approvalAppService.list(request.getStatus(), offset, pageSize),
+                this::toResponse
         );
-        PageResult<ApprovalResponse> resp = PageResultConverter.convert(page, this::toResponse);
-        return Result.success(resp);
     }
 
     /**

@@ -181,7 +181,7 @@
           <div class="step-num">3</div>
           <div class="step-body">
             <div class="step-title">需要工具再集成</div>
-            <div class="step-desc">外部 MCP、网关工具与凭证集中在「配置与集成」。</div>
+            <div class="step-desc">MCP 工具配置、HTTP 工具配置与凭证集中在「配置与集成」。</div>
           </div>
           <el-button text class="link-btn" @click="expandAdvanced = true">展开入口</el-button>
         </div>
@@ -191,8 +191,8 @@
         <el-collapse-item name="integration" title="配置与集成">
           <div class="link-grid">
             <el-button class="gemini-btn-secondary" @click="go('/models')">LLM 配置</el-button>
-            <el-button class="gemini-btn-secondary" @click="go('/mcp-servers')">MCP 配置</el-button>
-            <el-button class="gemini-btn-secondary" @click="go('/gateway-tools')">网关工具</el-button>
+            <el-button class="gemini-btn-secondary" @click="go('/mcp-servers')">MCP 工具配置</el-button>
+            <el-button class="gemini-btn-secondary" @click="go('/gateway-tools')">HTTP 工具配置</el-button>
             <el-button class="gemini-btn-secondary" @click="go('/credentials')">凭证管理</el-button>
           </div>
         </el-collapse-item>

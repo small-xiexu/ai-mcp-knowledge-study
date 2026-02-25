@@ -24,6 +24,7 @@ import com.xbk.knowledge.domain.common.model.valobj.EnabledQuery;
 import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowRunContextRepository;
 import com.xbk.knowledge.domain.workflow.adapter.repository.WorkflowRunRepository;
 import com.xbk.knowledge.domain.llm.service.IModelConfigService;
+import com.xbk.knowledge.types.common.PageParamUtils;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.contract.PlatformContractV1;
 import com.xbk.knowledge.types.exception.BusinessException;
@@ -160,11 +161,11 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
      */
     @Override
     public PageResult<ApprovalRequest> list(String status, int offset, int pageSize) {
-        int safeOffset = Math.max(offset, 0);
-        int safeSize = pageSize <= 0 ? 20 : Math.min(pageSize, 200);
+        int safeOffset = PageParamUtils.normalizeOffset(offset);
+        int safeSize = PageParamUtils.normalizePageSize(pageSize, 20, 200);
         List<ApprovalRequest> list = approvalRequestRepository.list(status, safeOffset, safeSize);
         long total = approvalRequestRepository.count(status);
-        int pageNum = safeSize == 0 ? 1 : (safeOffset / safeSize) + 1;
+        int pageNum = PageParamUtils.offsetToPageNum(safeOffset, safeSize);
         return PageResult.of(list, total, pageNum, safeSize);
     }
 

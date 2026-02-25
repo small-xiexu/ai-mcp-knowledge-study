@@ -141,13 +141,13 @@ const routes: RouteRecordRaw[] = [
         path: 'mcp-servers',
         name: 'McpServers',
         component: () => import('@/views/mcp/index.vue'),
-        meta: { title: 'MCP 配置', icon: 'Link', permission: 'tool:read', group: 'integration', order: 30 }
+        meta: { title: 'MCP 工具配置', icon: 'Link', permission: 'tool:read', group: 'integration', order: 30 }
       },
       {
         path: 'gateway-tools',
         name: 'GatewayTools',
         component: () => import('@/views/gateway/tools/index.vue'),
-        meta: { title: '网关工具', icon: 'Operation', permission: 'tool:read', group: 'integration', order: 40 }
+        meta: { title: 'HTTP 工具配置', icon: 'Operation', permission: 'tool:read', group: 'integration', order: 40 }
       },
       {
         path: 'gateway-tools/:gatewayId/tools',

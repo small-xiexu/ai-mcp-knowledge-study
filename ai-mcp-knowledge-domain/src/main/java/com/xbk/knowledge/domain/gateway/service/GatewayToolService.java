@@ -52,60 +52,172 @@ public interface GatewayToolService {
     // ========== 内部数据结构 ==========
 
     /**
-     * 工具定义（tools/list 的单个工具）
+     * 工具定义（tools/list 的单个工具）。
      */
-    record ToolDefinition(
-            /**
-             * 工具名称
-             */
-            String name,
-            /**
-             * 工具描述
-             */
-            String description,
-            /**
-             * 输入参数的 JSON Schema
-             */
-            Map<String, Object> inputSchema
-    ) {}
+    @lombok.EqualsAndHashCode
+    @lombok.ToString
+    final class ToolDefinition {
+        /**
+         * 工具名称。
+         */
+        private final String name;
+
+        /**
+         * 工具描述。
+         */
+        private final String description;
+
+        /**
+         * 输入参数的 JSON Schema。
+         */
+        private final Map<String, Object> inputSchema;
+
+        public ToolDefinition(String name, String description, Map<String, Object> inputSchema) {
+            this.name = name;
+            this.description = description;
+            this.inputSchema = inputSchema;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String name() {
+            return name;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public String description() {
+            return description;
+        }
+
+        public Map<String, Object> getInputSchema() {
+            return inputSchema;
+        }
+
+        public Map<String, Object> inputSchema() {
+            return inputSchema;
+        }
+    }
 
     /**
-     * 工具调用结果
+     * 工具调用结果。
      */
-    record ToolCallResult(
-            /**
-             * 是否调用成功
-             */
-            boolean success,
-            /**
-             * 结果内容（成功时为响应数据，失败时为错误信息）
-             */
-            String content,
-            /**
-             * 错误码（失败时有值）
-             */
-            String errorCode
-    ) {}
+    @lombok.EqualsAndHashCode
+    @lombok.ToString
+    final class ToolCallResult {
+        /**
+         * 是否调用成功。
+         */
+        private final boolean success;
+
+        /**
+         * 结果内容（成功时为响应数据，失败时为错误信息）。
+         */
+        private final String content;
+
+        /**
+         * 错误码（失败时有值）。
+         */
+        private final String errorCode;
+
+        public ToolCallResult(boolean success, String content, String errorCode) {
+            this.success = success;
+            this.content = content;
+            this.errorCode = errorCode;
+        }
+
+        public boolean isSuccess() {
+            return success;
+        }
+
+        public boolean success() {
+            return success;
+        }
+
+        public String getContent() {
+            return content;
+        }
+
+        public String content() {
+            return content;
+        }
+
+        public String getErrorCode() {
+            return errorCode;
+        }
+
+        public String errorCode() {
+            return errorCode;
+        }
+    }
 
     /**
-     * 网关能力声明（initialize 响应）
+     * 网关能力声明（initialize 响应）。
      */
-    record GatewayInfo(
-            /**
-             * 协议版本
-             */
-            String protocolVersion,
-            /**
-             * 网关名称
-             */
-            String serverName,
-            /**
-             * 网关版本
-             */
-            String serverVersion,
-            /**
-             * 网关使用说明
-             */
-            String instructions
-    ) {}
+    @lombok.EqualsAndHashCode
+    @lombok.ToString
+    final class GatewayInfo {
+        /**
+         * 协议版本。
+         */
+        private final String protocolVersion;
+
+        /**
+         * 网关名称。
+         */
+        private final String serverName;
+
+        /**
+         * 网关版本。
+         */
+        private final String serverVersion;
+
+        /**
+         * 网关使用说明。
+         */
+        private final String instructions;
+
+        public GatewayInfo(String protocolVersion, String serverName, String serverVersion, String instructions) {
+            this.protocolVersion = protocolVersion;
+            this.serverName = serverName;
+            this.serverVersion = serverVersion;
+            this.instructions = instructions;
+        }
+
+        public String getProtocolVersion() {
+            return protocolVersion;
+        }
+
+        public String protocolVersion() {
+            return protocolVersion;
+        }
+
+        public String getServerName() {
+            return serverName;
+        }
+
+        public String serverName() {
+            return serverName;
+        }
+
+        public String getServerVersion() {
+            return serverVersion;
+        }
+
+        public String serverVersion() {
+            return serverVersion;
+        }
+
+        public String getInstructions() {
+            return instructions;
+        }
+
+        public String instructions() {
+            return instructions;
+        }
+    }
 }

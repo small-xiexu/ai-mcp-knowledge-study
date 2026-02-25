@@ -1,14 +1,14 @@
 <template>
   <div class="gemini-container">
     <div class="page-header">
-      <h2 class="page-title">网关工具管理台</h2>
+      <h2 class="page-title">HTTP 工具管理台</h2>
       <el-button type="primary" class="gemini-btn-primary" @click="openEdit()">新增网关实例</el-button>
     </div>
 
     <el-alert
       title="用途说明"
       type="warning"
-      description="本页用于管理网关实例，维护每个网关的基础信息、状态和工具集合入口。"
+      description="本页用于管理 HTTP 工具网关实例，维护每个网关的基础信息、状态和工具集合入口。"
       show-icon
       :closable="false"
       style="margin-bottom: 16px"
