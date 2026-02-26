@@ -1,4 +1,4 @@
-package com.xbk.knowledge.domain.service.impl;
+package com.xbk.knowledge.domain.llm.service.impl;
 
 import com.xbk.knowledge.domain.llm.model.aggregate.ModelConfigAggregate;
 import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;

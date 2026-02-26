@@ -210,11 +210,15 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
         closeQuietly(existing);
         metaRegistry.remove(configId);
 
-        // 按最新配置创建并初始化客户端，再回填运行时注册表与快照。
+        // 按最新配置创建客户端。
         McpSyncClient client = buildClient(config);
+        // 执行 MCP initialize 握手，未成功前不写入运行时注册表。
         client.initialize();
+        // clientRegistry：记录真实可用连接，后续工具调用会从这里取 client。
         clientRegistry.put(configId, client);
+        // metaRegistry：保存运行时展示与追踪所需的服务元信息（当前主要是 serverName）。
         metaRegistry.put(configId, new McpServerMeta(config.getServerName()));
+        // configSnapshotRegistry：记录本次已生效快照，用于下次判定是否需要重连。
         configSnapshotRegistry.put(configId, newSnapshot);
         // 外部调用需要立即可见时刷新回调；批量刷新场景由调用方统一刷新一次。
         if (refreshCallbacks) {
@@ -234,16 +238,21 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
      * @return `true` 表示运行时状态发生变化，`false` 表示无变化。
      */
     private boolean unregisterInternal(Long id, boolean refreshCallbacks) {
+        // 主键为空时无法定位运行时实例，直接视为无变化。
         if (id == null) {
             return false;
         }
+        // 从三本注册表中同时移除，确保运行态状态一致收敛。
         McpSyncClient client = clientRegistry.remove(id);
         McpServerMeta removedMeta = metaRegistry.remove(id);
         RuntimeConfigSnapshot removedSnapshot = configSnapshotRegistry.remove(id);
+        // 三处都没有数据说明本来就不在运行态，避免重复刷新回调。
         if (client == null && removedMeta == null && removedSnapshot == null) {
             return false;
         }
+        // 连接对象存在时执行优雅关闭，释放底层网络/线程资源。
         closeQuietly(client);
+        // 运行态发生变化后按需刷新工具回调，确保模型侧立即感知下线。
         if (refreshCallbacks) {
             refreshToolCallbacks();
         }
@@ -293,16 +302,24 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
      * 客户端变更后需要同步工具列表
      */
     private void refreshToolCallbacks() {
+        // 把运行中的 clientRegistry 转换为 provider 可识别的 descriptor 列表。
         ArrayList<DynamicMcpToolCallbackProvider.McpClientDescriptor> descriptors = new ArrayList<>();
         for (Map.Entry<Long, McpSyncClient> entry : clientRegistry.entrySet()) {
+            // configId 来自 clientRegistry 的 key，用于关联同一配置的运行态元信息。
             Long configId = entry.getKey();
+            // client 来自 clientRegistry 的 value，表示当前已建连的 MCP 客户端实例。
             McpSyncClient client = entry.getValue();
+            // meta 从 metaRegistry 按 configId 取回，提供服务名等展示与追踪信息。
             McpServerMeta meta = metaRegistry.get(configId);
+            // 任一侧缺失都视为运行态不完整，跳过以避免暴露脏数据。
             if (meta == null || client == null) {
                 continue;
             }
-            descriptors.add(new DynamicMcpToolCallbackProvider.McpClientDescriptor(meta.serverName, client));
+            // descriptor 以“服务名 + 已初始化 client”为最小单元参与工具合并。
+            DynamicMcpToolCallbackProvider.McpClientDescriptor mcpClientDescriptor = new DynamicMcpToolCallbackProvider.McpClientDescriptor(meta.serverName, client);
+            descriptors.add(mcpClientDescriptor);
         }
+        // 全量替换 provider 内部快照，统一收敛工具可见性。
         toolCallbackProvider.updateClients(descriptors);
     }
 

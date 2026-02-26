@@ -309,6 +309,89 @@ flowchart LR
 3. 运行时工具注入层：`DynamicMcpToolCallbackProvider` / `GatewayToolCallbackProvider` / `CompositeToolCallbackProvider`  
 4. 模型执行层：`AiChatAppServiceImpl` -> armory nodes -> `defaultToolCallbacks(...)`
 
+### 13.5 不同协议的配置参数示例（可直接套用）
+下面示例以 `POST /api/mcp/servers/create` 请求体为例（更新时改成 `/update` 并补 `id`）。
+
+通用字段说明：
+- `serverName`：配置名称。
+- `serverType`：协议类型（`STDIO/HTTP/SSE/WEBSOCKET`）。
+- `enabled`：是否启用（启用后仍需手动 refresh 才会建连）。
+- `connectTimeoutMs/requestTimeoutMs/initTimeoutMs`：超时配置（默认分别是 `10000/30000/60000` ms）。
+
+1. `STDIO` 示例（本地进程）
+```json
+{
+  "serverName": "filesystem-stdio",
+  "serverType": "STDIO",
+  "enabled": true,
+  "description": "本地文件系统 MCP",
+  "command": "npx",
+  "args": [
+    "-y",
+    "@modelcontextprotocol/server-filesystem",
+    "/Users/sxie/workspace"
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "connectTimeoutMs": 10000,
+  "requestTimeoutMs": 30000,
+  "initTimeoutMs": 60000
+}
+```
+必填核心参数：`command`。
+
+2. `SSE` 示例（远程 SSE）
+```json
+{
+  "serverName": "remote-sse-server",
+  "serverType": "SSE",
+  "enabled": true,
+  "description": "远程 SSE MCP 服务",
+  "endpoint": "http://127.0.0.1:8080",
+  "sseEndpoint": "/sse",
+  "headers": {
+    "Authorization": "Bearer your-token",
+    "X-Tenant-Id": "demo"
+  },
+  "connectTimeoutMs": 10000,
+  "requestTimeoutMs": 30000,
+  "initTimeoutMs": 60000
+}
+```
+必填核心参数：`endpoint`；`sseEndpoint` 可选（不填则使用默认路径）。
+
+3. `HTTP` 示例（Streamable HTTP）
+```json
+{
+  "serverName": "remote-http-server",
+  "serverType": "HTTP",
+  "enabled": true,
+  "description": "远程 HTTP MCP 服务",
+  "endpoint": "http://127.0.0.1:18045/v1/messages?version=2026-01-01",
+  "headers": {
+    "Authorization": "Bearer your-token"
+  },
+  "connectTimeoutMs": 12000,
+  "requestTimeoutMs": 45000,
+  "initTimeoutMs": 60000
+}
+```
+必填核心参数：`endpoint`。  
+说明：当前实现会把 `endpoint` 自动拆成 `baseUri + endpointPath` 来构建传输层。
+
+4. `WEBSOCKET` 示例（预留）
+```json
+{
+  "serverName": "remote-ws-server",
+  "serverType": "WEBSOCKET",
+  "enabled": true,
+  "description": "预留 WebSocket MCP 服务",
+  "endpoint": "ws://127.0.0.1:9000/mcp"
+}
+```
+当前版本说明：运行时策略会直接抛错 `当前版本暂不支持 WEBSOCKET 类型`，仅保留配置语义，暂不建议在线上启用。
+
 ## 14. 五个真实故障复盘（按排障顺序）
 
 ### 14.1 故障 A：`enabled=true` 但 `running=false`

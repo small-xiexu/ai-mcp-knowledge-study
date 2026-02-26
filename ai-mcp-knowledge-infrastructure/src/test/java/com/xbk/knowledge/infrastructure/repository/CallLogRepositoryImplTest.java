@@ -4,6 +4,8 @@ import com.xbk.knowledge.domain.metrics.model.aggregate.CallLogAggregate;
 import com.xbk.knowledge.domain.metrics.model.entity.CallLog;
 import com.xbk.knowledge.domain.llm.model.valobj.ModelIdQuery;
 import com.xbk.knowledge.infrastructure.dao.ICallLogDao;
+import com.xbk.knowledge.infrastructure.dao.po.CallLogPO;
+import com.xbk.knowledge.infrastructure.repository.metrics.CallLogRepositoryImpl;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -32,7 +34,7 @@ public class CallLogRepositoryImplTest {
         CallLogAggregate saved = repository.save(aggregate);
 
         assertNotNull(saved.getCallLog().getCreatedAt());
-        Mockito.verify(mapper).insertCallLog(any(CallLog.class));
+        Mockito.verify(mapper).insertCallLog(any(CallLogPO.class));
     }
 
     /**

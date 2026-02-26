@@ -22,7 +22,7 @@ public class MetricsAppServiceImplTest {
         IMetricsDomainService domainService = Mockito.mock(IMetricsDomainService.class);
         MetricsAppServiceImpl appService = new MetricsAppServiceImpl(domainService);
 
-        MetricsQuery query = new MetricsQuery(1L, "task", null, null);
+        MetricsQuery query = new MetricsQuery(1L, null, null);
         appService.collectCallMetrics(query);
 
         verify(domainService).collectCallMetrics(query);

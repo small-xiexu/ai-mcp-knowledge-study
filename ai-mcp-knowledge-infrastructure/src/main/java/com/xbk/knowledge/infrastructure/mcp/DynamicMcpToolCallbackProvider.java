@@ -42,6 +42,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.time.LocalDateTime;
 import java.util.Locale;
 import java.util.LinkedHashMap;
+import java.util.Optional;
 
 import io.modelcontextprotocol.client.McpSyncClient;
 
@@ -112,7 +113,7 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
      * @param mcpClients MCP 客户端描述符列表（包含 serverName）。
      */
     public void updateClients(List<McpClientDescriptor> mcpClients) {
-        List<McpClientDescriptor> safeClients = mcpClients == null ? Collections.emptyList() : mcpClients;
+        List<McpClientDescriptor> safeClients = Optional.ofNullable(mcpClients).orElse(Collections.emptyList());
         clients.set(safeClients);
         cachedCallbacks.set(null);
         int size = safeClients.size();

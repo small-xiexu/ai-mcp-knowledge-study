@@ -1,4 +1,4 @@
-package com.xbk.knowledge.domain.service.impl;
+package com.xbk.knowledge.domain.metrics.service.impl;
 
 import com.xbk.knowledge.domain.metrics.model.valobj.CallMetrics;
 import com.xbk.knowledge.domain.metrics.model.valobj.MetricsQuery;
@@ -48,7 +48,7 @@ public class MetricsDomainServiceImplTest {
     public void shouldRejectInvalidTimeRange() {
         LocalDateTime start = LocalDateTime.now();
         LocalDateTime end = start.minusMinutes(1);
-        MetricsQuery query = new MetricsQuery(1L, "task", start, end);
+        MetricsQuery query = new MetricsQuery(1L, start, end);
 
         assertThrows(IllegalArgumentException.class, () -> service.collectCallMetrics(query));
     }
@@ -58,7 +58,7 @@ public class MetricsDomainServiceImplTest {
      */
     @Test
     public void shouldNormalizeNullCallMetrics() {
-        MetricsQuery query = new MetricsQuery(1L, "task", null, null);
+        MetricsQuery query = new MetricsQuery(1L, null, null);
         Mockito.when(callLogRepository.aggregateCallMetrics(query)).thenReturn(null);
 
         CallMetrics metrics = service.collectCallMetrics(query);

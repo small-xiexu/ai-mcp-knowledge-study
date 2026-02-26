@@ -5,6 +5,7 @@ import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
 import com.xbk.knowledge.domain.common.model.valobj.EnabledQuery;
 import com.xbk.knowledge.domain.llm.model.valobj.ModelNameQuery;
 import com.xbk.knowledge.infrastructure.dao.IModelConfigDao;
+import com.xbk.knowledge.infrastructure.dao.po.ModelConfigPO;
 import com.xbk.knowledge.infrastructure.repository.model.ModelConfigRepositoryImpl;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -14,6 +15,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.verify;
 
 /**
  * 验证模型配置仓储的空参处理与新增逻辑。
@@ -49,14 +51,16 @@ public class ModelConfigRepositoryImplTest {
                 .build();
 
         doAnswer(invocation -> {
-            ModelConfig arg = invocation.getArgument(0);
+            ModelConfigPO arg = invocation.getArgument(0);
             arg.setId(1L);
             return null;
-        }).when(modelConfigMapper).insertModelConfig(any(ModelConfig.class));
+        }).when(modelConfigMapper).insertModelConfig(any(ModelConfigPO.class));
 
         repository.save(aggregate);
 
-        assertTrue(modelConfig.getId() != null);
+        assertTrue(modelConfig.getCreatedAt() != null);
+        assertTrue(modelConfig.getUpdatedAt() != null);
+        verify(modelConfigMapper).insertModelConfig(any(ModelConfigPO.class));
     }
 
     /**
