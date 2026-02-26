@@ -143,6 +143,27 @@
               </div>
               <div class="bubble">
                 <div
+                  v-if="msg.role === 'user' && msg.mediaPreviews && msg.mediaPreviews.length"
+                  class="message-media-list"
+                >
+                  <div
+                    v-for="(item, index) in msg.mediaPreviews"
+                    :key="`${item.name}-${index}`"
+                    class="message-media-item"
+                  >
+                    <img
+                      v-if="item.kind === 'image' && item.previewUrl"
+                      class="message-media-image"
+                      :src="item.previewUrl"
+                      :alt="item.name"
+                    >
+                    <div v-else class="message-media-attachment">
+                      <span class="message-media-badge">附件</span>
+                      <span class="message-media-filename">{{ item.name }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div
                   v-if="msg.role === 'assistant' && msg.thinkingContent"
                   class="thinking-panel"
                 >
@@ -165,7 +186,7 @@
                   />
                 </div>
                 <div
-                  class="content markdown-body"
+                  class="message-text markdown-body"
                   :class="{ 'streaming-plain': msg.renderedContentMode === 'plain' }"
                   v-html="msg.renderedContent"
                 />
@@ -189,7 +210,13 @@
           </div>
         </div>
         <div class="floating-input-capsule no-plugins">
-           <button type="button" class="media-upload-btn" @click="openMediaPicker">
+           <button
+             type="button"
+             class="media-upload-btn"
+             title="上传图片或附件"
+             aria-label="上传图片或附件"
+             @click="openMediaPicker"
+           >
              <el-icon><Paperclip /></el-icon>
            </button>
            <input
@@ -197,10 +224,10 @@
              class="media-file-input"
              type="file"
              multiple
-             accept="image/*,.txt,.md,.json,.csv,.xml,.yaml,.yml,.log,.java,.js,.ts,.py,.sql"
+             accept="*/*"
              @change="handleMediaChange"
            >
-           <div class="input-wrapper">
+           <div class="input-wrapper" @paste="handleInputPaste">
              <el-input
                v-model="input"
                type="textarea"
@@ -261,6 +288,12 @@ import {
 import { listRagTags } from '@/api/rag'
 import type { AIRequest, AIRequestMedia, ModelInfo, ChatSession, ChatMessage } from '@/types/entity'
 
+interface ChatMessageMediaPreview {
+  kind: 'image' | 'attachment'
+  name: string
+  previewUrl?: string
+}
+
 interface ChatMessageView extends ChatMessage {
   thinkingContent?: string
   thinkingFolded?: boolean
@@ -268,6 +301,7 @@ interface ChatMessageView extends ChatMessage {
   renderedThinkingContent?: string
   renderedContentMode?: 'markdown' | 'plain'
   renderedThinkingMode?: 'markdown' | 'plain'
+  mediaPreviews?: ChatMessageMediaPreview[]
 }
 
 const MAX_MEDIA_FILES = 6
@@ -401,11 +435,12 @@ const createMediaItem = async (file: File): Promise<AIRequestMedia | null> => {
     return null
   }
   const mimeType = file.type || 'application/octet-stream'
+  const safeName = file.name?.trim() || `clipboard-${Date.now()}`
   const data = await readFileAsDataUrl(file)
   if (isImageFile(file)) {
     return {
       kind: 'image',
-      name: file.name,
+      name: safeName,
       mimeType,
       data
     }
@@ -416,11 +451,92 @@ const createMediaItem = async (file: File): Promise<AIRequestMedia | null> => {
   }
   return {
     kind: 'attachment',
-    name: file.name,
+    name: safeName,
     mimeType,
     data,
     text
   }
+}
+
+const handleInputPaste = async (event: ClipboardEvent) => {
+  const clipboard = event.clipboardData
+  if (!clipboard) {
+    return
+  }
+  const imageItems = Array.from(clipboard.items || []).filter(item => item.type.startsWith('image/'))
+  if (imageItems.length === 0) {
+    return
+  }
+  event.preventDefault()
+  let remaining = MAX_MEDIA_FILES - selectedMediaList.value.length
+  if (remaining <= 0) {
+    ElMessage.warning(`最多只能上传 ${MAX_MEDIA_FILES} 个文件`)
+    return
+  }
+  for (const item of imageItems) {
+    if (remaining <= 0) {
+      break
+    }
+    const file = item.getAsFile()
+    if (!file) {
+      continue
+    }
+    try {
+      // eslint-disable-next-line no-await-in-loop
+      const mediaItem = await createMediaItem(file)
+      if (!mediaItem) {
+        continue
+      }
+      selectedMediaList.value.push(mediaItem)
+      remaining -= 1
+    } catch (error: any) {
+      ElMessage.error(error.message || '粘贴图片失败')
+    }
+  }
+  if (imageItems.length > MAX_MEDIA_FILES) {
+    ElMessage.warning(`超出数量上限，最多保留 ${MAX_MEDIA_FILES} 个文件`)
+  }
+}
+
+const resolveMediaSummary = (mediaList: AIRequestMedia[]) => {
+  if (!mediaList || mediaList.length === 0) {
+    return ''
+  }
+  const imageCount = mediaList.filter(item => item.kind === 'image').length
+  const attachmentCount = mediaList.length - imageCount
+  const chunks: string[] = []
+  if (imageCount > 0) {
+    chunks.push(`图片 ${imageCount} 张`)
+  }
+  if (attachmentCount > 0) {
+    chunks.push(`附件 ${attachmentCount} 个`)
+  }
+  const names = mediaList
+    .map(item => (item.name || (item.kind === 'image' ? '未命名图片' : '未命名附件')).trim())
+    .filter(name => !!name)
+  const previewNames = names.slice(0, 3)
+  const suffix = names.length > 3 ? ` 等${names.length}个文件` : ''
+  return `[上传了${chunks.join('，')}：${previewNames.join('、')}${suffix}]`
+}
+
+const buildMessageMediaPreviews = (mediaList: AIRequestMedia[]): ChatMessageMediaPreview[] => {
+  if (!mediaList || mediaList.length === 0) {
+    return []
+  }
+  return mediaList.map(item => {
+    const name = item.name || (item.kind === 'image' ? '未命名图片' : '未命名附件')
+    if (item.kind === 'image') {
+      return {
+        kind: 'image',
+        name,
+        previewUrl: item.data
+      }
+    }
+    return {
+      kind: 'attachment',
+      name
+    }
+  })
 }
 
 const handleMediaChange = async (event: Event) => {
@@ -461,19 +577,7 @@ const resolveUserDisplayContent = (text: string, mediaList: AIRequestMedia[]) =>
   if (text) {
     return text
   }
-  if (!mediaList || mediaList.length === 0) {
-    return ''
-  }
-  const imageCount = mediaList.filter(item => item.kind === 'image').length
-  const attachmentCount = mediaList.length - imageCount
-  const chunks: string[] = []
-  if (imageCount > 0) {
-    chunks.push(`图片 ${imageCount} 张`)
-  }
-  if (attachmentCount > 0) {
-    chunks.push(`附件 ${attachmentCount} 个`)
-  }
-  return `[上传了${chunks.join('，')}]`
+  return resolveMediaSummary(mediaList)
 }
 
 const resolveSessionTitle = (text: string, mediaList: AIRequestMedia[]) => {
@@ -716,6 +820,10 @@ const handleSend = async () => {
     modelId: selectedModelId.value
   })
   const userMessage = toChatMessageView(userMessageRes.data)
+  const userMediaPreviews = buildMessageMediaPreviews(mediaPayload)
+  if (userMediaPreviews.length > 0) {
+    userMessage.mediaPreviews = userMediaPreviews
+  }
   messages.value.push(userMessage)
   const assistantMessage: ChatMessageView = {
     id: Date.now(),
@@ -1405,6 +1513,62 @@ watch(selectedTags, value => {
   word-break: break-word;
 }
 
+.message-media-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+  width: max-content;
+  max-width: 100%;
+}
+
+.message-media-item {
+  width: fit-content;
+  max-width: 100%;
+}
+
+.message-media-image {
+  display: block;
+  width: 160px;
+  height: 96px;
+  max-width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.22);
+  object-fit: cover;
+  object-position: left top;
+}
+
+.message-media-attachment {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.message-media-badge {
+  font-size: 11px;
+  color: #d9e7ff;
+  background: rgba(138, 180, 248, 0.24);
+  border: 1px solid rgba(138, 180, 248, 0.4);
+  border-radius: 999px;
+  padding: 2px 6px;
+  flex-shrink: 0;
+}
+
+.message-media-filename {
+  font-size: 12px;
+  color: #ececf1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+
 .thinking-panel {
   margin-bottom: 10px;
   border: 1px solid rgba(138, 180, 248, 0.3);
@@ -1447,20 +1611,28 @@ watch(selectedTags, value => {
 
 .message-row.user .bubble {
   background-color: #36373A;
-  padding: 10px 18px !important;
+  padding: 10px 14px !important;
   border-radius: 20px 20px 4px 20px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  max-width: 80% !important;
+  width: fit-content !important;
+  max-width: min(62%, 360px) !important;
+  min-width: 0;
   color: #ececf1;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   line-height: 1.5 !important;
-  display: block;
+  display: inline-block;
+  align-self: flex-end;
 }
 
 .message-row.user .bubble :deep(p) {
   margin: 0 !important; /* Absolute zero margin for user content */
   padding: 0 !important;
   line-height: 1.4 !important;
+}
+
+.message-row.user .message-text {
+  width: auto;
+  display: block;
 }
 
 /* Floating Input Capsule */
@@ -1522,22 +1694,35 @@ watch(selectedTags, value => {
 }
 
 .media-upload-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--gemini-text-secondary);
+  width: 34px;
+  height: 34px;
+  margin-left: -12px;
+  padding: 0;
+  border-radius: 17px;
+  border: none;
+  outline: none;
+  appearance: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.62);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   cursor: pointer;
+  transition: color 0.2s ease, background-color 0.2s ease, transform 0.12s ease;
 }
 
 .media-upload-btn:hover {
-  color: var(--gemini-text-primary);
-  border-color: rgba(255, 255, 255, 0.28);
+  color: #d9e7ff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.media-upload-btn:active {
+  transform: scale(0.96);
+}
+
+.media-upload-btn :deep(.el-icon) {
+  font-size: 18px;
 }
 
 .media-file-input {

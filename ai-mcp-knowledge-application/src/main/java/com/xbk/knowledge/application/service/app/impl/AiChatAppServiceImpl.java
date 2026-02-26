@@ -34,6 +34,8 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.SystemPromptTemplate;
 import org.springframework.ai.content.Media;
 import org.springframework.ai.document.Document;
+import org.springframework.ai.reader.tika.TikaDocumentReader;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.InvalidMimeTypeException;
 import org.springframework.util.CollectionUtils;
@@ -83,6 +85,11 @@ public class AiChatAppServiceImpl implements AiChatAppService {
      * 附件文本总字符上限。
      */
     private static final int MAX_ATTACHMENT_TOTAL_CHARS = 40000;
+
+    /**
+     * 附件无法提取正文时的兜底提示。
+     */
+    private static final String ATTACHMENT_PARSE_EMPTY_HINT = "[未提取到可读正文，仅保留附件信息]";
 
     /**
      * Anthropic 思考分片签名字段。
@@ -452,7 +459,7 @@ public class AiChatAppServiceImpl implements AiChatAppService {
             }
             String text = resolveAttachmentText(media);
             if (!StringUtils.hasText(text)) {
-                continue;
+                text = ATTACHMENT_PARSE_EMPTY_HINT + "（类型: " + resolveMimeTypeText(media) + "）";
             }
             String normalized = text;
             if (normalized.length() > MAX_ATTACHMENT_TEXT_CHARS) {
@@ -487,6 +494,20 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         if (StringUtils.hasText(media.getText())) {
             return media.getText();
         }
+        String inlineText = resolveInlineTextAttachment(media);
+        if (StringUtils.hasText(inlineText)) {
+            return inlineText;
+        }
+        return resolveAttachmentTextByTika(media);
+    }
+
+    /**
+     * 按文本 MIME 直接解码附件正文。
+     *
+     * @param media 媒体输入项。
+     * @return 解码得到的正文。
+     */
+    private String resolveInlineTextAttachment(AICallMedia media) {
         String mimeType = resolveMimeTypeText(media);
         if (!isTextMimeType(mimeType)) {
             return null;
@@ -496,6 +517,44 @@ public class AiChatAppServiceImpl implements AiChatAppService {
             return null;
         }
         return new String(data, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * 使用 Tika 尝试提取附件正文，覆盖 PDF/DOCX 等二进制文档。
+     *
+     * @param media 媒体输入项。
+     * @return 解析得到的正文，无法解析时返回 `null`。
+     */
+    private String resolveAttachmentTextByTika(AICallMedia media) {
+        byte[] data = decodeMediaData(media.getData());
+        if (data == null || data.length == 0) {
+            return null;
+        }
+        try {
+            ByteArrayResource resource = new ByteArrayResource(data) {
+                @Override
+                public String getFilename() {
+                    return resolveAttachmentName(media);
+                }
+            };
+            TikaDocumentReader reader = new TikaDocumentReader(resource);
+            List<Document> documents = reader.get();
+            if (CollectionUtils.isEmpty(documents)) {
+                return null;
+            }
+            String mergedText = documents.stream()
+                    .map(Document::getText)
+                    .filter(StringUtils::hasText)
+                    .collect(Collectors.joining("\n\n"));
+            if (!StringUtils.hasText(mergedText)) {
+                return null;
+            }
+            return mergedText.trim();
+        } catch (Exception e) {
+            log.warn("附件正文解析失败, name: {}, mimeType: {}",
+                    resolveAttachmentName(media), resolveMimeTypeText(media), e);
+            return null;
+        }
     }
 
     /**
