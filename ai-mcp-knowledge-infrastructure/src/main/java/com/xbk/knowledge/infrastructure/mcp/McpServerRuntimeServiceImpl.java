@@ -1,29 +1,17 @@
 package com.xbk.knowledge.infrastructure.mcp;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xbk.knowledge.application.service.runtime.McpServerRuntimeService;
 import com.xbk.knowledge.domain.mcp.model.entity.McpServerConfig;
+import com.xbk.knowledge.infrastructure.mcp.strategy.McpClientBuildStrategy;
+import com.xbk.knowledge.infrastructure.mcp.strategy.McpClientBuildStrategyFactory;
+import com.xbk.knowledge.infrastructure.mcp.strategy.McpClientBuildStrategyType;
 import com.xbk.knowledge.types.enums.McpServerType;
-import com.xbk.knowledge.types.json.JsonMapUtils;
-import io.modelcontextprotocol.client.McpClient;
 import io.modelcontextprotocol.client.McpSyncClient;
-import io.modelcontextprotocol.client.transport.HttpClientSseClientTransport;
-import io.modelcontextprotocol.client.transport.HttpClientStreamableHttpTransport;
-import io.modelcontextprotocol.client.transport.ServerParameters;
-import io.modelcontextprotocol.client.transport.StdioClientTransport;
-import io.modelcontextprotocol.json.McpJsonMapper;
-import io.modelcontextprotocol.json.jackson.JacksonMcpJsonMapper;
-import io.modelcontextprotocol.spec.McpClientTransport;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import jakarta.annotation.PreDestroy;
 
-import java.net.URI;
-import java.net.http.HttpRequest;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -31,6 +19,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -45,26 +34,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @Service
 public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
-
-    /**
-     * 默认连接超时时间（毫秒）。
-     */
-    private static final int DEFAULT_CONNECT_TIMEOUT_MS = 10000;
-
-    /**
-     * 默认请求超时时间（毫秒）。
-     */
-    private static final int DEFAULT_REQUEST_TIMEOUT_MS = 30000;
-
-    /**
-     * 默认初始化超时时间（毫秒）。
-     */
-    private static final int DEFAULT_INIT_TIMEOUT_MS = 60000;
-
-    /**
-     * JSON 序列化器。
-     */
-    private final ObjectMapper objectMapper;
 
     /**
      * 动态工具回调提供器。
@@ -87,21 +56,20 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
     private final Map<Long, RuntimeConfigSnapshot> configSnapshotRegistry = new ConcurrentHashMap<>();
 
     /**
-     * MCP 协议 JSON 映射器。
+     * MCP 客户端构建策略工厂。
      */
-    private final McpJsonMapper mcpJsonMapper;
+    private final McpClientBuildStrategyFactory clientBuildStrategyFactory;
 
     /**
      * 创建 MCP 服务运行时并注入依赖组件。
      *
-     * @param objectMapper         JSON序列化器。
      * @param toolCallbackProvider 工具回调提供器。
+     * @param clientBuildStrategyFactory MCP 客户端构建策略工厂。
      */
-    public McpServerRuntimeServiceImpl(ObjectMapper objectMapper,
-                                       DynamicMcpToolCallbackProvider toolCallbackProvider) {
-        this.objectMapper = objectMapper;
+    public McpServerRuntimeServiceImpl(DynamicMcpToolCallbackProvider toolCallbackProvider,
+                                       McpClientBuildStrategyFactory clientBuildStrategyFactory) {
         this.toolCallbackProvider = toolCallbackProvider;
-        this.mcpJsonMapper = new JacksonMcpJsonMapper(objectMapper);
+        this.clientBuildStrategyFactory = clientBuildStrategyFactory;
     }
 
     /**
@@ -141,7 +109,7 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
     @Override
     public void refresh(List<McpServerConfig> configs) {
         // 统一空值处理，避免调用方传 null 触发分支散落。
-        List<McpServerConfig> safeConfigs = configs == null ? Collections.emptyList() : configs;
+        List<McpServerConfig> safeConfigs = Optional.ofNullable(configs).orElse(Collections.emptyList());
 
         // 按配置 ID 去重，若同一 ID 出现多次，以最后一次为准。
         Map<Long, McpServerConfig> deduplicatedConfigs = new LinkedHashMap<>();
@@ -296,228 +264,9 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
         if (serverType == null) {
             throw new IllegalArgumentException("MCP Server 类型不能为空");
         }
-        switch (serverType) {
-            case STDIO:
-                return buildStdioClient(config);
-            case SSE:
-                return buildSseClient(config);
-            case HTTP:
-                return buildHttpClient(config);
-            case WEBSOCKET:
-                throw new IllegalArgumentException("当前版本暂不支持 WEBSOCKET 类型");
-            default:
-                throw new IllegalArgumentException("不支持的 MCP Server 类型: " + serverType);
-        }
-    }
-
-    /**
-     * 构建 STDIO 客户端
-     * <p>
-     * STDIO 模式需命令、参数、环境变量
-     *
-     * @param config 配置信息。
-     * @return STDIO MCP 同步客户端。
-     */
-    private McpSyncClient buildStdioClient(McpServerConfig config) {
-        String command = config.getCommand();
-        if (!StringUtils.hasText(command)) {
-            throw new IllegalArgumentException("STDIO 模式必须配置 command");
-        }
-        List<String> args = parseStringList(config.getArgs());
-        Map<String, String> env = parseStringMap(config.getEnv());
-
-        ServerParameters parameters = ServerParameters
-                .builder(command)
-                .args(args)
-                .env(env)
-                .build();
-        StdioClientTransport transport = new StdioClientTransport(parameters, mcpJsonMapper);
-        return buildSyncClient(transport, config);
-    }
-
-    /**
-     * 构建 SSE 客户端
-     * <p>
-     * SSE 模式需 endpoint 与超时配置
-     *
-     * @param config 配置信息。
-     * @return SSE MCP 同步客户端。
-     */
-    private McpSyncClient buildSseClient(McpServerConfig config) {
-        String endpoint = config.getEndpoint();
-        if (!StringUtils.hasText(endpoint)) {
-            throw new IllegalArgumentException("SSE 模式必须配置 endpoint");
-        }
-
-        HttpClientSseClientTransport.Builder builder = HttpClientSseClientTransport.builder(endpoint);
-        String sseEndpoint = config.getSseEndpoint();
-        if (StringUtils.hasText(sseEndpoint)) {
-            builder.sseEndpoint(sseEndpoint);
-        }
-
-        Map<String, String> headers = parseStringMap(config.getHeaders());
-        if (!headers.isEmpty()) {
-            builder.customizeRequest(requestBuilder -> applyHeaders(requestBuilder, headers));
-        }
-
-        int connectTimeoutMs = getTimeout(config.getConnectTimeoutMs(), DEFAULT_CONNECT_TIMEOUT_MS);
-        builder.connectTimeout(Duration.ofMillis(connectTimeoutMs));
-        builder.jsonMapper(mcpJsonMapper);
-
-        HttpClientSseClientTransport transport = builder.build();
-        return buildSyncClient(transport, config);
-    }
-
-    /**
-     * 构建 HTTP 客户端
-     * <p>
-     * HTTP 模式需 endpoint 与超时配置
-     *
-     * @param config 配置信息。
-     * @return HTTP MCP 同步客户端。
-     */
-    private McpSyncClient buildHttpClient(McpServerConfig config) {
-        String endpoint = config.getEndpoint();
-        if (!StringUtils.hasText(endpoint)) {
-            throw new IllegalArgumentException("HTTP 模式必须配置 endpoint");
-        }
-        // 支持配置完整 URL（包含路径），避免 SDK 固定使用 /mcp 造成 404
-        String baseUri = endpoint;
-        String endpointPath = null;
-        try {
-            URI uri = URI.create(endpoint);
-            String scheme = uri.getScheme();
-            String host = uri.getHost();
-            int port = uri.getPort();
-            if (StringUtils.hasText(scheme) && StringUtils.hasText(host)) {
-                StringBuilder baseBuilder = new StringBuilder();
-                baseBuilder.append(scheme).append("://").append(host);
-                if (port > 0) {
-                    baseBuilder.append(":").append(port);
-                }
-                baseUri = baseBuilder.toString();
-                endpointPath = uri.getRawPath();
-                if (StringUtils.hasText(uri.getRawQuery())) {
-                    endpointPath = endpointPath + "?" + uri.getRawQuery();
-                }
-            }
-        } catch (Exception e) {
-            log.warn("HTTP endpoint 解析失败，回退为原始值: {}", endpoint, e);
-        }
-
-        HttpClientStreamableHttpTransport.Builder builder = HttpClientStreamableHttpTransport.builder(baseUri);
-        if (StringUtils.hasText(endpointPath)) {
-            builder.endpoint(endpointPath);
-        }
-        Map<String, String> headers = parseStringMap(config.getHeaders());
-        if (!headers.isEmpty()) {
-            builder.customizeRequest(requestBuilder -> applyHeaders(requestBuilder, headers));
-        }
-
-        int connectTimeoutMs = getTimeout(config.getConnectTimeoutMs(), DEFAULT_CONNECT_TIMEOUT_MS);
-        builder.connectTimeout(Duration.ofMillis(connectTimeoutMs));
-        builder.jsonMapper(mcpJsonMapper);
-
-        HttpClientStreamableHttpTransport transport = builder.build();
-        return buildSyncClient(transport, config);
-    }
-
-    /**
-     * 构建同步客户端
-     * <p>
-     * 统一设置请求/初始化超时
-     *
-     * @param transport MCP 客户端传输层。
-     * @param config    配置信息。
-     * @return 初始化后的 MCP 同步客户端。
-     */
-    private McpSyncClient buildSyncClient(McpClientTransport transport,
-                                          McpServerConfig config) {
-        int requestTimeoutMs = getTimeout(config.getRequestTimeoutMs(), DEFAULT_REQUEST_TIMEOUT_MS);
-        int initTimeoutMs = getTimeout(config.getInitTimeoutMs(), DEFAULT_INIT_TIMEOUT_MS);
-        return McpClient
-                .sync(transport)
-                .requestTimeout(Duration.ofMillis(requestTimeoutMs))
-                .initializationTimeout(Duration.ofMillis(initTimeoutMs))
-                .build();
-    }
-
-    /**
-     * 应用自定义 Header
-     * <p>
-     * 支持鉴权等自定义请求头
-     *
-     * @param requestBuilder HTTP 请求构建器。
-     * @param headers        请求头映射。
-     */
-    private void applyHeaders(HttpRequest.Builder requestBuilder, Map<String, String> headers) {
-        if (requestBuilder == null || headers == null || headers.isEmpty()) {
-            return;
-        }
-        for (Map.Entry<String, String> entry : headers.entrySet()) {
-            String key = entry.getKey();
-            String value = entry.getValue();
-            if (!StringUtils.hasText(key) || value == null) {
-                continue;
-            }
-            requestBuilder.header(key, value);
-        }
-    }
-
-    /**
-     * 解析 JSON 数组
-     * <p>
-     * 配置使用 JSON 存储需要还原
-     *
-     * @param json JSON 文本。
-     * @return 字符串列表。
-     */
-    private List<String> parseStringList(String json) {
-        if (!StringUtils.hasText(json)) {
-            return Collections.emptyList();
-        }
-        try {
-            return objectMapper.readValue(json, new TypeReference<List<String>>() {
-            });
-        } catch (Exception e) {
-            log.warn("解析 MCP args 失败，json: {}", json, e);
-            return Collections.emptyList();
-        }
-    }
-
-    /**
-     * 解析 JSON 对象
-     * <p>
-     * 配置使用 JSON 存储需要还原
-     *
-     * @param json JSON 文本。
-     */
-    private Map<String, String> parseStringMap(String json) {
-        if (!StringUtils.hasText(json)) {
-            return Collections.emptyMap();
-        }
-        try {
-            return JsonMapUtils.readStringMap(objectMapper, json);
-        } catch (Exception e) {
-            log.warn("解析 MCP map 配置失败，json: {}", json, e);
-            return Collections.emptyMap();
-        }
-    }
-
-    /**
-     * 获取超时时间
-     * <p>
-     * 兜底非法值，避免传入负数
-     *
-     * @param value        值。
-     * @param defaultValue 默认值。
-     * @return 超时时间（毫秒）。
-     */
-    private int getTimeout(Integer value, int defaultValue) {
-        if (value == null || value <= 0) {
-            return defaultValue;
-        }
-        return value;
+        McpClientBuildStrategyType strategyType = McpClientBuildStrategyType.from(serverType);
+        McpClientBuildStrategy strategy = clientBuildStrategyFactory.getStrategy(strategyType);
+        return strategy.build(config);
     }
 
     /**
@@ -731,6 +480,9 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
         }
     }
 
+    /**
+     * MCP 服务元数据。
+     */
     private static final class McpServerMeta {
         /**
          * MCP 服务名称。

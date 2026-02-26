@@ -350,18 +350,29 @@ const initModelUsageChart = async () => {
         textStyle: { color: '#fff' }
       },
       legend: {
+        type: 'scroll',
         orient: 'vertical',
-        right: '5%',
+        right: '2%',
         top: 'middle',
-        itemGap: 15,
-        textStyle: { color: geminiColors.textSecondary, fontSize: 13 }
+        width: '40%',
+        itemWidth: 14,
+        itemHeight: 14,
+        itemGap: 12,
+        tooltip: { show: true },
+        textStyle: {
+          color: geminiColors.textSecondary,
+          fontSize: 13,
+          width: 190,
+          overflow: 'truncate',
+          ellipsis: '...'
+        }
       },
       series: [
         {
           name: '权重分布',
           type: 'pie',
-          radius: ['50%', '75%'],
-          center: ['40%', '50%'],
+          radius: ['46%', '68%'],
+          center: ['30%', '50%'],
           avoidLabelOverlap: false,
           itemStyle: {
             borderRadius: 10,

@@ -131,58 +131,51 @@
         />
       </el-form-item>
 
-      <el-row :gutter="20">
-        <el-col :span="12">
-           <el-form-item label="工具调用">
-            <el-switch 
-              v-model="formData.toolEnabled" 
-              style="--el-switch-on-color: #8ab4f8; --el-switch-off-color: #5f6368"
-            />
-            <div class="form-hint inline">
-              允许参与 Function Call
-            </div>
-          </el-form-item>
-        </el-col>
-        <el-col :span="12">
-          <el-form-item
-            label="历史预算"
-            prop="maxPromptChars"
-          >
-            <el-input-number
-              v-model="formData.maxPromptChars"
-              :min="2000"
-              :max="50000"
-              :step="500"
-              controls-position="right"
-              style="width: 100%"
-            />
-            <div class="form-hint inline">
-              当前模型单次 Prompt 可注入历史字符上限
-            </div>
-          </el-form-item>
-        </el-col>
-      </el-row>
+      <el-form-item label="工具调用" class="tool-enabled-item">
+        <el-switch 
+          v-model="formData.toolEnabled" 
+          style="--el-switch-on-color: #8ab4f8; --el-switch-off-color: #5f6368"
+        />
+        <div class="form-hint inline">
+          允许参与 Function Call
+        </div>
+      </el-form-item>
 
-      <el-row :gutter="20">
-        <el-col :span="12">
-          <el-form-item
-            label="历史条数"
-            prop="maxHistoryMessages"
-          >
-            <el-input-number
-              v-model="formData.maxHistoryMessages"
-              :min="1"
-              :max="200"
-              :step="1"
-              controls-position="right"
-              style="width: 100%"
-            />
-            <div class="form-hint inline">
-              当前模型单次 Prompt 可注入历史消息条数上限
-            </div>
-          </el-form-item>
-        </el-col>
-      </el-row>
+      <el-form-item
+        label="历史预算"
+        prop="maxPromptChars"
+        class="history-form-item"
+      >
+        <el-input-number
+          v-model="formData.maxPromptChars"
+          :min="2000"
+          :max="50000"
+          :step="500"
+          controls-position="right"
+          class="gemini-input-number"
+        />
+        <div class="form-hint">
+          当前模型单次 Prompt 可注入历史字符上限
+        </div>
+      </el-form-item>
+
+      <el-form-item
+        label="历史条数"
+        prop="maxHistoryMessages"
+        class="history-form-item"
+      >
+        <el-input-number
+          v-model="formData.maxHistoryMessages"
+          :min="1"
+          :max="200"
+          :step="1"
+          controls-position="right"
+          class="gemini-input-number"
+        />
+        <div class="form-hint">
+          当前模型单次 Prompt 可注入历史消息条数上限
+        </div>
+      </el-form-item>
     </el-form>
 
     <template #footer>
@@ -365,6 +358,19 @@ const handleSubmit = async () => {
 
 .gemini-form {
   margin-top: 10px;
+}
+
+.tool-enabled-item {
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+
+.history-form-item {
+  margin-bottom: 14px;
+}
+
+.history-form-item :deep(.el-form-item__content) {
+  display: block;
 }
 
 .form-hint {
