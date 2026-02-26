@@ -22,14 +22,14 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 /**
- * 验证审批过期任务的审计写入不触发 operator_scope_id NOT NULL 约束风险。
+ * 验证审批过期任务的审计写入字段符合当前审计模型。
  *
  * @author xiexu
  */
 public class ApprovalExpireJobTest {
 
     @Test
-    public void shouldWriteAuditWithNonNullOperatorScopeId() {
+    public void shouldWriteAuditWithSystemOperator() {
         ApprovalRequestRepository approvalRepo = Mockito.mock(ApprovalRequestRepository.class);
         AgentRunRepository runRepo = Mockito.mock(AgentRunRepository.class);
         AgentRunContextRepository ctxRepo = Mockito.mock(AgentRunContextRepository.class);
@@ -39,7 +39,6 @@ public class ApprovalExpireJobTest {
 
         ApprovalRequest req = ApprovalRequest.builder()
                 .id(3L)
-                .scopeId(2L)
                 .runId("r1")
                 .toolKey("t1")
                 .status("PENDING")
@@ -48,15 +47,16 @@ public class ApprovalExpireJobTest {
         when(approvalRepo.listExpiredPending(any(LocalDateTime.class), anyInt()))
                 .thenReturn(List.of(req))
                 .thenReturn(Collections.emptyList());
-        when(approvalRepo.markExpired(eq(2L), eq(3L), anyString(), any(LocalDateTime.class))).thenReturn(1);
+        when(approvalRepo.markExpired(eq(3L), anyString(), any(LocalDateTime.class))).thenReturn(1);
 
         job.expireApprovals();
 
         ArgumentCaptor<SysAuditEvent> captor = ArgumentCaptor.forClass(SysAuditEvent.class);
         Mockito.verify(auditRepo).insert(captor.capture());
         SysAuditEvent event = captor.getValue();
-        assertEquals(0L, event.getOperatorScopeId());
-        assertEquals(2L, event.getResourceScopeId());
+        assertEquals("system", event.getOperatorType());
+        assertEquals("approval_request", event.getResourceType());
+        assertEquals("3", event.getResourceId());
+        assertEquals("EXPIRED", event.getAction());
     }
 }
-
