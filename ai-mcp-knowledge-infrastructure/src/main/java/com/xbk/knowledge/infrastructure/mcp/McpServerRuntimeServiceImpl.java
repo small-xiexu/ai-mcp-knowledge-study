@@ -100,41 +100,45 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
 
     /**
      * 刷新所有启用 MCP Server 连接
-     * 以配置列表为准重建运行时连接
      * <p>
-     * 批量配置变更时统一刷新运行时连接
+     * 大白话：
+     * 1、先把入参收敛为安全列表，并按 configId 去重（同 ID 以后出现的为准）；
+     * 2、逐条执行注册/更新（内部按快照判定是否真的重连）；
+     * 3、把运行中但本次配置里不存在的连接做差集下线；
+     * 4、批处理结束后仅在发生变更时刷新一次工具回调。
      *
      * @param configs 启用状态的 MCP Server 配置列表。
      */
     @Override
     public void refresh(List<McpServerConfig> configs) {
-        // 统一空值处理，避免调用方传 null 触发分支散落。
+        // 兜底空入参，避免后续遍历出现空指针。
         List<McpServerConfig> safeConfigs = Optional.ofNullable(configs).orElse(Collections.emptyList());
 
-        // 按配置 ID 去重，若同一 ID 出现多次，以最后一次为准。
+        // 按配置 ID 去重；同一 ID 多次出现时以后者覆盖前者。
         Map<Long, McpServerConfig> deduplicatedConfigs = new LinkedHashMap<>();
         for (McpServerConfig config : safeConfigs) {
+            // 无效配置（空对象或缺少主键）直接跳过。
             if (config == null || config.getId() == null) {
                 continue;
             }
-            // 配置列表可能存在重复 ID，后出现的配置覆盖前面的配置。
             deduplicatedConfigs.put(config.getId(), config);
         }
 
-        // 增量注册/更新：内部会根据快照判断是否需要真正重连。
+        // 记录本次刷新是否发生运行态变更，用于控制是否触发回调刷新。
         boolean changed = false;
+        // 对当前启用配置逐条做注册/更新，内部会按快照判定是否真的重连。
         for (McpServerConfig config : deduplicatedConfigs.values()) {
             changed = registerOrUpdateInternal(config, false) || changed;
         }
 
-        // 差集删除：运行中存在但本次配置不存在的连接全部下线。
+        // 计算差集：运行中存在但本次配置不存在的连接，需要下线回收。
         Set<Long> staleIds = new HashSet<>(clientRegistry.keySet());
         staleIds.removeAll(deduplicatedConfigs.keySet());
         for (Long id : staleIds) {
             changed = unregisterInternal(id, false) || changed;
         }
 
-        // 批处理期间延迟刷新，最后仅在有变更时刷新一次工具回调。
+        // 仅在有变更时刷新一次工具回调，避免无效刷新。
         if (changed) {
             refreshToolCallbacks();
         }
@@ -175,52 +179,56 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
     /**
      * 注册或更新 MCP Server 连接。
      * <p>
-     * 根据配置快照判定是否需要重建连接，避免无变更时重复初始化
+     * 大白话：
+     * 1、配置为空或无主键直接忽略；
+     * 2、只有 enabled=true 才保留运行态，否则走注销；
+     * 3、对比运行时快照，未变化时跳过重连；
+     * 4、需要重连时先回收旧连接，再按最新配置建连并 initialize；
+     * 5、建连成功后写回三本注册表，并按需刷新工具回调。
      *
      * @param config           配置信息。
      * @param refreshCallbacks 是否立即刷新工具回调。
      * @return `true` 表示运行时状态发生变化，`false` 表示无变化。
      */
     private boolean registerOrUpdateInternal(McpServerConfig config, boolean refreshCallbacks) {
-        // 配置或主键为空时无法建立运行时连接，直接忽略。
+        // 空配置直接忽略，不触发任何运行态变更。
         if (config == null) {
             return false;
         }
-        // 配置id
+        // 主键为空无法建立运行态索引，直接返回无变化。
         Long configId = config.getId();
         if (configId == null) {
             return false;
         }
-        // 仅 enabled=true 时参与运行时；否则执行注销以保持状态一致。
+        // 非启用配置统一按下线路径处理，保持启停语义一致。
         if (!Boolean.TRUE.equals(config.getEnabled())) {
             return unregisterInternal(configId, refreshCallbacks);
         }
 
-        // 快照未变化且运行时数据完整时，跳过重连以避免无效初始化。
+        // 构建最新快照，与当前运行态快照比较，判定是否需要重建连接。
         RuntimeConfigSnapshot newSnapshot = buildRuntimeConfigSnapshot(config);
         RuntimeConfigSnapshot currentSnapshot = configSnapshotRegistry.get(configId);
+        // 快照未变化且三本注册表完整时，跳过重连。
         if (newSnapshot.equals(currentSnapshot)
                 && clientRegistry.containsKey(configId)
                 && metaRegistry.containsKey(configId)) {
             return false;
         }
 
-        // 先关闭旧连接，避免资源泄露
+        // 先回收旧连接和旧元数据，避免重复连接与脏状态残留。
         McpSyncClient existing = clientRegistry.remove(configId);
         closeQuietly(existing);
         metaRegistry.remove(configId);
 
-        // 按最新配置创建客户端。
+        // 按最新配置重建客户端
         McpSyncClient client = buildClient(config);
-        // 执行 MCP initialize 握手，未成功前不写入运行时注册表。
+        // 执行 MCP initialize 握手
         client.initialize();
-        // clientRegistry：记录真实可用连接，后续工具调用会从这里取 client。
+        // 建连成功后写回运行态注册表与快照表。
         clientRegistry.put(configId, client);
-        // metaRegistry：保存运行时展示与追踪所需的服务元信息（当前主要是 serverName）。
         metaRegistry.put(configId, new McpServerMeta(config.getServerName()));
-        // configSnapshotRegistry：记录本次已生效快照，用于下次判定是否需要重连。
         configSnapshotRegistry.put(configId, newSnapshot);
-        // 外部调用需要立即可见时刷新回调；批量刷新场景由调用方统一刷新一次。
+        // 按需触发工具回调刷新，保证工具可见性与运行态一致。
         if (refreshCallbacks) {
             refreshToolCallbacks();
         }
@@ -231,28 +239,27 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
     /**
      * 取消注册 MCP Server 连接。
      * <p>
-     * 释放客户端资源，并按需刷新工具回调
+     * 大白话：
+     * 1、主键为空直接返回无变化；
+     * 2、从 client/meta/snapshot 三本运行态注册表同时移除；
+     * 3、若原本就不存在则不触发后续动作；
+     * 4、若存在连接则优雅关闭，并按需刷新工具回调。
      *
      * @param id               主键 ID。
      * @param refreshCallbacks 是否立即刷新工具回调。
      * @return `true` 表示运行时状态发生变化，`false` 表示无变化。
      */
     private boolean unregisterInternal(Long id, boolean refreshCallbacks) {
-        // 主键为空时无法定位运行时实例，直接视为无变化。
         if (id == null) {
             return false;
         }
-        // 从三本注册表中同时移除，确保运行态状态一致收敛。
         McpSyncClient client = clientRegistry.remove(id);
         McpServerMeta removedMeta = metaRegistry.remove(id);
         RuntimeConfigSnapshot removedSnapshot = configSnapshotRegistry.remove(id);
-        // 三处都没有数据说明本来就不在运行态，避免重复刷新回调。
         if (client == null && removedMeta == null && removedSnapshot == null) {
             return false;
         }
-        // 连接对象存在时执行优雅关闭，释放底层网络/线程资源。
         closeQuietly(client);
-        // 运行态发生变化后按需刷新工具回调，确保模型侧立即感知下线。
         if (refreshCallbacks) {
             refreshToolCallbacks();
         }
@@ -299,27 +306,30 @@ public class McpServerRuntimeServiceImpl implements McpServerRuntimeService {
     /**
      * 刷新工具回调
      * <p>
-     * 客户端变更后需要同步工具列表
+     * 大白话：
+     * 1、把运行中的 clientRegistry 转成 provider 识别的 descriptor 列表；
+     * 2、仅保留 client 和 meta 都完整的运行态记录；
+     * 3、一次性替换 provider 快照，让工具可见性与运行态收敛一致。
      */
     private void refreshToolCallbacks() {
-        // 把运行中的 clientRegistry 转换为 provider 可识别的 descriptor 列表。
+        // 重新收集当前运行中的客户端描述符，构建 provider 可识别的快照。
         ArrayList<DynamicMcpToolCallbackProvider.McpClientDescriptor> descriptors = new ArrayList<>();
         for (Map.Entry<Long, McpSyncClient> entry : clientRegistry.entrySet()) {
-            // configId 来自 clientRegistry 的 key，用于关联同一配置的运行态元信息。
+            // 通过 configId 对齐客户端实例与元信息（serverName）
             Long configId = entry.getKey();
-            // client 来自 clientRegistry 的 value，表示当前已建连的 MCP 客户端实例。
+            // client 来自 clientRegistry 的 value，表示当前已建连的 MCP 客户端实例
             McpSyncClient client = entry.getValue();
-            // meta 从 metaRegistry 按 configId 取回，提供服务名等展示与追踪信息。
+            // meta 从 metaRegistry 按 configId 取回，提供服务名等展示与追踪信息
             McpServerMeta meta = metaRegistry.get(configId);
-            // 任一侧缺失都视为运行态不完整，跳过以避免暴露脏数据。
+            // 客户端或元信息缺失时跳过，避免生成不完整描述符
             if (meta == null || client == null) {
                 continue;
             }
-            // descriptor 以“服务名 + 已初始化 client”为最小单元参与工具合并。
+            // 封装为 DynamicMcpToolCallbackProvider 使用的描述符对象
             DynamicMcpToolCallbackProvider.McpClientDescriptor mcpClientDescriptor = new DynamicMcpToolCallbackProvider.McpClientDescriptor(meta.serverName, client);
             descriptors.add(mcpClientDescriptor);
         }
-        // 全量替换 provider 内部快照，统一收敛工具可见性。
+        // 原子替换 provider 客户端快照，触发工具回调缓存重建
         toolCallbackProvider.updateClients(descriptors);
     }
 

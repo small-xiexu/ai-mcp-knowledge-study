@@ -73,6 +73,55 @@
 3. `CompositeToolCallbackProvider` 合并 Dynamic + Gateway。
 4. ChatClient 装配时注入 `defaultToolCallbacks(...)`，模型才真正可调用。
 
+### 3.3.1 为什么 `McpSyncClient` 能“直接拿到 tool”
+结论先说：
+- 不是本地静态拿到，而是通过 MCP 协议向对端 MCP Server 发 `tools/list` 拿到。
+
+本项目实际链路：
+1. `McpServerRuntimeServiceImpl.registerOrUpdateInternal` 先创建 `McpSyncClient`，再执行 `client.initialize()` 完成握手。
+2. `refreshToolCallbacks()` 把运行中的 `McpSyncClient` 组装成 `McpClientDescriptor`，传给 `DynamicMcpToolCallbackProvider.updateClients(...)`。
+3. `DynamicMcpToolCallbackProvider.buildCallbacks()` 调 `SyncMcpToolCallbackProvider.syncToolCallbacks(...)`。
+4. `SyncMcpToolCallbackProvider` 内部会对每个 client 执行 `mcpClient.listTools().tools()`，并转换成 `ToolCallback`。
+5. 项目再把这些回调包装成 `GovernedToolCallback`，补 `toolKey/functionName` 做治理与命名。
+
+前提条件：
+- 连接已成功初始化（`initialize` 成功）。
+- 对端 MCP Server 实现了 tools 能力。
+
+失败时常见表现：
+- `listTools` 返回空：通常是对端无工具或当前上下文被过滤。
+- `listTools` 抛错：通常是连接、鉴权或服务端能力异常。
+
+### 3.3.2 HTTP 网关工具是怎么进来的
+结论先说：
+- HTTP 网关工具不是通过 `McpSyncClient.listTools()` 拉远端，而是从本地 Gateway 配置与定义中构建。
+
+本项目实际链路：
+1. `GatewayToolCallbackProvider.getToolCallbacks()` 查询已启用网关与已启用工具注册项。
+2. 通过 `loadToolDefinitions(...)` 拉取每个网关的工具定义（名称、描述、入参 schema 等）。
+3. 组装 `ToolCandidate`，再应用可见性过滤（allowlist / 绑定关系）。
+4. 对 `functionName` 做去重后，构建 `FunctionToolCallback` 并包装为 `GovernedToolCallback`。
+5. `CompositeToolCallbackProvider` 将 Gateway 与 Dynamic MCP 两路工具合并后返回给 ChatClient 注入。
+
+前提条件：
+- 网关与工具在管理端为启用状态。
+- 当前上下文允许该工具可见（未被 allowlist/绑定规则过滤）。
+
+失败时常见表现：
+- 工具不出现：多见于网关未启用、工具未启用、或被可见性规则过滤。
+- 工具名冲突：同名 `functionName` 后续项会被跳过并记录告警日志。
+
+### 3.3.3 Dynamic MCP vs HTTP Gateway 对照
+| 维度 | Dynamic MCP 工具 | HTTP Gateway 工具 |
+| --- | --- | --- |
+| 工具来源 | 外部 MCP Server | 本地网关配置（`mcp_gateway` + `mcp_tool_registry`） |
+| 发现方式 | `McpSyncClient.listTools()` -> `tools/list` | `GatewayToolService.listTools(...)` + 注册表构建 |
+| 关键 Provider | `DynamicMcpToolCallbackProvider` | `GatewayToolCallbackProvider` |
+| 可见性过滤 | allowlist（`toolKey`） | allowlist + 绑定关系（MODEL/SESSION/AGENT_VERSION） |
+| 命名冲突处理 | `toolKey/functionName` 包装治理 | `functionName` 去重，重复项跳过并告警 |
+| 执行目标 | 调用外部 MCP 对端 | 调用网关配置的 HTTP 接口 |
+| 合并入口 | 合并到 `CompositeToolCallbackProvider` | 合并到 `CompositeToolCallbackProvider` |
+
 ### 3.4 调用链总览（配置 -> McpSyncClient -> 工具暴露 -> Agent 调用）
 
 ```mermaid

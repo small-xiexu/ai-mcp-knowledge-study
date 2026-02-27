@@ -106,10 +106,18 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
     private static final String PERMISSION_TOOL_INVOKE = "tool:invoke";
 
     /**
+     * 默认工具入参 Schema。
+     */
+    private static final String DEFAULT_TOOL_INPUT_SCHEMA = "{\"type\":\"object\",\"properties\":{}}";
+
+    /**
      * 更新 MCP 客户端列表。
      * <p>
-     * 运行时连接变更后刷新工具回调缓存。
-     * 
+     * 大白话：
+     * 1、把入参收敛成安全列表；
+     * 2、原子替换 clients 快照并清空旧缓存；
+     * 3、尝试预热一次，失败只告警，不阻断主流程。
+     *
      * @param mcpClients MCP 客户端描述符列表（包含 serverName）。
      */
     public void updateClients(List<McpClientDescriptor> mcpClients) {
@@ -129,14 +137,20 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
     /**
      * 获取可用工具回调数组。
      * <p>
-     * 按需构建并缓存工具回调数组。
-     * 
+     * 大白话：
+     * 1、先读缓存，命中直接返回；
+     * 2、未命中就构建并用 CAS 回填缓存（并发下允许少量重复构建）；
+     * 3、最后按 allowlist 规则过滤：
+     * `null` 不过滤、空集合返回空、非空集合仅保留命中的 toolKey。
+     *
      * @return 可用工具回调数组。
      */
     @Override
     public ToolCallback[] getToolCallbacks() {
+        // 获取工具回调缓存
         ToolCallback[] base = cachedCallbacks.get();
         if (base == null) {
+            // 缓存未命中，构建并回填缓存
             base = buildCallbacks();
             cachedCallbacks.compareAndSet(null, base);
             base = cachedCallbacks.get();
@@ -165,32 +179,54 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
 
     /**
      * 基于当前 MCP 客户端快照构建工具回调数组。
+     * <p>
+     * 大白话：
+     * 1、先把当前可用的 clients 拿一份快照；如果一个都没有，直接返回空数组；
+     * 2、SyncMcpToolCallbackProvider 会驱动 McpSyncClient 调 client.listTools()，去问连接的对端 MCP Server：tools/list；
+     * 3、拿到工具列表后，先把不合法/不可用的工具剔掉，再给每个工具生成统一的 toolKey 和 functionName；
+     * 4、最后把这些有效工具都包成 GovernedToolCallback，返回给上层做缓存。
      *
      * @return 治理包装后的工具回调数组。
      */
     private ToolCallback[] buildCallbacks() {
+        // 读取客户端快照，避免遍历过程中并发变更影响本次构建。
         List<McpClientDescriptor> snapshot = clients.get();
-        int clientCount = snapshot == null ? 0 : snapshot.size();
+        int clientCount = 0;
+        if (snapshot != null) {
+            clientCount = snapshot.size();
+        }
         log.info("触发 MCP 工具回调获取，当前客户端数量: {}", clientCount);
+        // 没有可用 MCP 客户端时直接返回空结果。
         if (snapshot == null || snapshot.isEmpty()) {
             return new ToolCallback[0];
         }
 
+        // 汇总所有客户端返回的工具，并在本地统一做治理包装。
         List<ToolCallback> merged = new ArrayList<>();
+        // 遍历所有 MCP 客户端。
         for (McpClientDescriptor descriptor : snapshot) {
+            // 跳过无效描述符，避免空指针干扰整体流程。
             if (descriptor == null || descriptor.client == null) {
                 continue;
             }
             String serverName = descriptor.serverName == null ? "mcp" : descriptor.serverName;
+            // 通过 listTools() 向对端 MCP Server 拉取该客户端可用工具。
             List<ToolCallback> callbacks = SyncMcpToolCallbackProvider.syncToolCallbacks(Collections.singletonList(descriptor.client));
+            // 遍历当前 MCP Server 返回的工具列表
             for (ToolCallback cb : callbacks) {
+                // 只保留定义完整且名称可用的工具。
                 if (cb == null || !StringUtils.hasText(cb.getToolDefinition().name())) {
                     continue;
                 }
+                // 获取工具名称
                 String toolName = cb.getToolDefinition().name();
+                // 平台治理主键：用于 allowlist / 审批 / 审计，保持稳定可追溯。
                 String toolKey = "mcp:" + serverName + ":" + toolName;
+                // LLM 调用名：用于 ToolDefinition.name，需满足命名字符与长度约束。
                 String functionName = ToolNameUtils.safeFunctionName("mcp", serverName, toolName);
-                merged.add(new GovernedToolCallback(cb, toolKey, functionName));
+                // 创建工具回调包装器
+                GovernedToolCallback governedToolCallback = new GovernedToolCallback(cb, toolKey, functionName);
+                merged.add(governedToolCallback);
             }
         }
         return merged.toArray(new ToolCallback[0]);
@@ -222,9 +258,9 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
 
         /**
          * 构造 MCP 客户端描述符。
-         * 
+         *
          * @param serverName MCP 服务端名称。
-         * @param client MCP 客户端。
+         * @param client     MCP 客户端。
          */
         public McpClientDescriptor(String serverName, McpSyncClient client) {
             this.serverName = serverName;
@@ -257,20 +293,43 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
         /**
          * 构造带治理能力的工具回调包装器。
          *
-         * @param delegate 原始工具回调。
-         * @param toolKey 工具唯一键。
-         * @param functionName 安全命名后的函数名。
+         * @param delegate     原始工具回调。
+         * @param toolKey      平台治理主键（用于鉴权、审批、审计）。
+         * @param functionName LLM 侧可调用的安全函数名（写入 ToolDefinition.name）。
          */
         private GovernedToolCallback(ToolCallback delegate, String toolKey, String functionName) {
+            // 保存被包装的原始工具回调。
             this.delegate = delegate;
+            // 保存平台治理主键，用于后续权限/审批/审计链路。
             this.toolKey = toolKey;
+            // 读取原始工具定义，用于透传描述和入参 Schema。
             ToolDefinition def = delegate.getToolDefinition();
-            this.toolDefinition = DefaultToolDefinition.builder().name(functionName).description(def == null ? "" : def.description()).inputSchema(def == null ? "{\"type\":\"object\",\"properties\":{}}" : def.inputSchema()).build();
+            // 默认描述为空字符串，避免下游出现 null。
+            String description = "";
+            // 默认入参 Schema 兜底为 object 空属性结构。
+            String inputSchema = DEFAULT_TOOL_INPUT_SCHEMA;
+            // 当原始工具定义存在时，优先使用原始描述与原始 Schema。
+            if (def != null) {
+                // 覆盖默认描述为原始工具描述。
+                description = def.description();
+                // 覆盖默认 Schema 为原始工具 Schema。
+                inputSchema = def.inputSchema();
+            }
+            // 构建新的 ToolDefinition，并将函数名替换为安全命名后的名称。
+            this.toolDefinition = DefaultToolDefinition.builder()
+                    // 设置 LLM 可调用的函数名。
+                    .name(functionName)
+                    // 设置工具描述。
+                    .description(description)
+                    // 设置工具入参 Schema。
+                    .inputSchema(inputSchema)
+                    // 完成 ToolDefinition 构建。
+                    .build();
         }
 
         /**
          * 获取工具定义。
-         * 
+         *
          * @return 工具定义。
          */
         @Override
@@ -280,7 +339,7 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
 
         /**
          * 获取工具元数据。
-         * 
+         *
          * @return 工具元数据。
          */
         @Override
@@ -290,7 +349,7 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
 
         /**
          * 调用 MCP 工具（无上下文）。
-         * 
+         *
          * @param arguments 工具调用参数。
          * @return 工具执行结果文本。
          */
@@ -301,8 +360,14 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
 
         /**
          * 调用 MCP 工具（带上下文）。
-         * 
-         * @param arguments 工具调用参数。
+         * <p>
+         * 大白话：
+         * 1、先拿到本次调用的追踪信息（runId + 操作人）；
+         * 2、先过权限门禁（bypass 或 tool:invoke）；
+         * 3、再过审批门禁（命中高风险会抛异常中断）；
+         * 4、最后执行工具调用，并在 finally 统一记录指标和审计。
+         *
+         * @param arguments   工具调用参数。
          * @param toolContext 工具上下文。
          * @return 工具执行结果文本。
          */
@@ -383,8 +448,8 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
         /**
          * 记录工具拒绝计数并写入审计日志。
          *
-         * @param runId 运行 ID。
-         * @param reason 拒绝原因。
+         * @param runId      运行 ID。
+         * @param reason     拒绝原因。
          * @param operatorId 操作人 ID。
          */
         private void recordToolDeniedAndAudit(String runId, String reason, Long operatorId) {
@@ -415,11 +480,11 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
         /**
          * 记录工具调用指标并写入审计日志。
          *
-         * @param runId 运行 ID。
-         * @param success 是否调用成功。
-         * @param latencyMs 调用耗时（毫秒）。
+         * @param runId        运行 ID。
+         * @param success      是否调用成功。
+         * @param latencyMs    调用耗时（毫秒）。
          * @param errorMessage 失败错误信息。
-         * @param operatorId 操作人 ID。
+         * @param operatorId   操作人 ID。
          */
         private void recordToolMetricsAndAudit(String runId, boolean success, long latencyMs, String errorMessage, Long operatorId) {
             try {
@@ -448,7 +513,7 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
 
         /**
          * 获取当前工具标识。
-         * 
+         *
          * @return 工具唯一标识。
          */
         @Override
@@ -458,7 +523,7 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
 
         /**
          * 获取工具来源类型。
-         * 
+         *
          * @return 固定来源标识。
          */
         @Override
@@ -469,16 +534,20 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
         /**
          * MCP 工具的高风险审批门禁（方式B）。
          * <p>
-         * 说明：
-         * - MCP 工具按默认 MEDIUM 风险处理
-         * - riskLevel=HIGH 时触发审批
-         * 
-         * @param runId 运行 ID。
-         * @param toolKey 工具键。
+         * 大白话：
+         * 1、前置条件不满足直接跳过；
+         * 2、MCP 动态工具默认 MEDIUM，只有 HIGH 才触发审批；
+         * 3、已有 APPROVED 直接放行，已有 PENDING 直接复用并中断；
+         * 4、都没有就创建审批单并抛异常中断本次调用；
+         * 5、归属解析优先按 Workflow，上下文缺失再回退到 agent_run；
+         * 6、会记录参数快照摘要（digest）和续跑所需上下文。
+         *
+         * @param runId                 运行 ID。
+         * @param toolKey               工具键。
          * @param argumentsSnapshotJson 工具参数 JSON。
-         * @param requesterId 标识 ID。
-         * @param requesterType 请求者类型。
-         * @param operatorId 操作人标识。
+         * @param requesterId           标识 ID。
+         * @param requesterType         请求者类型。
+         * @param operatorId            操作人标识。
          */
         private void maybeRequireApproval(String runId, String toolKey, String argumentsSnapshotJson, Long requesterId, String requesterType, Long operatorId) {
             if (!StringUtils.hasText(runId) || !StringUtils.hasText(toolKey) || approvalRequestRepository == null) {
@@ -515,13 +584,11 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
             Long workflowVersionId = null;
             String workflowNodeKey = null;
 
-            // 优先识别 Workflow 归属（即使同时存在 agent_run，也按 workflow 审批续跑）
             BindingContext ctx = GatewayToolBindingContextHolder.get();
             workflowId = ctx == null ? null : ctx.getWorkflowId();
             workflowVersionId = ctx == null ? null : ctx.getWorkflowVersionId();
             workflowNodeKey = ctx == null ? null : ctx.getWorkflowNodeKey();
             if (workflowId == null || workflowVersionId == null || !StringUtils.hasText(workflowNodeKey)) {
-                // fallback按 agent_run 归属
                 AgentRun run = agentRunRepository.findByRunId(runId).orElse(null);
                 if (run != null && run.getAgentId() != null && run.getAgentVersionId() != null) {
                     agentId = run.getAgentId();
@@ -535,7 +602,6 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
             String digest = snapshot.length() <= 500 ? snapshot : snapshot.substring(0, 500);
             ApprovalRequest req = ApprovalRequest.builder().approvalType("TOOL_INVOKE").status("PENDING").runId(runId).agentId(agentId).agentVersionId(agentVersionId).workflowId(workflowId).workflowVersionId(workflowVersionId).nodeKey(workflowNodeKey).requesterId(requesterId).requesterType(requesterType).toolKey(toolKey).riskLevel(riskLevel.toUpperCase(Locale.ROOT)).argumentsSnapshotJson(snapshot).argumentsDigest(digest).expireAt(now.plusMinutes(30)).build();
             approvalRequestRepository.insert(req);
-            // agent_run_context 续跑快照由 Agent 侧维护；Workflow 场景由 WorkflowRuntime 侧写入 workflow_run_context
             if (agentId != null && agentVersionId != null) {
                 upsertPendingToolSnapshot(runId, toolKey, riskLevel, digest, req.getId(), now);
             }
@@ -544,13 +610,13 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
 
         /**
          * 更新待审批工具快照。
-         * 
-         * @param runId 运行ID。
-         * @param toolKey 工具标识。
-         * @param riskLevel 风险级别。
-         * @param argsDigest 参数摘要。
+         *
+         * @param runId             运行ID。
+         * @param toolKey           工具标识。
+         * @param riskLevel         风险级别。
+         * @param argsDigest        参数摘要。
          * @param approvalRequestId 审批申请ID。
-         * @param now 当前时间。
+         * @param now               当前时间。
          */
         private void upsertPendingToolSnapshot(String runId, String toolKey, String riskLevel, String argsDigest, Long approvalRequestId, LocalDateTime now) {
             if (agentRunContextRepository == null || !StringUtils.hasText(runId)) {

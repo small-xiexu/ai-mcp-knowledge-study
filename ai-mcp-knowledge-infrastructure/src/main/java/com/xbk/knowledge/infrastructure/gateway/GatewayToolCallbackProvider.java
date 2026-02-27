@@ -146,57 +146,71 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
      */
     @Override
     public ToolCallback[] getToolCallbacks() {
+        // 查询所有启用中的网关；无网关时直接返回空工具集。
         List<McpGateway> enabledGateways = gatewayRepository.findAllEnabled();
         if (enabledGateways == null || enabledGateways.isEmpty()) {
             return new ToolCallback[0];
         }
 
+        // 先批量加载各网关的工具定义，后续按网关和工具名快速匹配。
         List<ToolCandidate> allCandidates = new ArrayList<>();
         Map<String, Map<String, GatewayToolService.ToolDefinition>> toolDefinitionByGateway = loadToolDefinitions(enabledGateways);
 
+        // 遍历启用网关，组装原始工具候选列表。
         for (McpGateway gateway : enabledGateways) {
+            // 网关对象或 gatewayId 无效时跳过。
             if (gateway == null || !StringUtils.hasText(gateway.getGatewayId())) {
                 continue;
             }
+            // 仅加载当前网关下启用状态的工具注册项。
             List<McpToolRegistry> toolRegistries = toolRegistryRepository.findEnabledByGatewayId(
                     new GatewayIdQuery(gateway.getGatewayId())
             );
             if (toolRegistries == null || toolRegistries.isEmpty()) {
                 continue;
             }
+            // 取当前网关的工具定义映射；未命中时降级为空映射避免空指针。
             Map<String, GatewayToolService.ToolDefinition> toolDefinitionMap = toolDefinitionByGateway.getOrDefault(
                     gateway.getGatewayId(),
                     Collections.emptyMap()
             );
             for (McpToolRegistry registry : toolRegistries) {
+                // 注册记录缺关键字段时跳过。
                 if (registry == null || registry.getId() == null || !StringUtils.hasText(registry.getToolName())) {
                     continue;
                 }
+                // 按工具名关联定义并构建候选对象。
                 GatewayToolService.ToolDefinition definition = toolDefinitionMap.get(registry.getToolName());
                 allCandidates.add(buildToolCandidate(gateway.getGatewayId(), registry, definition));
             }
         }
 
+        // 没有候选工具时直接返回空结果。
         if (allCandidates.isEmpty()) {
             return new ToolCallback[0];
         }
 
+        // 套用上下文可见性规则（allowlist/绑定关系）后再继续构建。
         List<ToolCandidate> visibleCandidates = applyVisibilityFilter(allCandidates);
         if (visibleCandidates.isEmpty()) {
             return new ToolCallback[0];
         }
 
+        // 构建最终 ToolCallback，并按 functionName 去重。
         List<ToolCallback> callbacks = new ArrayList<>();
         Set<String> dedupNames = new HashSet<>();
         for (ToolCandidate candidate : visibleCandidates) {
+            // 同名函数只保留首个，后续重复项告警并忽略。
             if (!dedupNames.add(candidate.functionName)) {
                 log.warn("发现重名 gateway 工具，已跳过后续重复项: functionName={}, toolKey={}",
                         candidate.functionName, candidate.toolKey);
                 continue;
             }
+            // 候选对象转换为可执行回调。
             callbacks.add(buildToolCallback(candidate));
         }
 
+        // 输出本次返回规模，便于排查工具可见性问题。
         log.info("GatewayToolCallbackProvider 返回工具数量: {}", callbacks.size());
         return callbacks.toArray(new ToolCallback[0]);
     }

@@ -119,7 +119,7 @@
               <div>命令：<span style="color: var(--gemini-text-primary); font-family: monospace;">{{ row.command || '-' }}</span></div>
             </div>
             <div v-else style="color: var(--gemini-text-secondary); font-size: 13px;">
-              <div>地址：<span style="color: var(--gemini-text-primary);">{{ row.endpoint || '-' }}</span></div>
+              <div>URL：<span style="color: var(--gemini-text-primary);">{{ row.endpoint || '-' }}</span></div>
               <div v-if="row.sseEndpoint">
                 SSE：{{ row.sseEndpoint }}
               </div>
@@ -127,10 +127,23 @@
           </template>
         </el-table-column>
         <el-table-column
+          prop="updatedAt"
+          label="更新时间"
+          width="180"
+        >
+          <template #default="{ row }">
+            {{ formatDateTime(row.updatedAt) }}
+          </template>
+        </el-table-column>
+        <el-table-column
           prop="createdAt"
           label="创建时间"
           width="180"
-        />
+        >
+          <template #default="{ row }">
+            {{ formatDateTime(row.createdAt) }}
+          </template>
+        </el-table-column>
         <el-table-column
           label="操作"
           width="280"
@@ -208,6 +221,7 @@ import {
   refreshMcpServers,
   refreshMcpServer
 } from '@/api/mcp'
+import { formatDateTime } from '@/utils/time'
 import McpServerForm from './components/McpServerForm.vue'
 import type { McpServerConfig } from '@/types/entity'
 

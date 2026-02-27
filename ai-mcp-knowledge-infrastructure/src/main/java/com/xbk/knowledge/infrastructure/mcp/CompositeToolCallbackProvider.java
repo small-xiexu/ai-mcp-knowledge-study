@@ -73,21 +73,26 @@ public class CompositeToolCallbackProvider implements ToolCallbackProvider {
     private void appendCallbacks(List<ToolCallback> merged,
                                  Set<String> names,
                                  ToolCallback[] callbacks) {
+        // 空数组直接返回，避免无意义遍历。
         if (callbacks == null) {
             return;
         }
         for (ToolCallback callback : callbacks) {
+            // 回调或工具定义缺失时跳过，防止后续取名空指针。
             if (callback == null || callback.getToolDefinition() == null) {
                 continue;
             }
+            // 工具名是去重主键，空白名称不参与合并。
             String toolName = callback.getToolDefinition().name();
             if (toolName == null || toolName.isBlank()) {
                 continue;
             }
+            // 同名工具仅保留首次出现项，后续重复项告警并忽略。
             if (!names.add(toolName)) {
                 log.warn("发现重名工具，已忽略后续定义: {}", toolName);
                 continue;
             }
+            // 通过校验的回调追加到最终合并结果。
             merged.add(callback);
         }
     }
