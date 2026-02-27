@@ -71,20 +71,20 @@ public class McpToolCatalogServiceImpl implements McpToolCatalogService {
      */
     @Override
     public String buildToolPrompt() {
-        // 第一段无锁快路径：大多数请求直接命中缓存，避免进入同步块。
+        // 1、无锁快路径：大多数请求直接命中缓存，避免进入同步块。
         ToolSnapshot cached = snapshot;
         long now = Instant.now().toEpochMilli();
         if (cached != null && now < cached.getExpireAt()) {
             return cached.getPrompt();
         }
-        // 缓存未命中时再加锁：仅允许一个线程执行刷新，避免并发重复构建。
+        // 2、缓存未命中时再加锁：仅允许一个线程执行刷新，避免并发重复构建。
         synchronized (this) {
-            // 双重检查：等待锁期间可能已有其他线程刷新过缓存。
+            // 3、双重检查：等待锁期间可能已有其他线程刷新过缓存。
             ToolSnapshot refreshed = snapshot;
             if (refreshed != null && now < refreshed.getExpireAt()) {
                 return refreshed.getPrompt();
             }
-            // 真正需要刷新时才重建快照并覆盖缓存。
+            // 4、真正需要刷新时才重建快照并覆盖缓存。
             ToolSnapshot newSnapshot = refreshSnapshot(now);
             snapshot = newSnapshot;
             return newSnapshot.getPrompt();

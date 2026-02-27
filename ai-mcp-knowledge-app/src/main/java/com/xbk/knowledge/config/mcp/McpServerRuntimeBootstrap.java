@@ -32,6 +32,7 @@ public class McpServerRuntimeBootstrap implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
         try {
+            // 刷新启用的 MCP Server 运行时连接
             mcpServerConfigAppService.refreshEnabledServers();
             log.info("MCP Server 运行时初始化完成");
         } catch (Exception e) {

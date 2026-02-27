@@ -45,54 +45,59 @@ public class CompositeToolCallbackProvider implements ToolCallbackProvider {
      */
     @Override
     public ToolCallback[] getToolCallbacks() {
+        // 最终返回集合：合并 Dynamic MCP 与 Gateway 两个来源后，且已通过去重与空值校验的回调
         List<ToolCallback> merged = new ArrayList<>();
+        // 工具名去重集合：同名工具仅保留首次出现项
         Set<String> names = new HashSet<>();
 
+        // 1、先合并 Dynamic MCP 工具（优先级更高）
         ToolCallback[] dynamicCallbacks = null;
         if (dynamicProvider != null) {
             dynamicCallbacks = dynamicProvider.getToolCallbacks();
         }
         appendCallbacks(merged, names, dynamicCallbacks);
 
+        // 2、再合并 Gateway HTTP 工具；若与前者重名会被去重逻辑忽略
         ToolCallback[] gatewayCallbacks = null;
         if (gatewayProvider != null) {
             gatewayCallbacks = gatewayProvider.getToolCallbacks();
         }
         appendCallbacks(merged, names, gatewayCallbacks);
 
+        // 返回统一工具视图，供上层注入 ChatClient 使用
         return merged.toArray(new ToolCallback[0]);
     }
 
     /**
      * 将回调数组追加到合并列表，跳过空值和重名工具
      *
-     * @param merged    合并后的回调列表。
-     * @param names     已收集的工具名称集合。
-     * @param callbacks 待追加的工具回调数组。
+     * @param merged    合并后的回调列表
+     * @param names     已收集的工具名称集合
+     * @param callbacks 待追加的工具回调数组
      */
     private void appendCallbacks(List<ToolCallback> merged,
                                  Set<String> names,
                                  ToolCallback[] callbacks) {
-        // 空数组直接返回，避免无意义遍历。
+        // 空数组直接返回，避免无意义遍历
         if (callbacks == null) {
             return;
         }
         for (ToolCallback callback : callbacks) {
-            // 回调或工具定义缺失时跳过，防止后续取名空指针。
+            // 回调或工具定义缺失时跳过，防止后续取名空指针
             if (callback == null || callback.getToolDefinition() == null) {
                 continue;
             }
-            // 工具名是去重主键，空白名称不参与合并。
+            // 工具名是去重主键，空白名称不参与合并
             String toolName = callback.getToolDefinition().name();
             if (toolName == null || toolName.isBlank()) {
                 continue;
             }
-            // 同名工具仅保留首次出现项，后续重复项告警并忽略。
+            // 同名工具仅保留首次出现项，后续重复项告警并忽略
             if (!names.add(toolName)) {
                 log.warn("发现重名工具，已忽略后续定义: {}", toolName);
                 continue;
             }
-            // 通过校验的回调追加到最终合并结果。
+            // 通过校验的回调追加到最终合并结果
             merged.add(callback);
         }
     }

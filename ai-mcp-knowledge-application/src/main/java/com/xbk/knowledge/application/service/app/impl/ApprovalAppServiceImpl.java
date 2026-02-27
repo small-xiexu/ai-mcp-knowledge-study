@@ -441,7 +441,7 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
 
     private Optional<ToolCallback> findToolByKey(String toolKey) {
         ToolCallback[] callbacks = toolCallbackProvider.getToolCallbacks();
-        if (callbacks == null || callbacks.length == 0) {
+        if (callbacks == null) {
             return Optional.empty();
         }
         for (ToolCallback cb : callbacks) {

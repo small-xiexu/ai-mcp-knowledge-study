@@ -2,6 +2,11 @@ spring:
   application:
     # 应用名称（日志/注册中心等会使用）
     name: ai-rag-knowledge
+  ai:
+    mcp:
+      server:
+        # 本项目不作为 Spring AI MCP Server 对外暴露 tools/resources/prompts。
+        enabled: false
   autoconfigure:
     exclude:
       - org.springframework.ai.vectorstore.pgvector.autoconfigure.PgVectorStoreAutoConfiguration

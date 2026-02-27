@@ -9,6 +9,20 @@
 - 你在排障：直接跳第 9 章排障清单，再回看第 4、5 章。
 - 你要读代码：直接按第 11 章的顺序读。
 
+### 0.1 两大块阅读地图（新版）
+本文已按两大块组织阅读：
+
+1. Dynamic MCP（配置建连与运行时工具注入）
+- 重点章节：第 1-8 章、11.1、12.1、14.1。
+
+2. Gateway MCP（协议入口、HTTP 工具与治理）
+- 重点章节：第 2.2-2.3、3.3.2、11.3、12.2、13 章、14.2-14.4。
+
+建议顺序：
+1. 先吃透 Dynamic 主链路（配置 -> 建连 -> ToolCallback 注入）。
+2. 再看 Gateway 协议链路（SSE/message -> tools/list -> tools/call）。
+3. 最后做综合排障（第 9、14、15 章）。
+
 ## 1. 基础概念（先统一术语）
 
 ### 1.1 MCP 是什么
@@ -27,6 +41,8 @@
 - `MCP 工具配置`：管理外部 MCP Server 连接。
 - `HTTP 工具配置`：把内部 HTTP API 包装成工具。
 - `MCP Gateway 协议入口`：给外部 MCP 客户端连入的协议端点，不是管理页。
+
+## 第一大块：Dynamic MCP（配置建连与运行时注入）
 
 ## 2. 模块分工（你要知道每层干什么）
 
@@ -122,6 +138,23 @@
 | 执行目标 | 调用外部 MCP 对端 | 调用网关配置的 HTTP 接口 |
 | 合并入口 | 合并到 `CompositeToolCallbackProvider` | 合并到 `CompositeToolCallbackProvider` |
 
+### 3.3.4 `getToolCallbacks` 启动时序排障结论
+排障结论（2026-02-27）：
+- 历史上出现“`getToolCallbacks` 早于 `ApplicationRunner`”并不一定是 `McpServerRuntimeBootstrap` 导致。
+- 真实提前触发点是 Spring AI 的 `ToolCallingAutoConfiguration.toolCallbackResolver(...)`：
+  在创建 `ToolCallbackResolver` Bean 时，会遍历 `ToolCallbackProvider` 并调用 `getToolCallbacks()`。
+
+触发链路拆分：
+1. 框架链路（可能早于 `ApplicationRunner`）
+   `ToolCallingAutoConfiguration.toolCallbackResolver` -> 遍历 `ToolCallbackProvider` -> `getToolCallbacks()`
+2. 业务链路（`ApplicationRunner` 之后）
+   `McpServerRuntimeBootstrap.run` -> `refreshEnabledServers` -> `refreshToolCallbacks` -> `updateClients` -> 预热 `getToolCallbacks()`
+
+本项目修正方式：
+1. 增加 `LazyToolCallbackResolverConfig`，用 `@Primary` 覆盖默认 resolver。
+2. 将“启动时全量展开 provider”改为“按工具名惰性解析时再访问 provider”。
+3. 修正后观测：`getToolCallbacks` 不再早于 `ApplicationRunner`，启动时序与预期一致。
+
 ### 3.4 调用链总览（配置 -> McpSyncClient -> 工具暴露 -> Agent 调用）
 
 ```mermaid
@@ -177,19 +210,23 @@ flowchart LR
 - `buildRuntimeConfigSnapshot`：无效重连判定依据。
 
 ### 5.3 再看建连策略
-- `buildClient`（按 `STDIO/SSE/HTTP` 分派）
-- `buildStdioClient`
-- `buildSseClient`
-- `buildHttpClient`
+- `McpServerRuntimeServiceImpl.buildClient`：仅负责按 `McpServerType` 路由策略（不再内置各协议构建细节）
+- `McpClientBuildStrategyFactory.getStrategy`：按 `McpClientBuildStrategyType` 获取策略实现
+- 协议策略实现（重点看 `build`）
+- `StdioMcpClientBuildStrategy`
+- `SseMcpClientBuildStrategy`
+- `HttpMcpClientBuildStrategy`
+- `WebsocketMcpClientBuildStrategy`
+- 统一公共能力在 `AbstractMcpClientBuildStrategy`
 - `buildSyncClient`
+- `applyHeaders`
+- `parseStringList` / `parseStringMap`
+- `getTimeout`
 
 ### 5.4 最后看辅助函数
-- `applyHeaders`
-- `parseStringList`
-- `parseStringMap`
-- `getTimeout`
 - `closeQuietly`
 - `refreshToolCallbacks`
+- `buildRuntimeConfigSnapshot`
 
 ### 5.5 读完后的掌握检查
 1. 你是否能说清“什么时候跳过重连”（快照相同且运行态完整）。
@@ -207,6 +244,28 @@ flowchart LR
 ### 6.2 callback 与 Tool、MCP Server 的关系
 - callback 是按 Tool 维度构建的，不是按 MCP Server。
 - 一个 MCP Server 暴露多个 Tool，就会对应多个 callback。
+
+### 6.3 什么是“工具回调数组”（`ToolCallback[]`）
+先说结论：
+- 它就是“当前这次可用的工具清单”，只是用 Java 数组来承载。
+
+大白话理解：
+1. `ToolCallback[]` 里每个元素都代表一个可调用工具。
+2. 每个 `ToolCallback` 都带有工具定义（`ToolDefinition`），例如工具名、描述、入参 schema，用来告诉模型“这工具是啥、怎么传参”。
+3. 每个 `ToolCallback` 还带有执行入口（`call(...)`），模型一旦决定调用工具，框架就会触发这里。
+4. 本项目里，这个数组通常来自 `CompositeToolCallbackProvider`，即合并 `Dynamic MCP` 和 `Gateway` 两路工具，再做去重/过滤后返回。
+
+一句话：
+- 这不是业务数据数组，而是“可调用能力数组”。
+
+### 6.4 为什么叫 Callback（回调）
+核心原因：
+- 工具实现是先注册给框架，运行时再由框架反向调用，所以叫 callback。
+
+在本项目中的语义：
+1. 业务先把工具能力提供给 `ToolCallbackProvider`。
+2. 当模型在推理时决定要调用某个工具，Spring AI 才会回过头触发对应 `ToolCallback` 的执行入口。
+3. 因此它不是普通 DTO，也不是静态配置，而是“运行时可执行句柄”。
 
 ## 7. ChatClient 装配与流式返回
 
@@ -242,7 +301,75 @@ flowchart LR
 4. 可选：做模型/会话/版本绑定。
 5. 聊天时通过 `GatewayToolCallbackProvider` 参与合并注入。
 
-## 9. 快速排障清单（建议按顺序）
+## 第二大块：Gateway MCP（协议入口与工具治理）
+
+### Gateway MCP 学习路径（详细）
+如果你已经学完 Dynamic，建议按下面 4 阶段推进 Gateway，别跳读。
+
+阶段 1：先看协议入口（30 分钟）
+1. 看 `McpGatewayController`，先理解两个入口：
+- `GET /api/gateway/{gatewayId}/mcp/sse`
+- `POST /api/gateway/{gatewayId}/mcp/message`
+2. 看 `GatewaySessionService`，重点搞清：
+- `validateGateway` / `validateApiKey`
+- `establishSseConnection`（endpoint 事件 + 心跳）
+- `publishResponse`（message 回推）
+3. 看 `GatewayMessageService`，确认 method 到 handler 的路由规则。
+
+阶段 1 完成标准：
+1. 你能画出“外部客户端 -> SSE 建连 -> message 回推”的时序。
+2. 你能解释为什么 `message` 端点需要 `sessionId`。
+
+阶段 2：再看协议方法实现（45 分钟）
+1. `GatewayInitializeHandler`：握手返回能力声明。
+2. `GatewayToolsListHandler`：返回 `tools` 列表。
+3. `GatewayToolsCallHandler`：执行工具调用，了解错误码：
+- 参数错误：`-32602`
+- 执行失败：`-32603`
+4. `SessionMessageHandlerMethodEnum`：确认 method 与 handlerName 的映射。
+
+阶段 2 完成标准：
+1. 你能回答 `initialize/tools/list/tools/call` 各自落在哪个类。
+2. 你能说明 `tools/call` 里 name/arguments 是怎么校验的。
+
+阶段 3：下沉到领域执行（60-90 分钟）
+1. `GatewayToolServiceImpl.listTools`：工具定义从哪里来（registry + schema）。
+2. `GatewayToolServiceImpl.callTool`：真正的 HTTP 调用链：
+- 参数映射 -> 构造请求 -> 调用 -> 响应提取 -> 指标记录
+3. 重点看映射与缓存：
+- `mcp_tool_mapping`（请求/响应映射）
+- `mcp_tool_schema`（inputSchema 缓存）
+
+阶段 3 完成标准：
+1. 你能解释“为什么 tools/list 能返回 inputSchema”。
+2. 你能说清 callTool 失败时的常见错误码来源（参数、超时、下游失败）。
+
+阶段 4：接入模型工具链（45 分钟）
+1. `GatewayToolCallbackProvider`：Gateway 工具如何变成 `ToolCallback`。
+2. `applyVisibilityFilter`：allowlist + MODEL/SESSION/AGENT_VERSION 绑定过滤。
+3. `CompositeToolCallbackProvider`：和 Dynamic 合并、按工具名去重。
+4. `AiChatAppServiceImpl` + armory node：最终如何注入 `defaultToolCallbacks`。
+
+阶段 4 完成标准：
+1. 你能解释“为什么工具在管理页可见，但模型侧不可见”（多半是过滤/绑定导致）。
+2. 你能定位“同名工具冲突时谁生效”（取决于合并顺序 + 去重规则）。
+
+推荐断点（最实用）
+1. `GatewaySessionService.establishSseConnection`
+2. `GatewayMessageService.process`
+3. `GatewayToolsListHandler.handle`
+4. `GatewayToolsCallHandler.handle`
+5. `GatewayToolServiceImpl.callTool`
+6. `GatewayToolCallbackProvider.getToolCallbacks`
+
+推荐自测动作（按顺序）
+1. 先调一次 `sse`，确认收到 `endpoint` 和 `ping`。
+2. 再发一次 `initialize`，确认握手响应字段完整。
+3. 再发 `tools/list`，确认能看到至少一个工具。
+4. 最后发 `tools/call`，验证成功路径和失败路径各一条。
+5. 进入聊天调用，验证 Gateway 工具是否进入模型可见集合。
+
+## 9. 快速排障清单（Gateway + Dynamic，建议按顺序）
 
 1. MCP 配置是否 `enabled=true`。
 2. `running` 是否为 true（注意它不是数据库字段）。

@@ -147,26 +147,32 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
      */
     @Override
     public ToolCallback[] getToolCallbacks() {
-        // 获取工具回调缓存
+        // 1、读取全量工具缓存（未做 allowlist 过滤的基础集合）。
         ToolCallback[] base = cachedCallbacks.get();
         if (base == null) {
-            // 缓存未命中，构建并回填缓存
+            // 缓存未命中时先构建一份基础集合。
             base = buildCallbacks();
+            // CAS 只允许一个线程把结果写入缓存，其他并发线程即使也构建了，也以“已写入那份”为准。
             cachedCallbacks.compareAndSet(null, base);
+            // 统一从缓存回读，保证后续逻辑使用同一份快照引用。
             base = cachedCallbacks.get();
         }
 
-        // allowlist 过滤当上下文显式携带 allowedToolKeys 时生效
+        // 2、按上下文 allowlist 做“视图级过滤”（不污染全量缓存）。
+        // 约定：null 表示“调用方未提供 allowlist”，即不过滤，直接返回基础集合。
         Set<String> allowedToolKeys = resolveAllowedToolKeys();
         if (allowedToolKeys == null) {
             return base;
         }
+        // 约定：空集合表示“显式禁止所有工具”；或基础集合本身为空时直接返回空数组。
         if (allowedToolKeys.isEmpty() || base.length == 0) {
             return new ToolCallback[0];
         }
 
+        // 3、仅保留 toolKey 命中 allowlist 的治理包装回调。
         List<ToolCallback> filtered = new ArrayList<>();
         for (ToolCallback cb : base) {
+            // 仅治理包装器才携带 toolKey，非治理回调不参与 allowlist 匹配。
             if (!(cb instanceof GovernedToolCallback governed)) {
                 continue;
             }

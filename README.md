@@ -67,7 +67,7 @@ ai-mcp-knowledge-study
 ├── ai-mcp-knowledge-web             # 前端管理台
 ├── docs                             # 设计文档与方案分析
 ├── sql                              # 数据库初始化脚本
-└── start-dev.sh                     # 前端 dev 快速启动脚本
+└── 启动前端开发.sh                     # 前端 dev 快速启动脚本
 ```
 
 ## 5. 分层架构（DDD）
@@ -398,7 +398,7 @@ Vite 已代理 `/api -> http://localhost:8090`
 
 ### 10.5 一键前端启动脚本
 ```bash
-./start-dev.sh
+./启动前端开发.sh
 ```
 说明：该脚本只负责前端依赖检测与前端 dev 启动。
 
@@ -468,8 +468,8 @@ npm run build
 - `mcp-tool-weixin` 当前目录仅保留日志，不是本仓库内可直接构建的子模块。
 
 ## 16. 参考文档
-- `docs/README-ARCH.md`（详细架构图文，建议二次开发先读）
-- `docs/API-INDEX.md`（方法级接口索引，联调/回归使用）
+- `docs/架构说明-详细版.md`（详细架构图文，建议二次开发先读）
+- `docs/API-接口索引.md`（方法级接口索引，联调/回归使用）
 - `docs/MCP-从0到1实战指南.md`（MCP/网关工具大白话实战指南，推荐先读）
 - `docs/任务编排入门指南.md`
 - `docs/Spring-AI任务编排落地方案综合对比.md`
