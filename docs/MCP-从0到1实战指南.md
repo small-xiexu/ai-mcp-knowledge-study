@@ -334,9 +334,10 @@ flowchart LR
 
 推荐配置值：
 1. 工具名：`sendWeixinNotice`
-2. 方法：`POST`
-3. URL：`http://127.0.0.1:8104/api/weixin/notice/send`
-4. 请求参数：`platform/subject/description/jumpUrl`（都放 `body`）
+2. 工具描述：`微信公众号回调工具`
+3. 方法：`POST`
+4. URL：`http://127.0.0.1:8104/api/weixin/notice/send`
+5. 请求参数：`platform/subject/description/jumpUrl`（都放 `body`）
 
 完整操作步骤见：
 - [MCP Gateway 10 分钟最小可跑通实操](./MCP-Gateway-10分钟最小可跑通实操.md) 第 7 节「接入 mcp-tool-weixin（HTTP 工具）」。

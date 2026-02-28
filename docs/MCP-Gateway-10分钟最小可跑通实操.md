@@ -162,6 +162,7 @@ curl -sS -X POST "http://127.0.0.1:8104/api/weixin/notice/send" \
 - 新增网关实例（网关 ID 默认固定 `default_gateway`，状态设为启用）。
 3. 进入该网关的「工具配置」，点「新增工具」，基础信息这样填：
 - 工具名称：`sendWeixinNotice`
+- 工具描述：`微信公众号回调工具`
 - HTTP 方法：`POST`
 - HTTP URL：`http://127.0.0.1:8104/api/weixin/notice/send`
 - 超时：`30000`
