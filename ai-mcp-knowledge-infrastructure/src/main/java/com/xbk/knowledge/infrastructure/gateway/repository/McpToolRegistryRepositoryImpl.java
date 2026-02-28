@@ -126,7 +126,9 @@ public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository 
             registry.setRiskLevel("MEDIUM");
         }
         if (registry.getId() == null) {
-            mapper.insertToolRegistry(BeanMappingUtils.map(registry, McpToolRegistryPO.class));
+            McpToolRegistryPO po = BeanMappingUtils.map(registry, McpToolRegistryPO.class);
+            mapper.insertToolRegistry(po);
+            registry.setId(po.getId());
             return registry;
         }
         mapper.updateToolRegistry(BeanMappingUtils.map(registry, McpToolRegistryPO.class));

@@ -42,10 +42,12 @@ import com.xbk.knowledge.types.common.PageRequest;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.common.Result;
 import com.xbk.knowledge.types.enums.ToolBindType;
+import com.xbk.knowledge.types.exception.BusinessException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -502,6 +504,7 @@ public class GatewayManageController implements IGatewayManageService {
      */
     @PostMapping("/tools/save")
     @SaCheckPermission("tool:write")
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public Result<Map<String, Object>> saveTool(@RequestBody SaveToolRequest request) {
         if (!StringUtils.hasText(request.getToolName())) {
@@ -531,6 +534,9 @@ public class GatewayManageController implements IGatewayManageService {
         tool.setUpdatedAt(LocalDateTime.now());
 
         McpToolRegistry saved = toolRegistryRepository.save(tool);
+        if (saved == null || saved.getId() == null) {
+            throw new BusinessException("工具保存失败：未生成 toolId");
+        }
         toolMappingRepository.deleteByToolId(saved.getId());
         toolSchemaRepository.deleteByToolId(saved.getId());
         saveMappings(saved.getId(), saved.getGatewayId(), request.getRequestMappings(), "request");
@@ -960,6 +966,9 @@ public class GatewayManageController implements IGatewayManageService {
                 .updatedAt(LocalDateTime.now())
                 .build();
         McpToolMapping saved = toolMappingRepository.save(entity);
+        if (saved == null || saved.getId() == null) {
+            throw new BusinessException("工具映射保存失败：未生成 mappingId");
+        }
         sortOrder[0]++;
 
         if (!CollectionUtils.isEmpty(mapping.getChildren())) {

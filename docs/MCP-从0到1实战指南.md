@@ -9,7 +9,26 @@
 - 你在排障：直接跳第 9 章排障清单，再回看第 4、5 章。
 - 你要读代码：直接按第 11 章的顺序读。
 
-### 0.1 两大块阅读地图（新版）
+### 0.1 开跑前 5 项检查（先过这个再学）
+1. 服务可访问
+- 后端和前端都已启动，页面能正常打开。
+
+2. 权限准备好
+- 至少有 `tool:read`、`tool:write`；要做模型侧调用最好也有 `tool:invoke`。
+
+3. 目标地址准备好
+- Dynamic：你至少有一套可连接目标（`STDIO` 命令或远程 `SSE/HTTP` endpoint）。
+- Gateway：你至少有 `gatewayId`，若启用鉴权还要有 `API Key`。
+
+4. 先跑最小链路
+- Dynamic 先看 [MCP Dynamic 10 分钟最小可跑通实操](./MCP-Dynamic-10分钟最小可跑通实操.md)。
+- Gateway 先看 [MCP Gateway 10 分钟最小可跑通实操](./MCP-Gateway-10分钟最小可跑通实操.md)。
+
+5. 知道成功标准
+- Dynamic：配置启用 + 刷新后 `running=true`，并且工具清单可查询。
+- Gateway：能依次打通 `sse -> initialize -> tools/list -> tools/call`。
+
+### 0.2 两大块阅读地图（新版）
 本文已按两大块组织阅读：
 
 1. Dynamic MCP（配置建连与运行时工具注入）
@@ -43,6 +62,9 @@
 - `MCP Gateway 协议入口`：给外部 MCP 客户端连入的协议端点，不是管理页。
 
 ## 第一大块：Dynamic MCP（配置建连与运行时注入）
+
+急用建议：
+- 先看 [MCP Dynamic 10 分钟最小可跑通实操](./MCP-Dynamic-10分钟最小可跑通实操.md)，跑通后再回来看本块原理最省时间。
 
 ## 2. 模块分工（你要知道每层干什么）
 
@@ -138,7 +160,11 @@
 | 执行目标 | 调用外部 MCP 对端 | 调用网关配置的 HTTP 接口 |
 | 合并入口 | 合并到 `CompositeToolCallbackProvider` | 合并到 `CompositeToolCallbackProvider` |
 
-### 3.3.4 `getToolCallbacks` 启动时序排障结论
+### 3.3.4（进阶，可跳过）`getToolCallbacks` 启动时序排障结论
+首次阅读建议：
+- 这一节是“启动时序排障专题”，不是主链路必读。
+- 你如果目标只是先跑通 Dynamic，可先跳到 `3.4`，后面排查启动问题再回看。
+
 排障结论（2026-02-27）：
 - 历史上出现“`getToolCallbacks` 早于 `ApplicationRunner`”并不一定是 `McpServerRuntimeBootstrap` 导致。
 - 真实提前触发点是 Spring AI 的 `ToolCallingAutoConfiguration.toolCallbackResolver(...)`：
@@ -301,58 +327,140 @@ flowchart LR
 4. 可选：做模型/会话/版本绑定。
 5. 聊天时通过 `GatewayToolCallbackProvider` 参与合并注入。
 
+### 8.3 例子 C：接入 `mcp-tool-weixin`（HTTP 服务）
+先说结论：
+- `mcp-tool-weixin` 是 HTTP 服务，不是标准 MCP Server。
+- 应该走「HTTP 工具配置（Gateway）」接入，不走「MCP 工具配置（Dynamic）」。
+
+推荐配置值：
+1. 工具名：`sendWeixinNotice`
+2. 方法：`POST`
+3. URL：`http://127.0.0.1:8104/api/weixin/notice/send`
+4. 请求参数：`platform/subject/description/jumpUrl`（都放 `body`）
+
+完整操作步骤见：
+- [MCP Gateway 10 分钟最小可跑通实操](./MCP-Gateway-10分钟最小可跑通实操.md) 第 7 节「接入 mcp-tool-weixin（HTTP 工具）」。
+
 ## 第二大块：Gateway MCP（协议入口与工具治理）
 
-### Gateway MCP 学习路径（详细）
-如果你已经学完 Dynamic，建议按下面 4 阶段推进 Gateway，别跳读。
+急用建议：
+- 先看 [MCP Gateway 10 分钟最小可跑通实操](./MCP-Gateway-10分钟最小可跑通实操.md)，跑通后再回来看本章原理会轻松很多。
 
-阶段 1：先看协议入口（30 分钟）
-1. 看 `McpGatewayController`，先理解两个入口：
+### Gateway MCP 学习路径（小白友好版）
+先说人话：Gateway MCP 就像“工具接待前台”。
+- 外部客户端先来前台报到（`sse` 建连）。
+- 然后按前台给的地址发请求（`message`）。
+- 前台把请求转给对应处理器（`initialize/tools/list/tools/call`）。
+- 处理完再把结果推回客户端（SSE `message` 事件）。
+
+先记住这 3 句话，再看代码就不容易晕：
+1. `sse` 是“先打通电话线”（长连接）。
+2. `message` 是“在线路上说话”（发 JSON-RPC 消息）。
+3. `sessionId` 是“这通电话的编号”（保证回复推回正确连接）。
+
+### 一张图看懂全流程（总览）
+```mermaid
+flowchart LR
+    A[外部 MCP 客户端] -->|GET /mcp/sse| B[McpGatewayController]
+    B --> C[GatewaySessionService<br/>建会话+鉴权]
+    C --> D[SSE 推送 endpoint + ping]
+    A -->|POST /mcp/message?sessionId=...| B
+    B --> E[GatewayMessageService]
+    E --> F{按 method 路由}
+    F -->|initialize| G[GatewayInitializeHandler]
+    F -->|tools/list| H[GatewayToolsListHandler]
+    F -->|tools/call| I[GatewayToolsCallHandler]
+    I --> J[GatewayToolServiceImpl.callTool]
+    J --> K[调用下游 HTTP API]
+    G --> L[GatewaySessionService.publishResponse]
+    H --> L
+    I --> L
+    L -->|event=message| A
+```
+
+### 一次 `tools/call` 的时序图（你最需要先看这个）
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant GC as McpGatewayController
+    participant SS as GatewaySessionService
+    participant MS as GatewayMessageService
+    participant H as GatewayToolsCallHandler
+    participant TS as GatewayToolServiceImpl
+    participant API as 下游HTTP接口
+
+    C->>GC: GET /mcp/sse
+    GC->>SS: establishSseConnection()
+    SS-->>C: endpoint + ping
+    C->>GC: POST /mcp/message?sessionId=xxx (tools/call)
+    GC->>MS: process()
+    MS->>H: handle(request)
+    H->>TS: callTool(name, arguments)
+    TS->>API: HTTP 调用
+    API-->>TS: 响应
+    TS-->>H: 工具结果/错误
+    H-->>MS: JSON-RPC Response
+    MS->>SS: publishResponse(sessionId, response)
+    SS-->>C: SSE event=message
+```
+
+### 难词翻译（大白话版）
+| 术语 | 大白话解释 |
+| --- | --- |
+| SSE | 服务端一直开着一根“推消息的网线” |
+| JSON-RPC | 一种固定格式的“远程函数调用信封” |
+| initialize | 第一次握手，告诉客户端“我是谁、我会什么” |
+| tools/list | 问“你现在有哪些工具可用” |
+| tools/call | 真的发起一次工具调用 |
+| handler | 每种 method 对应的“专门处理员” |
+| sessionId | 当前连接的唯一编号，防止串线 |
+
+### 从 0 到 1 的学习顺序（照着做就行）
+阶段 1：先跑通连接（30 分钟）
+1. 先看 `McpGatewayController` 的两个入口：
 - `GET /api/gateway/{gatewayId}/mcp/sse`
 - `POST /api/gateway/{gatewayId}/mcp/message`
-2. 看 `GatewaySessionService`，重点搞清：
+2. 再看 `GatewaySessionService`：
 - `validateGateway` / `validateApiKey`
-- `establishSseConnection`（endpoint 事件 + 心跳）
-- `publishResponse`（message 回推）
-3. 看 `GatewayMessageService`，确认 method 到 handler 的路由规则。
+- `establishSseConnection`（发 `endpoint` 和 `ping`）
+- `publishResponse`（把响应推回客户端）
 
-阶段 1 完成标准：
-1. 你能画出“外部客户端 -> SSE 建连 -> message 回推”的时序。
-2. 你能解释为什么 `message` 端点需要 `sessionId`。
+阶段 1 通过标准：
+1. 你能说清：为什么先调 `sse`，再调 `message`。
+2. 你能说清：`sessionId` 不传会发生什么（服务端找不到回推会话）。
 
-阶段 2：再看协议方法实现（45 分钟）
-1. `GatewayInitializeHandler`：握手返回能力声明。
-2. `GatewayToolsListHandler`：返回 `tools` 列表。
-3. `GatewayToolsCallHandler`：执行工具调用，了解错误码：
-- 参数错误：`-32602`
-- 执行失败：`-32603`
-4. `SessionMessageHandlerMethodEnum`：确认 method 与 handlerName 的映射。
+阶段 2：看协议方法路由（45 分钟）
+1. `GatewayMessageService`：method 路由总入口。
+2. `SessionMessageHandlerMethodEnum`：method 和处理器的映射表。
+3. 三个核心处理器：
+- `GatewayInitializeHandler`
+- `GatewayToolsListHandler`
+- `GatewayToolsCallHandler`
 
-阶段 2 完成标准：
-1. 你能回答 `initialize/tools/list/tools/call` 各自落在哪个类。
-2. 你能说明 `tools/call` 里 name/arguments 是怎么校验的。
+阶段 2 通过标准：
+1. 你能快速回答 `initialize/tools/list/tools/call` 走哪个类。
+2. 你知道常见错误码：参数错 `-32602`、执行失败 `-32603`。
 
-阶段 3：下沉到领域执行（60-90 分钟）
-1. `GatewayToolServiceImpl.listTools`：工具定义从哪里来（registry + schema）。
-2. `GatewayToolServiceImpl.callTool`：真正的 HTTP 调用链：
-- 参数映射 -> 构造请求 -> 调用 -> 响应提取 -> 指标记录
-3. 重点看映射与缓存：
-- `mcp_tool_mapping`（请求/响应映射）
-- `mcp_tool_schema`（inputSchema 缓存）
+阶段 3：看真实工具调用（60 分钟）
+1. `GatewayToolServiceImpl.listTools`：工具清单和 `inputSchema` 从哪里来。
+2. `GatewayToolServiceImpl.callTool`：参数映射 -> HTTP 调用 -> 响应提取 -> 指标记录。
+3. 重点表：
+- `mcp_tool_mapping`（请求/响应字段映射）
+- `mcp_tool_schema`（工具入参 schema 缓存）
 
-阶段 3 完成标准：
-1. 你能解释“为什么 tools/list 能返回 inputSchema”。
-2. 你能说清 callTool 失败时的常见错误码来源（参数、超时、下游失败）。
+阶段 3 通过标准：
+1. 你能解释为什么 `tools/list` 会带 `inputSchema`。
+2. 你能区分失败来源：参数问题、超时、下游接口异常。
 
-阶段 4：接入模型工具链（45 分钟）
-1. `GatewayToolCallbackProvider`：Gateway 工具如何变成 `ToolCallback`。
-2. `applyVisibilityFilter`：allowlist + MODEL/SESSION/AGENT_VERSION 绑定过滤。
-3. `CompositeToolCallbackProvider`：和 Dynamic 合并、按工具名去重。
-4. `AiChatAppServiceImpl` + armory node：最终如何注入 `defaultToolCallbacks`。
+阶段 4：接到模型工具链（45 分钟）
+1. `GatewayToolCallbackProvider`：把 Gateway 工具转成 `ToolCallback`。
+2. `applyVisibilityFilter`：可见性过滤（allowlist + MODEL/SESSION/AGENT_VERSION 绑定）。
+3. `CompositeToolCallbackProvider`：和 Dynamic MCP 合并并按工具名去重。
+4. `AiChatAppServiceImpl` + armory node：注入 `defaultToolCallbacks(...)`。
 
-阶段 4 完成标准：
-1. 你能解释“为什么工具在管理页可见，但模型侧不可见”（多半是过滤/绑定导致）。
-2. 你能定位“同名工具冲突时谁生效”（取决于合并顺序 + 去重规则）。
+阶段 4 通过标准：
+1. 你能排查“管理页看得到，模型却看不到”的原因。
+2. 你能定位同名工具冲突是谁被保留（看合并顺序 + 去重规则）。
 
 推荐断点（最实用）
 1. `GatewaySessionService.establishSseConnection`
@@ -369,19 +477,31 @@ flowchart LR
 4. 最后发 `tools/call`，验证成功路径和失败路径各一条。
 5. 进入聊天调用，验证 Gateway 工具是否进入模型可见集合。
 
-## 9. 快速排障清单（Gateway + Dynamic，建议按顺序）
+## 9. 快速排障清单（小白版：现象 -> 原因 -> 解决）
 
-1. MCP 配置是否 `enabled=true`。
-2. `running` 是否为 true（注意它不是数据库字段）。
-3. 是否执行过 `refresh` / `refresh-one`。
-4. 当前账号是否有 `tool:invoke`。
-5. 是否被 `allowedToolKeys` 过滤。
-6. 是否被模型/会话/版本绑定规则排除。
-7. 是否触发高风险审批且未通过。
-8. 查看 `agent_run` / `workflow_run` / `approval_request`。
-9. 流式异常时先看代理缓冲（如 Nginx `proxy_buffering`）。
-10. 前端是否因整段重渲染导致“看起来不像流式”。
-11. 思考内容混入正文时，检查是否启用了 `thinking/message` 事件分流。
+先用一句话记住排障顺序：先看“有没有连接”，再看“有没有权限”，最后看“有没有被治理规则拦截”。
+
+| 序号 | 你看到的现象 | 最常见原因 | 先怎么验证 | 解决动作 |
+| --- | --- | --- | --- | --- |
+| 1 | 管理页已启用，但工具就是不可用 | 只是 `enabled=true`，运行态没起来 | 看 `running` 是否为 true | 执行 `refresh` / `refresh-one` |
+| 2 | 一直 `running=false` | 建连初始化失败（endpoint/超时/鉴权） | 查 `registerOrUpdateInternal` 日志和异常栈 | 修正 endpoint、超时、认证配置后重刷 |
+| 3 | SSE 连上了但收不到工具 | `tools/list` 结果为空 | 在 `GatewayToolsListHandler.handle` 打断点看 definitions | 检查网关/工具是否启用、schema 是否存在 |
+| 4 | 看得到工具名，但一调用就拒绝 | 缺少 `tool:invoke` 权限 | 看权限上下文与审计日志 | 给账号补 `tool:invoke` 或切到正确身份 |
+| 5 | 某些工具在模型侧消失 | 被 `allowedToolKeys` 过滤 | 看 `applyVisibilityFilter` 输入输出数量 | 调整 allowlist 配置 |
+| 6 | 管理页有工具，但模型侧没有 | 被 MODEL/SESSION/AGENT_VERSION 绑定规则排除 | 查绑定表与当前上下文是否匹配 | 补绑定或放宽绑定范围 |
+| 7 | 工具触发后提示“需要审批” | 高风险工具命中审批门禁 | 查 `approval_request` 是否有 `PENDING` | 审批通过后重试，或下调风险等级 |
+| 8 | `tools/call` 报参数错误 | 入参不符合 schema/映射规则 | 看 `GatewayToolsCallHandler` 返回是否 `-32602` | 修正 name/arguments 字段和类型 |
+| 9 | `tools/call` 报执行失败 | 下游 HTTP 失败或超时 | 看返回是否 `-32603`，再看下游接口日志 | 修正映射、网络、下游服务状态 |
+| 10 | 前端看起来“不流式” | 代理缓冲或前端整段重渲染 | 检查 Nginx `proxy_buffering` 和前端事件处理 | 关闭缓冲，按分片渲染 |
+| 11 | 思考内容和正文混在一起 | 没按 `thinking/message` 分流 | 抓 SSE 事件名看是否区分 | 前后端统一事件分流策略 |
+
+排障时建议固定 6 个断点：
+1. `GatewaySessionService.establishSseConnection`
+2. `GatewayMessageService.process`
+3. `GatewayToolsListHandler.handle`
+4. `GatewayToolsCallHandler.handle`
+5. `GatewayToolServiceImpl.callTool`
+6. `GatewayToolCallbackProvider.getToolCallbacks`
 
 ## 10. 常见误区
 

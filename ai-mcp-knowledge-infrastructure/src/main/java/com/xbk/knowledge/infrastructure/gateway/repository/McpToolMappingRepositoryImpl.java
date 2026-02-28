@@ -54,7 +54,9 @@ public class McpToolMappingRepositoryImpl implements McpToolMappingRepository {
             return null;
         }
         if (mapping.getId() == null) {
-            mapper.insertToolMapping(BeanMappingUtils.map(mapping, McpToolMappingPO.class));
+            McpToolMappingPO po = BeanMappingUtils.map(mapping, McpToolMappingPO.class);
+            mapper.insertToolMapping(po);
+            mapping.setId(po.getId());
             return mapping;
         }
         mapper.updateToolMapping(BeanMappingUtils.map(mapping, McpToolMappingPO.class));

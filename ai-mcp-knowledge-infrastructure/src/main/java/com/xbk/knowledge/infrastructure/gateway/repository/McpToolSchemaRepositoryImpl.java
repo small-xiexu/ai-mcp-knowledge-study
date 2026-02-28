@@ -53,7 +53,9 @@ public class McpToolSchemaRepositoryImpl implements McpToolSchemaRepository {
             return null;
         }
         if (schema.getId() == null) {
-            mapper.insertToolSchema(BeanMappingUtils.map(schema, McpToolSchemaPO.class));
+            McpToolSchemaPO po = BeanMappingUtils.map(schema, McpToolSchemaPO.class);
+            mapper.insertToolSchema(po);
+            schema.setId(po.getId());
             return schema;
         }
         mapper.updateToolSchema(BeanMappingUtils.map(schema, McpToolSchemaPO.class));

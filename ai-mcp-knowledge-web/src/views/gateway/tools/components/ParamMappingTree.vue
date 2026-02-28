@@ -37,7 +37,7 @@
       </el-form>
 
       <el-text type="info" size="small">
-        规则：自动按 JSON 结构生成参数树，默认位置为 请求体(body)，对象会展开子字段，数组默认保留为整字段。
+        规则：自动按 JSON 结构生成参数树，默认位置为 请求体(body)；对象会展开子字段；同时会把示例值写入“参数说明”。
       </el-text>
 
       <template #footer>
@@ -123,6 +123,24 @@ const inferArrayItemType = (list: any[]): string | undefined => {
   return type === 'object' ? 'object' : type
 }
 
+const stringifySampleValue = (value: any): string => {
+  if (value === null || value === undefined) {
+    return 'null'
+  }
+  if (typeof value === 'string') {
+    return value.length > 60 ? `${value.slice(0, 57)}...` : value
+  }
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return String(value)
+  }
+  try {
+    const text = JSON.stringify(value)
+    return text.length > 60 ? `${text.slice(0, 57)}...` : text
+  } catch {
+    return String(value)
+  }
+}
+
 const buildNodesFromObject = (obj: Record<string, any>, parentPath = ''): MappingNodeType[] => {
   return Object.entries(obj).map(([name, value]) => {
     const nodeType = inferType(value)
@@ -149,6 +167,14 @@ const buildNodesFromObject = (obj: Record<string, any>, parentPath = ''): Mappin
       node.itemType = inferArrayItemType(Array.isArray(value) ? value : [])
       node.httpPath = path
       node.children = []
+    }
+
+    if (nodeType === 'object') {
+      node.mcpDesc = '对象参数'
+    } else if (nodeType === 'array') {
+      node.mcpDesc = stringifySampleValue(value)
+    } else {
+      node.mcpDesc = stringifySampleValue(value)
     }
 
     return node
