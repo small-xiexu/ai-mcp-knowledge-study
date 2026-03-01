@@ -19,7 +19,22 @@ public class ToolListRequest extends PageRequest {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 网关ID
+     * 网关 ID
      */
     private String gatewayId;
+
+    /**
+     * 工具名称关键词（支持模糊搜索）
+     */
+    private String toolNameKeyword;
+
+    /**
+     * 工具描述关键词（支持模糊搜索）
+     */
+    private String toolDescriptionKeyword;
+
+    /**
+     * 工具状态筛选（0-禁用，1-启用，null-全部）
+     */
+    private Integer status;
 }

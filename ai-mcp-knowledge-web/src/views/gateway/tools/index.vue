@@ -6,6 +6,14 @@
         <el-button
           v-if="activeTab === 'tools'"
           class="gemini-btn-primary"
+          @click="refreshTools"
+          :loading="refreshing"
+        >
+          刷新连通性
+        </el-button>
+        <el-button
+          v-if="activeTab === 'tools'"
+          class="gemini-btn-primary"
           type="primary"
           @click="openCreate"
         >
@@ -33,6 +41,40 @@
           :closable="false"
           style="margin-bottom: 16px"
         />
+
+        <!-- 搜索栏 -->
+        <el-card class="gemini-card" style="margin-bottom: 16px">
+          <el-form :inline="true" :model="searchForm" class="search-form">
+            <el-form-item label="工具名称">
+              <el-input
+                v-model="searchForm.toolNameKeyword"
+                placeholder="请输入工具名称"
+                clearable
+                style="width: 200px"
+                @keyup.enter="handleSearch"
+              />
+            </el-form-item>
+            <el-form-item label="工具描述">
+              <el-input
+                v-model="searchForm.toolDescriptionKeyword"
+                placeholder="请输入工具描述"
+                clearable
+                style="width: 200px"
+                @keyup.enter="handleSearch"
+              />
+            </el-form-item>
+            <el-form-item label="状态">
+              <el-select v-model="searchForm.status" placeholder="全部" clearable style="width: 120px">
+                <el-option label="启用" :value="1" />
+                <el-option label="禁用" :value="0" />
+              </el-select>
+            </el-form-item>
+            <el-form-item>
+              <el-button class="gemini-btn-primary" @click="handleSearch">搜索</el-button>
+              <el-button @click="handleReset">重置</el-button>
+            </el-form-item>
+          </el-form>
+        </el-card>
 
         <el-card class="gemini-card">
           <el-table :data="records" class="gemini-table" style="width: 100%" v-loading="loading">
@@ -114,7 +156,8 @@ import {
   getGatewayTool,
   deleteGatewayTool,
   enableGatewayTool,
-  disableGatewayTool
+  disableGatewayTool,
+  refreshGatewayTools
 } from '@/api/gateway'
 import ToolEditForm from './components/ToolEditForm.vue'
 import ToolDebugPanel from './components/ToolDebugPanel.vue'
@@ -129,6 +172,7 @@ const gatewayId = String(route.params.gatewayId || route.query.gatewayId || DEFA
 const activeTab = ref<'tools' | 'credentials'>('tools')
 
 const loading = ref(false)
+const refreshing = ref(false)
 const records = ref<GatewayTool[]>([])
 const editVisible = ref(false)
 const debugVisible = ref(false)
@@ -136,6 +180,13 @@ const bindingVisible = ref(false)
 const currentToolName = ref('')
 const currentToolRequestMappings = ref<ParamMappingNode[]>([])
 const editingPayload = ref<any>(null)
+
+// 搜索表单
+const searchForm = reactive({
+  toolNameKeyword: '',
+  toolDescriptionKeyword: '',
+  status: undefined as number | undefined
+})
 
 const page = reactive({
   pageNum: 1,
@@ -147,13 +198,48 @@ const fetchData = async () => {
   if (!gatewayId) return
   loading.value = true
   try {
-    const res = await listGatewayTools({ gatewayId, pageNum: page.pageNum, pageSize: page.pageSize })
+    const res = await listGatewayTools({
+      gatewayId,
+      pageNum: page.pageNum,
+      pageSize: page.pageSize,
+      toolNameKeyword: searchForm.toolNameKeyword || undefined,
+      toolDescriptionKeyword: searchForm.toolDescriptionKeyword || undefined,
+      status: searchForm.status
+    })
     records.value = res.data.records || []
     page.total = res.data.total || 0
   } catch (error: any) {
     ElMessage.error(error.message || '加载工具失败')
   } finally {
     loading.value = false
+  }
+}
+
+// 搜索处理
+const handleSearch = () => {
+  page.pageNum = 1
+  fetchData()
+}
+
+const handleReset = () => {
+  searchForm.toolNameKeyword = ''
+  searchForm.toolDescriptionKeyword = ''
+  searchForm.status = undefined
+  page.pageNum = 1
+  fetchData()
+}
+
+// 刷新工具连通性
+const refreshTools = async () => {
+  refreshing.value = true
+  try {
+    const res = await refreshGatewayTools({ gatewayId })
+    const { successCount, failedCount, refreshedCount } = res.data
+    ElMessage.success(`刷新完成：共${refreshedCount}个工具，成功${successCount}个，失败${failedCount}个`)
+  } catch (error: any) {
+    ElMessage.error(error.message || '刷新失败')
+  } finally {
+    refreshing.value = false
   }
 }
 
@@ -245,5 +331,10 @@ onMounted(fetchData)
 <style scoped>
 .gateway-tabs :deep(.el-tabs__header) {
   margin-bottom: 16px;
+}
+
+.search-form .el-form-item {
+  margin-bottom: 0;
+  margin-right: 16px;
 }
 </style>

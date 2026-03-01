@@ -20,8 +20,35 @@ export const saveGatewayInstance = (data: GatewayInstance) =>
 export const deleteGatewayInstance = (id: number) =>
   request.post<void>('/gateway/manage/instances/delete', { id })
 
-export const listGatewayTools = (data: { gatewayId: string; pageNum: number; pageSize: number }) =>
+export const listGatewayTools = (data: {
+  gatewayId: string
+  pageNum: number
+  pageSize: number
+  toolNameKeyword?: string
+  toolDescriptionKeyword?: string
+  status?: number
+}) =>
   request.post<PageResult<GatewayTool>>('/gateway/manage/tools/list', data)
+
+export const refreshGatewayTools = (data: {
+  gatewayId?: string
+  toolId?: number
+}) =>
+  request.post<{
+    gatewayId: string
+    refreshedCount: number
+    successCount: number
+    failedCount: number
+    details: Array<{
+      toolId: number
+      toolName: string
+      httpMethod: string
+      httpUrl: string
+      reachable: boolean
+      message?: string
+      error?: string
+    }>
+  }>('/gateway/manage/tools/refresh', data)
 
 export const getGatewayTool = (id: number) =>
   request.post<any>('/gateway/manage/tools/get', { id })

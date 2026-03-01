@@ -10,6 +10,7 @@ import com.xbk.knowledge.api.dto.gateway.SaveModelBindingRequest;
 import com.xbk.knowledge.api.dto.gateway.SaveToolRequest;
 import com.xbk.knowledge.api.dto.gateway.ToolDebugRequest;
 import com.xbk.knowledge.api.dto.gateway.ToolListRequest;
+import com.xbk.knowledge.api.dto.gateway.RefreshToolsRequest;
 import com.xbk.knowledge.types.common.PageRequest;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.common.Result;
@@ -175,4 +176,12 @@ public interface IGatewayManageService {
      * @return 网关监控指标
      */
     Result<Map<String, Object>> queryGatewayMetrics(GatewayMetricsQueryRequest request);
+
+    /**
+     * 刷新工具连通性状态。
+     *
+     * @param request 工具刷新参数（支持指定 gatewayId 或 toolId）
+     * @return 刷新结果（包含成功/失败统计）
+     */
+    Result<Map<String, Object>> refreshTools(RefreshToolsRequest request);
 }

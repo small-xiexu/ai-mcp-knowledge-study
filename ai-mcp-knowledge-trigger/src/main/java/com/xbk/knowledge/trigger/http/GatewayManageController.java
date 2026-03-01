@@ -13,6 +13,7 @@ import com.xbk.knowledge.api.dto.gateway.SaveModelBindingRequest;
 import com.xbk.knowledge.api.dto.gateway.SaveToolRequest;
 import com.xbk.knowledge.api.dto.gateway.ToolDebugRequest;
 import com.xbk.knowledge.api.dto.gateway.ToolListRequest;
+import com.xbk.knowledge.api.dto.gateway.RefreshToolsRequest;
 import com.xbk.knowledge.application.service.app.GatewayManageAppService;
 import com.xbk.knowledge.application.service.app.GatewayObservabilityAppService;
 import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
@@ -58,6 +59,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -420,15 +422,15 @@ public class GatewayManageController implements IGatewayManageService {
     }
 
     /**
-     * 分页查询网关工具列表。
+     * 分页查询网关工具列表（支持关键词搜索和状态筛选）。
      * 流程：
      * 1. 进入接口后执行 `tool:read` 权限校验。
      * 2. Spring 绑定请求体并解析 gatewayId，确保网关存在。
      * 3. 计算分页偏移量并查询工具分页数据与总数。
-     * 4. 逐条转换为前端展示字段。
-     * 5. 统一封装 `PageResult` 返回。
-     * 
-     * @param request 网关管理分页查询参数。
+     * 4. 根据 toolNameKeyword/toolDescriptionKeyword/status 进行内存过滤。
+     * 5. 逐条转换为前端展示字段并统一封装 `PageResult` 返回。
+     *
+     * @param request 网关管理分页查询参数（支持 toolNameKeyword/toolDescriptionKeyword/status）。
      */
     @PostMapping("/tools/list")
     @SaCheckPermission("tool:read")
@@ -438,11 +440,50 @@ public class GatewayManageController implements IGatewayManageService {
         ensureGatewayExists(gatewayId);
         Integer pageNum = request == null ? null : request.getPageNum();
         Integer pageSize = request == null ? null : request.getPageSize();
+
+        // 提取搜索关键词
+        String toolNameKeyword = request == null ? null : request.getToolNameKeyword();
+        String toolDescriptionKeyword = request == null ? null : request.getToolDescriptionKeyword();
+        Integer statusFilter = request == null ? null : request.getStatus();
+
         return PageQueryExecutor.executeByPageNum(pageNum, pageSize, (safePageNum, safePageSize) -> {
             int offset = (safePageNum - 1) * safePageSize;
-            List<McpToolRegistry> records =
-                    toolRegistryRepository.findPage(new ToolRegistryPageQuery(gatewayId, offset, safePageSize));
-            long total = toolRegistryRepository.countByGatewayId(new GatewayIdQuery(gatewayId));
+            List<McpToolRegistry> allRecords =
+                    toolRegistryRepository.findPage(new ToolRegistryPageQuery(gatewayId, offset, safePageSize * 10));
+
+            // 内存过滤：支持工具名称/描述关键词搜索和状态筛选
+            List<McpToolRegistry> filtered = new ArrayList<>();
+            for (McpToolRegistry tool : allRecords) {
+                if (tool == null) {
+                    continue;
+                }
+                // 工具名称关键词过滤（支持模糊匹配）
+                if (StringUtils.hasText(toolNameKeyword)) {
+                    String toolName = tool.getToolName();
+                    if (!StringUtils.hasText(toolName) || !toolName.toLowerCase().contains(toolNameKeyword.toLowerCase().trim())) {
+                        continue;
+                    }
+                }
+                // 工具描述关键词过滤（支持模糊匹配）
+                if (StringUtils.hasText(toolDescriptionKeyword)) {
+                    String toolDescription = tool.getToolDescription();
+                    if (!StringUtils.hasText(toolDescription) || !toolDescription.toLowerCase().contains(toolDescriptionKeyword.toLowerCase().trim())) {
+                        continue;
+                    }
+                }
+                // 状态筛选（0-禁用，1-启用）
+                if (statusFilter != null && !statusFilter.equals(tool.getStatus())) {
+                    continue;
+                }
+                filtered.add(tool);
+            }
+
+            // 基于过滤后的列表进行内存分页
+            int total = filtered.size();
+            int fromIndex = Math.min((safePageNum - 1) * safePageSize, filtered.size());
+            int toIndex = Math.min(fromIndex + safePageSize, filtered.size());
+            List<McpToolRegistry> records = filtered.subList(fromIndex, toIndex);
+
             GatewayObservabilityAppService.GatewayMetricsReport metricsReport = gatewayObservabilityAppService.queryMetrics(
                     new GatewayObservabilityAppService.MetricsQuery(gatewayId, null, TOOL_LIST_RECENT_MINUTES)
             );
@@ -474,7 +515,7 @@ public class GatewayManageController implements IGatewayManageService {
                 rows.add(row);
             }
 
-            return PageResult.of(rows, total, safePageNum, safePageSize);
+            return PageResult.of(rows, (long) total, safePageNum, safePageSize);
         }, row -> row);
     }
 
@@ -873,7 +914,7 @@ public class GatewayManageController implements IGatewayManageService {
      * 3. Controller 组装 `MetricsQuery` 调用观测应用服务。
      * 4. 将报告对象转换为 `generatedAt/toolMetrics/alerts` 结构。
      * 5. 统一封装 `Result.success` 返回。
-     * 
+     *
      * @param request 网关管理查询参数。
      */
     @PostMapping("/metrics/overview")
@@ -893,6 +934,124 @@ public class GatewayManageController implements IGatewayManageService {
         data.put("toolMetrics", report.toolMetrics());
         data.put("alerts", report.alerts());
         return Result.success(data);
+    }
+
+    /**
+     * 刷新工具连通性状态。
+     * 流程：
+     * 1. 进入接口后执行 `tool:write` 权限校验。
+     * 2. Spring 绑定请求体并解析 gatewayId/toolId。
+     * 3. 根据是否指定 toolId 决定刷新单个工具或网关下全部工具。
+     * 4. 逐个调用 HTTP 接口进行连通性测试并更新状态。
+     * 5. 统计成功/失败数量并统一封装返回。
+     *
+     * @param request 工具刷新参数（gatewayId/toolId）。
+     * @return 刷新结果（包含 refreshedCount/successCount/failedCount/details）
+     */
+    @PostMapping("/tools/refresh")
+    @SaCheckPermission("tool:write")
+    @Override
+    public Result<Map<String, Object>> refreshTools(@RequestBody RefreshToolsRequest request) {
+        String gatewayId = resolveGatewayId(request == null ? null : request.getGatewayId());
+        ensureGatewayExists(gatewayId);
+        Long toolId = request == null ? null : request.getToolId();
+
+        List<McpToolRegistry> toolsToRefresh;
+        if (toolId != null) {
+            // 刷新指定单个工具
+            McpToolRegistry tool = toolRegistryRepository.findById(new IdQuery(toolId)).orElse(null);
+            if (tool == null || !gatewayId.equals(tool.getGatewayId())) {
+                return Result.error("工具不存在或不属于该网关");
+            }
+            toolsToRefresh = Collections.singletonList(tool);
+        } else {
+            // 刷新网关下所有工具
+            toolsToRefresh = toolRegistryRepository.findByGatewayId(new GatewayIdQuery(gatewayId));
+        }
+
+        if (CollectionUtils.isEmpty(toolsToRefresh)) {
+            Map<String, Object> emptyResult = new LinkedHashMap<>();
+            emptyResult.put("refreshedCount", 0);
+            emptyResult.put("successCount", 0);
+            emptyResult.put("failedCount", 0);
+            emptyResult.put("details", Collections.emptyList());
+            return Result.success("没有需要刷新的工具", emptyResult);
+        }
+
+        List<Map<String, Object>> details = new ArrayList<>();
+        int successCount = 0;
+        int failedCount = 0;
+
+        for (McpToolRegistry tool : toolsToRefresh) {
+            if (tool == null) {
+                continue;
+            }
+            Map<String, Object> detail = new LinkedHashMap<>();
+            detail.put("toolId", tool.getId());
+            detail.put("toolName", tool.getToolName());
+            detail.put("httpMethod", tool.getHttpMethod());
+            detail.put("httpUrl", tool.getHttpUrl());
+
+            try {
+                // 执行 HTTP 连通性测试（HEAD 请求或超时限制的 GET 请求）
+                boolean isReachable = testHttpConnectivity(tool);
+                detail.put("reachable", isReachable);
+                detail.put("message", isReachable ? "连通" : "不可达");
+
+                if (isReachable) {
+                    successCount++;
+                } else {
+                    failedCount++;
+                }
+            } catch (Exception e) {
+                log.warn("工具连通性测试失败，toolId: {}, toolName: {}", tool.getId(), tool.getToolName(), e);
+                detail.put("reachable", false);
+                detail.put("error", e.getMessage());
+                failedCount++;
+            }
+            details.add(detail);
+        }
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("gatewayId", gatewayId);
+        result.put("refreshedCount", toolsToRefresh.size());
+        result.put("successCount", successCount);
+        result.put("failedCount", failedCount);
+        result.put("details", details);
+
+        String message = String.format("刷新完成：成功 %d 个，失败 %d 个", successCount, failedCount);
+        return Result.success(message, result);
+    }
+
+    /**
+     * 测试 HTTP 工具连通性。
+     *
+     * @param tool 工具注册记录
+     * @return 是否可达
+     */
+    private boolean testHttpConnectivity(McpToolRegistry tool) {
+        if (!StringUtils.hasText(tool.getHttpUrl())) {
+            return false;
+        }
+        int timeout = tool.getTimeout() == null ? 5000 : tool.getTimeout();
+        try {
+            java.net.http.HttpClient client = java.net.http.HttpClient.newBuilder()
+                    .connectTimeout(java.time.Duration.ofMillis(timeout))
+                    .build();
+            java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create(tool.getHttpUrl()))
+                    .method(tool.getHttpMethod() != null ? tool.getHttpMethod() : "GET",
+                            java.net.http.HttpRequest.BodyPublishers.noBody())
+                    .timeout(java.time.Duration.ofMillis(timeout))
+                    .build();
+            java.net.http.HttpResponse<String> response = client.send(request,
+                    java.net.http.HttpResponse.BodyHandlers.ofString());
+            // 2xx 状态码表示连通
+            return response.statusCode() >= 200 && response.statusCode() < 400;
+        } catch (Exception e) {
+            log.debug("HTTP 连通性测试失败：url={}, error={}", tool.getHttpUrl(), e.getMessage());
+            return false;
+        }
     }
 
     private Map<String, Object> toGatewayMap(McpGateway gateway) {
