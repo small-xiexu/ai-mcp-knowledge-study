@@ -181,6 +181,16 @@ curl -sS -X POST "http://127.0.0.1:8104/api/weixin/notice/send" \
 }
 ```
 
+- 字段说明（给人看）：
+- `platform`：发送来源平台/系统名（例如：测试平台、运营后台）。
+- `subject`：消息标题（例如：网关联调验证）。
+- `description`：消息正文内容（接收人真正看到的主要文案）。
+- `jumpUrl`：点击后跳转地址（建议完整 `http/https` URL）。
+
+- AI 侧说明（为什么要填清楚）：
+- 工具名称 + 工具描述，影响 AI 是否会选中这个工具。
+- 参数字段语义越清楚，AI 自动填参越准确，越不容易把值填错位。
+
 - 生成后检查每一行：
 - 参数位置为 `请求体(body)`
 - 字段名为 `platform/subject/description/jumpUrl`

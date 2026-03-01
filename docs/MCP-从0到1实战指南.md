@@ -339,6 +339,16 @@ flowchart LR
 4. URL：`http://127.0.0.1:8104/api/weixin/notice/send`
 5. 请求参数：`platform/subject/description/jumpUrl`（都放 `body`）
 
+字段语义建议（写给人和 AI 一起看）：
+1. `platform`：发送来源平台/系统名。
+2. `subject`：消息标题。
+3. `description`：消息正文（主要内容）。
+4. `jumpUrl`：点击后跳转地址（完整 URL）。
+
+说明：
+- AI 会综合工具名、工具描述、字段语义来决定“要不要调用”以及“参数怎么填”。
+- 所以字段含义写清楚，实际效果会明显更稳定。
+
 完整操作步骤见：
 - [MCP Gateway 10 分钟最小可跑通实操](./MCP-Gateway-10分钟最小可跑通实操.md) 第 7 节「接入 mcp-tool-weixin（HTTP 工具）」。
 
