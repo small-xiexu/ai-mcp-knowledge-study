@@ -1,6 +1,6 @@
 <template>
-  <div class="gemini-container">
-    <div class="page-header">
+  <div :class="containerClass">
+    <div v-if="!props.embedded" class="page-header">
       <div>
         <h2 class="page-title">凭证管理</h2>
         <p class="subtitle">管理网关访问凭证，外部调用方鉴权使用。</p>
@@ -11,7 +11,7 @@
       <el-alert
         title="用途说明"
         type="warning"
-        description="本页用于管理网关调用凭证（mcp_gateway_auth），用于外部客户端访问 MCP 网关时的鉴权与限流控制。"
+        description="本页用于管理网关接入凭证（mcp_gateway_auth），用于外部客户端访问 MCP Gateway 的鉴权与限流；作用于该网关下所有 HTTP 工具。"
         show-icon
         :closable="false"
         style="margin-bottom: 12px"
@@ -212,7 +212,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Refresh, Search } from '@element-plus/icons-vue'
 import {
@@ -225,8 +225,17 @@ import {
 import { usePermission } from '@/composables/usePermission'
 import type { GatewayCredential, GatewayInstance } from '@/types/gateway'
 
+const props = withDefaults(defineProps<{
+  embedded?: boolean
+  defaultGatewayId?: string
+}>(), {
+  embedded: false,
+  defaultGatewayId: 'default_gateway'
+})
+
 const { hasPermission } = usePermission()
 const canManageCredentials = computed(() => hasPermission('tool:write'))
+const containerClass = computed(() => props.embedded ? '' : 'gemini-container')
 
 const loading = ref(false)
 const submitLoading = ref(false)
@@ -234,7 +243,7 @@ const tableData = ref<GatewayCredential[]>([])
 const gatewayOptions = ref<GatewayInstance[]>([])
 
 const searchForm = reactive({
-  gatewayId: 'default_gateway',
+  gatewayId: props.defaultGatewayId,
   status: undefined as number | undefined,
   apiKeyKeyword: ''
 })
@@ -250,7 +259,7 @@ const createdDialogVisible = ref(false)
 const createdCredential = ref<GatewayCredential | null>(null)
 
 const createForm = reactive({
-  gatewayId: 'default_gateway',
+  gatewayId: props.defaultGatewayId,
   apiKey: '',
   rateLimit: 100,
   expireTime: ''
@@ -296,6 +305,7 @@ const handleSearch = () => {
 }
 
 const handleReset = () => {
+  searchForm.gatewayId = props.defaultGatewayId || 'default_gateway'
   searchForm.status = undefined
   searchForm.apiKeyKeyword = ''
   pagination.pageNum = 1
@@ -387,6 +397,19 @@ onMounted(async () => {
   await fetchGateways()
   fetchData()
 })
+
+watch(
+  () => props.defaultGatewayId,
+  (nextGatewayId) => {
+    const next = String(nextGatewayId || '').trim()
+    if (!next || searchForm.gatewayId === next) {
+      return
+    }
+    searchForm.gatewayId = next
+    pagination.pageNum = 1
+    fetchData()
+  }
+)
 </script>
 
 <style scoped>

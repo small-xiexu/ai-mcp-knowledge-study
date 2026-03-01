@@ -9,7 +9,18 @@
     <el-form :model="form" label-width="110px">
       <el-row :gutter="12">
         <el-col :span="12">
-          <el-form-item label="工具名称">
+          <el-form-item>
+            <template #label>
+              <span class="label-with-tip">
+                <span>工具名称</span>
+                <el-tooltip
+                  content="给 AI 识别和调用用的唯一名称，建议英文动词+名词，如 sendWeixinNotice。"
+                  placement="top"
+                >
+                  <el-icon class="label-tip-icon"><QuestionFilled /></el-icon>
+                </el-tooltip>
+              </span>
+            </template>
             <el-input v-model="form.toolName" placeholder="请输入工具名称" />
           </el-form-item>
         </el-col>
@@ -25,7 +36,15 @@
           </el-form-item>
         </el-col>
       </el-row>
-      <el-form-item label="工具描述">
+      <el-form-item>
+        <template #label>
+          <span class="label-with-tip">
+            <span>工具描述</span>
+            <el-tooltip content="给 AI 的用途说明，写清这个工具做什么、什么时候用。" placement="top">
+              <el-icon class="label-tip-icon"><QuestionFilled /></el-icon>
+            </el-tooltip>
+          </span>
+        </template>
         <el-input v-model="form.toolDescription" placeholder="请输入工具描述" />
       </el-form-item>
       <el-form-item label="HTTP URL">
@@ -86,6 +105,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
+import { QuestionFilled } from '@element-plus/icons-vue'
 import { saveGatewayTool } from '@/api/gateway'
 import type { SaveGatewayToolRequest } from '@/types/gateway'
 import type { ParamMappingNode } from '@/types/gateway'
@@ -247,5 +267,17 @@ const openResponseImport = () => {
 .section-title {
   font-weight: 600;
   color: var(--gemini-text-primary);
+}
+
+.label-with-tip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.label-tip-icon {
+  font-size: 14px;
+  color: var(--gemini-text-secondary);
+  cursor: help;
 }
 </style>

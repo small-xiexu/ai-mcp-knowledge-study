@@ -208,7 +208,9 @@ public class GatewayObservabilityAppServiceImpl implements GatewayObservabilityA
                 snapshot.errorDistribution,
                 round(slaRate),
                 round(timeoutRate),
-                snapshot.consecutiveFailures
+                snapshot.consecutiveFailures,
+                snapshot.latestCallTimestamp <= 0 ? null : toLocalDateTime(snapshot.latestCallTimestamp),
+                snapshot.latestCallSuccess
         );
     }
 
@@ -399,6 +401,8 @@ public class GatewayObservabilityAppServiceImpl implements GatewayObservabilityA
                     continue;
                 }
                 snapshot.totalCount++;
+                snapshot.latestCallTimestamp = event.timestamp;
+                snapshot.latestCallSuccess = event.success;
                 snapshot.totalLatency += event.latency;
                 snapshot.latencies.add(event.latency);
                 if (event.success) {
@@ -553,6 +557,16 @@ public class GatewayObservabilityAppServiceImpl implements GatewayObservabilityA
          * 错误数最高的错误码。
          */
         private String maxErrorCode;
+
+        /**
+         * 最近一次调用时间戳（毫秒）。
+         */
+        private long latestCallTimestamp;
+
+        /**
+         * 最近一次调用是否成功。
+         */
+        private boolean latestCallSuccess;
 
         private WindowSnapshot(String gatewayId, String toolName, int consecutiveFailures) {
             this.gatewayId = gatewayId;

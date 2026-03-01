@@ -56,8 +56,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -83,6 +85,16 @@ public class GatewayManageController implements IGatewayManageService {
      * 日志链路追踪 ID 的 MDC 键。
      */
     private static final String CALL_ID_MDC_KEY = "gatewayToolCallId";
+
+    /**
+     * 工具列表“最近调用”查询窗口（分钟）。
+     */
+    private static final int TOOL_LIST_RECENT_MINUTES = 24 * 60;
+
+    /**
+     * 工具列表“最近调用”时间格式。
+     */
+    private static final DateTimeFormatter TOOL_LAST_CALL_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     /**
      * 网关实例仓储。
@@ -431,6 +443,18 @@ public class GatewayManageController implements IGatewayManageService {
             List<McpToolRegistry> records =
                     toolRegistryRepository.findPage(new ToolRegistryPageQuery(gatewayId, offset, safePageSize));
             long total = toolRegistryRepository.countByGatewayId(new GatewayIdQuery(gatewayId));
+            GatewayObservabilityAppService.GatewayMetricsReport metricsReport = gatewayObservabilityAppService.queryMetrics(
+                    new GatewayObservabilityAppService.MetricsQuery(gatewayId, null, TOOL_LIST_RECENT_MINUTES)
+            );
+            Map<String, GatewayObservabilityAppService.ToolMetricsSnapshot> latestMetricsByTool = new HashMap<>();
+            if (metricsReport != null && !CollectionUtils.isEmpty(metricsReport.toolMetrics())) {
+                for (GatewayObservabilityAppService.ToolMetricsSnapshot metric : metricsReport.toolMetrics()) {
+                    if (metric == null || !StringUtils.hasText(metric.toolName())) {
+                        continue;
+                    }
+                    latestMetricsByTool.put(metric.toolName(), metric);
+                }
+            }
 
             List<Map<String, Object>> rows = new ArrayList<>();
             for (McpToolRegistry tool : records) {
@@ -444,7 +468,7 @@ public class GatewayManageController implements IGatewayManageService {
                 row.put("status", tool.getStatus());
                 row.put("timeout", tool.getTimeout());
                 row.put("retryTimes", tool.getRetryTimes());
-                row.put("lastCallSummary", "-");
+                row.put("lastCallSummary", resolveLastCallSummary(latestMetricsByTool.get(tool.getToolName())));
                 row.put("createdAt", tool.getCreatedAt());
                 row.put("updatedAt", tool.getUpdatedAt());
                 rows.add(row);
@@ -452,6 +476,13 @@ public class GatewayManageController implements IGatewayManageService {
 
             return PageResult.of(rows, total, safePageNum, safePageSize);
         }, row -> row);
+    }
+
+    private String resolveLastCallSummary(GatewayObservabilityAppService.ToolMetricsSnapshot metric) {
+        if (metric == null || metric.latestCallAt() == null) {
+            return "-";
+        }
+        return metric.latestCallAt().format(TOOL_LAST_CALL_FORMATTER) + " " + (metric.latestCallSuccess() ? "成功" : "失败");
     }
 
     /**

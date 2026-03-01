@@ -161,6 +161,8 @@ public interface GatewayObservabilityAppService {
         private final double slaRate;
         private final double timeoutRate;
         private final int consecutiveFailures;
+        private final LocalDateTime latestCallAt;
+        private final boolean latestCallSuccess;
 
         public ToolMetricsSnapshot(String gatewayId,
                                    String toolName,
@@ -172,7 +174,9 @@ public interface GatewayObservabilityAppService {
                                    Map<String, Long> errorDistribution,
                                    double slaRate,
                                    double timeoutRate,
-                                   int consecutiveFailures) {
+                                   int consecutiveFailures,
+                                   LocalDateTime latestCallAt,
+                                   boolean latestCallSuccess) {
             this.gatewayId = gatewayId;
             this.toolName = toolName;
             this.requestCount = requestCount;
@@ -184,6 +188,8 @@ public interface GatewayObservabilityAppService {
             this.slaRate = slaRate;
             this.timeoutRate = timeoutRate;
             this.consecutiveFailures = consecutiveFailures;
+            this.latestCallAt = latestCallAt;
+            this.latestCallSuccess = latestCallSuccess;
         }
 
         public String getGatewayId() {
@@ -272,6 +278,22 @@ public interface GatewayObservabilityAppService {
 
         public int consecutiveFailures() {
             return consecutiveFailures;
+        }
+
+        public LocalDateTime getLatestCallAt() {
+            return latestCallAt;
+        }
+
+        public LocalDateTime latestCallAt() {
+            return latestCallAt;
+        }
+
+        public boolean isLatestCallSuccess() {
+            return latestCallSuccess;
+        }
+
+        public boolean latestCallSuccess() {
+            return latestCallSuccess;
         }
     }
 

@@ -168,12 +168,6 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '角色管理', icon: 'Avatar', permission: 'role:read', group: 'security', order: 20 }
       },
       {
-        path: 'credentials',
-        name: 'Credentials',
-        component: () => import('@/views/gateway/credential/index.vue'),
-        meta: { title: '凭证管理', icon: 'Key', permission: 'tool:read', group: 'integration', order: 50 }
-      },
-      {
         path: 'audit-events',
         name: 'AuditEvents',
         component: () => import('@/views/audit-event/index.vue'),

@@ -16,6 +16,49 @@
 
 如果你不确定值从哪来，先问项目同学要一套可用的测试数据，再往下做。
 
+## 0.5 `API_KEY` 大白话（先看这个）
+
+一句话：`API_KEY` 就是“外部调用方访问网关的门禁卡”。
+
+1. 它是网关级，不是单工具级
+- 绑定在 `gatewayId` 上。
+- 同一个网关下所有 HTTP 工具，都受这套凭证与限流规则保护。
+
+2. 它控制两件事
+- 能不能进门：Key 对不对、有没有过期。
+- 进门频率：每分钟最多调用多少次（`rateLimit`）。
+
+3. 没配启用凭证时
+- 这个网关允许不带 `API_KEY` 建连（等于不开门禁）。
+
+4. 配了启用凭证时
+- 外部客户端必须带 `X-API-Key`。
+- Key 错误、过期、超限都会被拒绝。
+
+### 示例：给第三方“运营看板”开通网关访问
+
+前提：
+1. 网关：`default_gateway`
+2. 新增凭证时配置：
+- `rateLimit = 100`（每分钟最多 100 次）
+- `expireTime = 2026-12-31T23:59:59`
+
+调用方式（外部系统）：
+
+```bash
+curl -N \
+  -H "Accept: text/event-stream" \
+  -H "X-API-Key: sk_live_xxx" \
+  "http://127.0.0.1:8091/api/gateway/default_gateway/mcp/sse"
+```
+
+返回判读：
+1. 成功：收到 `event: endpoint` 和周期性 `event: ping`。
+2. 失败（常见）：
+- `API Key 无效`：Key 填错或未启用。
+- `API Key 已过期`：超过过期时间。
+- `API Key 调用频率超限`：超过 `rateLimit`。
+
 ## 1. 第一步：先建立 SSE 连接（终端 1）
 
 在终端 1 执行：
@@ -174,20 +217,15 @@ curl -sS -X POST "http://127.0.0.1:8104/api/weixin/notice/send" \
 
 ```json
 {
-  "platform": "测试平台",
-  "subject": "网关联调验证",
-  "description": "SSE+tools/list+tools/call 集成测试",
-  "jumpUrl": "https://example.com"
+  "platform": "发送来源平台/系统名（例如：测试平台、运营后台）",
+  "subject": "消息标题（例如：网关联调验证）",
+  "description": "消息正文内容（接收人真正看到的主要文案）",
+  "jumpUrl": "点击后跳转地址（建议完整 http/https URL）"
 }
 ```
 
-- 字段说明（给人看）：
-- `platform`：发送来源平台/系统名（例如：测试平台、运营后台）。
-- `subject`：消息标题（例如：网关联调验证）。
-- `description`：消息正文内容（接收人真正看到的主要文案）。
-- `jumpUrl`：点击后跳转地址（建议完整 `http/https` URL）。
-
-- AI 侧说明（为什么要填清楚）：
+- 参数说明（给 AI 看）：
+- 这段 JSON 主要用于生成字段与“参数说明（给 AI 看）”，不是最终业务请求示例值。
 - 工具名称 + 工具描述，影响 AI 是否会选中这个工具。
 - 参数字段语义越清楚，AI 自动填参越准确，越不容易把值填错位。
 

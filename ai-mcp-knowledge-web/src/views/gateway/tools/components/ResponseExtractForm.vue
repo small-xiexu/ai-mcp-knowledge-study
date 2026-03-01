@@ -70,6 +70,9 @@
         <el-button type="primary" text @click="parseImportJson">解析为树</el-button>
         <el-text type="info" size="small">数组路径默认使用 [*]（如 data.list[*].name）</el-text>
       </div>
+      <el-text type="warning" size="small" class="import-tip">
+        建议先点“解析为树”，再勾选字段，最后点“生成到表单”。
+      </el-text>
 
       <div v-if="importTreeData.length > 0" class="tree-panel">
         <el-text type="info" size="small">勾选需要给 AI 的字段（可多选）</el-text>
@@ -86,7 +89,14 @@
 
       <template #footer>
         <el-button @click="importDialogVisible = false">取消</el-button>
-        <el-button type="primary" class="gemini-btn-primary" @click="applyImportSelection">生成到表单</el-button>
+        <el-button
+          type="primary"
+          class="gemini-btn-primary"
+          :disabled="importTreeData.length === 0"
+          @click="applyImportSelection"
+        >
+          生成到表单
+        </el-button>
       </template>
     </el-dialog>
   </div>
@@ -326,6 +336,11 @@ const applyImportSelection = () => {
   align-items: center;
   justify-content: space-between;
   margin: 4px 0 8px 0;
+}
+
+.import-tip {
+  display: block;
+  margin-bottom: 8px;
 }
 
 .tree-panel {

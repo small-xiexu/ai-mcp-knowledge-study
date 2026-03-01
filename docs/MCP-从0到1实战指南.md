@@ -593,6 +593,56 @@ sequenceDiagram
 - 路由到 `GatewayMessageService.process(...)`。
 - 结果通过 `GatewaySessionService.publishResponse(...)` 回推到 SSE（`event=message`）。
 
+#### 13.2.1 `API Key` 大白话（很多人会误解）
+
+一句话：`mcp_gateway_auth` 里的 `API Key` 是“外部客户端访问网关的门禁卡”。
+
+它不是“某个 HTTP 工具单独的密钥”，而是“网关级密钥”：
+- 作用对象：一个 `gatewayId`。
+- 影响范围：该网关下所有 HTTP 工具调用链路（`sse -> message -> tools/call`）。
+
+它主要控制两件事：
+1. 鉴权
+- key 是否存在、是否匹配、是否过期。
+2. 限流
+- 每个 `gatewayId + apiKey` 在分钟窗口内最多调用次数（`rateLimit`）。
+
+如果该网关没有启用任何凭证：
+- 外部客户端可以不带 `X-API-Key` 建连。
+
+如果该网关启用了凭证：
+- 外部客户端必须带 `X-API-Key`。
+- 缺失/错误/过期/超限都会被拒绝。
+
+完整例子（运营看板系统接入 `default_gateway`）：
+
+1. 在后台“网关凭证”页新增一条凭证
+- `gatewayId = default_gateway`
+- `rateLimit = 100`（每分钟 100 次）
+- `expireTime = 2026-12-31T23:59:59`
+- `apiKey` 可留空，让系统自动生成。
+
+2. 外部系统用该 Key 建立 SSE
+
+```bash
+curl -N \
+  -H "Accept: text/event-stream" \
+  -H "X-API-Key: sk_live_xxx" \
+  "http://127.0.0.1:8091/api/gateway/default_gateway/mcp/sse"
+```
+
+成功信号：
+- 收到 `event: endpoint`（包含 `sessionId`）
+- 持续收到 `event: ping`
+
+3. 外部系统继续发 `message`（`initialize/tools/list/tools/call`）
+- 只要会话有效且未超限，就能正常走完整链路。
+
+4. 典型失败
+- `API Key 无效`：key 填错或状态禁用。
+- `API Key 已过期`：超过 `expireTime`。
+- `API Key 调用频率超限`：超过 `rateLimit`。
+
 ### 13.3 当前支持的 3 个 MCP method
 方法映射定义在 `SessionMessageHandlerMethodEnum`：
 
