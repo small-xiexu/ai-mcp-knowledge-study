@@ -11,21 +11,21 @@ public interface IMcpGatewayService {
 
     /**
      * 建立 SSE 长连接。
-     * 
+     *
      * @param gatewayId 网关 ID
      * @param apiKey Header 传入的 API Key
      * @param apiKeyQuery Query 传入的 API Key
      * @return SSE 事件流
      */
-    Object establishSseConnection(String gatewayId, String apiKey, String apiKeyQuery);
+    reactor.core.publisher.Flux<org.springframework.http.codec.ServerSentEvent<String>> establishSseConnection(String gatewayId, String apiKey, String apiKeyQuery);
 
     /**
      * 处理 MCP 消息请求。
-     * 
+     *
      * @param gatewayId 网关 ID
      * @param sessionId 会话 ID
      * @param body 请求报文
      * @return 消息响应结果
      */
-    Object handleMessage(String gatewayId, String sessionId, String body);
+    reactor.core.publisher.Mono<org.springframework.http.ResponseEntity<Object>> handleMessage(String gatewayId, String sessionId, String body);
 }

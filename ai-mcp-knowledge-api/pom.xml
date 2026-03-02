@@ -45,6 +45,12 @@
             <artifactId>spring-web</artifactId>
         </dependency>
 
+        <!-- Reactor Core（接口返回 Flux/Mono） -->
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-core</artifactId>
+        </dependency>
+
         <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
