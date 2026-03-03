@@ -50,7 +50,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.net.URI;
+import java.time.Duration;
 import java.time.format.DateTimeFormatter;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -813,17 +818,17 @@ public class GatewayManageController implements IGatewayManageService {
         }
         int timeout = tool.getTimeout() == null ? 5000 : tool.getTimeout();
         try {
-            java.net.http.HttpClient client = java.net.http.HttpClient.newBuilder()
-                    .connectTimeout(java.time.Duration.ofMillis(timeout))
+            HttpClient client = HttpClient.newBuilder()
+                    .connectTimeout(Duration.ofMillis(timeout))
                     .build();
-            java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create(tool.getHttpUrl()))
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(tool.getHttpUrl()))
                     .method(tool.getHttpMethod() != null ? tool.getHttpMethod() : "GET",
-                            java.net.http.HttpRequest.BodyPublishers.noBody())
-                    .timeout(java.time.Duration.ofMillis(timeout))
+                            HttpRequest.BodyPublishers.noBody())
+                    .timeout(Duration.ofMillis(timeout))
                     .build();
-            java.net.http.HttpResponse<String> response = client.send(request,
-                    java.net.http.HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = client.send(request,
+                    HttpResponse.BodyHandlers.ofString());
             // 2xx 状态码表示连通
             return response.statusCode() >= 200 && response.statusCode() < 400;
         } catch (Exception e) {
