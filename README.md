@@ -27,11 +27,11 @@
 当前仓库采用单组织模式，SQL 为重建脚本（无外键，应用层负责级联约束与清理）。
 
 ## 2. 当前代码快照（基于当前工作区）
-> 统计口径：排除 `.git`、`.idea`、`node_modules`、`target` 目录（统计日期：2026-02-24）。
+> 统计口径：排除 `.git`、`.idea`、`node_modules`、`target` 目录（统计日期：2026-03-04）。
 
-- 总文件数：`1154`
-- Java 文件：`862`
-- Vue 文件：`42`
+- 总文件数：`961`
+- Java 文件：`889`
+- Vue 文件：`41`
 - TypeScript 文件：`31`
 - 后端 Controller：`27`
 - XXL Job 类：`8`（另有 `package-info`）
@@ -235,10 +235,14 @@ AgentVersion 草稿保存示例：
 ### 6.6 MCP 与工具治理
 - MCP Server 配置：`/api/mcp/servers/*`（支持 `STDIO/HTTP/SSE/WEBSOCKET`，当前运行时不支持 websocket 执行）
 - Gateway 管理：`/api/gateway/manage/*`
-- MCP Gateway 协议入口：
+- MCP Gateway 协议入口（对外）：
   - `GET /api/gateway/{gatewayId}/mcp/sse`
   - `POST /api/gateway/{gatewayId}/mcp/message?sessionId=...`
 - 工具治理：模型/会话/AgentVersion 绑定 + allowlist 过滤 + tool:invoke 权限门禁
+- 工具来源：
+  - **Dynamic MCP 工具**：来自外部 MCP Server，通过 `McpSyncClient.listTools()` 动态发现
+  - **Gateway HTTP 工具**：来自本地网关配置，通过 `GatewayToolService` 构建
+  - 两类工具由 `CompositeToolCallbackProvider` 合并后注入 ChatClient，供模型调用
 
 ### 6.7 工具审批
 - 审批接口：`/api/approvals/list|get|approve|reject`
@@ -304,6 +308,11 @@ stateDiagram-v2
 ```
 
 ### 7.3 MCP Gateway 协议交互
+
+> 注意：该接口是**对外协议入口**，供外部 MCP 客户端（如 Claude Desktop、Cursor 等）使用。
+> 前端管理台通过 `GatewayManageController` 进行配置管理，不直接对接该协议接口。
+> Agent 工具调用由 `GatewayToolCallbackProvider` 在 ChatClient 装配阶段注入，不依赖前端对接。
+
 ```mermaid
 sequenceDiagram
     participant Client as MCP Client
@@ -463,9 +472,11 @@ npm run build
 4. Gateway 客户端连不上：检查 `gatewayId` 状态、API Key 有效期、速率限制。
 
 ## 15. 已知边界
-- `McpServerType` 枚举包含 `WEBSOCKET`，但运行时当前显式不支持 websocket 客户端构建。
+- `McpServerType` 枚举包含 `WEBSOCKET`，但运行时当前显式不支持 WebSocket 客户端构建（仅保留配置语义）。
 - 数据库不使用外键，删除/状态流转一致性依赖应用层实现。
 - `mcp-tool-weixin` 当前目录仅保留日志，不是本仓库内可直接构建的子模块。
+- `McpGatewayController` 是对外 MCP 协议入口，供外部 MCP 客户端（如 Claude Desktop、Cursor）使用，前端管理台不直接对接该接口。
+- 前端仅对接管理配置态接口（`GatewayManageController`），用于网关工具的配置与管理；Agent 工具调用由 `GatewayToolCallbackProvider` 在 ChatClient 装配阶段注入。
 
 ## 16. 参考文档
 - `docs/架构说明-详细版.md`（详细架构图文，建议二次开发先读）
