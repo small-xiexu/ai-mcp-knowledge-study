@@ -1,6 +1,7 @@
 package com.xbk.knowledge.api.dto.gateway;
 
 import com.xbk.knowledge.types.common.BaseRequest;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -21,5 +22,6 @@ public class ModelBindingQueryRequest extends BaseRequest {
     /**
      * 模型ID
      */
+    @NotNull(message = "modelId 不能为空")
     private Long modelId;
 }

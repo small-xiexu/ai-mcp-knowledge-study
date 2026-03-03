@@ -30,7 +30,7 @@ public class McpGatewayRepositoryImpl implements McpGatewayRepository {
     private final IMcpGatewayDao mapper;
 
     /**
-     * 查询MCP 网关。
+     * 查询 MCP 网关。
      *
      * @param query 主键查询条件
      * @return McpGateway 查询结果（可能为空）

@@ -119,7 +119,10 @@ public class AuditService {
 
     private String resolveUserAgent() {
         HttpServletRequest request = currentRequest();
-        return request == null ? null : request.getHeader("User-Agent");
+        if (request == null) {
+            return null;
+        }
+        return request.getHeader("User-Agent");
     }
 
     /**

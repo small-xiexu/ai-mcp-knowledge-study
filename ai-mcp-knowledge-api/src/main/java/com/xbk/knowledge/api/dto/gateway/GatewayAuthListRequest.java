@@ -22,10 +22,12 @@ public class GatewayAuthListRequest extends PageRequest {
      * 网关ID
      */
     private String gatewayId;
+
     /**
      * api键关键字
      */
     private String apiKeyKeyword;
+
     /**
      * 状态
      */

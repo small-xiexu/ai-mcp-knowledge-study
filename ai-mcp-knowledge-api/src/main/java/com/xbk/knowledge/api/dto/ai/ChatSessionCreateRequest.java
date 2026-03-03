@@ -1,5 +1,6 @@
 package com.xbk.knowledge.api.dto.ai;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 import java.util.List;
@@ -15,6 +16,7 @@ public class ChatSessionCreateRequest {
     /**
      * 话标题
      */
+    @NotBlank(message = "title 不能为空")
     private String title;
 
     /**

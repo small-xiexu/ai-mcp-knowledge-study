@@ -124,8 +124,8 @@ public class GatewayManageController implements IGatewayManageService {
     @SaCheckPermission("tool:read")
     @Override
     public Result<PageResult<GatewayInstanceResponse>> listGatewayInstances(@Valid @RequestBody PageRequest request) {
-        Integer pageNum = request == null ? null : request.getPageNum();
-        Integer pageSize = request == null ? null : request.getPageSize();
+        Integer pageNum = request.getPageNum();
+        Integer pageSize = request.getPageSize();
         PageResult<McpGateway> gatewayPage = gatewayManageAppService.queryGatewayInstancePage(pageNum, pageSize);
 
         List<GatewayInstanceResponse> records = new ArrayList<>();
@@ -152,10 +152,7 @@ public class GatewayManageController implements IGatewayManageService {
     @PostMapping("/instances/save")
     @SaCheckPermission("tool:write")
     @Override
-    public Result<GatewayInstanceResponse> saveGatewayInstance(@RequestBody GatewayInstanceRequest request) {
-        if (request == null || !StringUtils.hasText(request.getGatewayName())) {
-            throw new IllegalArgumentException("gatewayName 不能为空");
-        }
+    public Result<GatewayInstanceResponse> saveGatewayInstance(@Valid @RequestBody GatewayInstanceRequest request) {
         McpGateway saved = gatewayManageAppService.saveGatewayInstance(
                 request.getId(),
                 request.getGatewayId(),
@@ -184,8 +181,8 @@ public class GatewayManageController implements IGatewayManageService {
     @PostMapping("/instances/delete")
     @SaCheckPermission("tool:write")
     @Override
-    public Result<Void> deleteGatewayInstance(@RequestBody IdRequest request) {
-        gatewayManageAppService.deleteGatewayInstance(new IdQuery(request == null ? null : request.getId()));
+    public Result<Void> deleteGatewayInstance(@Valid @RequestBody IdRequest request) {
+        gatewayManageAppService.deleteGatewayInstance(new IdQuery(request.getId()));
         return Result.success();
     }
 
@@ -203,15 +200,15 @@ public class GatewayManageController implements IGatewayManageService {
     @PostMapping("/auth/list")
     @SaCheckPermission("tool:read")
     @Override
-    public Result<PageResult<GatewayAuthResponse>> listGatewayAuth(@RequestBody GatewayAuthListRequest request) {
+    public Result<PageResult<GatewayAuthResponse>> listGatewayAuth(@Valid @RequestBody GatewayAuthListRequest request) {
         // 1、解析网关并确保网关实例存在。
-        String gatewayId = resolveGatewayId(request == null ? null : request.getGatewayId());
+        String gatewayId = resolveGatewayId(request.getGatewayId());
         gatewayManageAppService.ensureGatewayExists(gatewayId);
 
-        Integer status = request == null ? null : request.getStatus();
-        String apiKeyKeyword = request == null ? null : request.getApiKeyKeyword();
-        Integer pageNum = request == null ? null : request.getPageNum();
-        Integer pageSize = request == null ? null : request.getPageSize();
+        Integer status = request.getStatus();
+        String apiKeyKeyword = request.getApiKeyKeyword();
+        Integer pageNum = request.getPageNum();
+        Integer pageSize = request.getPageSize();
 
         // 2、由应用服务承接过滤与分页逻辑，Controller 仅负责响应结构转换。
         PageResult<McpGatewayAuth> authPage = gatewayManageAppService.queryGatewayAuthPage(
@@ -245,20 +242,17 @@ public class GatewayManageController implements IGatewayManageService {
     @PostMapping("/auth/save")
     @SaCheckPermission("tool:write")
     @Override
-    public Result<GatewayAuthResponse> saveGatewayAuth(@RequestBody SaveGatewayAuthRequest request) {
-        if (request == null) {
-            throw new IllegalArgumentException("请求参数不能为空");
-        }
+    public Result<GatewayAuthResponse> saveGatewayAuth(@Valid @RequestBody SaveGatewayAuthRequest request) {
+        Long id = request.getId();
+        String inputGatewayId = request.getGatewayId();
         String gatewayId = null;
-        if (request.getId() == null) {
-            gatewayId = resolveGatewayId(request.getGatewayId());
-            gatewayManageAppService.ensureGatewayExists(gatewayId);
-        } else if (StringUtils.hasText(request.getGatewayId())) {
-            gatewayId = resolveGatewayId(request.getGatewayId());
+        boolean shouldResolveGatewayId = id == null || StringUtils.hasText(inputGatewayId);
+        if (shouldResolveGatewayId) {
+            gatewayId = resolveGatewayId(inputGatewayId);
             gatewayManageAppService.ensureGatewayExists(gatewayId);
         }
         McpGatewayAuth saved = gatewayManageAppService.saveGatewayAuth(
-                request.getId(),
+                id,
                 gatewayId,
                 request.getApiKey(),
                 request.getRateLimit(),
@@ -283,9 +277,9 @@ public class GatewayManageController implements IGatewayManageService {
     @PostMapping("/auth/enable")
     @SaCheckPermission("tool:write")
     @Override
-    public Result<Void> enableGatewayAuth(@RequestBody IdRequest request) {
+    public Result<Void> enableGatewayAuth(@Valid @RequestBody IdRequest request) {
         return executeStatusUpdate(
-                request == null ? null : request.getId(),
+                request.getId(),
                 GatewayStatus.ENABLED.getCode(),
                 gatewayManageAppService::updateGatewayAuthStatus
         );
@@ -306,9 +300,9 @@ public class GatewayManageController implements IGatewayManageService {
     @PostMapping("/auth/disable")
     @SaCheckPermission("tool:write")
     @Override
-    public Result<Void> disableGatewayAuth(@RequestBody IdRequest request) {
+    public Result<Void> disableGatewayAuth(@Valid @RequestBody IdRequest request) {
         return executeStatusUpdate(
-                request == null ? null : request.getId(),
+                request.getId(),
                 GatewayStatus.DISABLED.getCode(),
                 gatewayManageAppService::updateGatewayAuthStatus
         );
@@ -328,15 +322,15 @@ public class GatewayManageController implements IGatewayManageService {
     @PostMapping("/tools/list")
     @SaCheckPermission("tool:read")
     @Override
-    public Result<PageResult<GatewayToolResponse>> listTools(@RequestBody ToolListRequest request) {
-        String gatewayId = resolveGatewayId(request == null ? null : request.getGatewayId());
+    public Result<PageResult<GatewayToolResponse>> listTools(@Valid @RequestBody ToolListRequest request) {
+        String gatewayId = resolveGatewayId(request.getGatewayId());
         gatewayManageAppService.ensureGatewayExists(gatewayId);
-        Integer pageNum = request == null ? null : request.getPageNum();
-        Integer pageSize = request == null ? null : request.getPageSize();
+        Integer pageNum = request.getPageNum();
+        Integer pageSize = request.getPageSize();
 
-        String toolNameKeyword = request == null ? null : request.getToolNameKeyword();
-        String toolDescriptionKeyword = request == null ? null : request.getToolDescriptionKeyword();
-        Integer statusFilter = request == null ? null : request.getStatus();
+        String toolNameKeyword = request.getToolNameKeyword();
+        String toolDescriptionKeyword = request.getToolDescriptionKeyword();
+        Integer statusFilter = request.getStatus();
 
         PageResult<McpToolRegistry> toolPage = gatewayManageAppService.queryToolPage(
                 gatewayId,
@@ -390,8 +384,8 @@ public class GatewayManageController implements IGatewayManageService {
     @PostMapping("/tools/get")
     @SaCheckPermission("tool:read")
     @Override
-    public Result<GatewayToolDetailResponse> getTool(@RequestBody IdRequest request) {
-        Long toolId = request == null ? null : request.getId();
+    public Result<GatewayToolDetailResponse> getTool(@Valid @RequestBody IdRequest request) {
+        Long toolId = request.getId();
         GatewayManageAppService.ToolDetail toolDetail = gatewayManageAppService.queryToolDetail(toolId);
 
         List<GatewayToolMappingResponse> requestMappingResponses = new ArrayList<>();
@@ -425,10 +419,7 @@ public class GatewayManageController implements IGatewayManageService {
     @PostMapping("/tools/save")
     @SaCheckPermission("tool:write")
     @Override
-    public Result<GatewayToolResponse> saveTool(@RequestBody SaveToolRequest request) {
-        if (request == null) {
-            throw new IllegalArgumentException("请求参数不能为空");
-        }
+    public Result<GatewayToolResponse> saveTool(@Valid @RequestBody SaveToolRequest request) {
         String gatewayId = resolveGatewayId(request.getGatewayId());
         gatewayManageAppService.ensureGatewayExists(gatewayId);
         GatewayManageAppService.ToolSaveCommand command = GatewayManageAppService.ToolSaveCommand.builder()
@@ -464,8 +455,8 @@ public class GatewayManageController implements IGatewayManageService {
     @PostMapping("/tools/delete")
     @SaCheckPermission("tool:write")
     @Override
-    public Result<Void> deleteTool(@RequestBody IdRequest request) {
-        gatewayManageAppService.deleteTool(new IdQuery(request == null ? null : request.getId()));
+    public Result<Void> deleteTool(@Valid @RequestBody IdRequest request) {
+        gatewayManageAppService.deleteTool(new IdQuery(request.getId()));
         return Result.success();
     }
 
@@ -484,9 +475,9 @@ public class GatewayManageController implements IGatewayManageService {
     @PostMapping("/tools/enable")
     @SaCheckPermission("tool:write")
     @Override
-    public Result<Void> enableTool(@RequestBody IdRequest request) {
+    public Result<Void> enableTool(@Valid @RequestBody IdRequest request) {
         return executeStatusUpdate(
-                request == null ? null : request.getId(),
+                request.getId(),
                 GatewayStatus.ENABLED.getCode(),
                 gatewayManageAppService::updateToolStatus
         );
@@ -507,9 +498,9 @@ public class GatewayManageController implements IGatewayManageService {
     @PostMapping("/tools/disable")
     @SaCheckPermission("tool:write")
     @Override
-    public Result<Void> disableTool(@RequestBody IdRequest request) {
+    public Result<Void> disableTool(@Valid @RequestBody IdRequest request) {
         return executeStatusUpdate(
-                request == null ? null : request.getId(),
+                request.getId(),
                 GatewayStatus.DISABLED.getCode(),
                 gatewayManageAppService::updateToolStatus
         );
@@ -531,10 +522,7 @@ public class GatewayManageController implements IGatewayManageService {
     @PostMapping("/tools/debug")
     @SaCheckPermission("tool:invoke")
     @Override
-    public Result<GatewayToolDebugResponse> debugTool(@RequestBody ToolDebugRequest request) {
-        if (request == null || !StringUtils.hasText(request.getToolName())) {
-            throw new IllegalArgumentException("toolName 不能为空");
-        }
+    public Result<GatewayToolDebugResponse> debugTool(@Valid @RequestBody ToolDebugRequest request) {
         String gatewayId = resolveGatewayId(request.getGatewayId());
         gatewayManageAppService.ensureGatewayExists(gatewayId);
 
@@ -563,10 +551,7 @@ public class GatewayManageController implements IGatewayManageService {
     @PostMapping("/bindings/model/get")
     @SaCheckPermission("tool:read")
     @Override
-    public Result<GatewayModelBindingResponse> getModelBindings(@RequestBody ModelBindingQueryRequest request) {
-        if (request == null || request.getModelId() == null) {
-            throw new IllegalArgumentException("modelId 不能为空");
-        }
+    public Result<GatewayModelBindingResponse> getModelBindings(@Valid @RequestBody ModelBindingQueryRequest request) {
         List<McpToolBinding> bindings = gatewayManageAppService.queryModelBindings(request.getModelId());
 
         List<Long> toolIds = new ArrayList<>();
@@ -601,10 +586,7 @@ public class GatewayManageController implements IGatewayManageService {
     @PostMapping("/bindings/model/save")
     @SaCheckPermission("tool:write")
     @Override
-    public Result<Void> saveModelBindings(@RequestBody SaveModelBindingRequest request) {
-        if (request == null || request.getModelId() == null) {
-            throw new IllegalArgumentException("modelId 不能为空");
-        }
+    public Result<Void> saveModelBindings(@Valid @RequestBody SaveModelBindingRequest request) {
         gatewayManageAppService.saveModelBindings(request.getModelId(), request.getToolIds());
         return Result.success();
     }
@@ -674,12 +656,12 @@ public class GatewayManageController implements IGatewayManageService {
     @PostMapping("/metrics/overview")
     @SaCheckPermission("tool:read")
     @Override
-    public Result<GatewayMetricsResponse> queryGatewayMetrics(@RequestBody GatewayMetricsQueryRequest request) {
+    public Result<GatewayMetricsResponse> queryGatewayMetrics(@Valid @RequestBody GatewayMetricsQueryRequest request) {
         GatewayObservabilityAppService.GatewayMetricsReport report = gatewayObservabilityAppService.queryMetrics(
                 new GatewayObservabilityAppService.MetricsQuery(
-                        resolveGatewayId(request == null ? null : request.getGatewayId()),
-                        request == null ? null : request.getToolName(),
-                        request == null ? null : request.getRecentMinutes()
+                        resolveGatewayId(request.getGatewayId()),
+                        request.getToolName(),
+                        request.getRecentMinutes()
                 )
         );
         List<GatewayMetricsResponse.ToolMetricsSnapshot> toolMetrics = new ArrayList<>();
@@ -741,13 +723,13 @@ public class GatewayManageController implements IGatewayManageService {
     @PostMapping("/tools/refresh")
     @SaCheckPermission("tool:write")
     @Override
-    public Result<GatewayToolRefreshResponse> refreshTools(@RequestBody RefreshToolsRequest request) {
+    public Result<GatewayToolRefreshResponse> refreshTools(@Valid @RequestBody RefreshToolsRequest request) {
         // 1. 解析网关标识并校验网关存在
-        String gatewayId = resolveGatewayId(request == null ? null : request.getGatewayId());
+        String gatewayId = resolveGatewayId(request.getGatewayId());
         gatewayManageAppService.ensureGatewayExists(gatewayId);
 
         // 2. 查询待刷新的工具列表（支持单个工具或网关下全部工具）
-        Long toolId = request == null ? null : request.getToolId();
+        Long toolId = request.getToolId();
         List<McpToolRegistry> toolsToRefresh = gatewayManageAppService.queryToolsForRefresh(gatewayId, toolId);
 
         // 3. 空列表直接返回
@@ -955,10 +937,26 @@ public class GatewayManageController implements IGatewayManageService {
                 .build();
     }
 
+    /**
+     * 解析网关 ID。
+     *
+     * 处理规则：
+     * 1、如果传入 null、空字符串或空白字符串，返回默认网关 ID（{@value #DEFAULT_GATEWAY_ID}）
+     * 2、否则去除首尾空格后返回原值
+     *
+     * 设计意图：
+     * 1、单网关部署场景下，调用方可以省略 gatewayId 参数
+     * 2、容错处理：自动去除用户误输入的首尾空格
+     *
+     * @param gatewayId 网关 ID（可为空）
+     * @return 解析后的网关 ID
+     */
     private String resolveGatewayId(String gatewayId) {
+        // 空值时返回默认网关 ID
         if (!StringUtils.hasText(gatewayId)) {
             return DEFAULT_GATEWAY_ID;
         }
+        // 去除首尾空格
         return gatewayId.trim();
     }
 

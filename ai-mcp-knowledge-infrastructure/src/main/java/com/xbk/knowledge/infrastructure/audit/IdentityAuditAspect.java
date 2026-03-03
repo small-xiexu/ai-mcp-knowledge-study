@@ -118,7 +118,10 @@ public class IdentityAuditAspect {
         String action = joinPoint.getSignature().getName();
         String eventType = resolveEventType(request);
         String sourceIp = resolveSourceIp(request);
-        String userAgent = request == null ? null : request.getHeader("User-Agent");
+        String userAgent = null;
+        if (request != null) {
+            userAgent = request.getHeader("User-Agent");
+        }
         String oldValue = toJsonSafe(buildOldValue(args, eventType));
         Object result = null;
         int executeResult = SUCCESS;

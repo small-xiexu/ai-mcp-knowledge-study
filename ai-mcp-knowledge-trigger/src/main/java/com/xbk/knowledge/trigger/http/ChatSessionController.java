@@ -20,6 +20,7 @@ import com.xbk.knowledge.types.exception.NotFoundException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -64,7 +65,7 @@ public class ChatSessionController implements IChatSessionService {
     @PostMapping
     @SaCheckPermission("agent:write")
     @Override
-    public Result<ChatSessionResponse> createSession(@RequestBody ChatSessionCreateRequest request) {
+    public Result<ChatSessionResponse> createSession(@Valid @RequestBody ChatSessionCreateRequest request) {
         // 将请求 DTO 转为领域实体，保持领域层不依赖接口层结构
         ChatSession session = ChatSession.builder()
                 .title(request.getTitle())
@@ -92,11 +93,8 @@ public class ChatSessionController implements IChatSessionService {
     @PostMapping("/update")
     @SaCheckPermission("agent:write")
     @Override
-    public Result<ChatSessionResponse> updateSession(@RequestBody ChatSessionUpdateRequest request) {
-        Long id = request == null ? null : request.getId();
-        if (id == null) {
-            throw new IllegalArgumentException("会话ID不能为空");
-        }
+    public Result<ChatSessionResponse> updateSession(@Valid @RequestBody ChatSessionUpdateRequest request) {
+        Long id = request.getId();
         ChatSession existing = chatSessionAppService.getSession(id);
         if (existing == null) {
             throw new NotFoundException("会话不存在");
@@ -125,7 +123,7 @@ public class ChatSessionController implements IChatSessionService {
     @PostMapping("/delete")
     @SaCheckPermission("agent:write")
     @Override
-    public Result<Void> deleteSession(@RequestBody IdRequest request) {
+    public Result<Void> deleteSession(@Valid @RequestBody IdRequest request) {
         Long id = request.getId();
         chatSessionAppService.deleteSession(id);
         return Result.success(null);
@@ -148,11 +146,8 @@ public class ChatSessionController implements IChatSessionService {
     @PostMapping("/detail")
     @SaCheckPermission("agent:read")
     @Override
-    public Result<ChatSessionResponse> getSession(@RequestBody IdRequest request) {
-        Long id = request == null ? null : request.getId();
-        if (id == null) {
-            throw new IllegalArgumentException("会话ID不能为空");
-        }
+    public Result<ChatSessionResponse> getSession(@Valid @RequestBody IdRequest request) {
+        Long id = request.getId();
         ChatSession session = chatSessionAppService.getSession(id);
         if (session == null) {
             throw new NotFoundException("会话不存在");
@@ -177,10 +172,10 @@ public class ChatSessionController implements IChatSessionService {
     @PostMapping("/list")
     @SaCheckPermission("agent:read")
     @Override
-    public Result<PageResult<ChatSessionResponse>> listSessions(@RequestBody PageRequest request) {
+    public Result<PageResult<ChatSessionResponse>> listSessions(@Valid @RequestBody PageRequest request) {
         return PageQueryExecutor.executeByPageNum(
-                request == null ? null : request.getPageNum(),
-                request == null ? null : request.getPageSize(),
+                request.getPageNum(),
+                request.getPageSize(),
                 chatSessionAppService::listSessions,
                 this::toSessionResponse
         );
@@ -205,7 +200,7 @@ public class ChatSessionController implements IChatSessionService {
     @SaCheckPermission("agent:write")
     @Override
     public Result<ChatMessageResponse> appendMessage(@PathVariable("id") Long id,
-                                                     @RequestBody ChatMessageCreateRequest request) {
+                                                     @Valid @RequestBody ChatMessageCreateRequest request) {
         // 从请求构建领域消息，防止接口层字段直接流入持久层
         ChatMessage message = ChatMessage.builder()
                 .sessionId(id)
@@ -234,11 +229,11 @@ public class ChatSessionController implements IChatSessionService {
     @PostMapping("/messages/list")
     @SaCheckPermission("agent:read")
     @Override
-    public Result<PageResult<ChatMessageResponse>> listMessages(@RequestBody ChatMessagePageRequest request) {
-        Long sessionId = request == null ? null : request.getSessionId();
+    public Result<PageResult<ChatMessageResponse>> listMessages(@Valid @RequestBody ChatMessagePageRequest request) {
+        Long sessionId = request.getSessionId();
         return PageQueryExecutor.executeByPageNum(
-                request == null ? null : request.getPageNum(),
-                request == null ? null : request.getPageSize(),
+                request.getPageNum(),
+                request.getPageSize(),
                 (pageNum, pageSize) -> chatSessionAppService.listMessages(sessionId, pageNum, pageSize),
                 this::toMessageResponse
         );
@@ -261,7 +256,7 @@ public class ChatSessionController implements IChatSessionService {
     @PostMapping("/messages/delete")
     @SaCheckPermission("agent:write")
     @Override
-    public Result<Void> deleteMessages(@RequestBody IdRequest request) {
+    public Result<Void> deleteMessages(@Valid @RequestBody IdRequest request) {
         Long id = request.getId();
         chatSessionAppService.deleteMessages(id);
         return Result.success(null);

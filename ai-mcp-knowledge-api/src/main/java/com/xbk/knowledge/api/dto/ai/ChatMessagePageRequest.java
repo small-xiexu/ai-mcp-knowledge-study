@@ -1,6 +1,7 @@
 package com.xbk.knowledge.api.dto.ai;
 
 import com.xbk.knowledge.types.common.PageRequest;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -21,5 +22,6 @@ public class ChatMessagePageRequest extends PageRequest {
     /**
      * 会话 ID
      */
+    @NotNull(message = "sessionId 不能为空")
     private Long sessionId;
 }

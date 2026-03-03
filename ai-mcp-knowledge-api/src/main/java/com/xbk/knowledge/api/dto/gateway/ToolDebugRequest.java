@@ -1,6 +1,7 @@
 package com.xbk.knowledge.api.dto.gateway;
 
 import com.xbk.knowledge.types.common.BaseRequest;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -27,6 +28,7 @@ public class ToolDebugRequest extends BaseRequest {
     /**
      * 工具名称
      */
+    @NotBlank(message = "toolName 不能为空")
     private String toolName;
     /**
      * arguments

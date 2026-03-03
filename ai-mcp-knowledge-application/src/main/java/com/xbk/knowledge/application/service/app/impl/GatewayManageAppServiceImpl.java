@@ -90,34 +90,17 @@ public class GatewayManageAppServiceImpl implements GatewayManageAppService {
     private final ModelConfigRepository modelConfigRepository;
 
     /**
-     * 确保网关存在，不存在时自动创建默认实例。
+     * 确保网关存在，不存在时抛出异常。
      *
      * @param gatewayId 网关 ID。
-     * @return 已存在或新建的网关实例。
+     * @return 已存在的网关实例。
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public McpGateway ensureGatewayExists(String gatewayId) {
         String resolvedGatewayId = resolveGatewayId(gatewayId);
-        McpGateway existing = gatewayRepository.findByGatewayId(new GatewayIdQuery(resolvedGatewayId)).orElse(null);
-        if (existing != null) {
-            return existing;
-        }
-
-        McpGateway gateway = new McpGateway();
-        gateway.setGatewayId(resolvedGatewayId);
-        gateway.setGatewayName("默认网关");
-        gateway.setGatewayDesc("系统自动创建的默认网关实例");
-        gateway.setGatewayVersion("1.0.0");
-        gateway.setGatewayInstructions("单网关模式默认实例");
-        gateway.setStatus(1);
-        gateway.setCreatedAt(LocalDateTime.now());
-        gateway.setUpdatedAt(LocalDateTime.now());
-        try {
-            return gatewayRepository.save(gateway);
-        } catch (Exception e) {
-            return gatewayRepository.findByGatewayId(new GatewayIdQuery(resolvedGatewayId)).orElse(gateway);
-        }
+        return gatewayRepository.findByGatewayId(new GatewayIdQuery(resolvedGatewayId))
+                .orElseThrow(() -> new NotFoundException("网关不存在: " + resolvedGatewayId));
     }
 
     /**

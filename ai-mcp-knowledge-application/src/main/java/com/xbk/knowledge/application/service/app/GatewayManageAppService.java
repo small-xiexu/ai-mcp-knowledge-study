@@ -25,10 +25,10 @@ import lombok.NoArgsConstructor;
 public interface GatewayManageAppService {
 
     /**
-     * 确保网关存在，不存在时自动创建默认实例。
+     * 确保网关存在，不存在时抛出异常。
      *
      * @param gatewayId 网关 ID
-     * @return 已存在或新建的网关实例
+     * @return 已存在的网关实例
      */
     McpGateway ensureGatewayExists(String gatewayId);
 

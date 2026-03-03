@@ -1,5 +1,6 @@
 package com.xbk.knowledge.api.dto.ai;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.util.List;
@@ -15,6 +16,7 @@ public class ChatSessionUpdateRequest {
     /**
      * 会话 ID
      */
+    @NotNull(message = "id 不能为空")
     private Long id;
 
     /**

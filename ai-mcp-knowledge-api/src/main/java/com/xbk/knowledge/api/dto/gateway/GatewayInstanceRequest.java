@@ -1,6 +1,7 @@
 package com.xbk.knowledge.api.dto.gateway;
 
 import com.xbk.knowledge.types.common.BaseRequest;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -29,6 +30,7 @@ public class GatewayInstanceRequest extends BaseRequest {
     /**
      * 网关名称
      */
+    @NotBlank(message = "gatewayName 不能为空")
     private String gatewayName;
     /**
      * 网关描述
