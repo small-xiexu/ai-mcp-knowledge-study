@@ -64,7 +64,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.slf4j.MDC;
 
 /**
  * Agent 运行入口应用服务实现。
@@ -390,9 +389,8 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                 .build();
         agentRunRepository.insert(run);
 
-        String prev = MDC.get(TraceIdUtils.TRACE_ID_KEY);
-        MDC.put(TraceIdUtils.TRACE_ID_KEY, runId);
-        try {
+        // 使用 runId 作为 traceId 执行 workflow，自动管理 MDC 上下文
+        return TraceIdUtils.runWithTraceId(runId, () -> {
             PlatformContractV1 contract = workflowRuntimeAppService.run(wf.getWorkflowCode(),
                     sessionId,
                     content,
@@ -425,13 +423,7 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
                 meta.setAgentVersionNo(version.getVersionNo());
             }
             return contract;
-        } finally {
-            if (prev == null) {
-                MDC.remove(TraceIdUtils.TRACE_ID_KEY);
-            } else {
-                MDC.put(TraceIdUtils.TRACE_ID_KEY, prev);
-            }
-        }
+        });
     }
 
     private PlatformContractV1 chatByClientChain(String agentCode,

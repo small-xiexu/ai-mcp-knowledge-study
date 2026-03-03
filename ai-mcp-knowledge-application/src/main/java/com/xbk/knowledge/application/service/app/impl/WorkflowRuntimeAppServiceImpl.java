@@ -44,7 +44,6 @@ import com.xbk.knowledge.types.tool.ToolInvokeBypassContextHolder;
 import com.xbk.knowledge.types.trace.TraceIdUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.MDC;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.api.CallAdvisor;
 import org.springframework.ai.chat.messages.SystemMessage;
@@ -1138,20 +1137,16 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
         ToolCallback tool = findToolByKey(toolKey)
                 .orElseThrow(() -> new NotFoundException("未找到目标工具回调，toolKey=" + toolKey));
 
-        String previousTraceId = MDC.get(TraceIdUtils.TRACE_ID_KEY);
-        MDC.put(TraceIdUtils.TRACE_ID_KEY, runId);
-        ToolInvokeBypassContextHolder.enable();
-        try {
-            String args = StringUtils.hasText(argumentsSnapshotJson) ? argumentsSnapshotJson : "{}";
-            return tool.call(args);
-        } finally {
-            ToolInvokeBypassContextHolder.clear();
-            if (previousTraceId == null) {
-                MDC.remove(TraceIdUtils.TRACE_ID_KEY);
-            } else {
-                MDC.put(TraceIdUtils.TRACE_ID_KEY, previousTraceId);
+        // 使用 runId 作为 traceId 执行工具调用，自动管理 MDC 上下文
+        return TraceIdUtils.runWithTraceId(runId, () -> {
+            ToolInvokeBypassContextHolder.enable();
+            try {
+                String args = StringUtils.hasText(argumentsSnapshotJson) ? argumentsSnapshotJson : "{}";
+                return tool.call(args);
+            } finally {
+                ToolInvokeBypassContextHolder.clear();
             }
-        }
+        });
     }
 
     private PlatformContractV1 repairOnce(ChatClient client, String invalidOutput) {

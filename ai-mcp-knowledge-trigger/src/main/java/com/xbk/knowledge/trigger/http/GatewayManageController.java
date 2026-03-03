@@ -38,10 +38,11 @@ import com.xbk.knowledge.domain.gateway.service.GatewayToolService;
 import com.xbk.knowledge.types.common.PageRequest;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.common.Result;
+import com.xbk.knowledge.types.enums.GatewayStatus;
+import com.xbk.knowledge.trigger.annotation.GatewayToolCall;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.MDC;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -55,7 +56,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.function.BiConsumer;
 
 /**
@@ -80,12 +80,12 @@ public class GatewayManageController implements IGatewayManageService {
     private static final String CALL_ID_MDC_KEY = "gatewayToolCallId";
 
     /**
-     * 工具列表“最近调用”查询窗口（分钟）。
+     * 工具列表"最近调用"查询窗口（分钟）。
      */
     private static final int TOOL_LIST_RECENT_MINUTES = 24 * 60;
 
     /**
-     * 工具列表“最近调用”时间格式。
+     * 工具列表"最近调用"时间格式。
      */
     private static final DateTimeFormatter TOOL_LAST_CALL_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -112,7 +112,7 @@ public class GatewayManageController implements IGatewayManageService {
      * 3. Controller 委托 `gatewayManageAppService.queryGatewayInstancePage` 查询分页数据。
      * 4. 逐条补充工具数量等展示字段，组装列表行数据。
      * 5. 统一封装 `PageResult` 并返回 `Result.success`。
-     * 
+     *
      * @param request 网关管理分页查询参数。
      */
     @PostMapping("/instances/list")
@@ -141,7 +141,7 @@ public class GatewayManageController implements IGatewayManageService {
      * 3. Controller 委托 `gatewayManageAppService.saveGatewayInstance` 执行保存。
      * 4. Controller 查询工具数量并补齐展示字段。
      * 5. 转换为展示结构并统一封装返回。
-     * 
+     *
      * @param request 网关管理保存参数。
      */
     @PostMapping("/instances/save")
@@ -172,7 +172,7 @@ public class GatewayManageController implements IGatewayManageService {
      * 3. Controller 调用 `gatewayManageAppService.deleteGatewayInstance`。
      * 4. 应用层执行关联数据清理与删除。
      * 5. 统一封装空成功结果返回。
-     * 
+     *
      * @param request 网关实例删除参数。
      * @return 网关实例删除状态。
      */
@@ -192,7 +192,7 @@ public class GatewayManageController implements IGatewayManageService {
      * 3. 委托应用服务执行凭证过滤与分页。
      * 4. Controller 将领域对象转换为前端展示结构。
      * 5. 统一封装 `PageResult` 返回。
-     * 
+     *
      * @param request 网关管理分页查询参数。
      */
     @PostMapping("/auth/list")
@@ -234,7 +234,7 @@ public class GatewayManageController implements IGatewayManageService {
      * 3. Controller 处理 gatewayId 的默认与网关存在性保障。
      * 4. 应用服务执行凭证保存、唯一性校验与状态/限流规则处理。
      * 5. 转换为凭证视图结构并统一封装返回。
-     * 
+     *
      * @param request 网关管理保存参数。
      */
     @PostMapping("/auth/save")
@@ -268,10 +268,10 @@ public class GatewayManageController implements IGatewayManageService {
      * 流程：
      * 1. 进入接口后执行 `tool:write` 权限校验。
      * 2. Spring 绑定请求体并提取 id。
-     * 3. Controller 调用统一方法 `executeStatusUpdate(id, 1, ...)`。
+     * 3. Controller 调用统一方法 `executeStatusUpdate(id, GatewayStatus.ENABLED.getCode(), ...)`。
      * 4. 统一方法委托应用服务校验凭证存在并更新状态为启用。
      * 5. 返回统一成功结果。
-     * 
+     *
      * @param request 网关凭证启用参数。
      * @return 网关凭证启用状态。
      */
@@ -281,7 +281,7 @@ public class GatewayManageController implements IGatewayManageService {
     public Result<Void> enableGatewayAuth(@RequestBody IdRequest request) {
         return executeStatusUpdate(
                 request == null ? null : request.getId(),
-                1,
+                GatewayStatus.ENABLED.getCode(),
                 gatewayManageAppService::updateGatewayAuthStatus
         );
     }
@@ -291,10 +291,10 @@ public class GatewayManageController implements IGatewayManageService {
      * 流程：
      * 1. 进入接口后执行 `tool:write` 权限校验。
      * 2. Spring 绑定请求体并提取 id。
-     * 3. Controller 调用统一方法 `executeStatusUpdate(id, 0, ...)`。
+     * 3. Controller 调用统一方法 `executeStatusUpdate(id, GatewayStatus.DISABLED.getCode(), ...)`。
      * 4. 统一方法委托应用服务校验凭证存在并更新状态为禁用。
      * 5. 返回统一成功结果。
-     * 
+     *
      * @param request 网关凭证禁用参数。
      * @return 网关凭证禁用状态。
      */
@@ -304,7 +304,7 @@ public class GatewayManageController implements IGatewayManageService {
     public Result<Void> disableGatewayAuth(@RequestBody IdRequest request) {
         return executeStatusUpdate(
                 request == null ? null : request.getId(),
-                0,
+                GatewayStatus.DISABLED.getCode(),
                 gatewayManageAppService::updateGatewayAuthStatus
         );
     }
@@ -379,7 +379,7 @@ public class GatewayManageController implements IGatewayManageService {
      * 3. 委托应用服务查询工具主记录与 request/response 映射。
      * 4. Controller 负责将领域对象转换为详情响应结构。
      * 5. 统一封装 `Result.success` 返回。
-     * 
+     *
      * @param request 工具详情查询参数。
      */
     @PostMapping("/tools/get")
@@ -414,7 +414,7 @@ public class GatewayManageController implements IGatewayManageService {
      * 3. Controller 将请求体转换为应用服务命令对象。
      * 4. 应用服务执行新增/更新、映射重建与 schema 清理。
      * 5. 返回保存后的工具视图数据。
-     * 
+     *
      * @param request 网关管理保存参数。
      */
     @PostMapping("/tools/save")
@@ -452,7 +452,7 @@ public class GatewayManageController implements IGatewayManageService {
      * 3. Controller 调用 `gatewayManageAppService.deleteTool`。
      * 4. 应用层执行工具与关联映射/绑定清理。
      * 5. 统一封装空成功结果返回。
-     * 
+     *
      * @param request 工具删除参数。
      * @return 工具删除状态。
      */
@@ -469,10 +469,10 @@ public class GatewayManageController implements IGatewayManageService {
      * 流程：
      * 1. 进入接口后执行 `tool:write` 权限校验。
      * 2. Spring 绑定请求体并校验 id 非空。
-     * 3. Controller 调用统一方法 `executeStatusUpdate(id, 1, ...)`。
+     * 3. Controller 调用统一方法 `executeStatusUpdate(id, GatewayStatus.ENABLED.getCode(), ...)`。
      * 4. 统一方法委托应用服务校验工具并更新状态为启用。
      * 5. 返回统一成功结果。
-     * 
+     *
      * @param request 工具启用参数。
      * @return 工具启用状态。
      */
@@ -482,7 +482,7 @@ public class GatewayManageController implements IGatewayManageService {
     public Result<Void> enableTool(@RequestBody IdRequest request) {
         return executeStatusUpdate(
                 request == null ? null : request.getId(),
-                1,
+                GatewayStatus.ENABLED.getCode(),
                 gatewayManageAppService::updateToolStatus
         );
     }
@@ -492,10 +492,10 @@ public class GatewayManageController implements IGatewayManageService {
      * 流程：
      * 1. 进入接口后执行 `tool:write` 权限校验。
      * 2. Spring 绑定请求体并校验 id 非空。
-     * 3. Controller 调用统一方法 `executeStatusUpdate(id, 0, ...)`。
+     * 3. Controller 调用统一方法 `executeStatusUpdate(id, GatewayStatus.DISABLED.getCode(), ...)`。
      * 4. 统一方法委托应用服务校验工具并更新状态为禁用。
      * 5. 返回统一成功结果。
-     * 
+     *
      * @param request 工具禁用参数。
      * @return 工具禁用状态。
      */
@@ -505,7 +505,7 @@ public class GatewayManageController implements IGatewayManageService {
     public Result<Void> disableTool(@RequestBody IdRequest request) {
         return executeStatusUpdate(
                 request == null ? null : request.getId(),
-                0,
+                GatewayStatus.DISABLED.getCode(),
                 gatewayManageAppService::updateToolStatus
         );
     }
@@ -515,12 +515,14 @@ public class GatewayManageController implements IGatewayManageService {
      * 流程：
      * 1. 进入接口后执行 `tool:invoke` 权限校验。
      * 2. Spring 绑定请求体并校验 `toolName` 必填。
-     * 3. 解析 gatewayId、准备调用参数并写入 callId 到 MDC。
-     * 4. 调用 `gatewayToolService.callTool` 执行工具并记录耗时日志。
-     * 5. 组装 success/content/errorCode 并统一封装返回。
-     * 
+     * 3. 解析 gatewayId、准备调用参数。
+     * 4. 切面自动记录 gatewayToolCallId 和工具调用日志。
+     * 5. 调用 `gatewayToolService.callTool` 执行工具。
+     * 6. 组装 success/content/errorCode 并统一封装返回。
+     *
      * @param request 网关管理调用参数。
      */
+    @GatewayToolCall
     @PostMapping("/tools/debug")
     @SaCheckPermission("tool:invoke")
     @Override
@@ -532,34 +534,7 @@ public class GatewayManageController implements IGatewayManageService {
         gatewayManageAppService.ensureGatewayExists(gatewayId);
 
         Map<String, Object> arguments = request.getArguments() == null ? Collections.emptyMap() : request.getArguments();
-        String callId = UUID.randomUUID().toString().replace("-", "");
-        long startAt = System.nanoTime();
-        String previousCallId = MDC.get(CALL_ID_MDC_KEY);
-        MDC.put(CALL_ID_MDC_KEY, callId);
-        log.info("gateway_tool_call source=DEBUG stage=start callId={} gatewayId={} toolName={} argsKeys={}",
-                callId,
-                gatewayId,
-                request.getToolName(),
-                arguments.keySet());
-        GatewayToolService.ToolCallResult callResult;
-        try {
-            callResult = gatewayToolService.callTool(gatewayId, request.getToolName(), arguments);
-        } finally {
-            if (StringUtils.hasText(previousCallId)) {
-                MDC.put(CALL_ID_MDC_KEY, previousCallId);
-            } else {
-                MDC.remove(CALL_ID_MDC_KEY);
-            }
-        }
-        long latencyMs = (System.nanoTime() - startAt) / 1_000_000;
-        log.info("gateway_tool_call source=DEBUG stage=end callId={} gatewayId={} toolName={} argsKeys={} success={} errorCode={} latencyMs={}",
-                callId,
-                gatewayId,
-                request.getToolName(),
-                arguments.keySet(),
-                callResult.success(),
-                callResult.errorCode(),
-                latencyMs);
+        GatewayToolService.ToolCallResult callResult = gatewayToolService.callTool(gatewayId, request.getToolName(), arguments);
 
         GatewayToolDebugResponse data = GatewayToolDebugResponse.builder()
                 .success(callResult.success())
@@ -577,7 +552,7 @@ public class GatewayManageController implements IGatewayManageService {
      * 3. 查询 MODEL 维度绑定记录并过滤掉禁用项。
      * 4. 汇总 toolId 列表并计算 `globalVisible` 标记。
      * 5. 统一封装 `Result.success` 返回。
-     * 
+     *
      * @param request 网关管理查询参数。
      */
     @PostMapping("/bindings/model/get")
@@ -611,10 +586,10 @@ public class GatewayManageController implements IGatewayManageService {
      * 流程：
      * 1. 进入接口后执行 `tool:write` 权限校验。
      * 2. Spring 绑定请求体并校验 `modelId` 非空。
-     * 3. 先删除该模型历史绑定，保证保存语义为“全量覆盖”。
+     * 3. 先删除该模型历史绑定，保证保存语义为"全量覆盖"。
      * 4. 遍历 toolIds 校验工具存在后逐条创建绑定记录。
      * 5. 统一封装空成功结果返回。
-     * 
+     *
      * @param request 网关管理保存参数。
      * @return 模型工具绑定保存状态。
      */

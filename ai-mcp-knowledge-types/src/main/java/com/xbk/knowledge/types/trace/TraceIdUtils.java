@@ -5,6 +5,7 @@ import lombok.Getter;
 import org.slf4j.MDC;
 
 import java.util.UUID;
+import java.util.function.Supplier;
 
 /**
  * TraceId 工具类
@@ -69,8 +70,35 @@ public final class TraceIdUtils {
     }
 
     /**
+     * 在指定 traceId 上下文中执行任务
+     *
+     * 自动管理 MDC 的保存、设置和恢复，确保线程安全
+     *
+     * @param traceId 追踪 ID
+     * @param action 要执行的操作
+     * @return 操作结果
+     */
+    public static <T> T runWithTraceId(String traceId, Supplier<T> action) {
+        if (traceId == null || traceId.trim().isEmpty()) {
+            return action.get();
+        }
+
+        String previous = MDC.get(TRACE_ID_KEY);
+        MDC.put(TRACE_ID_KEY, traceId);
+        try {
+            return action.get();
+        } finally {
+            if (previous == null) {
+                MDC.remove(TRACE_ID_KEY);
+            } else {
+                MDC.put(TRACE_ID_KEY, previous);
+            }
+        }
+    }
+
+    /**
      * 生成 16 位 traceId。
-     * 
+     *
      * @return traceId
      */
     private static String generateTraceId() {

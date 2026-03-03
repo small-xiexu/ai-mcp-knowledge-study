@@ -35,7 +35,6 @@ import com.xbk.knowledge.types.tool.ToolKeyAware;
 import com.xbk.knowledge.types.tool.ToolInvokeBypassContextHolder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.MDC;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
@@ -422,21 +421,16 @@ public class ApprovalAppServiceImpl implements ApprovalAppService {
         ToolCallback tool = findToolByKey(toolKey)
                 .orElseThrow(() -> new NotFoundException("未找到目标工具回调，toolKey=" + toolKey));
 
-        // 强制 runId 贯穿工具调用日志与审计
-        String previousTraceId = MDC.get(TraceIdUtils.TRACE_ID_KEY);
-        MDC.put(TraceIdUtils.TRACE_ID_KEY, runId);
-        ToolInvokeBypassContextHolder.enable();
-        try {
-            String args = StringUtils.hasText(argumentsSnapshotJson) ? argumentsSnapshotJson : "{}";
-            return tool.call(args);
-        } finally {
-            ToolInvokeBypassContextHolder.clear();
-            if (previousTraceId == null) {
-                MDC.remove(TraceIdUtils.TRACE_ID_KEY);
-            } else {
-                MDC.put(TraceIdUtils.TRACE_ID_KEY, previousTraceId);
+        // 使用 runId 作为 traceId 执行工具调用，自动管理 MDC 上下文
+        return TraceIdUtils.runWithTraceId(runId, () -> {
+            ToolInvokeBypassContextHolder.enable();
+            try {
+                String args = StringUtils.hasText(argumentsSnapshotJson) ? argumentsSnapshotJson : "{}";
+                return tool.call(args);
+            } finally {
+                ToolInvokeBypassContextHolder.clear();
             }
-        }
+        });
     }
 
     private Optional<ToolCallback> findToolByKey(String toolKey) {
