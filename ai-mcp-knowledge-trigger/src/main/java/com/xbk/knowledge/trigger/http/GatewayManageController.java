@@ -742,11 +742,15 @@ public class GatewayManageController implements IGatewayManageService {
     @SaCheckPermission("tool:write")
     @Override
     public Result<GatewayToolRefreshResponse> refreshTools(@RequestBody RefreshToolsRequest request) {
+        // 1. 解析网关标识并校验网关存在
         String gatewayId = resolveGatewayId(request == null ? null : request.getGatewayId());
         gatewayManageAppService.ensureGatewayExists(gatewayId);
+
+        // 2. 查询待刷新的工具列表（支持单个工具或网关下全部工具）
         Long toolId = request == null ? null : request.getToolId();
         List<McpToolRegistry> toolsToRefresh = gatewayManageAppService.queryToolsForRefresh(gatewayId, toolId);
 
+        // 3. 空列表直接返回
         if (CollectionUtils.isEmpty(toolsToRefresh)) {
             GatewayToolRefreshResponse emptyResult = GatewayToolRefreshResponse.builder()
                     .gatewayId(gatewayId)
@@ -758,6 +762,7 @@ public class GatewayManageController implements IGatewayManageService {
             return Result.success("没有需要刷新的工具", emptyResult);
         }
 
+        // 4. 逐个执行连通性测试
         List<GatewayToolRefreshResponse.RefreshDetail> details = new ArrayList<>();
         int successCount = 0;
         int failedCount = 0;
@@ -766,6 +771,7 @@ public class GatewayManageController implements IGatewayManageService {
             if (tool == null) {
                 continue;
             }
+            // 4.1 构建详情记录
             GatewayToolRefreshResponse.RefreshDetail.RefreshDetailBuilder detailBuilder =
                     GatewayToolRefreshResponse.RefreshDetail.builder()
                             .toolId(tool.getId())
@@ -773,8 +779,8 @@ public class GatewayManageController implements IGatewayManageService {
                             .httpMethod(tool.getHttpMethod())
                             .httpUrl(tool.getHttpUrl());
 
+            // 4.2 执行 HTTP 连通性测试
             try {
-                // 执行 HTTP 连通性测试（HEAD 请求或超时限制的 GET 请求）
                 boolean isReachable = testHttpConnectivity(tool);
                 detailBuilder.reachable(isReachable)
                         .message(isReachable ? "连通" : "不可达");
@@ -794,6 +800,7 @@ public class GatewayManageController implements IGatewayManageService {
             details.add(detailBuilder.build());
         }
 
+        // 5. 封装返回结果
         GatewayToolRefreshResponse result = GatewayToolRefreshResponse.builder()
                 .gatewayId(gatewayId)
                 .refreshedCount(toolsToRefresh.size())
