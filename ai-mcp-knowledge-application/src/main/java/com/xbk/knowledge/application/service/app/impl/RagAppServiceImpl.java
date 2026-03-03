@@ -11,6 +11,7 @@ import com.xbk.knowledge.domain.rag.adapter.repository.RagTaskRepository;
 import com.xbk.knowledge.types.common.PageParamUtils;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.enums.RagTaskStatus;
+import com.xbk.knowledge.types.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
@@ -338,7 +339,7 @@ public class RagAppServiceImpl implements RagAppService {
     public String retryTask(String taskId) {
         RagTask task = ragTaskRepository.findByTaskId(taskId);
         if (task == null) {
-            throw new IllegalArgumentException("任务不存在: " + taskId);
+            throw new NotFoundException("任务不存在: " + taskId);
         }
 
         // 限制可重试状态，避免错误重试

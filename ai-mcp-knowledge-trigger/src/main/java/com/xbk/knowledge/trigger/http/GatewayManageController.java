@@ -4,16 +4,27 @@ import com.xbk.knowledge.api.IGatewayManageService;
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.xbk.knowledge.api.dto.common.IdRequest;
 import com.xbk.knowledge.api.dto.gateway.GatewayAuthListRequest;
+import com.xbk.knowledge.api.dto.gateway.GatewayAuthResponse;
 import com.xbk.knowledge.api.dto.gateway.GatewayInstanceRequest;
+import com.xbk.knowledge.api.dto.gateway.GatewayInstanceResponse;
 import com.xbk.knowledge.api.dto.gateway.GatewayMetricsQueryRequest;
+import com.xbk.knowledge.api.dto.gateway.GatewayMetricsResponse;
+import com.xbk.knowledge.api.dto.gateway.GatewayModelBindingResponse;
+import com.xbk.knowledge.api.dto.gateway.GatewayModelOptionResponse;
+import com.xbk.knowledge.api.dto.gateway.GatewayToolDebugResponse;
+import com.xbk.knowledge.api.dto.gateway.GatewayToolDetailResponse;
+import com.xbk.knowledge.api.dto.gateway.GatewayToolMappingResponse;
+import com.xbk.knowledge.api.dto.gateway.GatewayToolOptionResponse;
+import com.xbk.knowledge.api.dto.gateway.GatewayToolRefreshResponse;
+import com.xbk.knowledge.api.dto.gateway.GatewayToolResponse;
 import com.xbk.knowledge.api.dto.gateway.MappingNodeRequest;
 import com.xbk.knowledge.api.dto.gateway.ModelBindingQueryRequest;
+import com.xbk.knowledge.api.dto.gateway.RefreshToolsRequest;
 import com.xbk.knowledge.api.dto.gateway.SaveGatewayAuthRequest;
 import com.xbk.knowledge.api.dto.gateway.SaveModelBindingRequest;
 import com.xbk.knowledge.api.dto.gateway.SaveToolRequest;
 import com.xbk.knowledge.api.dto.gateway.ToolDebugRequest;
 import com.xbk.knowledge.api.dto.gateway.ToolListRequest;
-import com.xbk.knowledge.api.dto.gateway.RefreshToolsRequest;
 import com.xbk.knowledge.application.service.app.GatewayManageAppService;
 import com.xbk.knowledge.application.service.app.GatewayObservabilityAppService;
 import com.xbk.knowledge.domain.llm.model.entity.ModelConfig;
@@ -22,33 +33,15 @@ import com.xbk.knowledge.domain.gateway.model.entity.McpGatewayAuth;
 import com.xbk.knowledge.domain.gateway.model.entity.McpToolBinding;
 import com.xbk.knowledge.domain.gateway.model.entity.McpToolMapping;
 import com.xbk.knowledge.domain.gateway.model.entity.McpToolRegistry;
-import com.xbk.knowledge.domain.common.model.valobj.EnabledQuery;
 import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
-import com.xbk.knowledge.domain.gateway.model.valobj.GatewayIdQuery;
-import com.xbk.knowledge.domain.gateway.model.valobj.GatewayPageQuery;
-import com.xbk.knowledge.domain.gateway.model.valobj.ToolBindingQuery;
-import com.xbk.knowledge.domain.gateway.model.valobj.ToolMappingQuery;
-import com.xbk.knowledge.domain.gateway.model.valobj.ToolNameQuery;
-import com.xbk.knowledge.domain.gateway.model.valobj.ToolRegistryPageQuery;
-import com.xbk.knowledge.domain.llm.adapter.repository.ModelConfigRepository;
-import com.xbk.knowledge.domain.gateway.adapter.repository.McpGatewayAuthRepository;
-import com.xbk.knowledge.domain.gateway.adapter.repository.McpGatewayRepository;
-import com.xbk.knowledge.domain.gateway.adapter.repository.McpToolBindingRepository;
-import com.xbk.knowledge.domain.gateway.adapter.repository.McpToolMappingRepository;
-import com.xbk.knowledge.domain.gateway.adapter.repository.McpToolRegistryRepository;
-import com.xbk.knowledge.domain.gateway.adapter.repository.McpToolSchemaRepository;
 import com.xbk.knowledge.domain.gateway.service.GatewayToolService;
-import com.xbk.knowledge.types.common.PageQueryExecutor;
 import com.xbk.knowledge.types.common.PageRequest;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.common.Result;
-import com.xbk.knowledge.types.enums.ToolBindType;
-import com.xbk.knowledge.types.exception.BusinessException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -56,16 +49,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 
 /**
  * Gateway 管理接口
@@ -99,41 +90,6 @@ public class GatewayManageController implements IGatewayManageService {
     private static final DateTimeFormatter TOOL_LAST_CALL_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     /**
-     * 网关实例仓储。
-     */
-    private final McpGatewayRepository gatewayRepository;
-
-    /**
-     * 网关鉴权配置仓储。
-     */
-    private final McpGatewayAuthRepository gatewayAuthRepository;
-
-    /**
-     * 工具注册表仓储。
-     */
-    private final McpToolRegistryRepository toolRegistryRepository;
-
-    /**
-     * 工具映射关系仓储。
-     */
-    private final McpToolMappingRepository toolMappingRepository;
-
-    /**
-     * 工具绑定关系仓储。
-     */
-    private final McpToolBindingRepository toolBindingRepository;
-
-    /**
-     * 工具输入输出 Schema 仓储。
-     */
-    private final McpToolSchemaRepository toolSchemaRepository;
-
-    /**
-     * 模型配置仓储。
-     */
-    private final ModelConfigRepository modelConfigRepository;
-
-    /**
      * 网关工具调试服务。
      */
     private final GatewayToolService gatewayToolService;
@@ -153,7 +109,7 @@ public class GatewayManageController implements IGatewayManageService {
      * 流程：
      * 1. 进入接口后执行 `tool:read` 权限校验。
      * 2. Spring 完成请求体绑定与分页参数校验（`@Valid`）。
-     * 3. Controller 组装 `GatewayPageQuery` 并查询网关分页数据与总数。
+     * 3. Controller 委托 `gatewayManageAppService.queryGatewayInstancePage` 查询分页数据。
      * 4. 逐条补充工具数量等展示字段，组装列表行数据。
      * 5. 统一封装 `PageResult` 并返回 `Result.success`。
      * 
@@ -162,29 +118,19 @@ public class GatewayManageController implements IGatewayManageService {
     @PostMapping("/instances/list")
     @SaCheckPermission("tool:read")
     @Override
-    public Result<PageResult<Map<String, Object>>> listGatewayInstances(@Valid @RequestBody PageRequest request) {
-        return PageQueryExecutor.execute(request, (offset, pageSize) -> {
-            GatewayPageQuery query = new GatewayPageQuery(offset, pageSize);
-            List<McpGateway> gateways = gatewayRepository.findPage(query);
-            long total = gatewayRepository.countAll();
+    public Result<PageResult<GatewayInstanceResponse>> listGatewayInstances(@Valid @RequestBody PageRequest request) {
+        Integer pageNum = request == null ? null : request.getPageNum();
+        Integer pageSize = request == null ? null : request.getPageSize();
+        PageResult<McpGateway> gatewayPage = gatewayManageAppService.queryGatewayInstancePage(pageNum, pageSize);
 
-            List<Map<String, Object>> records = new ArrayList<>();
-            for (McpGateway gateway : gateways) {
-                Map<String, Object> row = new LinkedHashMap<>();
-                row.put("id", gateway.getId());
-                row.put("gatewayId", gateway.getGatewayId());
-                row.put("gatewayName", gateway.getGatewayName());
-                row.put("gatewayVersion", gateway.getGatewayVersion());
-                row.put("status", gateway.getStatus());
-                row.put("toolCount", toolRegistryRepository.countByGatewayId(new GatewayIdQuery(gateway.getGatewayId())));
-                row.put("createdAt", gateway.getCreatedAt());
-                row.put("updatedAt", gateway.getUpdatedAt());
-                records.add(row);
+        List<GatewayInstanceResponse> records = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(gatewayPage.getRecords())) {
+            for (McpGateway gateway : gatewayPage.getRecords()) {
+                long toolCount = gatewayManageAppService.countToolsByGatewayId(gateway.getGatewayId());
+                records.add(toGatewayResponse(gateway, toolCount));
             }
-
-            int pageNum = offset / pageSize + 1;
-            return PageResult.of(records, total, pageNum, pageSize);
-        }, row -> row);
+        }
+        return Result.success(PageResult.of(records, gatewayPage.getTotal(), gatewayPage.getPageNum(), gatewayPage.getPageSize()));
     }
 
     /**
@@ -192,8 +138,8 @@ public class GatewayManageController implements IGatewayManageService {
      * 流程：
      * 1. 进入接口后执行 `tool:write` 权限校验。
      * 2. Spring 绑定请求体，Controller 先校验 `gatewayName` 必填。
-     * 3. 按是否携带 id 决定新建或查询现有实例，并准备默认网关 ID。
-     * 4. 回填网关基础字段后调用 `gatewayRepository.save` 持久化。
+     * 3. Controller 委托 `gatewayManageAppService.saveGatewayInstance` 执行保存。
+     * 4. Controller 查询工具数量并补齐展示字段。
      * 5. 转换为展示结构并统一封装返回。
      * 
      * @param request 网关管理保存参数。
@@ -201,36 +147,21 @@ public class GatewayManageController implements IGatewayManageService {
     @PostMapping("/instances/save")
     @SaCheckPermission("tool:write")
     @Override
-    public Result<Map<String, Object>> saveGatewayInstance(@RequestBody GatewayInstanceRequest request) {
-        if (!StringUtils.hasText(request.getGatewayName())) {
-            return Result.error("gatewayName 不能为空");
+    public Result<GatewayInstanceResponse> saveGatewayInstance(@RequestBody GatewayInstanceRequest request) {
+        if (request == null || !StringUtils.hasText(request.getGatewayName())) {
+            throw new IllegalArgumentException("gatewayName 不能为空");
         }
-        String gatewayId = StringUtils.hasText(request.getGatewayId())
-                ? request.getGatewayId().trim()
-                : DEFAULT_GATEWAY_ID;
-
-        McpGateway gateway;
-        if (request.getId() == null) {
-            gateway = gatewayRepository.findByGatewayId(new GatewayIdQuery(gatewayId)).orElse(null);
-            if (gateway == null) {
-                gateway = new McpGateway();
-                gateway.setCreatedAt(LocalDateTime.now());
-            }
-        } else {
-            gateway = gatewayRepository.findById(new IdQuery(request.getId())).orElse(new McpGateway());
-            gateway.setId(request.getId());
-        }
-
-        gateway.setGatewayId(gatewayId);
-        gateway.setGatewayName(request.getGatewayName());
-        gateway.setGatewayDesc(request.getGatewayDesc());
-        gateway.setGatewayVersion(request.getGatewayVersion());
-        gateway.setGatewayInstructions(request.getGatewayInstructions());
-        gateway.setStatus(request.getStatus() == null ? 1 : request.getStatus());
-        gateway.setUpdatedAt(LocalDateTime.now());
-
-        McpGateway saved = gatewayRepository.save(gateway);
-        return Result.success(toGatewayMap(saved));
+        McpGateway saved = gatewayManageAppService.saveGatewayInstance(
+                request.getId(),
+                request.getGatewayId(),
+                request.getGatewayName(),
+                request.getGatewayDesc(),
+                request.getGatewayVersion(),
+                request.getGatewayInstructions(),
+                request.getStatus()
+        );
+        long toolCount = gatewayManageAppService.countToolsByGatewayId(saved.getGatewayId());
+        return Result.success(toGatewayResponse(saved, toolCount));
     }
 
     /**
@@ -249,10 +180,7 @@ public class GatewayManageController implements IGatewayManageService {
     @SaCheckPermission("tool:write")
     @Override
     public Result<Void> deleteGatewayInstance(@RequestBody IdRequest request) {
-        if (request == null || request.getId() == null) {
-            return Result.error("ID 不能为空");
-        }
-        gatewayManageAppService.deleteGatewayInstance(new IdQuery(request.getId()));
+        gatewayManageAppService.deleteGatewayInstance(new IdQuery(request == null ? null : request.getId()));
         return Result.success();
     }
 
@@ -261,8 +189,8 @@ public class GatewayManageController implements IGatewayManageService {
      * 流程：
      * 1. 进入接口后执行 `tool:read` 权限校验。
      * 2. Spring 绑定请求体，解析 gatewayId 并确保网关存在。
-     * 3. 从仓储查询凭证列表，并按状态与 apiKey 关键字过滤。
-     * 4. 执行内存分页并转换为前端展示结构。
+     * 3. 委托应用服务执行凭证过滤与分页。
+     * 4. Controller 将领域对象转换为前端展示结构。
      * 5. 统一封装 `PageResult` 返回。
      * 
      * @param request 网关管理分页查询参数。
@@ -270,54 +198,32 @@ public class GatewayManageController implements IGatewayManageService {
     @PostMapping("/auth/list")
     @SaCheckPermission("tool:read")
     @Override
-    public Result<PageResult<Map<String, Object>>> listGatewayAuth(@RequestBody GatewayAuthListRequest request) {
+    public Result<PageResult<GatewayAuthResponse>> listGatewayAuth(@RequestBody GatewayAuthListRequest request) {
+        // 1、解析网关并确保网关实例存在。
         String gatewayId = resolveGatewayId(request == null ? null : request.getGatewayId());
-        ensureGatewayExists(gatewayId);
+        gatewayManageAppService.ensureGatewayExists(gatewayId);
 
         Integer status = request == null ? null : request.getStatus();
         String apiKeyKeyword = request == null ? null : request.getApiKeyKeyword();
-        String keyword = StringUtils.hasText(apiKeyKeyword) ? apiKeyKeyword.trim() : null;
-
-        List<McpGatewayAuth> authList = gatewayAuthRepository.findByGatewayId(new GatewayIdQuery(gatewayId));
-        List<McpGatewayAuth> filtered = new ArrayList<>();
-        for (McpGatewayAuth auth : authList) {
-            if (auth == null) {
-                continue;
-            }
-            if (status != null && !status.equals(auth.getStatus())) {
-                continue;
-            }
-            if (StringUtils.hasText(keyword)) {
-                String currentApiKey = auth.getApiKey();
-                if (!StringUtils.hasText(currentApiKey) || !currentApiKey.contains(keyword)) {
-                    continue;
-                }
-            }
-            filtered.add(auth);
-        }
-
         Integer pageNum = request == null ? null : request.getPageNum();
         Integer pageSize = request == null ? null : request.getPageSize();
-        return PageQueryExecutor.executeByPageNum(pageNum, pageSize, (safePageNum, safePageSize) -> {
-            int start = Math.min((safePageNum - 1) * safePageSize, filtered.size());
-            int end = Math.min(start + safePageSize, filtered.size());
 
-            List<Map<String, Object>> records = new ArrayList<>();
-            for (int i = start; i < end; i++) {
-                McpGatewayAuth auth = filtered.get(i);
-                Map<String, Object> row = new LinkedHashMap<>();
-                row.put("id", auth.getId());
-                row.put("gatewayId", auth.getGatewayId());
-                row.put("apiKey", auth.getApiKey());
-                row.put("rateLimit", auth.getRateLimit());
-                row.put("expireTime", auth.getExpireTime());
-                row.put("status", auth.getStatus());
-                row.put("createdAt", auth.getCreatedAt());
-                row.put("updatedAt", auth.getUpdatedAt());
-                records.add(row);
+        // 2、由应用服务承接过滤与分页逻辑，Controller 仅负责响应结构转换。
+        PageResult<McpGatewayAuth> authPage = gatewayManageAppService.queryGatewayAuthPage(
+                gatewayId,
+                status,
+                apiKeyKeyword,
+                pageNum,
+                pageSize
+        );
+        List<GatewayAuthResponse> records = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(authPage.getRecords())) {
+            for (McpGatewayAuth auth : authPage.getRecords()) {
+                records.add(toGatewayAuthResponse(auth));
             }
-            return PageResult.of(records, (long) filtered.size(), safePageNum, safePageSize);
-        }, row -> row);
+        }
+        // 3、统一封装分页结果并返回。
+        return Result.success(PageResult.of(records, authPage.getTotal(), authPage.getPageNum(), authPage.getPageSize()));
     }
 
     /**
@@ -325,8 +231,8 @@ public class GatewayManageController implements IGatewayManageService {
      * 流程：
      * 1. 进入接口后执行 `tool:write` 权限校验。
      * 2. Spring 绑定请求体并校验请求对象有效性。
-     * 3. 按新增/更新分支加载凭证与网关信息，补齐默认值。
-     * 4. 执行 API Key 唯一性检查后持久化保存。
+     * 3. Controller 处理 gatewayId 的默认与网关存在性保障。
+     * 4. 应用服务执行凭证保存、唯一性校验与状态/限流规则处理。
      * 5. 转换为凭证视图结构并统一封装返回。
      * 
      * @param request 网关管理保存参数。
@@ -334,53 +240,27 @@ public class GatewayManageController implements IGatewayManageService {
     @PostMapping("/auth/save")
     @SaCheckPermission("tool:write")
     @Override
-    public Result<Map<String, Object>> saveGatewayAuth(@RequestBody SaveGatewayAuthRequest request) {
+    public Result<GatewayAuthResponse> saveGatewayAuth(@RequestBody SaveGatewayAuthRequest request) {
         if (request == null) {
-            return Result.error("请求参数不能为空");
+            throw new IllegalArgumentException("请求参数不能为空");
         }
-
-        McpGatewayAuth auth;
-        String gatewayId;
+        String gatewayId = null;
         if (request.getId() == null) {
             gatewayId = resolveGatewayId(request.getGatewayId());
-            auth = new McpGatewayAuth();
-            auth.setCreatedAt(LocalDateTime.now());
-        } else {
-            auth = gatewayAuthRepository.findById(request.getId()).orElse(null);
-            if (auth == null) {
-                return Result.error("凭证不存在");
-            }
-            gatewayId = StringUtils.hasText(request.getGatewayId())
-                    ? resolveGatewayId(request.getGatewayId())
-                    : auth.getGatewayId();
-            auth.setId(request.getId());
+            gatewayManageAppService.ensureGatewayExists(gatewayId);
+        } else if (StringUtils.hasText(request.getGatewayId())) {
+            gatewayId = resolveGatewayId(request.getGatewayId());
+            gatewayManageAppService.ensureGatewayExists(gatewayId);
         }
-        ensureGatewayExists(gatewayId);
-
-        String apiKey = resolveApiKey(request.getApiKey(), auth.getApiKey(), request.getId() == null);
-        if (!StringUtils.hasText(apiKey)) {
-            return Result.error("apiKey 不能为空");
-        }
-
-        List<McpGatewayAuth> existingAuthList = gatewayAuthRepository.findByGatewayId(new GatewayIdQuery(gatewayId));
-        for (McpGatewayAuth existing : existingAuthList) {
-            if (existing == null || existing.getId() == null || !apiKey.equals(existing.getApiKey())) {
-                continue;
-            }
-            if (request.getId() == null || !existing.getId().equals(request.getId())) {
-                return Result.error("同一网关下 API Key 已存在");
-            }
-        }
-
-        auth.setGatewayId(gatewayId);
-        auth.setApiKey(apiKey);
-        auth.setRateLimit(resolveRateLimit(request.getRateLimit()));
-        auth.setExpireTime(request.getExpireTime());
-        auth.setStatus(resolveStatus(request.getStatus()));
-        auth.setUpdatedAt(LocalDateTime.now());
-
-        McpGatewayAuth saved = gatewayAuthRepository.save(auth);
-        return Result.success(toGatewayAuthMap(saved));
+        McpGatewayAuth saved = gatewayManageAppService.saveGatewayAuth(
+                request.getId(),
+                gatewayId,
+                request.getApiKey(),
+                request.getRateLimit(),
+                request.getExpireTime(),
+                request.getStatus()
+        );
+        return Result.success(toGatewayAuthResponse(saved));
     }
 
     /**
@@ -388,8 +268,8 @@ public class GatewayManageController implements IGatewayManageService {
      * 流程：
      * 1. 进入接口后执行 `tool:write` 权限校验。
      * 2. Spring 绑定请求体并提取 id。
-     * 3. Controller 调用统一方法 `updateGatewayAuthStatus(id, 1)`。
-     * 4. 统一方法校验凭证存在并更新状态为启用。
+     * 3. Controller 调用统一方法 `executeStatusUpdate(id, 1, ...)`。
+     * 4. 统一方法委托应用服务校验凭证存在并更新状态为启用。
      * 5. 返回统一成功结果。
      * 
      * @param request 网关凭证启用参数。
@@ -399,7 +279,11 @@ public class GatewayManageController implements IGatewayManageService {
     @SaCheckPermission("tool:write")
     @Override
     public Result<Void> enableGatewayAuth(@RequestBody IdRequest request) {
-        return updateGatewayAuthStatus(request == null ? null : request.getId(), 1);
+        return executeStatusUpdate(
+                request == null ? null : request.getId(),
+                1,
+                gatewayManageAppService::updateGatewayAuthStatus
+        );
     }
 
     /**
@@ -407,8 +291,8 @@ public class GatewayManageController implements IGatewayManageService {
      * 流程：
      * 1. 进入接口后执行 `tool:write` 权限校验。
      * 2. Spring 绑定请求体并提取 id。
-     * 3. Controller 调用统一方法 `updateGatewayAuthStatus(id, 0)`。
-     * 4. 统一方法校验凭证存在并更新状态为禁用。
+     * 3. Controller 调用统一方法 `executeStatusUpdate(id, 0, ...)`。
+     * 4. 统一方法委托应用服务校验凭证存在并更新状态为禁用。
      * 5. 返回统一成功结果。
      * 
      * @param request 网关凭证禁用参数。
@@ -418,7 +302,11 @@ public class GatewayManageController implements IGatewayManageService {
     @SaCheckPermission("tool:write")
     @Override
     public Result<Void> disableGatewayAuth(@RequestBody IdRequest request) {
-        return updateGatewayAuthStatus(request == null ? null : request.getId(), 0);
+        return executeStatusUpdate(
+                request == null ? null : request.getId(),
+                0,
+                gatewayManageAppService::updateGatewayAuthStatus
+        );
     }
 
     /**
@@ -426,8 +314,8 @@ public class GatewayManageController implements IGatewayManageService {
      * 流程：
      * 1. 进入接口后执行 `tool:read` 权限校验。
      * 2. Spring 绑定请求体并解析 gatewayId，确保网关存在。
-     * 3. 计算分页偏移量并查询工具分页数据与总数。
-     * 4. 根据 toolNameKeyword/toolDescriptionKeyword/status 进行内存过滤。
+     * 3. 委托应用服务执行工具分页查询与筛选。
+     * 4. Controller 聚合可观测性指标并补充最近调用摘要。
      * 5. 逐条转换为前端展示字段并统一封装 `PageResult` 返回。
      *
      * @param request 网关管理分页查询参数（支持 toolNameKeyword/toolDescriptionKeyword/status）。
@@ -435,88 +323,45 @@ public class GatewayManageController implements IGatewayManageService {
     @PostMapping("/tools/list")
     @SaCheckPermission("tool:read")
     @Override
-    public Result<PageResult<Map<String, Object>>> listTools(@RequestBody ToolListRequest request) {
+    public Result<PageResult<GatewayToolResponse>> listTools(@RequestBody ToolListRequest request) {
         String gatewayId = resolveGatewayId(request == null ? null : request.getGatewayId());
-        ensureGatewayExists(gatewayId);
+        gatewayManageAppService.ensureGatewayExists(gatewayId);
         Integer pageNum = request == null ? null : request.getPageNum();
         Integer pageSize = request == null ? null : request.getPageSize();
 
-        // 提取搜索关键词
         String toolNameKeyword = request == null ? null : request.getToolNameKeyword();
         String toolDescriptionKeyword = request == null ? null : request.getToolDescriptionKeyword();
         Integer statusFilter = request == null ? null : request.getStatus();
 
-        return PageQueryExecutor.executeByPageNum(pageNum, pageSize, (safePageNum, safePageSize) -> {
-            int offset = (safePageNum - 1) * safePageSize;
-            List<McpToolRegistry> allRecords =
-                    toolRegistryRepository.findPage(new ToolRegistryPageQuery(gatewayId, offset, safePageSize * 10));
+        PageResult<McpToolRegistry> toolPage = gatewayManageAppService.queryToolPage(
+                gatewayId,
+                toolNameKeyword,
+                toolDescriptionKeyword,
+                statusFilter,
+                pageNum,
+                pageSize
+        );
 
-            // 内存过滤：支持工具名称/描述关键词搜索和状态筛选
-            List<McpToolRegistry> filtered = new ArrayList<>();
-            for (McpToolRegistry tool : allRecords) {
-                if (tool == null) {
+        GatewayObservabilityAppService.GatewayMetricsReport metricsReport = gatewayObservabilityAppService.queryMetrics(
+                new GatewayObservabilityAppService.MetricsQuery(gatewayId, null, TOOL_LIST_RECENT_MINUTES)
+        );
+        Map<String, GatewayObservabilityAppService.ToolMetricsSnapshot> latestMetricsByTool = new HashMap<>();
+        if (metricsReport != null && !CollectionUtils.isEmpty(metricsReport.toolMetrics())) {
+            for (GatewayObservabilityAppService.ToolMetricsSnapshot metric : metricsReport.toolMetrics()) {
+                if (metric == null || !StringUtils.hasText(metric.toolName())) {
                     continue;
                 }
-                // 工具名称关键词过滤（支持模糊匹配）
-                if (StringUtils.hasText(toolNameKeyword)) {
-                    String toolName = tool.getToolName();
-                    if (!StringUtils.hasText(toolName) || !toolName.toLowerCase().contains(toolNameKeyword.toLowerCase().trim())) {
-                        continue;
-                    }
-                }
-                // 工具描述关键词过滤（支持模糊匹配）
-                if (StringUtils.hasText(toolDescriptionKeyword)) {
-                    String toolDescription = tool.getToolDescription();
-                    if (!StringUtils.hasText(toolDescription) || !toolDescription.toLowerCase().contains(toolDescriptionKeyword.toLowerCase().trim())) {
-                        continue;
-                    }
-                }
-                // 状态筛选（0-禁用，1-启用）
-                if (statusFilter != null && !statusFilter.equals(tool.getStatus())) {
-                    continue;
-                }
-                filtered.add(tool);
+                latestMetricsByTool.put(metric.toolName(), metric);
             }
+        }
 
-            // 基于过滤后的列表进行内存分页
-            int total = filtered.size();
-            int fromIndex = Math.min((safePageNum - 1) * safePageSize, filtered.size());
-            int toIndex = Math.min(fromIndex + safePageSize, filtered.size());
-            List<McpToolRegistry> records = filtered.subList(fromIndex, toIndex);
-
-            GatewayObservabilityAppService.GatewayMetricsReport metricsReport = gatewayObservabilityAppService.queryMetrics(
-                    new GatewayObservabilityAppService.MetricsQuery(gatewayId, null, TOOL_LIST_RECENT_MINUTES)
-            );
-            Map<String, GatewayObservabilityAppService.ToolMetricsSnapshot> latestMetricsByTool = new HashMap<>();
-            if (metricsReport != null && !CollectionUtils.isEmpty(metricsReport.toolMetrics())) {
-                for (GatewayObservabilityAppService.ToolMetricsSnapshot metric : metricsReport.toolMetrics()) {
-                    if (metric == null || !StringUtils.hasText(metric.toolName())) {
-                        continue;
-                    }
-                    latestMetricsByTool.put(metric.toolName(), metric);
-                }
+        List<GatewayToolResponse> rows = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(toolPage.getRecords())) {
+            for (McpToolRegistry tool : toolPage.getRecords()) {
+                rows.add(toToolResponse(tool, resolveLastCallSummary(latestMetricsByTool.get(tool.getToolName()))));
             }
-
-            List<Map<String, Object>> rows = new ArrayList<>();
-            for (McpToolRegistry tool : records) {
-                Map<String, Object> row = new LinkedHashMap<>();
-                row.put("id", tool.getId());
-                row.put("gatewayId", tool.getGatewayId());
-                row.put("toolName", tool.getToolName());
-                row.put("toolDescription", tool.getToolDescription());
-                row.put("httpMethod", tool.getHttpMethod());
-                row.put("httpUrl", tool.getHttpUrl());
-                row.put("status", tool.getStatus());
-                row.put("timeout", tool.getTimeout());
-                row.put("retryTimes", tool.getRetryTimes());
-                row.put("lastCallSummary", resolveLastCallSummary(latestMetricsByTool.get(tool.getToolName())));
-                row.put("createdAt", tool.getCreatedAt());
-                row.put("updatedAt", tool.getUpdatedAt());
-                rows.add(row);
-            }
-
-            return PageResult.of(rows, (long) total, safePageNum, safePageSize);
-        }, row -> row);
+        }
+        return Result.success(PageResult.of(rows, toolPage.getTotal(), toolPage.getPageNum(), toolPage.getPageSize()));
     }
 
     private String resolveLastCallSummary(GatewayObservabilityAppService.ToolMetricsSnapshot metric) {
@@ -531,8 +376,8 @@ public class GatewayManageController implements IGatewayManageService {
      * 流程：
      * 1. 进入接口后执行 `tool:read` 权限校验。
      * 2. Spring 绑定请求体并校验 id 非空。
-     * 3. 查询工具主记录，不存在直接返回业务错误。
-     * 4. 分别查询 request/response 映射并组装详情对象。
+     * 3. 委托应用服务查询工具主记录与 request/response 映射。
+     * 4. Controller 负责将领域对象转换为详情响应结构。
      * 5. 统一封装 `Result.success` 返回。
      * 
      * @param request 工具详情查询参数。
@@ -540,26 +385,24 @@ public class GatewayManageController implements IGatewayManageService {
     @PostMapping("/tools/get")
     @SaCheckPermission("tool:read")
     @Override
-    public Result<Map<String, Object>> getTool(@RequestBody IdRequest request) {
-        if (request == null || request.getId() == null) {
-            return Result.error("ID 不能为空");
+    public Result<GatewayToolDetailResponse> getTool(@RequestBody IdRequest request) {
+        Long toolId = request == null ? null : request.getId();
+        GatewayManageAppService.ToolDetail toolDetail = gatewayManageAppService.queryToolDetail(toolId);
+
+        List<GatewayToolMappingResponse> requestMappingResponses = new ArrayList<>();
+        for (McpToolMapping requestMapping : toolDetail.getRequestMappings()) {
+            requestMappingResponses.add(toToolMappingResponse(requestMapping));
         }
-        McpToolRegistry tool = toolRegistryRepository.findById(new IdQuery(request.getId())).orElse(null);
-        if (tool == null) {
-            return Result.error("工具不存在");
+        List<GatewayToolMappingResponse> responseMappingResponses = new ArrayList<>();
+        for (McpToolMapping responseMapping : toolDetail.getResponseMappings()) {
+            responseMappingResponses.add(toToolMappingResponse(responseMapping));
         }
 
-        List<McpToolMapping> requestMappings = toolMappingRepository.findByToolIdAndMappingType(
-                new ToolMappingQuery(tool.getId(), "request")
-        );
-        List<McpToolMapping> responseMappings = toolMappingRepository.findByToolIdAndMappingType(
-                new ToolMappingQuery(tool.getId(), "response")
-        );
-
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("tool", tool);
-        data.put("requestMappings", requestMappings);
-        data.put("responseMappings", responseMappings);
+        GatewayToolDetailResponse data = GatewayToolDetailResponse.builder()
+                .tool(toToolResponse(toolDetail.getTool(), null))
+                .requestMappings(requestMappingResponses)
+                .responseMappings(responseMappingResponses)
+                .build();
         return Result.success(data);
     }
 
@@ -567,54 +410,38 @@ public class GatewayManageController implements IGatewayManageService {
      * 创建或更新工具配置。
      * 流程：
      * 1. 进入接口后执行 `tool:write` 权限校验。
-     * 2. Spring 绑定请求体并校验 `toolName` 必填。
-     * 3. 按新增/更新分支组装 `McpToolRegistry` 并保存主记录。
-     * 4. 清理旧映射后重建 request/response 映射与 schema 数据。
+     * 2. Spring 绑定请求体并解析 gatewayId，确保网关存在。
+     * 3. Controller 将请求体转换为应用服务命令对象。
+     * 4. 应用服务执行新增/更新、映射重建与 schema 清理。
      * 5. 返回保存后的工具视图数据。
      * 
      * @param request 网关管理保存参数。
      */
     @PostMapping("/tools/save")
     @SaCheckPermission("tool:write")
-    @Transactional(rollbackFor = Exception.class)
     @Override
-    public Result<Map<String, Object>> saveTool(@RequestBody SaveToolRequest request) {
-        if (!StringUtils.hasText(request.getToolName())) {
-            return Result.error("toolName 不能为空");
+    public Result<GatewayToolResponse> saveTool(@RequestBody SaveToolRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException("请求参数不能为空");
         }
         String gatewayId = resolveGatewayId(request.getGatewayId());
-        ensureGatewayExists(gatewayId);
-
-        McpToolRegistry tool;
-        if (request.getId() == null) {
-            tool = new McpToolRegistry();
-            tool.setCreatedAt(LocalDateTime.now());
-        } else {
-            tool = toolRegistryRepository.findById(new IdQuery(request.getId())).orElse(new McpToolRegistry());
-            tool.setId(request.getId());
-        }
-
-        tool.setGatewayId(gatewayId);
-        tool.setToolName(request.getToolName());
-        tool.setToolDescription(request.getToolDescription());
-        tool.setHttpMethod(request.getHttpMethod());
-        tool.setHttpUrl(request.getHttpUrl());
-        tool.setHttpHeaders(request.getHttpHeaders());
-        tool.setTimeout(request.getTimeout() == null ? 30000 : request.getTimeout());
-        tool.setRetryTimes(request.getRetryTimes() == null ? 0 : request.getRetryTimes());
-        tool.setStatus(request.getStatus() == null ? 1 : request.getStatus());
-        tool.setUpdatedAt(LocalDateTime.now());
-
-        McpToolRegistry saved = toolRegistryRepository.save(tool);
-        if (saved == null || saved.getId() == null) {
-            throw new BusinessException("工具保存失败：未生成 toolId");
-        }
-        toolMappingRepository.deleteByToolId(saved.getId());
-        toolSchemaRepository.deleteByToolId(saved.getId());
-        saveMappings(saved.getId(), saved.getGatewayId(), request.getRequestMappings(), "request");
-        saveMappings(saved.getId(), saved.getGatewayId(), request.getResponseMappings(), "response");
-
-        return Result.success(toToolMap(saved));
+        gatewayManageAppService.ensureGatewayExists(gatewayId);
+        GatewayManageAppService.ToolSaveCommand command = GatewayManageAppService.ToolSaveCommand.builder()
+                .id(request.getId())
+                .gatewayId(gatewayId)
+                .toolName(request.getToolName())
+                .toolDescription(request.getToolDescription())
+                .httpMethod(request.getHttpMethod())
+                .httpUrl(request.getHttpUrl())
+                .httpHeaders(request.getHttpHeaders())
+                .timeout(request.getTimeout())
+                .retryTimes(request.getRetryTimes())
+                .status(request.getStatus())
+                .requestMappings(toToolMappingNodes(request.getRequestMappings()))
+                .responseMappings(toToolMappingNodes(request.getResponseMappings()))
+                .build();
+        McpToolRegistry saved = gatewayManageAppService.saveTool(command);
+        return Result.success(toToolResponse(saved, null));
     }
 
     /**
@@ -633,10 +460,7 @@ public class GatewayManageController implements IGatewayManageService {
     @SaCheckPermission("tool:write")
     @Override
     public Result<Void> deleteTool(@RequestBody IdRequest request) {
-        if (request == null || request.getId() == null) {
-            return Result.error("ID 不能为空");
-        }
-        gatewayManageAppService.deleteTool(new IdQuery(request.getId()));
+        gatewayManageAppService.deleteTool(new IdQuery(request == null ? null : request.getId()));
         return Result.success();
     }
 
@@ -645,8 +469,8 @@ public class GatewayManageController implements IGatewayManageService {
      * 流程：
      * 1. 进入接口后执行 `tool:write` 权限校验。
      * 2. Spring 绑定请求体并校验 id 非空。
-     * 3. 查询目标工具，不存在返回业务错误。
-     * 4. 更新状态为启用并持久化。
+     * 3. Controller 调用统一方法 `executeStatusUpdate(id, 1, ...)`。
+     * 4. 统一方法委托应用服务校验工具并更新状态为启用。
      * 5. 返回统一成功结果。
      * 
      * @param request 工具启用参数。
@@ -656,17 +480,11 @@ public class GatewayManageController implements IGatewayManageService {
     @SaCheckPermission("tool:write")
     @Override
     public Result<Void> enableTool(@RequestBody IdRequest request) {
-        if (request == null || request.getId() == null) {
-            return Result.error("ID 不能为空");
-        }
-        McpToolRegistry tool = toolRegistryRepository.findById(new IdQuery(request.getId())).orElse(null);
-        if (tool == null) {
-            return Result.error("工具不存在");
-        }
-        tool.setStatus(1);
-        tool.setUpdatedAt(LocalDateTime.now());
-        toolRegistryRepository.save(tool);
-        return Result.success();
+        return executeStatusUpdate(
+                request == null ? null : request.getId(),
+                1,
+                gatewayManageAppService::updateToolStatus
+        );
     }
 
     /**
@@ -674,8 +492,8 @@ public class GatewayManageController implements IGatewayManageService {
      * 流程：
      * 1. 进入接口后执行 `tool:write` 权限校验。
      * 2. Spring 绑定请求体并校验 id 非空。
-     * 3. 查询目标工具，不存在返回业务错误。
-     * 4. 更新状态为禁用并持久化。
+     * 3. Controller 调用统一方法 `executeStatusUpdate(id, 0, ...)`。
+     * 4. 统一方法委托应用服务校验工具并更新状态为禁用。
      * 5. 返回统一成功结果。
      * 
      * @param request 工具禁用参数。
@@ -685,17 +503,11 @@ public class GatewayManageController implements IGatewayManageService {
     @SaCheckPermission("tool:write")
     @Override
     public Result<Void> disableTool(@RequestBody IdRequest request) {
-        if (request == null || request.getId() == null) {
-            return Result.error("ID 不能为空");
-        }
-        McpToolRegistry tool = toolRegistryRepository.findById(new IdQuery(request.getId())).orElse(null);
-        if (tool == null) {
-            return Result.error("工具不存在");
-        }
-        tool.setStatus(0);
-        tool.setUpdatedAt(LocalDateTime.now());
-        toolRegistryRepository.save(tool);
-        return Result.success();
+        return executeStatusUpdate(
+                request == null ? null : request.getId(),
+                0,
+                gatewayManageAppService::updateToolStatus
+        );
     }
 
     /**
@@ -712,12 +524,12 @@ public class GatewayManageController implements IGatewayManageService {
     @PostMapping("/tools/debug")
     @SaCheckPermission("tool:invoke")
     @Override
-    public Result<Map<String, Object>> debugTool(@RequestBody ToolDebugRequest request) {
-        if (!StringUtils.hasText(request.getToolName())) {
-            return Result.error("toolName 不能为空");
+    public Result<GatewayToolDebugResponse> debugTool(@RequestBody ToolDebugRequest request) {
+        if (request == null || !StringUtils.hasText(request.getToolName())) {
+            throw new IllegalArgumentException("toolName 不能为空");
         }
         String gatewayId = resolveGatewayId(request.getGatewayId());
-        ensureGatewayExists(gatewayId);
+        gatewayManageAppService.ensureGatewayExists(gatewayId);
 
         Map<String, Object> arguments = request.getArguments() == null ? Collections.emptyMap() : request.getArguments();
         String callId = UUID.randomUUID().toString().replace("-", "");
@@ -749,10 +561,11 @@ public class GatewayManageController implements IGatewayManageService {
                 callResult.errorCode(),
                 latencyMs);
 
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("success", callResult.success());
-        data.put("content", callResult.content());
-        data.put("errorCode", callResult.errorCode());
+        GatewayToolDebugResponse data = GatewayToolDebugResponse.builder()
+                .success(callResult.success())
+                .content(callResult.content())
+                .errorCode(callResult.errorCode())
+                .build();
         return Result.success(data);
     }
 
@@ -770,13 +583,11 @@ public class GatewayManageController implements IGatewayManageService {
     @PostMapping("/bindings/model/get")
     @SaCheckPermission("tool:read")
     @Override
-    public Result<Map<String, Object>> getModelBindings(@RequestBody ModelBindingQueryRequest request) {
+    public Result<GatewayModelBindingResponse> getModelBindings(@RequestBody ModelBindingQueryRequest request) {
         if (request == null || request.getModelId() == null) {
-            return Result.error("modelId 不能为空");
+            throw new IllegalArgumentException("modelId 不能为空");
         }
-        List<McpToolBinding> bindings = toolBindingRepository.findByBindTypeAndTargetId(
-                new ToolBindingQuery(ToolBindType.MODEL.name(), request.getModelId())
-        );
+        List<McpToolBinding> bindings = gatewayManageAppService.queryModelBindings(request.getModelId());
 
         List<Long> toolIds = new ArrayList<>();
         if (!CollectionUtils.isEmpty(bindings)) {
@@ -787,10 +598,11 @@ public class GatewayManageController implements IGatewayManageService {
             }
         }
 
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("modelId", request.getModelId());
-        data.put("toolIds", toolIds);
-        data.put("globalVisible", toolIds.isEmpty());
+        GatewayModelBindingResponse data = GatewayModelBindingResponse.builder()
+                .modelId(request.getModelId())
+                .toolIds(toolIds)
+                .globalVisible(toolIds.isEmpty())
+                .build();
         return Result.success(data);
     }
 
@@ -811,42 +623,9 @@ public class GatewayManageController implements IGatewayManageService {
     @Override
     public Result<Void> saveModelBindings(@RequestBody SaveModelBindingRequest request) {
         if (request == null || request.getModelId() == null) {
-            return Result.error("modelId 不能为空");
+            throw new IllegalArgumentException("modelId 不能为空");
         }
-
-        List<McpToolBinding> existing = toolBindingRepository.findByBindTypeAndTargetId(
-                new ToolBindingQuery(ToolBindType.MODEL.name(), request.getModelId())
-        );
-        for (McpToolBinding binding : existing) {
-            if (binding != null && binding.getId() != null) {
-                toolBindingRepository.deleteById(binding.getId());
-            }
-        }
-
-        if (CollectionUtils.isEmpty(request.getToolIds())) {
-            return Result.success();
-        }
-
-        for (Long toolId : request.getToolIds()) {
-            if (toolId == null) {
-                continue;
-            }
-            McpToolRegistry tool = toolRegistryRepository.findById(new IdQuery(toolId)).orElse(null);
-            if (tool == null) {
-                continue;
-            }
-            McpToolBinding binding = McpToolBinding.builder()
-                    .gatewayId(tool.getGatewayId())
-                    .toolId(toolId)
-                    .bindType(ToolBindType.MODEL.name())
-                    .bindTargetId(request.getModelId())
-                    .enabled(Boolean.TRUE)
-                    .createdAt(LocalDateTime.now())
-                    .updatedAt(LocalDateTime.now())
-                    .build();
-            toolBindingRepository.save(binding);
-        }
-
+        gatewayManageAppService.saveModelBindings(request.getModelId(), request.getToolIds());
         return Result.success();
     }
 
@@ -862,23 +641,18 @@ public class GatewayManageController implements IGatewayManageService {
     @PostMapping("/tools/all-enabled")
     @SaCheckPermission("tool:read")
     @Override
-    public Result<List<Map<String, Object>>> allEnabledTools() {
-        List<McpGateway> gateways = gatewayRepository.findAllEnabled();
-        List<Map<String, Object>> tools = new ArrayList<>();
-        for (McpGateway gateway : gateways) {
-            List<McpToolRegistry> gatewayTools = toolRegistryRepository.findEnabledByGatewayId(
-                    new GatewayIdQuery(gateway.getGatewayId())
-            );
-            for (McpToolRegistry tool : gatewayTools) {
-                Map<String, Object> item = new LinkedHashMap<>();
-                item.put("id", tool.getId());
-                item.put("gatewayId", tool.getGatewayId());
-                item.put("toolName", tool.getToolName());
-                item.put("toolDescription", tool.getToolDescription());
-                tools.add(item);
-            }
+    public Result<List<GatewayToolOptionResponse>> allEnabledTools() {
+        List<McpToolRegistry> tools = gatewayManageAppService.listAllEnabledTools();
+        List<GatewayToolOptionResponse> result = new ArrayList<>();
+        for (McpToolRegistry tool : tools) {
+            result.add(GatewayToolOptionResponse.builder()
+                    .id(tool.getId())
+                    .gatewayId(tool.getGatewayId())
+                    .toolName(tool.getToolName())
+                    .toolDescription(tool.getToolDescription())
+                    .build());
         }
-        return Result.success(tools);
+        return Result.success(result);
     }
 
     /**
@@ -893,15 +667,15 @@ public class GatewayManageController implements IGatewayManageService {
     @PostMapping("/models/enabled")
     @SaCheckPermission("tool:read")
     @Override
-    public Result<List<Map<String, Object>>> enabledModels() {
-        List<ModelConfig> models = modelConfigRepository.findByEnabled(new EnabledQuery(true));
-        List<Map<String, Object>> result = new ArrayList<>();
+    public Result<List<GatewayModelOptionResponse>> enabledModels() {
+        List<ModelConfig> models = gatewayManageAppService.listEnabledModels();
+        List<GatewayModelOptionResponse> result = new ArrayList<>();
         for (ModelConfig model : models) {
-            Map<String, Object> item = new LinkedHashMap<>();
-            item.put("id", model.getId());
-            item.put("modelName", model.getModelName());
-            item.put("modelType", model.getModelType());
-            result.add(item);
+            result.add(GatewayModelOptionResponse.builder()
+                    .id(model.getId())
+                    .modelName(model.getModelName())
+                    .modelType(model.getModelType())
+                    .build());
         }
         return Result.success(result);
     }
@@ -920,7 +694,7 @@ public class GatewayManageController implements IGatewayManageService {
     @PostMapping("/metrics/overview")
     @SaCheckPermission("tool:read")
     @Override
-    public Result<Map<String, Object>> queryGatewayMetrics(@RequestBody GatewayMetricsQueryRequest request) {
+    public Result<GatewayMetricsResponse> queryGatewayMetrics(@RequestBody GatewayMetricsQueryRequest request) {
         GatewayObservabilityAppService.GatewayMetricsReport report = gatewayObservabilityAppService.queryMetrics(
                 new GatewayObservabilityAppService.MetricsQuery(
                         resolveGatewayId(request == null ? null : request.getGatewayId()),
@@ -928,11 +702,47 @@ public class GatewayManageController implements IGatewayManageService {
                         request == null ? null : request.getRecentMinutes()
                 )
         );
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("generatedAt", report.generatedAt());
-        data.put("recentMinutes", report.recentMinutes());
-        data.put("toolMetrics", report.toolMetrics());
-        data.put("alerts", report.alerts());
+        List<GatewayMetricsResponse.ToolMetricsSnapshot> toolMetrics = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(report.toolMetrics())) {
+            for (GatewayObservabilityAppService.ToolMetricsSnapshot metric : report.toolMetrics()) {
+                toolMetrics.add(GatewayMetricsResponse.ToolMetricsSnapshot.builder()
+                        .gatewayId(metric.gatewayId())
+                        .toolName(metric.toolName())
+                        .requestCount(metric.requestCount())
+                        .successRate(metric.successRate())
+                        .p95LatencyMs(metric.p95LatencyMs())
+                        .p99LatencyMs(metric.p99LatencyMs())
+                        .avgLatencyMs(metric.avgLatencyMs())
+                        .errorDistribution(metric.errorDistribution())
+                        .slaRate(metric.slaRate())
+                        .timeoutRate(metric.timeoutRate())
+                        .consecutiveFailures(metric.consecutiveFailures())
+                        .latestCallAt(metric.latestCallAt())
+                        .latestCallSuccess(metric.latestCallSuccess())
+                        .build());
+            }
+        }
+
+        List<GatewayMetricsResponse.AlertSnapshot> alerts = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(report.alerts())) {
+            for (GatewayObservabilityAppService.AlertSnapshot alert : report.alerts()) {
+                alerts.add(GatewayMetricsResponse.AlertSnapshot.builder()
+                        .alertType(alert.alertType())
+                        .level(alert.level())
+                        .gatewayId(alert.gatewayId())
+                        .toolName(alert.toolName())
+                        .message(alert.message())
+                        .triggeredAt(alert.triggeredAt())
+                        .build());
+            }
+        }
+
+        GatewayMetricsResponse data = GatewayMetricsResponse.builder()
+                .generatedAt(report.generatedAt())
+                .recentMinutes(report.recentMinutes())
+                .toolMetrics(toolMetrics)
+                .alerts(alerts)
+                .build();
         return Result.success(data);
     }
 
@@ -951,34 +761,24 @@ public class GatewayManageController implements IGatewayManageService {
     @PostMapping("/tools/refresh")
     @SaCheckPermission("tool:write")
     @Override
-    public Result<Map<String, Object>> refreshTools(@RequestBody RefreshToolsRequest request) {
+    public Result<GatewayToolRefreshResponse> refreshTools(@RequestBody RefreshToolsRequest request) {
         String gatewayId = resolveGatewayId(request == null ? null : request.getGatewayId());
-        ensureGatewayExists(gatewayId);
+        gatewayManageAppService.ensureGatewayExists(gatewayId);
         Long toolId = request == null ? null : request.getToolId();
-
-        List<McpToolRegistry> toolsToRefresh;
-        if (toolId != null) {
-            // 刷新指定单个工具
-            McpToolRegistry tool = toolRegistryRepository.findById(new IdQuery(toolId)).orElse(null);
-            if (tool == null || !gatewayId.equals(tool.getGatewayId())) {
-                return Result.error("工具不存在或不属于该网关");
-            }
-            toolsToRefresh = Collections.singletonList(tool);
-        } else {
-            // 刷新网关下所有工具
-            toolsToRefresh = toolRegistryRepository.findByGatewayId(new GatewayIdQuery(gatewayId));
-        }
+        List<McpToolRegistry> toolsToRefresh = gatewayManageAppService.queryToolsForRefresh(gatewayId, toolId);
 
         if (CollectionUtils.isEmpty(toolsToRefresh)) {
-            Map<String, Object> emptyResult = new LinkedHashMap<>();
-            emptyResult.put("refreshedCount", 0);
-            emptyResult.put("successCount", 0);
-            emptyResult.put("failedCount", 0);
-            emptyResult.put("details", Collections.emptyList());
+            GatewayToolRefreshResponse emptyResult = GatewayToolRefreshResponse.builder()
+                    .gatewayId(gatewayId)
+                    .refreshedCount(0)
+                    .successCount(0)
+                    .failedCount(0)
+                    .details(Collections.emptyList())
+                    .build();
             return Result.success("没有需要刷新的工具", emptyResult);
         }
 
-        List<Map<String, Object>> details = new ArrayList<>();
+        List<GatewayToolRefreshResponse.RefreshDetail> details = new ArrayList<>();
         int successCount = 0;
         int failedCount = 0;
 
@@ -986,17 +786,18 @@ public class GatewayManageController implements IGatewayManageService {
             if (tool == null) {
                 continue;
             }
-            Map<String, Object> detail = new LinkedHashMap<>();
-            detail.put("toolId", tool.getId());
-            detail.put("toolName", tool.getToolName());
-            detail.put("httpMethod", tool.getHttpMethod());
-            detail.put("httpUrl", tool.getHttpUrl());
+            GatewayToolRefreshResponse.RefreshDetail.RefreshDetailBuilder detailBuilder =
+                    GatewayToolRefreshResponse.RefreshDetail.builder()
+                            .toolId(tool.getId())
+                            .toolName(tool.getToolName())
+                            .httpMethod(tool.getHttpMethod())
+                            .httpUrl(tool.getHttpUrl());
 
             try {
                 // 执行 HTTP 连通性测试（HEAD 请求或超时限制的 GET 请求）
                 boolean isReachable = testHttpConnectivity(tool);
-                detail.put("reachable", isReachable);
-                detail.put("message", isReachable ? "连通" : "不可达");
+                detailBuilder.reachable(isReachable)
+                        .message(isReachable ? "连通" : "不可达");
 
                 if (isReachable) {
                     successCount++;
@@ -1005,19 +806,21 @@ public class GatewayManageController implements IGatewayManageService {
                 }
             } catch (Exception e) {
                 log.warn("工具连通性测试失败，toolId: {}, toolName: {}", tool.getId(), tool.getToolName(), e);
-                detail.put("reachable", false);
-                detail.put("error", e.getMessage());
+                detailBuilder.reachable(false)
+                        .error(e.getMessage())
+                        .message("不可达");
                 failedCount++;
             }
-            details.add(detail);
+            details.add(detailBuilder.build());
         }
 
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("gatewayId", gatewayId);
-        result.put("refreshedCount", toolsToRefresh.size());
-        result.put("successCount", successCount);
-        result.put("failedCount", failedCount);
-        result.put("details", details);
+        GatewayToolRefreshResponse result = GatewayToolRefreshResponse.builder()
+                .gatewayId(gatewayId)
+                .refreshedCount(toolsToRefresh.size())
+                .successCount(successCount)
+                .failedCount(failedCount)
+                .details(details)
+                .build();
 
         String message = String.format("刷新完成：成功 %d 个，失败 %d 个", successCount, failedCount);
         return Result.success(message, result);
@@ -1054,95 +857,73 @@ public class GatewayManageController implements IGatewayManageService {
         }
     }
 
-    private Map<String, Object> toGatewayMap(McpGateway gateway) {
-        Map<String, Object> row = new LinkedHashMap<>();
+    private GatewayInstanceResponse toGatewayResponse(McpGateway gateway, Long toolCount) {
         if (gateway == null) {
-            return row;
+            return GatewayInstanceResponse.builder().build();
         }
-        row.put("id", gateway.getId());
-        row.put("gatewayId", gateway.getGatewayId());
-        row.put("gatewayName", gateway.getGatewayName());
-        row.put("gatewayDesc", gateway.getGatewayDesc());
-        row.put("gatewayVersion", gateway.getGatewayVersion());
-        row.put("gatewayInstructions", gateway.getGatewayInstructions());
-        row.put("status", gateway.getStatus());
-        row.put("createdAt", gateway.getCreatedAt());
-        row.put("updatedAt", gateway.getUpdatedAt());
-        return row;
+        return GatewayInstanceResponse.builder()
+                .id(gateway.getId())
+                .gatewayId(gateway.getGatewayId())
+                .gatewayName(gateway.getGatewayName())
+                .gatewayDesc(gateway.getGatewayDesc())
+                .gatewayVersion(gateway.getGatewayVersion())
+                .gatewayInstructions(gateway.getGatewayInstructions())
+                .status(gateway.getStatus())
+                .toolCount(toolCount)
+                .createdAt(gateway.getCreatedAt())
+                .updatedAt(gateway.getUpdatedAt())
+                .build();
     }
 
-    private Map<String, Object> toGatewayAuthMap(McpGatewayAuth auth) {
-        Map<String, Object> row = new LinkedHashMap<>();
+    private GatewayAuthResponse toGatewayAuthResponse(McpGatewayAuth auth) {
         if (auth == null) {
-            return row;
+            return GatewayAuthResponse.builder().build();
         }
-        row.put("id", auth.getId());
-        row.put("gatewayId", auth.getGatewayId());
-        row.put("apiKey", auth.getApiKey());
-        row.put("rateLimit", auth.getRateLimit());
-        row.put("expireTime", auth.getExpireTime());
-        row.put("status", auth.getStatus());
-        row.put("createdAt", auth.getCreatedAt());
-        row.put("updatedAt", auth.getUpdatedAt());
-        return row;
+        return GatewayAuthResponse.builder()
+                .id(auth.getId())
+                .gatewayId(auth.getGatewayId())
+                .apiKey(auth.getApiKey())
+                .rateLimit(auth.getRateLimit())
+                .expireTime(auth.getExpireTime())
+                .status(auth.getStatus())
+                .createdAt(auth.getCreatedAt())
+                .updatedAt(auth.getUpdatedAt())
+                .build();
     }
 
-    private Map<String, Object> toToolMap(McpToolRegistry tool) {
-        Map<String, Object> row = new LinkedHashMap<>();
+    private GatewayToolResponse toToolResponse(McpToolRegistry tool, String lastCallSummary) {
         if (tool == null) {
-            return row;
+            return GatewayToolResponse.builder().build();
         }
-        row.put("id", tool.getId());
-        row.put("gatewayId", tool.getGatewayId());
-        row.put("toolName", tool.getToolName());
-        row.put("toolDescription", tool.getToolDescription());
-        row.put("httpMethod", tool.getHttpMethod());
-        row.put("httpUrl", tool.getHttpUrl());
-        row.put("httpHeaders", tool.getHttpHeaders());
-        row.put("timeout", tool.getTimeout());
-        row.put("retryTimes", tool.getRetryTimes());
-        row.put("status", tool.getStatus());
-        row.put("createdAt", tool.getCreatedAt());
-        row.put("updatedAt", tool.getUpdatedAt());
-        return row;
+        return GatewayToolResponse.builder()
+                .id(tool.getId())
+                .gatewayId(tool.getGatewayId())
+                .toolName(tool.getToolName())
+                .toolKey(tool.getToolKey())
+                .toolDescription(tool.getToolDescription())
+                .httpMethod(tool.getHttpMethod())
+                .httpUrl(tool.getHttpUrl())
+                .httpHeaders(tool.getHttpHeaders())
+                .timeout(tool.getTimeout())
+                .retryTimes(tool.getRetryTimes())
+                .riskLevel(tool.getRiskLevel())
+                .status(tool.getStatus())
+                .lastCallSummary(lastCallSummary)
+                .createdAt(tool.getCreatedAt())
+                .updatedAt(tool.getUpdatedAt())
+                .build();
     }
 
-    /**
-     * 保存字段映射。
-     * 
-     * @param toolId 工具ID。
-     * @param gatewayId 网关ID。
-     * @param mappings 映射定义列表。
-     * @param mappingType 映射类型。
-     */
-    private void saveMappings(Long toolId,
-                              String gatewayId,
-                              List<MappingNodeRequest> mappings,
-                              String mappingType) {
-        if (CollectionUtils.isEmpty(mappings)) {
-            return;
+    private GatewayToolMappingResponse toToolMappingResponse(McpToolMapping mapping) {
+        if (mapping == null) {
+            return GatewayToolMappingResponse.builder().build();
         }
-
-        int[] sortOrder = new int[]{0};
-        for (MappingNodeRequest mapping : mappings) {
-            saveMappingNode(toolId, gatewayId, mappingType, mapping, null, sortOrder);
-        }
-    }
-
-    private void saveMappingNode(Long toolId,
-                                 String gatewayId,
-                                 String mappingType,
-                                 MappingNodeRequest mapping,
-                                 Long parentId,
-                                 int[] sortOrder) {
-        if (mapping == null || !StringUtils.hasText(mapping.getFieldName())) {
-            return;
-        }
-        McpToolMapping entity = McpToolMapping.builder()
-                .gatewayId(gatewayId)
-                .toolId(toolId)
-                .mappingType(mappingType)
-                .parentId(parentId == null ? mapping.getParentId() : parentId)
+        return GatewayToolMappingResponse.builder()
+                .id(mapping.getId())
+                .gatewayId(mapping.getGatewayId())
+                .toolId(mapping.getToolId())
+                .mappingType(mapping.getMappingType())
+                .parentId(mapping.getParentId())
                 .fieldName(mapping.getFieldName())
                 .mcpType(mapping.getMcpType())
                 .mcpDesc(mapping.getMcpDesc())
@@ -1151,21 +932,40 @@ public class GatewayManageController implements IGatewayManageService {
                 .itemRefId(mapping.getItemRefId())
                 .httpPath(mapping.getHttpPath())
                 .httpLocation(mapping.getHttpLocation())
-                .sortOrder(mapping.getSortOrder() == null ? sortOrder[0] : mapping.getSortOrder())
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
+                .sortOrder(mapping.getSortOrder())
+                .createdAt(mapping.getCreatedAt())
+                .updatedAt(mapping.getUpdatedAt())
                 .build();
-        McpToolMapping saved = toolMappingRepository.save(entity);
-        if (saved == null || saved.getId() == null) {
-            throw new BusinessException("工具映射保存失败：未生成 mappingId");
-        }
-        sortOrder[0]++;
+    }
 
-        if (!CollectionUtils.isEmpty(mapping.getChildren())) {
-            for (MappingNodeRequest child : mapping.getChildren()) {
-                saveMappingNode(toolId, gatewayId, mappingType, child, saved.getId(), sortOrder);
-            }
+    private List<GatewayManageAppService.ToolMappingNode> toToolMappingNodes(List<MappingNodeRequest> mappings) {
+        List<GatewayManageAppService.ToolMappingNode> nodes = new ArrayList<>();
+        if (CollectionUtils.isEmpty(mappings)) {
+            return nodes;
         }
+        for (MappingNodeRequest mapping : mappings) {
+            nodes.add(toToolMappingNode(mapping));
+        }
+        return nodes;
+    }
+
+    private GatewayManageAppService.ToolMappingNode toToolMappingNode(MappingNodeRequest mapping) {
+        if (mapping == null) {
+            return null;
+        }
+        return GatewayManageAppService.ToolMappingNode.builder()
+                .parentId(mapping.getParentId())
+                .fieldName(mapping.getFieldName())
+                .mcpType(mapping.getMcpType())
+                .mcpDesc(mapping.getMcpDesc())
+                .isRequired(mapping.getIsRequired())
+                .itemType(mapping.getItemType())
+                .itemRefId(mapping.getItemRefId())
+                .httpPath(mapping.getHttpPath())
+                .httpLocation(mapping.getHttpLocation())
+                .sortOrder(mapping.getSortOrder())
+                .children(toToolMappingNodes(mapping.getChildren()))
+                .build();
     }
 
     private String resolveGatewayId(String gatewayId) {
@@ -1175,95 +975,17 @@ public class GatewayManageController implements IGatewayManageService {
         return gatewayId.trim();
     }
 
-    private McpGateway ensureGatewayExists(String gatewayId) {
-        String resolvedGatewayId = resolveGatewayId(gatewayId);
-        McpGateway existing = gatewayRepository.findByGatewayId(new GatewayIdQuery(resolvedGatewayId)).orElse(null);
-        if (existing != null) {
-            return existing;
-        }
-
-        McpGateway gateway = new McpGateway();
-        gateway.setGatewayId(resolvedGatewayId);
-        gateway.setGatewayName("默认网关");
-        gateway.setGatewayDesc("系统自动创建的默认网关实例");
-        gateway.setGatewayVersion("1.0.0");
-        gateway.setGatewayInstructions("单网关模式默认实例");
-        gateway.setStatus(1);
-        gateway.setCreatedAt(LocalDateTime.now());
-        gateway.setUpdatedAt(LocalDateTime.now());
-        try {
-            return gatewayRepository.save(gateway);
-        } catch (Exception e) {
-            return gatewayRepository.findByGatewayId(new GatewayIdQuery(resolvedGatewayId)).orElse(gateway);
-        }
-    }
-
     /**
-     * 更新网关鉴权状态。
-     * 
-     * @param id 主键ID。
+     * 执行状态更新。
+     *
+     * @param id 主键 ID。
      * @param status 状态值。
+     * @param updater 状态更新执行器。
      * @return 更新结果。
      */
-    private Result<Void> updateGatewayAuthStatus(Long id, int status) {
-        if (id == null) {
-            return Result.error("ID 不能为空");
-        }
-        McpGatewayAuth auth = gatewayAuthRepository.findById(id).orElse(null);
-        if (auth == null) {
-            return Result.error("凭证不存在");
-        }
-        auth.setStatus(status);
-        auth.setUpdatedAt(LocalDateTime.now());
-        gatewayAuthRepository.save(auth);
+    private Result<Void> executeStatusUpdate(Long id, int status, BiConsumer<Long, Integer> updater) {
+        updater.accept(id, status);
         return Result.success();
-    }
-
-    /**
-     * 解析限流值。
-     * 
-     * @param rateLimit 限流值。
-     * @return 解析结果。
-     */
-    private int resolveRateLimit(Integer rateLimit) {
-        if (rateLimit == null || rateLimit <= 0) {
-            return 100;
-        }
-        return rateLimit;
-    }
-
-    /**
-     * 解析状态。
-     * 
-     * @param status 状态值。
-     * @return 解析结果。
-     */
-    private int resolveStatus(Integer status) {
-        if (status == null || (status != 0 && status != 1)) {
-            return 1;
-        }
-        return status;
-    }
-
-    /**
-     * 解析 API Key。
-     * 
-     * @param inputApiKey 输入的API Key。
-     * @param existingApiKey 已存在API Key。
-     * @param createMode 创建模式。
-     * @return 标识 Key。
-     */
-    private String resolveApiKey(String inputApiKey, String existingApiKey, boolean createMode) {
-        if (StringUtils.hasText(inputApiKey)) {
-            return inputApiKey.trim();
-        }
-        if (StringUtils.hasText(existingApiKey)) {
-            return existingApiKey.trim();
-        }
-        if (!createMode) {
-            return null;
-        }
-        return "gk_" + UUID.randomUUID().toString().replace("-", "");
     }
 
 }

@@ -298,9 +298,6 @@ public class ModelConfigController implements IModelConfigService {
         Long id = request.getId();
         IdQuery idQuery = new IdQuery(id);
         ModelConfig modelConfig = modelConfigAppService.activateChatModel(idQuery);
-        if (modelConfig == null) {
-            return Result.error("未找到模型配置");
-        }
         ModelConfigResponse response = convertToResponse(modelConfig, modelConfig.getId(), null);
         return Result.success("对话模型激活成功", response);
     }
@@ -324,9 +321,6 @@ public class ModelConfigController implements IModelConfigService {
         Long id = request.getId();
         IdQuery idQuery = new IdQuery(id);
         ModelConfig modelConfig = modelConfigAppService.activateEmbeddingModel(idQuery);
-        if (modelConfig == null) {
-            return Result.error("未找到模型配置");
-        }
         ModelConfigResponse response = convertToResponse(modelConfig, null, modelConfig.getId());
         return Result.success("嵌入模型激活成功", response);
     }
@@ -350,9 +344,6 @@ public class ModelConfigController implements IModelConfigService {
         Long id = request.getId();
         IdQuery idQuery = new IdQuery(id);
         ModelConfig modelConfig = modelConfigAppService.queryModelConfigById(idQuery);
-        if (modelConfig == null) {
-            return Result.error("未找到模型配置");
-        }
         boolean result = modelConfigAppService.testModelConnection(modelConfig);
         if (result) {
             return Result.success("模型连接成功", true);

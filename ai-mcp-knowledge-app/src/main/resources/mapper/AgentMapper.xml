@@ -54,14 +54,16 @@
             current_published_version_id = #{currentPublishedVersionId},
             updated_by = #{updatedBy},
             updated_at = #{updatedAt}
-        where 1 = 1
+        <where>
           and agent_code = #{agentCode}
+        </where>
     </update>
 
     <delete id="deleteByCode">
         delete from agent
-        where 1 = 1
+        <where>
           and agent_code = #{agentCode}
+        </where>
     </delete>
 
     <select id="findByCode" resultMap="AgentMap">
@@ -78,15 +80,16 @@
             created_at,
             updated_at
         from agent
-        where 1 = 1
+        <where>
           and agent_code = #{agentCode}
+        </where>
         limit 1
     </select>
 
     <select id="count" resultType="long">
         select count(1)
         from agent
-        where 1 = 1
+        <where>
         <if test="status != null and status != ''">
             and status = #{status}
         </if>
@@ -96,6 +99,7 @@
                 or agent_name like concat('%', #{keyword}, '%')
             )
         </if>
+        </where>
     </select>
 
     <select id="findPage" resultMap="AgentMap">
@@ -112,7 +116,7 @@
             created_at,
             updated_at
         from agent
-        where 1 = 1
+        <where>
         <if test="status != null and status != ''">
             and status = #{status}
         </if>
@@ -122,6 +126,7 @@
                 or agent_name like concat('%', #{keyword}, '%')
             )
         </if>
+        </where>
         order by updated_at desc, id asc
         limit #{pageSize} offset #{offset}
     </select>
@@ -129,8 +134,9 @@
     <select id="countPublished" resultType="long">
         select count(1)
         from agent
-        where 1 = 1
+        <where>
           and current_published_version_id is not null
+        </where>
     </select>
 
 </mapper>

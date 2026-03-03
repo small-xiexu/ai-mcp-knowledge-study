@@ -5,6 +5,7 @@ import cn.dev33.satoken.exception.NotPermissionException;
 import com.xbk.knowledge.types.common.Result;
 import com.xbk.knowledge.types.common.ResultCode;
 import com.xbk.knowledge.types.exception.BusinessException;
+import com.xbk.knowledge.types.exception.InternalInvariantException;
 import com.xbk.knowledge.types.exception.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -184,6 +185,24 @@ public class GlobalExceptionHandler {
         String message = e.getMessage();
         log.warn("非法参数: path={}, message={}", requestUri, message);
         return Result.error(ResultCode.BAD_REQUEST, message);
+    }
+
+    /**
+     * 处理内部不变量异常
+     *
+     * 表示系统内部状态不一致，属于服务端异常，应统一返回 500。
+     *
+     * @param e 内部不变量异常
+     * @param request HTTP 请求
+     * @return 错误响应
+     */
+    @ExceptionHandler(InternalInvariantException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Result<Object> handleInternalInvariantException(InternalInvariantException e, HttpServletRequest request) {
+        String requestUri = request.getRequestURI();
+        String message = e.getMessage();
+        log.error("内部不变量异常: path={}, message={}", requestUri, message, e);
+        return Result.error(ResultCode.INTERNAL_ERROR);
     }
 
     /**

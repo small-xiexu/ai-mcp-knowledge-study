@@ -9,6 +9,7 @@ import com.xbk.knowledge.domain.gateway.adapter.repository.McpGatewayRepository;
 import com.xbk.knowledge.trigger.gateway.model.McpSchemaVO;
 import com.xbk.knowledge.trigger.gateway.model.SessionConfigVO;
 import com.xbk.knowledge.types.exception.BusinessException;
+import com.xbk.knowledge.types.exception.NotFoundException;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -187,7 +188,7 @@ public class GatewaySessionService {
         }
         McpGateway gateway = gatewayRepository.findByGatewayId(new GatewayIdQuery(gatewayId)).orElse(null);
         if (gateway == null) {
-            throw new BusinessException("网关不存在: " + gatewayId);
+            throw new NotFoundException("网关不存在: " + gatewayId);
         }
         if (gateway.getStatus() == null || gateway.getStatus() != 1) {
             throw new BusinessException("网关未启用: " + gatewayId);

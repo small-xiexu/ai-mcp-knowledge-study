@@ -77,7 +77,7 @@
     <select id="count" resultType="long">
         select count(1)
         from prompt_template
-        where 1 = 1
+        <where>
         <if test="state != null and state != ''">
             and state = #{state}
         </if>
@@ -87,6 +87,7 @@
                 or template_name like concat('%', #{keyword}, '%')
             )
         </if>
+        </where>
     </select>
 
     <select id="findPage" resultMap="PromptTemplateMap">
@@ -103,7 +104,7 @@
             created_at,
             updated_at
         from prompt_template
-        where 1 = 1
+        <where>
         <if test="state != null and state != ''">
             and state = #{state}
         </if>
@@ -113,6 +114,7 @@
                 or template_name like concat('%', #{keyword}, '%')
             )
         </if>
+        </where>
         order by updated_at desc, id desc
         limit #{pageSize} offset #{offset}
     </select>

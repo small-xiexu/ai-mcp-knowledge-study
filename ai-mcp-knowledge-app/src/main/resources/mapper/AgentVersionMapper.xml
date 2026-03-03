@@ -114,9 +114,10 @@
             repair_retry_times = #{repairRetryTimes},
             updated_by = #{updatedBy},
             updated_at = #{updatedAt}
-        where 1 = 1
+        <where>
           and id = #{id}
           and state = 'DRAFT'
+        </where>
     </update>
 
     <select id="findById" resultMap="AgentVersionMap">
@@ -149,8 +150,9 @@
             created_at,
             updated_at
         from agent_version
-        where 1 = 1
+        <where>
           and id = #{id}
+        </where>
         limit 1
     </select>
 
@@ -184,8 +186,9 @@
             created_at,
             updated_at
         from agent_version
-        where 1 = 1
+        <where>
           and agent_id = #{agentId}
+        </where>
         order by version_no desc, id desc
         limit #{pageSize} offset #{offset}
     </select>
@@ -227,8 +230,9 @@
     <select id="count" resultType="long">
         select count(1)
         from agent_version
-        where 1 = 1
+        <where>
           and agent_id = #{agentId}
+        </where>
     </select>
 
     <select id="findMaxVersionNo" resultType="int">
@@ -252,18 +256,20 @@
             system_prompt_snapshot = #{systemPromptSnapshot},
             updated_by = #{updatedBy},
             updated_at = now()
-        where 1 = 1
+        <where>
           and id = #{id}
           and state = 'DRAFT'
+        </where>
     </update>
 
     <update id="updateState">
         update agent_version
         set state = #{toState},
             updated_at = now()
-        where 1 = 1
+        <where>
           and id = #{id}
           and state = #{fromState}
+        </where>
     </update>
 
     <delete id="deleteByAgentId">

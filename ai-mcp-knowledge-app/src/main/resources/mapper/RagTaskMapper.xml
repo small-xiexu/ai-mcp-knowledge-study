@@ -106,25 +106,28 @@
     <select id="countByStatus" resultType="long">
         select count(1)
         from ai_rag_task
-        where 1 = 1
+        <where>
           and status = #{status}
+        </where>
     </select>
 
     <select id="countDistinctRagTag" resultType="long">
         select count(distinct rag_tag)
         from ai_rag_task
-        where 1 = 1
+        <where>
           and rag_tag is not null
           and rag_tag != ''
+        </where>
     </select>
 
     <select id="countFailedTasksSince" resultType="long">
         select count(1)
         from ai_rag_task
-        where 1 = 1
+        <where>
           and (status = 'FAILED' OR (status = 'COMPLETED' AND error_details IS NOT NULL))
           AND created_at >= #{since}
           AND (retry_count IS NULL OR retry_count &lt; 3)
+        </where>
     </select>
 
     <!-- 查询失败的任务 -->

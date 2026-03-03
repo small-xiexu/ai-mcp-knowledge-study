@@ -2,8 +2,18 @@ package com.xbk.knowledge.api;
 
 import com.xbk.knowledge.api.dto.common.IdRequest;
 import com.xbk.knowledge.api.dto.gateway.GatewayAuthListRequest;
+import com.xbk.knowledge.api.dto.gateway.GatewayAuthResponse;
 import com.xbk.knowledge.api.dto.gateway.GatewayInstanceRequest;
+import com.xbk.knowledge.api.dto.gateway.GatewayInstanceResponse;
 import com.xbk.knowledge.api.dto.gateway.GatewayMetricsQueryRequest;
+import com.xbk.knowledge.api.dto.gateway.GatewayMetricsResponse;
+import com.xbk.knowledge.api.dto.gateway.GatewayModelBindingResponse;
+import com.xbk.knowledge.api.dto.gateway.GatewayModelOptionResponse;
+import com.xbk.knowledge.api.dto.gateway.GatewayToolDebugResponse;
+import com.xbk.knowledge.api.dto.gateway.GatewayToolDetailResponse;
+import com.xbk.knowledge.api.dto.gateway.GatewayToolOptionResponse;
+import com.xbk.knowledge.api.dto.gateway.GatewayToolRefreshResponse;
+import com.xbk.knowledge.api.dto.gateway.GatewayToolResponse;
 import com.xbk.knowledge.api.dto.gateway.ModelBindingQueryRequest;
 import com.xbk.knowledge.api.dto.gateway.SaveGatewayAuthRequest;
 import com.xbk.knowledge.api.dto.gateway.SaveModelBindingRequest;
@@ -16,7 +26,6 @@ import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.common.Result;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * 网关管理服务接口。
@@ -33,7 +42,7 @@ public interface IGatewayManageService {
      * @param request 网关实例分页查询参数
      * @return 网关实例分页数据
      */
-    Result<PageResult<Map<String, Object>>> listGatewayInstances(PageRequest request);
+    Result<PageResult<GatewayInstanceResponse>> listGatewayInstances(PageRequest request);
 
     /**
      * 保存网关实例。
@@ -41,7 +50,7 @@ public interface IGatewayManageService {
      * @param request 网关实例保存参数
      * @return 保存后的网关实例信息
      */
-    Result<Map<String, Object>> saveGatewayInstance(GatewayInstanceRequest request);
+    Result<GatewayInstanceResponse> saveGatewayInstance(GatewayInstanceRequest request);
 
     /**
      * 删除网关实例。
@@ -57,7 +66,7 @@ public interface IGatewayManageService {
      * @param request 网关凭证分页查询参数
      * @return 网关凭证分页数据
      */
-    Result<PageResult<Map<String, Object>>> listGatewayAuth(GatewayAuthListRequest request);
+    Result<PageResult<GatewayAuthResponse>> listGatewayAuth(GatewayAuthListRequest request);
 
     /**
      * 保存网关凭证。
@@ -65,7 +74,7 @@ public interface IGatewayManageService {
      * @param request 网关凭证保存参数
      * @return 保存后的网关凭证信息
      */
-    Result<Map<String, Object>> saveGatewayAuth(SaveGatewayAuthRequest request);
+    Result<GatewayAuthResponse> saveGatewayAuth(SaveGatewayAuthRequest request);
 
     /**
      * 启用网关凭证。
@@ -89,7 +98,7 @@ public interface IGatewayManageService {
      * @param request 工具分页查询参数
      * @return 工具分页数据
      */
-    Result<PageResult<Map<String, Object>>> listTools(ToolListRequest request);
+    Result<PageResult<GatewayToolResponse>> listTools(ToolListRequest request);
 
     /**
      * 查询工具详情。
@@ -97,7 +106,7 @@ public interface IGatewayManageService {
      * @param request 工具查询参数
      * @return 工具详情
      */
-    Result<Map<String, Object>> getTool(IdRequest request);
+    Result<GatewayToolDetailResponse> getTool(IdRequest request);
 
     /**
      * 保存工具配置。
@@ -105,7 +114,7 @@ public interface IGatewayManageService {
      * @param request 工具配置保存参数
      * @return 保存后的工具配置
      */
-    Result<Map<String, Object>> saveTool(SaveToolRequest request);
+    Result<GatewayToolResponse> saveTool(SaveToolRequest request);
 
     /**
      * 删除工具。
@@ -137,7 +146,7 @@ public interface IGatewayManageService {
      * @param request 工具调试参数
      * @return 工具调试结果
      */
-    Result<Map<String, Object>> debugTool(ToolDebugRequest request);
+    Result<GatewayToolDebugResponse> debugTool(ToolDebugRequest request);
 
     /**
      * 查询模型绑定关系。
@@ -145,7 +154,7 @@ public interface IGatewayManageService {
      * @param request 模型绑定查询参数
      * @return 模型与工具绑定关系
      */
-    Result<Map<String, Object>> getModelBindings(ModelBindingQueryRequest request);
+    Result<GatewayModelBindingResponse> getModelBindings(ModelBindingQueryRequest request);
 
     /**
      * 保存模型绑定关系。
@@ -160,14 +169,14 @@ public interface IGatewayManageService {
      *
      * @return 全部已启用工具列表
      */
-    Result<List<Map<String, Object>>> allEnabledTools();
+    Result<List<GatewayToolOptionResponse>> allEnabledTools();
 
     /**
      * 查询已启用模型列表。
      *
      * @return 已启用模型列表
      */
-    Result<List<Map<String, Object>>> enabledModels();
+    Result<List<GatewayModelOptionResponse>> enabledModels();
 
     /**
      * 查询网关监控指标。
@@ -175,7 +184,7 @@ public interface IGatewayManageService {
      * @param request 网关监控指标查询参数
      * @return 网关监控指标
      */
-    Result<Map<String, Object>> queryGatewayMetrics(GatewayMetricsQueryRequest request);
+    Result<GatewayMetricsResponse> queryGatewayMetrics(GatewayMetricsQueryRequest request);
 
     /**
      * 刷新工具连通性状态。
@@ -183,5 +192,5 @@ public interface IGatewayManageService {
      * @param request 工具刷新参数（支持指定 gatewayId 或 toolId）
      * @return 刷新结果（包含成功/失败统计）
      */
-    Result<Map<String, Object>> refreshTools(RefreshToolsRequest request);
+    Result<GatewayToolRefreshResponse> refreshTools(RefreshToolsRequest request);
 }

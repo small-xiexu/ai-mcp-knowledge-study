@@ -179,9 +179,6 @@ public class McpServerConfigAppServiceImpl implements McpServerConfigAppService 
     @Override
     public void refreshServer(IdQuery query) {
         McpServerConfig config = mcpServerConfigService.queryMcpServerConfigById(query);
-        if (config == null || config.getId() == null) {
-            return;
-        }
         if (Boolean.TRUE.equals(config.getEnabled())) {
             // 单条刷新重建运行时连接
             mcpServerRuntimeService.registerOrUpdate(config);

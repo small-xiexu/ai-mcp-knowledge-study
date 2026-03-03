@@ -49,8 +49,9 @@
         select
             created_by, updated_by, created_at, updated_at
         from workflow
-        where 1 = 1
+        <where>
           and workflow_code = #{workflowCode}
+        </where>
         limit 1
     </select>
 
@@ -58,11 +59,12 @@
         select
             created_by, updated_by, created_at, updated_at
         from workflow
-        where 1 = 1
+        <where>
         <if test="keyword != null and keyword != ''">
             and (workflow_code like concat('%', #{keyword}, '%')
                  or workflow_name like concat('%', #{keyword}, '%'))
         </if>
+        </where>
         order by id desc
         limit #{pageSize} offset #{offset}
     </select>
@@ -70,11 +72,12 @@
     <select id="count" resultType="long">
         select count(1)
         from workflow
-        where 1 = 1
+        <where>
         <if test="keyword != null and keyword != ''">
             and (workflow_code like concat('%', #{keyword}, '%')
                  or workflow_name like concat('%', #{keyword}, '%'))
         </if>
+        </where>
     </select>
 
 </mapper>

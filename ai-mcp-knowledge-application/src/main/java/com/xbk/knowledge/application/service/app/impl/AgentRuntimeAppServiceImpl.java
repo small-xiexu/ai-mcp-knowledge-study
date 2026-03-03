@@ -1566,9 +1566,6 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
     private ModelConfig resolvePlannerModel(AgentPlanningConfig planningConfig) {
         if (planningConfig != null && planningConfig.getPlannerModelId() != null) {
             ModelConfig model = modelConfigService.queryModelConfigById(new IdQuery(planningConfig.getPlannerModelId()));
-            if (model == null) {
-                throw new BusinessException("planning.plannerModelId 不存在，id=" + planningConfig.getPlannerModelId());
-            }
             if (!Boolean.TRUE.equals(model.getEnabled())) {
                 throw new BusinessException("planning.plannerModelId 未启用，id=" + planningConfig.getPlannerModelId());
             }
@@ -1594,9 +1591,6 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
     private ModelConfig resolvePlanningStepModel(PlanStep step) {
         if (step != null && step.getModelId() != null) {
             ModelConfig model = modelConfigService.queryModelConfigById(new IdQuery(step.getModelId()));
-            if (model == null) {
-                throw new BusinessException("Planning 步骤模型不存在，modelId=" + step.getModelId());
-            }
             if (!Boolean.TRUE.equals(model.getEnabled())) {
                 throw new BusinessException("Planning 步骤模型未启用，modelId=" + step.getModelId());
             }
@@ -2493,9 +2487,6 @@ public class AgentRuntimeAppServiceImpl implements AgentRuntimeAppService {
             throw new BusinessException("步骤模型未配置，step=" + stepName);
         }
         ModelConfig model = modelConfigService.queryModelConfigById(new IdQuery(modelId));
-        if (model == null) {
-            throw new BusinessException("步骤模型不存在，step=" + stepName + ", modelId=" + modelId);
-        }
         if (!Boolean.TRUE.equals(model.getEnabled())) {
             throw new BusinessException("步骤模型未启用，step=" + stepName + ", modelId=" + modelId);
         }

@@ -67,10 +67,11 @@
             created_at,
             updated_at
         from mcp_tool_schema
-        where 1 = 1
+        <where>
           and gateway_id = #{gatewayId}
           and tool_id = #{toolId}
           and is_active = 1
+        </where>
         order by schema_version desc
         limit 1
     </select>

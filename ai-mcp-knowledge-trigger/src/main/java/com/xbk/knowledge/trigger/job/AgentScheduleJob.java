@@ -7,6 +7,7 @@ import com.xbk.knowledge.domain.agent.model.valobj.AgentScheduleIdQuery;
 import com.xbk.knowledge.domain.agent.adapter.repository.AgentScheduleRepository;
 import com.xbk.knowledge.types.contract.PlatformContractV1;
 import com.xbk.knowledge.types.exception.BusinessException;
+import com.xbk.knowledge.types.exception.NotFoundException;
 import com.xbk.knowledge.types.json.JsonMapUtils;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
@@ -76,7 +77,7 @@ public class AgentScheduleJob {
         final Long scheduleIdFinal = scheduleId;
 
         AgentSchedule schedule = agentScheduleRepository.findById(new AgentScheduleIdQuery(scheduleIdFinal))
-                .orElseThrow(() -> new BusinessException("调度不存在，scheduleId=" + scheduleIdFinal));
+                .orElseThrow(() -> new NotFoundException("调度不存在，scheduleId=" + scheduleIdFinal));
         if (!Boolean.TRUE.equals(schedule.getEnabled())) {
             XxlJobHelper.log("schedule disabled, skip. scheduleId={}", scheduleIdFinal);
             return;

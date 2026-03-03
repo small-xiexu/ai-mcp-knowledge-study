@@ -79,13 +79,14 @@
         select
         <include refid="SysUserColumns"/>
         from sys_user
-        where 1 = 1
+        <where>
         <if test="username != null and username != ''">
             and username like concat('%', #{username}, '%')
         </if>
         <if test="status != null">
             and status = #{status}
         </if>
+        </where>
         order by updated_at desc, id asc
         limit #{pageSize} offset #{offset}
     </select>
@@ -93,13 +94,14 @@
     <select id="count" resultType="long">
         select count(1)
         from sys_user
-        where 1 = 1
+        <where>
         <if test="username != null and username != ''">
             and username like concat('%', #{username}, '%')
         </if>
         <if test="status != null">
             and status = #{status}
         </if>
+        </where>
     </select>
 
     <insert id="insertUser" parameterType="com.xbk.knowledge.infrastructure.dao.po.SysUserPO" useGeneratedKeys="true"
@@ -183,13 +185,14 @@
         select
         <include refid="SysRoleColumns"/>
         from sys_role
-        where 1 = 1
+        <where>
         <if test="roleCode != null and roleCode != ''">
             and role_code like concat('%', #{roleCode}, '%')
         </if>
         <if test="status != null">
             and status = #{status}
         </if>
+        </where>
         order by updated_at desc, id asc
         limit #{pageSize} offset #{offset}
     </select>
@@ -197,13 +200,14 @@
     <select id="countRole" resultType="long">
         select count(1)
         from sys_role
-        where 1 = 1
+        <where>
         <if test="roleCode != null and roleCode != ''">
             and role_code like concat('%', #{roleCode}, '%')
         </if>
         <if test="status != null">
             and status = #{status}
         </if>
+        </where>
     </select>
 
     <insert id="insertRole" parameterType="com.xbk.knowledge.infrastructure.dao.po.SysRolePO" useGeneratedKeys="true"
@@ -302,7 +306,7 @@
         select
         <include refid="SysPermissionColumns"/>
         from sys_permission
-        where 1 = 1
+        <where>
         <if test="resourceType != null and resourceType != ''">
             and resource_type like concat('%', #{resourceType}, '%')
         </if>
@@ -312,6 +316,7 @@
         <if test="status != null">
             and status = #{status}
         </if>
+        </where>
         order by id asc
         limit #{pageSize} offset #{offset}
     </select>
@@ -319,7 +324,7 @@
     <select id="countPermission" resultType="long">
         select count(1)
         from sys_permission
-        where 1 = 1
+        <where>
         <if test="resourceType != null and resourceType != ''">
             and resource_type like concat('%', #{resourceType}, '%')
         </if>
@@ -329,6 +334,7 @@
         <if test="status != null">
             and status = #{status}
         </if>
+        </where>
     </select>
 
     <select id="countPermissionByIds" resultType="long">

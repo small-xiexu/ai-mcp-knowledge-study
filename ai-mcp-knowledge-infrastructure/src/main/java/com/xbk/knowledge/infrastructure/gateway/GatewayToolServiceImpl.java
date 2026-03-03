@@ -17,6 +17,7 @@ import com.xbk.knowledge.domain.gateway.adapter.repository.McpToolRegistryReposi
 import com.xbk.knowledge.domain.gateway.adapter.repository.McpToolSchemaRepository;
 import com.xbk.knowledge.domain.gateway.service.GatewayToolService;
 import com.xbk.knowledge.types.exception.BusinessException;
+import com.xbk.knowledge.types.exception.NotFoundException;
 import com.xbk.knowledge.types.trace.TraceIdUtils;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -252,7 +253,7 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         }
         Optional<McpGateway> gatewayOptional = gatewayRepository.findByGatewayId(new GatewayIdQuery(gatewayId));
         if (gatewayOptional.isEmpty()) {
-            throw new BusinessException("网关不存在: " + gatewayId);
+            throw new NotFoundException("网关不存在: " + gatewayId);
         }
         McpGateway gateway = gatewayOptional.get();
         if (gateway.getStatus() == null || gateway.getStatus() != 1) {

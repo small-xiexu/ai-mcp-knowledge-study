@@ -103,8 +103,9 @@
             created_at,
             updated_at
         from approval_request
-        where 1 = 1
+        <where>
           and id = #{id}
+        </where>
         limit 1
     </select>
 
@@ -133,11 +134,12 @@
             created_at,
             updated_at
         from approval_request
-        where 1 = 1
+        <where>
           and run_id = #{runId}
           and tool_key = #{toolKey}
           and status = 'APPROVED'
           and (expire_at is null or expire_at &gt;= #{now})
+        </where>
         order by id desc
         limit 1
     </select>
@@ -167,11 +169,12 @@
             created_at,
             updated_at
         from approval_request
-        where 1 = 1
+        <where>
           and run_id = #{runId}
           and tool_key = #{toolKey}
           and status = 'PENDING'
           and (expire_at is null or expire_at &gt;= #{now})
+        </where>
         order by id desc
         limit 1
     </select>
@@ -182,9 +185,10 @@
             approver_id = #{approverId},
             decision_comment = #{decisionComment},
             decided_at = #{decidedAt}
-        where 1 = 1
+        <where>
           and id = #{id}
           and status = 'PENDING'
+        </where>
     </update>
 
     <update id="markRejected">
@@ -193,9 +197,10 @@
             approver_id = #{approverId},
             decision_comment = #{decisionComment},
             decided_at = #{decidedAt}
-        where 1 = 1
+        <where>
           and id = #{id}
           and status = 'PENDING'
+        </where>
     </update>
 
     <select id="list" resultMap="ApprovalRequestMap">
@@ -223,10 +228,11 @@
             created_at,
             updated_at
         from approval_request
-        where 1 = 1
+        <where>
         <if test="status != null and status != ''">
             and status = #{status}
         </if>
+        </where>
         order by id desc
         limit #{pageSize} offset #{offset}
     </select>
@@ -234,10 +240,11 @@
     <select id="count" resultType="long">
         select count(1)
         from approval_request
-        where 1 = 1
+        <where>
         <if test="status != null and status != ''">
             and status = #{status}
         </if>
+        </where>
     </select>
 
     <select id="listExpiredPending" resultMap="ApprovalRequestMap">
@@ -277,9 +284,10 @@
         set status = 'EXPIRED',
             decision_comment = #{decisionComment},
             decided_at = #{decidedAt}
-        where 1 = 1
+        <where>
           and id = #{id}
           and status = 'PENDING'
+        </where>
     </update>
 
     <delete id="deleteByAgentId">

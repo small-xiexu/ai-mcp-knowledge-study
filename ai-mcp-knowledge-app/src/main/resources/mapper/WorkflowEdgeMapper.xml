@@ -26,16 +26,18 @@
 
     <delete id="deleteByVersion">
         delete from workflow_edge
-        where 1 = 1
+        <where>
           and workflow_version_id = #{workflowVersionId}
+        </where>
     </delete>
 
     <select id="listEdges" resultMap="WorkflowEdgeMap">
         select
             created_at, updated_at
         from workflow_edge
-        where 1 = 1
+        <where>
           and workflow_version_id = #{workflowVersionId}
+        </where>
         order by id asc
     </select>
 

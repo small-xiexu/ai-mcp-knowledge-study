@@ -234,9 +234,6 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
     @Transactional(rollbackFor = Exception.class)
     public ModelConfig activateChatModel(IdQuery query) {
         ModelConfig modelConfig = modelConfigService.queryModelConfigById(query);
-        if (modelConfig == null) {
-            return null;
-        }
         // 保留当前嵌入模型配置，避免覆盖
         ModelActivation existing = modelActivationRepository.queryActivation();
         Long embeddingModelId = existing != null ? existing.getEmbeddingModelId() : null;
@@ -260,9 +257,6 @@ public class ModelConfigAppServiceImpl implements ModelConfigAppService {
     @Transactional(rollbackFor = Exception.class)
     public ModelConfig activateEmbeddingModel(IdQuery query) {
         ModelConfig modelConfig = modelConfigService.queryModelConfigById(query);
-        if (modelConfig == null) {
-            return null;
-        }
         ModelType modelType = modelConfig.getModelType();
         if (modelType != ModelType.OPENAI && modelType != ModelType.OLLAMA) {
             throw new IllegalArgumentException("当前模型类型不支持作为嵌入模型");

@@ -18,6 +18,7 @@ import com.xbk.knowledge.domain.chat.adapter.repository.ChatSessionRepository;
 import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.types.enums.CallStatus;
 import com.xbk.knowledge.types.exception.BusinessException;
+import com.xbk.knowledge.types.exception.NotFoundException;
 import com.xbk.knowledge.types.trace.TraceIdUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -294,11 +295,12 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         if (modelId == null) {
             return null;
         }
-        ModelConfig modelConfig = modelConfigAppService.queryModelConfigById(new IdQuery(modelId));
-        if (modelConfig == null) {
+        try {
+            ModelConfig modelConfig = modelConfigAppService.queryModelConfigById(new IdQuery(modelId));
+            return modelConfig.getModelName();
+        } catch (NotFoundException e) {
             return null;
         }
-        return modelConfig.getModelName();
     }
 
     /**

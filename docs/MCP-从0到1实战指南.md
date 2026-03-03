@@ -357,6 +357,54 @@ flowchart LR
 急用建议：
 - 先看 [MCP Gateway 10 分钟最小可跑通实操](./MCP-Gateway-10分钟最小可跑通实操.md)，跑通后再回来看本章原理会轻松很多。
 
+### Gateway 在 DDD 架构中的位置（先看懂这张图）
+
+```mermaid
+flowchart TD
+    subgraph Trigger["Trigger 层"]
+        direction TB
+        A1["McpGatewayController<br/>• establishSseConnection<br/>• handleMessage"]
+        A2["GatewaySessionService<br/>会话管理 + API Key 鉴权"]
+        A3["GatewayMessageService<br/>消息路由 method → Handler"]
+        A4["Handler 实现<br/>• GatewayInitializeHandler<br/>• GatewayToolsListHandler<br/>• GatewayToolsCallHandler"]
+    end
+
+    subgraph Domain["Domain 层"]
+        direction TB
+        B1["GatewayToolService 接口<br/>• listTools<br/>• callTool<br/>• initialize"]
+        B2["实体 Entity<br/>• McpGateway<br/>• McpGatewayAuth<br/>• McpToolRegistry<br/>• McpToolMapping<br/>• McpToolSchema<br/>• McpToolBinding"]
+        B3["仓储接口 Repository"]
+    end
+
+    subgraph Infra["Infrastructure 层"]
+        direction TB
+        C1["GatewayToolServiceImpl<br/>• WebClient HTTP 调用<br/>• 参数映射<br/>• 响应提取<br/>• 指标记录"]
+        C2["Repository 实现<br/>MyBatis-Plus 实现"]
+    end
+
+    subgraph DB["Database 层"]
+        direction TB
+        D1["MySQL 表<br/>• mcp_gateway<br/>• mcp_gateway_auth<br/>• mcp_tool_registry<br/>• mcp_tool_mapping<br/>• mcp_tool_schema<br/>• mcp_tool_binding"]
+    end
+
+    Trigger -->|调用 GatewayToolService 接口 | Domain
+    Domain -->|调用 Repository 实现 | Infra
+    Infra -->|数据持久化 | DB
+```
+
+### Gateway 与项目其他模块的集成点
+
+```mermaid
+flowchart TD
+    A["Sa-Token 权限系统"] -->|@SaCheckPermission| B1["McpGatewayController<br/>对外 MCP 协议入口"]
+    A -->|@SaCheckPermission| B2["GatewayManageController<br/>管理态配置入口"]
+    B1 -->|调用 | C["GatewayToolService"]
+    B2 -->|调用 | C
+    C -->|调用 | D["GatewayToolCallbackProvider<br/>将 Gateway 工具转为 ToolCallback"]
+    D -->|合并 | E["CompositeToolCallbackProvider @Primary<br/>合并 Dynamic MCP + Gateway 两路工具"]
+    E -->|注入 | F["ChatClient 装配链<br/>AiChatAppServiceImpl → armory nodes<br/>defaultToolCallbacks"]
+```
+
 ### Gateway MCP 学习路径（小白友好版）
 先说人话：Gateway MCP 就像“工具接待前台”。
 - 外部客户端先来前台报到（`sse` 建连）。
@@ -372,10 +420,10 @@ flowchart LR
 ### 一张图看懂全流程（总览）
 ```mermaid
 flowchart LR
-    A[外部 MCP 客户端] -->|GET /mcp/sse| B[McpGatewayController]
+    A[外部 MCP 客户端] -->|GET /api/gateway/:gatewayId/mcp/sse| B[McpGatewayController]
     B --> C[GatewaySessionService<br/>建会话+鉴权]
     C --> D[SSE 推送 endpoint + ping]
-    A -->|POST /mcp/message?sessionId=...| B
+    A -->|POST /api/gateway/:gatewayId/mcp/message?sessionId=...| B
     B --> E[GatewayMessageService]
     E --> F{按 method 路由}
     F -->|initialize| G[GatewayInitializeHandler]
@@ -400,10 +448,10 @@ sequenceDiagram
     participant TS as GatewayToolServiceImpl
     participant API as 下游HTTP接口
 
-    C->>GC: GET /mcp/sse
+    C->>GC: GET /api/gateway/:gatewayId/mcp/sse
     GC->>SS: establishSseConnection()
     SS-->>C: endpoint + ping
-    C->>GC: POST /mcp/message?sessionId=xxx (tools/call)
+    C->>GC: POST /api/gateway/:gatewayId/mcp/message?sessionId=xxx (tools/call)
     GC->>MS: process()
     MS->>H: handle(request)
     H->>TS: callTool(name, arguments)
@@ -430,7 +478,7 @@ sequenceDiagram
 阶段 1：先跑通连接（30 分钟）
 1. 先看 `McpGatewayController` 的两个入口：
 - `GET /api/gateway/{gatewayId}/mcp/sse`
-- `POST /api/gateway/{gatewayId}/mcp/message`
+- `POST /api/gateway/{gatewayId}/mcp/message?sessionId=...`
 2. 再看 `GatewaySessionService`：
 - `validateGateway` / `validateApiKey`
 - `establishSseConnection`（发 `endpoint` 和 `ping`）
@@ -491,6 +539,9 @@ sequenceDiagram
 ## 9. 快速排障清单（小白版：现象 -> 原因 -> 解决）
 
 先用一句话记住排障顺序：先看“有没有连接”，再看“有没有权限”，最后看“有没有被治理规则拦截”。
+说明：
+- 序号 1-2 主要对应 Dynamic MCP 运行态（`ai_mcp_server_config` + runtime refresh）。
+- 序号 3-11 主要对应 Gateway 协议入口与工具治理链路。
 
 | 序号 | 你看到的现象 | 最常见原因 | 先怎么验证 | 解决动作 |
 | --- | --- | --- | --- | --- |
@@ -516,6 +567,10 @@ sequenceDiagram
 
 ## 10. 常见误区
 
+说明：
+- 误区 1-3 主要是 Dynamic MCP 配置建连语境。
+- 误区 4 是 Gateway 工具治理语境。
+
 1. 误区：保存配置就等于连上。
 - 实际：保存只是落库，必须刷新才会建运行时连接。
 
@@ -530,7 +585,7 @@ sequenceDiagram
 
 ## 11. 推荐阅读路径（分层）
 
-### 11.1 先跑通主链路（必读）
+### 11.1 先跑通主链路（Dynamic + 合并层）
 1. `ai-mcp-knowledge-web/src/views/mcp/index.vue`
 2. `ai-mcp-knowledge-trigger/src/main/java/.../McpServerConfigController.java`
 3. `ai-mcp-knowledge-application/src/main/java/.../McpServerConfigAppServiceImpl.java`
@@ -538,12 +593,31 @@ sequenceDiagram
 5. `ai-mcp-knowledge-infrastructure/src/main/java/.../DynamicMcpToolCallbackProvider.java`
 6. `ai-mcp-knowledge-infrastructure/src/main/java/.../CompositeToolCallbackProvider.java`
 
-### 11.2 再看聊天注入末端
+### 11.2 补齐 Gateway 管理态链路（本章新增）
+1. `ai-mcp-knowledge-web/src/views/gateway/index.vue`
+2. `ai-mcp-knowledge-web/src/views/gateway/tools/index.vue`
+3. `ai-mcp-knowledge-trigger/src/main/java/.../GatewayManageController.java`
+4. `ai-mcp-knowledge-infrastructure/src/main/java/.../GatewayToolServiceImpl.java`
+5. `ai-mcp-knowledge-app/src/main/java/com/xbk/knowledge/config/tool/LazyToolCallbackResolverConfig.java`
+
+管理态常用接口速查：
+1. 网关实例：`/api/gateway/manage/instances/list|save|delete`
+2. 网关凭证：`/api/gateway/manage/auth/list|save|enable|disable`
+3. 工具管理：`/api/gateway/manage/tools/list|get|save|enable|disable|delete|refresh`
+4. 调试调用：`/api/gateway/manage/tools/debug`
+5. 模型绑定：`/api/gateway/manage/bindings/model/get|save`
+
+和运行态的关系（最容易混淆）：
+1. `GatewayManageController` 是“管理态入口”，`McpGatewayController` 是“对外 MCP 协议入口”，两者不是同一路接口。
+2. Gateway 工具配置修改后，模型侧工具解析依赖 `ToolCallbackProvider` 惰性解析，不走 Dynamic MCP 的 `refresh/refresh-one`。
+3. `/api/gateway/manage/tools/refresh` 是工具 HTTP 连通性刷新，不是 MCP Server 运行时重连刷新。
+
+### 11.3 再看聊天注入末端
 1. `ai-mcp-knowledge-application/src/main/java/.../AiChatAppServiceImpl.java`
 2. `ai-mcp-knowledge-application/src/main/java/com/xbk/knowledge/application/service/armory/node/AiClientToolNode.java`
 3. `ai-mcp-knowledge-application/src/main/java/com/xbk/knowledge/application/service/armory/node/AiClientNode.java`
 
-### 11.3 最后看治理层细节
+### 11.4 最后看治理层细节
 1. `ai-mcp-knowledge-infrastructure/src/main/java/.../GatewayToolCallbackProvider.java`
 2. `GatewayToolBindingContextHolder` 相关调用点
 3. 审批与审计相关实现
@@ -607,12 +681,10 @@ sequenceDiagram
 2. 限流
 - 每个 `gatewayId + apiKey` 在分钟窗口内最多调用次数（`rateLimit`）。
 
-如果该网关没有启用任何凭证：
-- 外部客户端可以不带 `X-API-Key` 建连。
-
-如果该网关启用了凭证：
-- 外部客户端必须带 `X-API-Key`。
-- 缺失/错误/过期/超限都会被拒绝。
+当前实现（以代码为准）：
+- 外部客户端建立 SSE 时，必须在 Header 携带 `X-API-Key`（不支持通过 query 传 `apiKey`）。
+- 如果该网关未启用有效凭证：仅要求 Header 非空，不做 key 值匹配校验。
+- 如果该网关启用了凭证：会校验 key 是否有效、是否过期、是否超限；缺失/错误/过期/超限都会被拒绝。
 
 完整例子（运营看板系统接入 `default_gateway`）：
 

@@ -97,7 +97,11 @@
             created_at,
             updated_at
         from mcp_gateway
-        where 1 = 1
+        <where>
+            <if test="gatewayId != null and gatewayId != ''">
+                gateway_id = #{gatewayId}
+            </if>
+        </where>
         order by id desc
         limit #{pageSize} offset #{offset}
     </select>

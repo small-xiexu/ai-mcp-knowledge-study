@@ -36,6 +36,7 @@ import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.contract.PlatformContractV1;
 import com.xbk.knowledge.types.exception.ApprovalRequiredException;
 import com.xbk.knowledge.types.exception.BusinessException;
+import com.xbk.knowledge.types.exception.InternalInvariantException;
 import com.xbk.knowledge.types.exception.NotFoundException;
 import com.xbk.knowledge.types.json.JsonMapUtils;
 import com.xbk.knowledge.types.tool.ToolKeyAware;
@@ -663,7 +664,7 @@ public class WorkflowRuntimeAppServiceImpl implements WorkflowRuntimeAppService 
             }
             WorkflowNode node = nodeMap.get(nodeKey);
             if (node == null) {
-                throw new BusinessException("节点不存在，nodeKey=" + nodeKey);
+                throw new InternalInvariantException("节点不存在，nodeKey=" + nodeKey);
             }
 
             workflowRunRepository.updateStatusAndMetrics(WorkflowRun.builder()

@@ -449,9 +449,6 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
                 throw new BusinessException("clientChainJson 存在未配置 modelId 的步骤");
             }
             ModelConfig model = modelConfigService.queryModelConfigById(new IdQuery(step.getModelId()));
-            if (model == null) {
-                throw new BusinessException("clientChainJson 绑定模型不存在，modelId=" + step.getModelId());
-            }
             if (!Boolean.TRUE.equals(model.getEnabled())) {
                 throw new BusinessException("clientChainJson 绑定模型未启用，modelId=" + step.getModelId());
             }
@@ -460,7 +457,7 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
 
     private void validateClientProfile(Long clientProfileId) {
         ClientProfile profile = clientProfileRepository.findById(clientProfileId)
-                .orElseThrow(() -> new BusinessException("clientProfileId 不存在，id=" + clientProfileId));
+                .orElseThrow(() -> new NotFoundException("clientProfileId 不存在，id=" + clientProfileId));
         if (!"ENABLED".equalsIgnoreCase(profile.getStatus())) {
             throw new BusinessException("clientProfileId 未启用，id=" + clientProfileId);
         }
@@ -473,9 +470,6 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
                 throw new BusinessException("clientProfileId 存在未配置 modelId 的步骤，id=" + clientProfileId);
             }
             ModelConfig model = modelConfigService.queryModelConfigById(new IdQuery(step.getModelId()));
-            if (model == null) {
-                throw new BusinessException("clientProfileId 绑定模型不存在，modelId=" + step.getModelId());
-            }
             if (!Boolean.TRUE.equals(model.getEnabled())) {
                 throw new BusinessException("clientProfileId 绑定模型未启用，modelId=" + step.getModelId());
             }
@@ -585,9 +579,6 @@ public class AgentVersionServiceImpl implements IAgentVersionService {
         }
         if (config.getPlannerModelId() != null) {
             ModelConfig model = modelConfigService.queryModelConfigById(new IdQuery(config.getPlannerModelId()));
-            if (model == null) {
-                throw new BusinessException("planning.plannerModelId 不存在，id=" + config.getPlannerModelId());
-            }
             if (!Boolean.TRUE.equals(model.getEnabled())) {
                 throw new BusinessException("planning.plannerModelId 未启用，id=" + config.getPlannerModelId());
             }

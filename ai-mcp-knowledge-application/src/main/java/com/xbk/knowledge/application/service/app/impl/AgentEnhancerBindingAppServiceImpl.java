@@ -8,6 +8,7 @@ import com.xbk.knowledge.domain.agentenhancer.model.valobj.AgentEnhancerBindingV
 import com.xbk.knowledge.domain.agentenhancer.adapter.repository.AgentEnhancerBindingRepository;
 import com.xbk.knowledge.domain.agentenhancer.adapter.repository.AgentEnhancerRepository;
 import com.xbk.knowledge.types.exception.BusinessException;
+import com.xbk.knowledge.types.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -108,7 +109,7 @@ public class AgentEnhancerBindingAppServiceImpl implements AgentEnhancerBindingA
                 continue;
             }
             agentEnhancerRepository.findById(agentEnhancerId)
-                    .orElseThrow(() -> new BusinessException("AgentEnhancer 不存在，agentEnhancerId=" + agentEnhancerId));
+                    .orElseThrow(() -> new NotFoundException("AgentEnhancer 不存在，agentEnhancerId=" + agentEnhancerId));
             Integer orderNo = it.getOrderNo() != null ? it.getOrderNo() : idx;
             boolean enabled = it.getEnabled() == null || it.getEnabled();
             AgentEnhancerBinding binding = AgentEnhancerBinding.builder()

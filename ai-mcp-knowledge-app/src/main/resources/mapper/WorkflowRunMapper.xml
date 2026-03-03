@@ -42,8 +42,9 @@
             trigger_source, operator_id, operator_type, session_id,
             status, current_node_key, cost_ms, error_message, started_at, ended_at, created_at, updated_at
         from workflow_run
-        where 1 = 1
+        <where>
           and run_id = #{runId}
+        </where>
         limit 1
     </select>
 
@@ -53,8 +54,9 @@
             error_message = #{errorMessage},
             ended_at = #{endedAt},
             updated_at = now()
-        where 1 = 1
+        <where>
           and run_id = #{runId}
+        </where>
     </update>
 
     <update id="updateStatusAndMetrics" parameterType="com.xbk.knowledge.infrastructure.dao.po.WorkflowRunPO">
@@ -65,8 +67,9 @@
             error_message = #{errorMessage},
             ended_at = #{endedAt},
             updated_at = now()
-        where 1 = 1
+        <where>
           and run_id = #{runId}
+        </where>
     </update>
 
     <select id="list" resultMap="WorkflowRunMap">
@@ -75,10 +78,11 @@
             trigger_source, operator_id, operator_type, session_id,
             status, current_node_key, cost_ms, error_message, started_at, ended_at, created_at, updated_at
         from workflow_run
-        where 1 = 1
+        <where>
         <if test="status != null and status != ''">
             and status = #{status}
         </if>
+        </where>
         order by started_at desc
         limit #{pageSize} offset #{offset}
     </select>
@@ -86,16 +90,18 @@
     <select id="count" resultType="long">
         select count(1)
         from workflow_run
-        where 1 = 1
+        <where>
         <if test="status != null and status != ''">
             and status = #{status}
         </if>
+        </where>
     </select>
 
     <delete id="deleteBefore">
         delete from workflow_run
-        where 1 = 1
+        <where>
           and started_at &lt; #{cutOff}
+        </where>
         order by started_at asc
         limit #{limit}
     </delete>
@@ -103,19 +109,21 @@
     <select id="listRunIdsBefore" resultType="string">
         select run_id
         from workflow_run
-        where 1 = 1
+        <where>
           and started_at &lt; #{cutOff}
+        </where>
         order by started_at asc
         limit #{limit}
     </select>
 
     <delete id="deleteByRunIds">
         delete from workflow_run
-        where 1 = 1
+        <where>
           and run_id in
         <foreach collection="runIds" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
+        </where>
     </delete>
 
 </mapper>

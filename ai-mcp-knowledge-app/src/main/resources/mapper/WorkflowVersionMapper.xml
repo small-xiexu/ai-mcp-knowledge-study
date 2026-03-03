@@ -45,8 +45,9 @@
             graph_json, default_config_json,
             created_by, updated_by, created_at, updated_at
         from workflow_version
-        where 1 = 1
+        <where>
           and id = #{id}
+        </where>
         limit 1
     </select>
 
@@ -55,8 +56,9 @@
             graph_json, default_config_json,
             created_by, updated_by, created_at, updated_at
         from workflow_version
-        where 1 = 1
+        <where>
           and workflow_id = #{workflowId}
+        </where>
         order by version_no desc, id desc
     </select>
 
@@ -65,9 +67,10 @@
             graph_json, default_config_json,
             created_by, updated_by, created_at, updated_at
         from workflow_version
-        where 1 = 1
+        <where>
           and workflow_id = #{workflowId}
           and state = 'PUBLISHED'
+        </where>
         order by version_no desc, id desc
         limit 1
     </select>

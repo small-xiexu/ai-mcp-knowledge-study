@@ -89,8 +89,9 @@
         set status = #{status},
             error_message = #{errorMessage},
             ended_at = #{endedAt}
-        where 1 = 1
+        <where>
           and run_id = #{runId}
+        </where>
     </update>
 
     <select id="findByRunId" resultMap="AgentRunMap">
@@ -115,23 +116,26 @@
             started_at,
             ended_at
         from agent_run
-        where 1 = 1
+        <where>
           and run_id = #{runId}
+        </where>
         limit 1
     </select>
 
     <update id="incrementToolCallCount">
         update agent_run
         set tool_call_count = tool_call_count + #{delta}
-        where 1 = 1
+        <where>
           and run_id = #{runId}
+        </where>
     </update>
 
     <update id="incrementToolDeniedCount">
         update agent_run
         set tool_denied_count = tool_denied_count + #{delta}
-        where 1 = 1
+        <where>
           and run_id = #{runId}
+        </where>
     </update>
 
     <delete id="deleteByAgentId">

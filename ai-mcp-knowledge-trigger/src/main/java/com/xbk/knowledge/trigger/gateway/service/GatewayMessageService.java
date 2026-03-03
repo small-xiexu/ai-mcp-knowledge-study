@@ -4,6 +4,7 @@ import com.xbk.knowledge.trigger.gateway.handler.IRequestHandler;
 import com.xbk.knowledge.trigger.gateway.model.McpSchemaVO;
 import com.xbk.knowledge.trigger.gateway.model.SessionMessageHandlerMethodEnum;
 import com.xbk.knowledge.types.exception.BusinessException;
+import com.xbk.knowledge.types.exception.InternalInvariantException;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -53,7 +54,7 @@ public class GatewayMessageService {
             }
             IRequestHandler handler = requestHandlerMap.get(methodEnum.getHandlerName());
             if (handler == null) {
-                throw new BusinessException("处理器不存在: " + methodEnum.getHandlerName());
+                throw new InternalInvariantException("处理器不存在: " + methodEnum.getHandlerName());
             }
             return handler.handle(gatewayId, request);
         }

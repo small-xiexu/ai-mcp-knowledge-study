@@ -86,7 +86,7 @@
         <include refid="SysAuditEventColumns"/>
         from sys_audit_event a
         left join sys_user u on a.operator_id = u.id
-        where 1 = 1
+        <where>
         <if test="operatorKeyword != null and operatorKeyword != ''">
             and (
                 cast(a.operator_id as char) like concat('%', #{operatorKeyword}, '%')
@@ -102,6 +102,7 @@
         <if test="result != null">
             and a.result = #{result}
         </if>
+        </where>
         order by a.occurred_at desc, a.id desc
         limit #{pageSize} offset #{offset}
     </select>
@@ -110,7 +111,7 @@
         select count(1)
         from sys_audit_event a
         left join sys_user u on a.operator_id = u.id
-        where 1 = 1
+        <where>
         <if test="operatorKeyword != null and operatorKeyword != ''">
             and (
                 cast(a.operator_id as char) like concat('%', #{operatorKeyword}, '%')
@@ -126,6 +127,7 @@
         <if test="result != null">
             and a.result = #{result}
         </if>
+        </where>
     </select>
 
 </mapper>

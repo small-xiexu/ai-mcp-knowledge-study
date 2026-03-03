@@ -170,7 +170,8 @@
             created_at,
             updated_at
         from ai_mcp_server_config
-        where 1 = 1
+        <where>
+        </where>
         order by id desc
         limit #{pageSize} offset #{offset}
     </select>

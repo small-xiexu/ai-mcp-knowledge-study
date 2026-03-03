@@ -43,16 +43,18 @@
             created_at,
             updated_at
         from agent_run_context
-        where 1 = 1
+        <where>
           and run_id = #{runId}
+        </where>
         limit 1
     </select>
 
     <update id="updateStatus">
         update agent_run_context
         set status = #{status}
-        where 1 = 1
+        <where>
           and run_id = #{runId}
+        </where>
     </update>
 
     <delete id="deleteByAgentId">

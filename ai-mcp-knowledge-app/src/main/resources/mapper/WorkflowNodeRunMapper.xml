@@ -78,9 +78,10 @@
             cost_ms, error_message,
             started_at, ended_at
         from workflow_node_run
-        where 1 = 1
+        <where>
           and run_id = #{runId}
           and node_key = #{nodeKey}
+        </where>
         order by id desc
         limit 1
     </select>
@@ -95,34 +96,38 @@
             cost_ms, error_message,
             started_at, ended_at
         from workflow_node_run
-        where 1 = 1
+        <where>
           and run_id = #{runId}
+        </where>
         order by id asc
     </select>
 
     <update id="incrementToolCallCount">
         update workflow_node_run
         set tool_call_count = tool_call_count + #{delta}
-        where 1 = 1
+        <where>
           and run_id = #{runId}
           and node_key = #{nodeKey}
+        </where>
     </update>
 
     <update id="incrementToolDeniedCount">
         update workflow_node_run
         set tool_denied_count = tool_denied_count + #{delta}
-        where 1 = 1
+        <where>
           and run_id = #{runId}
           and node_key = #{nodeKey}
+        </where>
     </update>
 
     <delete id="deleteByRunIds">
         delete from workflow_node_run
-        where 1 = 1
+        <where>
           and run_id in
         <foreach collection="runIds" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
+        </where>
     </delete>
 
 </mapper>

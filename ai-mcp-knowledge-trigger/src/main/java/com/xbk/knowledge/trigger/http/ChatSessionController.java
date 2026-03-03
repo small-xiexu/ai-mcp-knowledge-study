@@ -16,6 +16,7 @@ import com.xbk.knowledge.types.common.PageRequest;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.common.PageQueryExecutor;
 import com.xbk.knowledge.types.common.Result;
+import com.xbk.knowledge.types.exception.NotFoundException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -92,13 +93,13 @@ public class ChatSessionController implements IChatSessionService {
     @SaCheckPermission("agent:write")
     @Override
     public Result<ChatSessionResponse> updateSession(@RequestBody ChatSessionUpdateRequest request) {
-        Long id = request.getId();
+        Long id = request == null ? null : request.getId();
         if (id == null) {
-            return Result.error(400, "会话ID不能为空");
+            throw new IllegalArgumentException("会话ID不能为空");
         }
         ChatSession existing = chatSessionAppService.getSession(id);
         if (existing == null) {
-            return Result.error(404, "会话不存在");
+            throw new NotFoundException("会话不存在");
         }
         existing.setTitle(request.getTitle());
         existing.setModelId(request.getModelId());
@@ -148,13 +149,13 @@ public class ChatSessionController implements IChatSessionService {
     @SaCheckPermission("agent:read")
     @Override
     public Result<ChatSessionResponse> getSession(@RequestBody IdRequest request) {
-        Long id = request.getId();
+        Long id = request == null ? null : request.getId();
         if (id == null) {
-            return Result.error(400, "会话ID不能为空");
+            throw new IllegalArgumentException("会话ID不能为空");
         }
         ChatSession session = chatSessionAppService.getSession(id);
         if (session == null) {
-            return Result.error(404, "会话不存在");
+            throw new NotFoundException("会话不存在");
         }
         return Result.success(toSessionResponse(session));
     }

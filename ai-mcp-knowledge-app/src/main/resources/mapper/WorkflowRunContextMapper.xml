@@ -30,8 +30,9 @@
         select
             id, run_id, status, snapshot_json, created_at, updated_at
         from workflow_run_context
-        where 1 = 1
+        <where>
           and run_id = #{runId}
+        </where>
         limit 1
     </select>
 
@@ -39,17 +40,19 @@
         update workflow_run_context
         set status = #{status},
             updated_at = now()
-        where 1 = 1
+        <where>
           and run_id = #{runId}
+        </where>
     </update>
 
     <delete id="deleteByRunIds">
         delete from workflow_run_context
-        where 1 = 1
+        <where>
           and run_id in
         <foreach collection="runIds" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
+        </where>
     </delete>
 
 </mapper>

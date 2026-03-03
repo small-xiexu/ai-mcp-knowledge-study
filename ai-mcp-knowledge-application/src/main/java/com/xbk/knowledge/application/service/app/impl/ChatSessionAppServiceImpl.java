@@ -13,6 +13,7 @@ import com.xbk.knowledge.domain.chat.adapter.repository.ChatSessionRepository;
 import com.xbk.knowledge.types.common.PageParamUtils;
 import com.xbk.knowledge.types.common.PageResult;
 import com.xbk.knowledge.types.exception.BusinessException;
+import com.xbk.knowledge.types.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.memory.ChatMemoryRepository;
 import org.springframework.stereotype.Service;
@@ -214,10 +215,11 @@ public class ChatSessionAppServiceImpl implements ChatSessionAppService {
         if (modelId == null) {
             return null;
         }
-        ModelConfig modelConfig = modelConfigAppService.queryModelConfigById(new IdQuery(modelId));
-        if (modelConfig == null) {
+        try {
+            ModelConfig modelConfig = modelConfigAppService.queryModelConfigById(new IdQuery(modelId));
+            return modelConfig.getModelName();
+        } catch (NotFoundException e) {
             return null;
         }
-        return modelConfig.getModelName();
     }
 }

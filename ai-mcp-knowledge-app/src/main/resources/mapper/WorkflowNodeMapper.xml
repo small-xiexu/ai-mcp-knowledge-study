@@ -30,8 +30,9 @@
 
     <delete id="deleteByVersion">
         delete from workflow_node
-        where 1 = 1
+        <where>
           and workflow_version_id = #{workflowVersionId}
+        </where>
     </delete>
 
     <select id="listNodes" resultMap="WorkflowNodeMap">
@@ -39,8 +40,9 @@
             config_json, position_x, position_y,
             created_at, updated_at
         from workflow_node
-        where 1 = 1
+        <where>
           and workflow_version_id = #{workflowVersionId}
+        </where>
         order by id asc
     </select>
 

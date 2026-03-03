@@ -73,9 +73,10 @@
             created_at,
             updated_at
         from mcp_tool_binding
-        where 1 = 1
+        <where>
           and bind_type = #{bindType}
           and bind_target_id = #{bindTargetId}
+        </where>
     </select>
 
     <select id="findByToolId" resultMap="McpToolBindingMap">
