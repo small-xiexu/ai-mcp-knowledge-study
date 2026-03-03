@@ -1,5 +1,10 @@
 package com.xbk.knowledge.api;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.codec.ServerSentEvent;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
 /**
  * MCP 网关接入服务接口
  * 定义 MCP 协议接入端点的 API 契约
@@ -17,7 +22,7 @@ public interface IMcpGatewayService {
      * @param apiKeyQuery Query 传入的 API Key
      * @return SSE 事件流
      */
-    reactor.core.publisher.Flux<org.springframework.http.codec.ServerSentEvent<String>> establishSseConnection(String gatewayId, String apiKey, String apiKeyQuery);
+    Flux<ServerSentEvent<String>> establishSseConnection(String gatewayId, String apiKey, String apiKeyQuery);
 
     /**
      * 处理 MCP 消息请求。
@@ -27,5 +32,5 @@ public interface IMcpGatewayService {
      * @param body 请求报文
      * @return 消息响应结果
      */
-    reactor.core.publisher.Mono<org.springframework.http.ResponseEntity<Object>> handleMessage(String gatewayId, String sessionId, String body);
+    Mono<ResponseEntity<Object>> handleMessage(String gatewayId, String sessionId, String body);
 }
