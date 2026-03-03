@@ -6,6 +6,7 @@ import com.xbk.knowledge.domain.common.model.valobj.IdQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.ToolMappingQuery;
 import com.xbk.knowledge.domain.gateway.model.valobj.ToolIdQuery;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -56,4 +57,14 @@ public interface IMcpToolMappingDao extends BaseMapper<McpToolMappingPO> {
      * @return McpToolMappingPO 列表。
      */
      List<McpToolMappingPO> findByToolIdAndMappingType(ToolMappingQuery query);
+
+    /**
+     * 按工具 ID 列表 + 映射类型（request/response）批量查询参数映射列表。
+     *
+     * @param toolIds 工具 ID 列表。
+     * @param mappingType 映射类型。
+     * @return McpToolMappingPO 列表。
+     */
+     List<McpToolMappingPO> findByToolIdsAndMappingType(@Param("toolIds") List<Long> toolIds,
+                                                        @Param("mappingType") String mappingType);
 }

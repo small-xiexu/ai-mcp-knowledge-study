@@ -146,7 +146,7 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
      */
     @Override
     public ToolCallback[] getToolCallbacks() {
-        // 查询所有启用中的网关；无网关时直接返回空工具集。
+        // 查询所有启用中的网关，无网关时直接返回空工具集。
         List<McpGateway> enabledGateways = gatewayRepository.findAllEnabled();
         if (enabledGateways == null || enabledGateways.isEmpty()) {
             return new ToolCallback[0];
@@ -181,7 +181,8 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
                 }
                 // 按工具名关联定义并构建候选对象。
                 GatewayToolService.ToolDefinition definition = toolDefinitionMap.get(registry.getToolName());
-                allCandidates.add(buildToolCandidate(gateway.getGatewayId(), registry, definition));
+                ToolCandidate toolCandidate = buildToolCandidate(gateway.getGatewayId(), registry, definition);
+                allCandidates.add(toolCandidate);
             }
         }
 
@@ -221,22 +222,29 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
      * @param gateways 网关列表。
      */
      private Map<String, Map<String, GatewayToolService.ToolDefinition>> loadToolDefinitions(List<McpGateway> gateways) {
+        // 结果结构：gatewayId -> (toolName -> ToolDefinition)
         Map<String, Map<String, GatewayToolService.ToolDefinition>> result = new HashMap<>();
         for (McpGateway gateway : gateways) {
+            // 过滤无效网关，避免空指针和无意义查询。
             if (gateway == null || !StringUtils.hasText(gateway.getGatewayId())) {
                 continue;
             }
             try {
+                // 逐网关拉取工具定义；单个网关失败不影响其他网关。
                 List<GatewayToolService.ToolDefinition> definitions = gatewayToolService.listTools(gateway.getGatewayId());
+                // 当前网关内按 toolName 建索引，便于后续 O(1) 查找。
                 Map<String, GatewayToolService.ToolDefinition> map = new HashMap<>();
                 for (GatewayToolService.ToolDefinition definition : definitions) {
+                    // 跳过无效定义（空对象或无工具名）。
                     if (definition == null || !StringUtils.hasText(definition.name())) {
                         continue;
                     }
                     map.put(definition.name(), definition);
                 }
+                // 即使该网关没有有效工具，也保留空 map 以表达“已加载该网关”。
                 result.put(gateway.getGatewayId(), map);
             } catch (Exception e) {
+                // 容错策略：记录告警并继续处理后续网关，避免整体失败。
                 log.warn("加载 gateway 工具定义失败，gatewayId: {}", gateway.getGatewayId(), e);
             }
         }
@@ -505,6 +513,10 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
     }
 
     private Long resolveOperatorId() {
+        BindingContext context = GatewayToolBindingContextHolder.get();
+        if (context != null && context.getOperatorId() != null) {
+            return context.getOperatorId();
+        }
         try {
             if (!StpUtil.isLogin()) {
                 return null;
@@ -520,6 +532,10 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
     }
 
     private boolean isToolInvokePermitted() {
+        BindingContext context = GatewayToolBindingContextHolder.get();
+        if (context != null && context.getToolInvokePermitted() != null) {
+            return context.getToolInvokePermitted();
+        }
         try {
             return !StpUtil.isLogin() || StpUtil.hasPermission(PERMISSION_TOOL_INVOKE);
         } catch (Exception ignore) {
@@ -943,7 +959,15 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
          */
         @Override
         public String call(String toolInput, ToolContext toolContext) {
-            return delegate.call(toolInput, toolContext);
+            BindingContext previousContext = GatewayToolBindingContextHolder.get();
+            boolean contextBound = bindToolContext(toolContext);
+            try {
+                return delegate.call(toolInput, toolContext);
+            } finally {
+                if (contextBound) {
+                    GatewayToolBindingContextHolder.set(previousContext);
+                }
+            }
         }
 
         /**
@@ -964,6 +988,67 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
         @Override
         public String toolSource() {
             return toolSource;
+        }
+
+        /**
+         * 将 ToolContext 里的权限快照绑定到 ThreadLocal，解决工具回调跨线程上下文丢失问题。
+         *
+         * @param toolContext 工具上下文。
+         * @return 是否已完成绑定。
+         */
+        private boolean bindToolContext(ToolContext toolContext) {
+            if (toolContext == null || toolContext.getContext() == null || toolContext.getContext().isEmpty()) {
+                return false;
+            }
+            Map<String, Object> contextMap = toolContext.getContext();
+            String runId = asString(contextMap.get(GatewayToolBindingContextHolder.TOOL_CONTEXT_RUN_ID));
+            Long operatorId = asLong(contextMap.get(GatewayToolBindingContextHolder.TOOL_CONTEXT_OPERATOR_ID));
+            Boolean toolInvokePermitted = asBoolean(contextMap.get(GatewayToolBindingContextHolder.TOOL_CONTEXT_TOOL_INVOKE_PERMITTED));
+            if (!StringUtils.hasText(runId) && operatorId == null && toolInvokePermitted == null) {
+                return false;
+            }
+            GatewayToolBindingContextHolder.set(null, null, null, runId, null, operatorId, toolInvokePermitted);
+            return true;
+        }
+
+        private String asString(Object value) {
+            if (value == null) {
+                return null;
+            }
+            String text = String.valueOf(value);
+            return StringUtils.hasText(text) ? text : null;
+        }
+
+        private Long asLong(Object value) {
+            if (value == null) {
+                return null;
+            }
+            if (value instanceof Number) {
+                return ((Number) value).longValue();
+            }
+            String text = String.valueOf(value);
+            if (!StringUtils.hasText(text)) {
+                return null;
+            }
+            try {
+                return Long.parseLong(text.trim());
+            } catch (NumberFormatException ignore) {
+                return null;
+            }
+        }
+
+        private Boolean asBoolean(Object value) {
+            if (value == null) {
+                return null;
+            }
+            if (value instanceof Boolean) {
+                return (Boolean) value;
+            }
+            String text = String.valueOf(value);
+            if (!StringUtils.hasText(text)) {
+                return null;
+            }
+            return Boolean.parseBoolean(text.trim());
         }
     }
 }

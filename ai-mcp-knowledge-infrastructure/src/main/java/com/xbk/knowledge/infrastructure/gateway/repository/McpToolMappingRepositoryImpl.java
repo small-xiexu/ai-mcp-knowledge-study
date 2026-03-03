@@ -43,6 +43,20 @@ public class McpToolMappingRepositoryImpl implements McpToolMappingRepository {
     }
 
     /**
+     * 批量查询 MCP 工具映射。
+     *
+     * @param toolIds 工具 ID 列表。
+     * @param mappingType 映射类型。
+     * @return McpToolMapping 列表数据。
+     */
+    public List<McpToolMapping> findByToolIdsAndMappingType(List<Long> toolIds, String mappingType) {
+        if (toolIds == null || toolIds.isEmpty() || mappingType == null) {
+            return Collections.emptyList();
+        }
+        return BeanMappingUtils.mapList(mapper.findByToolIdsAndMappingType(toolIds, mappingType), McpToolMapping.class);
+    }
+
+    /**
      * 创建或更新MCP 工具映射数据。
      * 
      * @param mapping 工具映射配置。

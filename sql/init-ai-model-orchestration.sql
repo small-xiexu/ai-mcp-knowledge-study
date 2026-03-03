@@ -484,7 +484,8 @@ CREATE TABLE mcp_tool_mapping (
     updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     UNIQUE KEY uk_mapping_node (tool_id, mapping_type, parent_id_norm, field_name),
     INDEX idx_tool_id (tool_id),
-    INDEX idx_parent_id (parent_id)
+    INDEX idx_parent_id (parent_id),
+    INDEX idx_tool_type_sort (tool_id, mapping_type, sort_order, id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='MCP 工具参数映射表';
 
 -- 12) MCP 工具 Schema 缓存表

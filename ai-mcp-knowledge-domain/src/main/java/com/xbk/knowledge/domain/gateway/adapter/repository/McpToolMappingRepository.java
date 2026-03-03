@@ -23,6 +23,15 @@ public interface McpToolMappingRepository {
     List<McpToolMapping> findByToolIdAndMappingType(ToolMappingQuery query);
 
     /**
+     * 按工具 ID 列表与映射类型批量查询映射配置。
+     *
+     * @param toolIds 工具 ID 列表。
+     * @param mappingType 映射类型（request/response）。
+     * @return 工具参数映射列表。
+     */
+    List<McpToolMapping> findByToolIdsAndMappingType(List<Long> toolIds, String mappingType);
+
+    /**
      * 保存或更新记录。
      * 
      * @param mapping 待保存的工具参数映射实体。

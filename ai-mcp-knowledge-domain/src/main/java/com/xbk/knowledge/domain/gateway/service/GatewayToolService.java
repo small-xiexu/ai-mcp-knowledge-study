@@ -1,5 +1,7 @@
 package com.xbk.knowledge.domain.gateway.service;
 
+import lombok.*;
+
 import java.util.List;
 import java.util.Map;
 
@@ -54,8 +56,8 @@ public interface GatewayToolService {
     /**
      * 工具定义（tools/list 的单个工具）。
      */
-    @lombok.EqualsAndHashCode
-    @lombok.ToString
+    @EqualsAndHashCode
+    @ToString
     final class ToolDefinition {
         /**
          * 工具名称。

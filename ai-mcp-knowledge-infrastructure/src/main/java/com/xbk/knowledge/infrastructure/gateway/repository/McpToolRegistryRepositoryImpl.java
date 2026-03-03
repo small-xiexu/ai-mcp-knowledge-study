@@ -75,7 +75,7 @@ public class McpToolRegistryRepositoryImpl implements McpToolRegistryRepository 
     }
 
     /**
-     * 查询MCP 工具注册。
+     * 查询 MCP 工具注册。
      *
      * @param query 主键查询条件
      * @return 已启用 McpToolRegistry 列表

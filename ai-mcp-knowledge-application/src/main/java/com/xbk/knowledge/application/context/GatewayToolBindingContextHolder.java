@@ -12,6 +12,21 @@ import java.util.Set;
  */
 public final class GatewayToolBindingContextHolder {
 
+    /**
+     * ToolContext 中透传运行 ID 的键。
+     */
+    public static final String TOOL_CONTEXT_RUN_ID = "gateway.runId";
+
+    /**
+     * ToolContext 中透传操作人 ID 的键。
+     */
+    public static final String TOOL_CONTEXT_OPERATOR_ID = "gateway.operatorId";
+
+    /**
+     * ToolContext 中透传 `tool:invoke` 权限快照的键。
+     */
+    public static final String TOOL_CONTEXT_TOOL_INVOKE_PERMITTED = "gateway.toolInvokePermitted";
+
     private static final ThreadLocal<BindingContext> CONTEXT = new ThreadLocal<>();
 
     private GatewayToolBindingContextHolder() {
@@ -24,7 +39,7 @@ public final class GatewayToolBindingContextHolder {
      * @param sessionId 会话 ID
      */
     public static void set(Long modelId, Long sessionId) {
-        CONTEXT.set(new BindingContext(modelId, sessionId, null, null, null, null, null, null));
+        CONTEXT.set(new BindingContext(modelId, sessionId, null, null, null, null, null, null, null, null));
     }
 
     /**
@@ -60,8 +75,29 @@ public final class GatewayToolBindingContextHolder {
                            Long agentVersionId,
                            String runId,
                            Set<String> allowedToolKeys) {
+        set(modelId, sessionId, agentVersionId, runId, allowedToolKeys, null, null);
+    }
+
+    /**
+     * 设置当前线程的绑定上下文（支持 AgentVersion allowlist + runId + 调用人权限快照）。
+     *
+     * @param modelId 模型 ID
+     * @param sessionId 会话 ID
+     * @param agentVersionId 标识 ID
+     * @param runId 运行 ID
+     * @param allowedToolKeys 允许调用的工具 Key 集合
+     * @param operatorId 操作人 ID
+     * @param toolInvokePermitted 是否具备 `tool:invoke` 权限
+     */
+    public static void set(Long modelId,
+                           Long sessionId,
+                           Long agentVersionId,
+                           String runId,
+                           Set<String> allowedToolKeys,
+                           Long operatorId,
+                           Boolean toolInvokePermitted) {
         Set<String> safeKeys = allowedToolKeys == null ? null : Collections.unmodifiableSet(allowedToolKeys);
-        CONTEXT.set(new BindingContext(modelId, sessionId, agentVersionId, null, null, null, runId, safeKeys));
+        CONTEXT.set(new BindingContext(modelId, sessionId, agentVersionId, null, null, null, runId, safeKeys, operatorId, toolInvokePermitted));
     }
 
     /**
@@ -101,8 +137,33 @@ public final class GatewayToolBindingContextHolder {
                                    String nodeKey,
                                    String runId,
                                    Set<String> allowedToolKeys) {
+        setWorkflow(modelId, sessionId, workflowId, workflowVersionId, nodeKey, runId, allowedToolKeys, null, null);
+    }
+
+    /**
+     * Workflow 场景绑定上下文（支持节点级 allowlist、审批定位、runId 与调用人权限快照）。
+     *
+     * @param modelId 模型 ID
+     * @param sessionId 会话 ID
+     * @param workflowId 工作流 ID
+     * @param workflowVersionId 工作流版本 ID
+     * @param nodeKey 节点键
+     * @param runId 运行 ID
+     * @param allowedToolKeys 允许调用的工具 Key 集合
+     * @param operatorId 操作人 ID
+     * @param toolInvokePermitted 是否具备 `tool:invoke` 权限
+     */
+    public static void setWorkflow(Long modelId,
+                                   Long sessionId,
+                                   Long workflowId,
+                                   Long workflowVersionId,
+                                   String nodeKey,
+                                   String runId,
+                                   Set<String> allowedToolKeys,
+                                   Long operatorId,
+                                   Boolean toolInvokePermitted) {
         Set<String> safeKeys = allowedToolKeys == null ? null : Collections.unmodifiableSet(allowedToolKeys);
-        CONTEXT.set(new BindingContext(modelId, sessionId, null, workflowId, workflowVersionId, nodeKey, runId, safeKeys));
+        CONTEXT.set(new BindingContext(modelId, sessionId, null, workflowId, workflowVersionId, nodeKey, runId, safeKeys, operatorId, toolInvokePermitted));
     }
 
     /**
@@ -112,6 +173,19 @@ public final class GatewayToolBindingContextHolder {
      */
     public static BindingContext get() {
         return CONTEXT.get();
+    }
+
+    /**
+     * 直接恢复指定上下文（通常用于跨线程透传后的还原）。
+     *
+     * @param context 需要恢复的上下文；为 `null` 时等价于 `clear()`
+     */
+    public static void set(BindingContext context) {
+        if (context == null) {
+            CONTEXT.remove();
+            return;
+        }
+        CONTEXT.set(context);
     }
 
     /**
@@ -167,6 +241,16 @@ public final class GatewayToolBindingContextHolder {
         private final Set<String> allowedToolKeys;
 
         /**
+         * 当前调用链路的操作人 ID（请求线程快照）。
+         */
+        private final Long operatorId;
+
+        /**
+         * 当前调用链路是否具备 `tool:invoke` 权限（请求线程快照）。
+         */
+        private final Boolean toolInvokePermitted;
+
+        /**
          * 构建网关工具绑定上下文。
          *
          * @param modelId 模型 ID
@@ -185,7 +269,9 @@ public final class GatewayToolBindingContextHolder {
                                Long workflowVersionId,
                                String workflowNodeKey,
                                String runId,
-                               Set<String> allowedToolKeys) {
+                               Set<String> allowedToolKeys,
+                               Long operatorId,
+                               Boolean toolInvokePermitted) {
             this.modelId = modelId;
             this.sessionId = sessionId;
             this.agentVersionId = agentVersionId;
@@ -194,6 +280,8 @@ public final class GatewayToolBindingContextHolder {
             this.workflowNodeKey = workflowNodeKey;
             this.runId = runId;
             this.allowedToolKeys = allowedToolKeys;
+            this.operatorId = operatorId;
+            this.toolInvokePermitted = toolInvokePermitted;
         }
 
         /**
@@ -266,6 +354,24 @@ public final class GatewayToolBindingContextHolder {
          */
         public Set<String> getAllowedToolKeys() {
             return allowedToolKeys;
+        }
+
+        /**
+         * 获取当前操作人 ID。
+         *
+         * @return 操作人 ID
+         */
+        public Long getOperatorId() {
+            return operatorId;
+        }
+
+        /**
+         * 获取 `tool:invoke` 权限快照。
+         *
+         * @return 是否具备 `tool:invoke`；`null` 表示未写入快照
+         */
+        public Boolean getToolInvokePermitted() {
+            return toolInvokePermitted;
         }
     }
 }

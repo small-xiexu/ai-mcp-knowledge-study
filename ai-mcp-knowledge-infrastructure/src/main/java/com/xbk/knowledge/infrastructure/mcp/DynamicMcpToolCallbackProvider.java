@@ -379,29 +379,37 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
          */
         @Override
         public String call(String arguments, ToolContext toolContext) {
-            String runId = resolveRunId();
-            Long operatorId = resolveOperatorId();
-            boolean bypassEnabled = ToolInvokeBypassContextHolder.isEnabled();
-            boolean toolInvokePermitted = isToolInvokePermitted();
-            if (!bypassEnabled && !toolInvokePermitted) {
-                recordToolDeniedAndAudit(runId, "PERMISSION_DENIED", operatorId);
-                return "[PERMISSION_DENIED] 无权限调用工具（缺少权限: " + PERMISSION_TOOL_INVOKE + "），toolKey=" + toolKey;
-            }
-            String requesterType = operatorId == null ? "system" : "user";
-            maybeRequireApproval(runId, toolKey, arguments, operatorId, requesterType, operatorId);
-            long startAt = System.nanoTime();
-            boolean success = false;
-            String errorMessage = null;
+            BindingContext previousContext = GatewayToolBindingContextHolder.get();
+            boolean contextBound = bindToolContext(toolContext);
             try {
-                String result = toolContext == null ? delegate.call(arguments) : delegate.call(arguments, toolContext);
-                success = true;
-                return result;
-            } catch (Exception e) {
-                errorMessage = e.getMessage();
-                throw e;
+                String runId = resolveRunId();
+                Long operatorId = resolveOperatorId();
+                boolean bypassEnabled = ToolInvokeBypassContextHolder.isEnabled();
+                boolean toolInvokePermitted = isToolInvokePermitted();
+                if (!bypassEnabled && !toolInvokePermitted) {
+                    recordToolDeniedAndAudit(runId, "PERMISSION_DENIED", operatorId);
+                    return "[PERMISSION_DENIED] 无权限调用工具（缺少权限: " + PERMISSION_TOOL_INVOKE + "），toolKey=" + toolKey;
+                }
+                String requesterType = operatorId == null ? "system" : "user";
+                maybeRequireApproval(runId, toolKey, arguments, operatorId, requesterType, operatorId);
+                long startAt = System.nanoTime();
+                boolean success = false;
+                String errorMessage = null;
+                try {
+                    String result = toolContext == null ? delegate.call(arguments) : delegate.call(arguments, toolContext);
+                    success = true;
+                    return result;
+                } catch (Exception e) {
+                    errorMessage = e.getMessage();
+                    throw e;
+                } finally {
+                    long latencyMs = (System.nanoTime() - startAt) / 1_000_000;
+                    recordToolMetricsAndAudit(runId, success, latencyMs, errorMessage, operatorId);
+                }
             } finally {
-                long latencyMs = (System.nanoTime() - startAt) / 1_000_000;
-                recordToolMetricsAndAudit(runId, success, latencyMs, errorMessage, operatorId);
+                if (contextBound) {
+                    GatewayToolBindingContextHolder.set(previousContext);
+                }
             }
         }
 
@@ -424,6 +432,10 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
          * @return 当前登录用户 ID；未登录或解析失败时返回 `null`。
          */
         private Long resolveOperatorId() {
+            BindingContext context = GatewayToolBindingContextHolder.get();
+            if (context != null && context.getOperatorId() != null) {
+                return context.getOperatorId();
+            }
             try {
                 if (!StpUtil.isLogin()) {
                     return null;
@@ -444,11 +456,76 @@ public class DynamicMcpToolCallbackProvider implements ToolCallbackProvider {
          * @return `true` 表示允许调用，`false` 表示无权限。
          */
         private boolean isToolInvokePermitted() {
+            BindingContext context = GatewayToolBindingContextHolder.get();
+            if (context != null && context.getToolInvokePermitted() != null) {
+                return context.getToolInvokePermitted();
+            }
             try {
                 return !StpUtil.isLogin() || StpUtil.hasPermission(PERMISSION_TOOL_INVOKE);
             } catch (Exception ignore) {
                 return false;
             }
+        }
+
+        /**
+         * 将 ToolContext 里的权限快照绑定到 ThreadLocal，解决工具回调跨线程上下文丢失问题。
+         *
+         * @param toolContext 工具上下文。
+         * @return 是否已完成绑定。
+         */
+        private boolean bindToolContext(ToolContext toolContext) {
+            if (toolContext == null || toolContext.getContext() == null || toolContext.getContext().isEmpty()) {
+                return false;
+            }
+            Map<String, Object> contextMap = toolContext.getContext();
+            String runId = asString(contextMap.get(GatewayToolBindingContextHolder.TOOL_CONTEXT_RUN_ID));
+            Long operatorId = asLong(contextMap.get(GatewayToolBindingContextHolder.TOOL_CONTEXT_OPERATOR_ID));
+            Boolean toolInvokePermitted = asBoolean(contextMap.get(GatewayToolBindingContextHolder.TOOL_CONTEXT_TOOL_INVOKE_PERMITTED));
+            if (!StringUtils.hasText(runId) && operatorId == null && toolInvokePermitted == null) {
+                return false;
+            }
+            GatewayToolBindingContextHolder.set(null, null, null, runId, null, operatorId, toolInvokePermitted);
+            return true;
+        }
+
+        private String asString(Object value) {
+            if (value == null) {
+                return null;
+            }
+            String text = String.valueOf(value);
+            return StringUtils.hasText(text) ? text : null;
+        }
+
+        private Long asLong(Object value) {
+            if (value == null) {
+                return null;
+            }
+            if (value instanceof Number) {
+                return ((Number) value).longValue();
+            }
+            String text = String.valueOf(value);
+            if (!StringUtils.hasText(text)) {
+                return null;
+            }
+            try {
+                return Long.parseLong(text.trim());
+            } catch (NumberFormatException ignore) {
+                return null;
+            }
+        }
+
+        private Boolean asBoolean(Object value) {
+            if (value == null) {
+                return null;
+            }
+            if (value instanceof Boolean) {
+                return (Boolean) value;
+            }
+            String text = String.valueOf(value);
+            if (!StringUtils.hasText(text)) {
+                return null;
+            }
+            return Boolean.parseBoolean(text.trim());
         }
 
         /**

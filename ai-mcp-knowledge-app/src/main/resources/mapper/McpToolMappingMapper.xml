@@ -112,4 +112,31 @@
         order by sort_order asc, id asc
     </select>
 
+    <select id="findByToolIdsAndMappingType" resultMap="McpToolMappingMap">
+        select
+            id,
+            gateway_id,
+            tool_id,
+            mapping_type,
+            parent_id,
+            field_name,
+            mcp_type,
+            mcp_desc,
+            is_required,
+            item_type,
+            item_ref_id,
+            http_path,
+            http_location,
+            sort_order,
+            created_at,
+            updated_at
+        from mcp_tool_mapping
+        where mapping_type = #{mappingType}
+          and tool_id in
+        <foreach collection="toolIds" item="toolId" open="(" separator="," close=")">
+            #{toolId}
+        </foreach>
+        order by tool_id asc, sort_order asc, id asc
+    </select>
+
 </mapper>

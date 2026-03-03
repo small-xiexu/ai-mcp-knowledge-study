@@ -3,7 +3,9 @@ package com.xbk.knowledge.application.service.app.impl;
 import com.xbk.knowledge.application.model.dto.AICallMedia;
 import com.xbk.knowledge.application.model.dto.AICallCommand;
 import com.xbk.knowledge.application.service.app.AiChatAppService;
+import com.xbk.knowledge.application.service.app.AuthAppService;
 import com.xbk.knowledge.application.service.app.ChatClientAssemblyService;
+import com.xbk.knowledge.application.service.app.IdentityContextService;
 import com.xbk.knowledge.application.service.app.ModelConfigAppService;
 import com.xbk.knowledge.config.ChatHistoryProperties;
 import com.xbk.knowledge.application.context.GatewayToolBindingContextHolder;
@@ -48,6 +50,7 @@ import reactor.core.publisher.Flux;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -98,9 +101,24 @@ public class AiChatAppServiceImpl implements AiChatAppService {
     private static final String THINKING_SIGNATURE_KEY = "signature";
 
     /**
+     * 工具调用权限编码。
+     */
+    private static final String PERMISSION_TOOL_INVOKE = "tool:invoke";
+
+    /**
      * 模型配置应用服务。
      */
     private final ModelConfigAppService modelConfigAppService;
+
+    /**
+     * 认证应用服务。
+     */
+    private final AuthAppService authAppService;
+
+    /**
+     * 身份上下文服务。
+     */
+    private final IdentityContextService identityContextService;
 
     /**
      * ChatClient 组装服务。
@@ -157,12 +175,23 @@ public class AiChatAppServiceImpl implements AiChatAppService {
         UsageStats usageStats = new UsageStats();
         String conversationId = context.conversationId;
         StringBuilder assistantBuffer = new StringBuilder();
+        ToolInvokeAuthSnapshot authSnapshot = resolveToolInvokeAuthSnapshot();
         return Flux.defer(() -> {
             // 2、每次订阅都创建独立 runId，确保并发流请求隔离
             String runId = TraceIdUtils.getOrCreateTraceId();
-            GatewayToolBindingContextHolder.set(modelConfig.getId(), command.getSessionId(), null, runId, null);
+            GatewayToolBindingContextHolder.set(
+                    modelConfig.getId(),
+                    command.getSessionId(),
+                    null,
+                    runId,
+                    null,
+                    authSnapshot.operatorId,
+                    authSnapshot.toolInvokePermitted
+            );
+            Map<String, Object> toolContext = buildToolContext(runId, authSnapshot);
             ChatClient chatClient = resolveChatClient(modelConfig, toolEnabled);
             return chatClient.prompt(prompt)
+                    .toolContext(toolContext)
                     .stream()
                     .chatResponse()
                     .doOnNext(response -> {
@@ -190,6 +219,51 @@ public class AiChatAppServiceImpl implements AiChatAppService {
                     })
                     .doFinally(signalType -> GatewayToolBindingContextHolder.clear());
         });
+    }
+
+    /**
+     * 解析当前请求线程的工具调用权限快照，供流式线程复用。
+     *
+     * @return 权限快照。
+     */
+    private ToolInvokeAuthSnapshot resolveToolInvokeAuthSnapshot() {
+        try {
+            if (!identityContextService.isLogin()) {
+                return new ToolInvokeAuthSnapshot(null, true);
+            }
+            Long operatorId = identityContextService.getCurrentUserId();
+            if (operatorId == null) {
+                return new ToolInvokeAuthSnapshot(null, false);
+            }
+            List<String> permissionCodes = authAppService.queryPermissionCodes(operatorId);
+            boolean toolInvokePermitted = permissionCodes != null && permissionCodes.contains(PERMISSION_TOOL_INVOKE);
+            return new ToolInvokeAuthSnapshot(operatorId, toolInvokePermitted);
+        } catch (Exception e) {
+            log.warn("解析 tool:invoke 权限快照失败，按无权限处理", e);
+            return new ToolInvokeAuthSnapshot(null, false);
+        }
+    }
+
+    /**
+     * 构建 ToolContext 透传参数，解决工具回调跨线程时 ThreadLocal 丢失问题。
+     *
+     * @param runId 运行 ID。
+     * @param authSnapshot 权限快照。
+     * @return ToolContext 参数字典。
+     */
+    private Map<String, Object> buildToolContext(String runId, ToolInvokeAuthSnapshot authSnapshot) {
+        Map<String, Object> toolContext = new HashMap<>();
+        toolContext.put(GatewayToolBindingContextHolder.TOOL_CONTEXT_RUN_ID, runId);
+        if (authSnapshot != null && authSnapshot.operatorId != null) {
+            toolContext.put(GatewayToolBindingContextHolder.TOOL_CONTEXT_OPERATOR_ID, authSnapshot.operatorId);
+        }
+        if (authSnapshot != null && authSnapshot.toolInvokePermitted != null) {
+            toolContext.put(
+                    GatewayToolBindingContextHolder.TOOL_CONTEXT_TOOL_INVOKE_PERMITTED,
+                    authSnapshot.toolInvokePermitted
+            );
+        }
+        return toolContext;
     }
 
     /**
@@ -1081,6 +1155,27 @@ public class AiChatAppServiceImpl implements AiChatAppService {
             int prompt = promptTokens != null ? promptTokens : 0;
             int completion = completionTokens != null ? completionTokens : 0;
             return prompt + completion;
+        }
+    }
+
+    /**
+     * 工具调用权限快照。
+     */
+    private static final class ToolInvokeAuthSnapshot {
+
+        /**
+         * 操作人 ID。
+         */
+        private final Long operatorId;
+
+        /**
+         * 是否具备 `tool:invoke` 权限。
+         */
+        private final Boolean toolInvokePermitted;
+
+        private ToolInvokeAuthSnapshot(Long operatorId, Boolean toolInvokePermitted) {
+            this.operatorId = operatorId;
+            this.toolInvokePermitted = toolInvokePermitted;
         }
     }
 }

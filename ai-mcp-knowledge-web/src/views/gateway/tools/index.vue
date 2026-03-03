@@ -14,6 +14,21 @@
         <el-button
           v-if="activeTab === 'tools'"
           class="gemini-btn-primary"
+          @click="fetchBindingOverview"
+          :loading="bindingOverviewLoading"
+        >
+          刷新绑定
+        </el-button>
+        <el-button
+          v-if="activeTab === 'tools'"
+          class="gemini-btn-primary"
+          @click="bindingVisible = true"
+        >
+          配置绑定
+        </el-button>
+        <el-button
+          v-if="activeTab === 'tools'"
+          class="gemini-btn-primary"
           type="primary"
           @click="openCreate"
         >
@@ -86,6 +101,23 @@
                 <el-tag :type="row.status === 1 ? 'success' : 'info'">{{ row.status === 1 ? '启用' : '禁用' }}</el-tag>
               </template>
             </el-table-column>
+            <el-table-column label="绑定模型" min-width="260">
+              <template #default="{ row }">
+                <el-text v-if="bindingOverviewLoading" type="info">加载中...</el-text>
+                <el-text v-else-if="row.status !== 1" type="info">工具已禁用</el-text>
+                <el-text v-else-if="enabledModelCount === 0" type="info">暂无启用模型</el-text>
+                <el-tag v-else-if="isToolVisibleToAllModels(row)" type="info">全部模型可见</el-tag>
+                <el-text v-else-if="getToolVisibleModelNames(row).length === 0" type="info">未绑定</el-text>
+                <div v-else class="binding-tags">
+                  <el-tag v-for="name in getToolVisibleModelNames(row).slice(0, 3)" :key="`${row.id}-${name}`" size="small">
+                    {{ name }}
+                  </el-tag>
+                  <el-tag v-if="getToolVisibleModelNames(row).length > 3" size="small" type="info">
+                    +{{ getToolVisibleModelNames(row).length - 3 }}
+                  </el-tag>
+                </div>
+              </template>
+            </el-table-column>
             <el-table-column
               prop="lastCallSummary"
               label="最近调用"
@@ -113,16 +145,6 @@
             />
           </div>
         </el-card>
-
-        <el-card class="gemini-card">
-          <template #header>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span>工具-模型绑定</span>
-              <el-button type="primary" text @click="bindingVisible = true">配置绑定</el-button>
-            </div>
-          </template>
-          <el-text type="info">未配置绑定时，工具默认对所有模型全局可见。</el-text>
-        </el-card>
       </el-tab-pane>
       <el-tab-pane label="网关凭证" name="credentials">
         <GatewayCredentialPanel :embedded="true" :default-gateway-id="gatewayId" />
@@ -133,7 +155,7 @@
       v-model:visible="editVisible"
       :gateway-id="gatewayId"
       :tool-data="editingPayload"
-      @success="fetchData"
+      @success="handleToolChanged"
     />
 
     <ToolDebugPanel
@@ -143,7 +165,7 @@
       :request-mappings="currentToolRequestMappings"
     />
 
-    <ToolBindingDialog v-model:visible="bindingVisible" @success="fetchData" />
+    <ToolBindingDialog v-model:visible="bindingVisible" @success="handleBindingSuccess" />
   </div>
 </template>
 
@@ -157,13 +179,15 @@ import {
   deleteGatewayTool,
   enableGatewayTool,
   disableGatewayTool,
-  refreshGatewayTools
+  refreshGatewayTools,
+  listEnabledModels,
+  getModelToolBindings
 } from '@/api/gateway'
 import ToolEditForm from './components/ToolEditForm.vue'
 import ToolDebugPanel from './components/ToolDebugPanel.vue'
 import ToolBindingDialog from '@/views/gateway/binding/ToolBindingDialog.vue'
 import GatewayCredentialPanel from '@/views/gateway/credential/index.vue'
-import type { GatewayTool, ParamMappingNode } from '@/types/gateway'
+import type { GatewayTool, ModelOption, ParamMappingNode } from '@/types/gateway'
 
 const DEFAULT_GATEWAY_ID = 'default_gateway'
 const route = useRoute()
@@ -174,6 +198,10 @@ const activeTab = ref<'tools' | 'credentials'>('tools')
 const loading = ref(false)
 const refreshing = ref(false)
 const records = ref<GatewayTool[]>([])
+const bindingOverviewLoading = ref(false)
+const enabledModelCount = ref(0)
+const globalVisibleModelNames = ref<string[]>([])
+const explicitVisibleModelNamesByToolId = ref<Record<number, string[]>>({})
 const editVisible = ref(false)
 const debugVisible = ref(false)
 const bindingVisible = ref(false)
@@ -213,6 +241,72 @@ const fetchData = async () => {
   } finally {
     loading.value = false
   }
+}
+
+const fetchBindingOverview = async () => {
+  bindingOverviewLoading.value = true
+  try {
+    const modelsRes = await listEnabledModels()
+    const models: ModelOption[] = modelsRes.data || []
+    enabledModelCount.value = models.length
+
+    const globalModels = new Set<string>()
+    const explicitMap = new Map<number, Set<string>>()
+    const bindingResults = await Promise.all(
+      models.map(async (model) => {
+        const bindingRes = await getModelToolBindings(model.id)
+        return {
+          modelName: model.modelName,
+          globalVisible: !!bindingRes.data.globalVisible,
+          toolIds: Array.isArray(bindingRes.data.toolIds) ? bindingRes.data.toolIds : []
+        }
+      })
+    )
+
+    for (const item of bindingResults) {
+      if (item.globalVisible) {
+        globalModels.add(item.modelName)
+        continue
+      }
+      for (const toolId of item.toolIds) {
+        if (typeof toolId !== 'number') {
+          continue
+        }
+        let modelSet = explicitMap.get(toolId)
+        if (!modelSet) {
+          modelSet = new Set<string>()
+          explicitMap.set(toolId, modelSet)
+        }
+        modelSet.add(item.modelName)
+      }
+    }
+
+    const explicitRecord: Record<number, string[]> = {}
+    for (const [toolId, modelSet] of explicitMap.entries()) {
+      explicitRecord[toolId] = Array.from(modelSet)
+    }
+    globalVisibleModelNames.value = Array.from(globalModels)
+    explicitVisibleModelNamesByToolId.value = explicitRecord
+  } catch (error: any) {
+    ElMessage.error(error.message || '加载绑定概览失败')
+  } finally {
+    bindingOverviewLoading.value = false
+  }
+}
+
+const getToolVisibleModelNames = (tool: GatewayTool): string[] => {
+  if (!tool?.id || tool.status !== 1) {
+    return []
+  }
+  const explicitModels = explicitVisibleModelNamesByToolId.value[tool.id] || []
+  return Array.from(new Set([...globalVisibleModelNames.value, ...explicitModels]))
+}
+
+const isToolVisibleToAllModels = (tool: GatewayTool): boolean => {
+  if (enabledModelCount.value === 0) {
+    return false
+  }
+  return getToolVisibleModelNames(tool).length === enabledModelCount.value
 }
 
 // 搜索处理
@@ -280,6 +374,7 @@ const removeTool = async (row: GatewayTool) => {
     await deleteGatewayTool(row.id)
     ElMessage.success('删除成功')
     fetchData()
+    fetchBindingOverview()
   } catch {
     // ignore
   }
@@ -296,9 +391,20 @@ const toggleStatus = async (row: GatewayTool) => {
       ElMessage.success('已启用')
     }
     fetchData()
+    fetchBindingOverview()
   } catch (error: any) {
     ElMessage.error(error.message || '状态变更失败')
   }
+}
+
+const handleToolChanged = () => {
+  fetchData()
+  fetchBindingOverview()
+}
+
+const handleBindingSuccess = () => {
+  fetchData()
+  fetchBindingOverview()
 }
 
 const normalizeTab = (value: unknown): 'tools' | 'credentials' => {
@@ -325,7 +431,10 @@ watch(
   { immediate: true }
 )
 
-onMounted(fetchData)
+onMounted(() => {
+  fetchData()
+  fetchBindingOverview()
+})
 </script>
 
 <style scoped>
@@ -336,5 +445,11 @@ onMounted(fetchData)
 .search-form .el-form-item {
   margin-bottom: 0;
   margin-right: 16px;
+}
+
+.binding-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 </style>
