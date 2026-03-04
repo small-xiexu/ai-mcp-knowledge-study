@@ -1,7 +1,6 @@
 package com.xbk.knowledge.infrastructure.gateway;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xbk.knowledge.application.service.app.GatewayObservabilityAppService;
 import com.xbk.knowledge.domain.gateway.model.entity.McpGateway;
@@ -19,22 +18,12 @@ import com.xbk.knowledge.domain.gateway.service.GatewayToolService;
 import com.xbk.knowledge.types.exception.BusinessException;
 import com.xbk.knowledge.types.exception.NotFoundException;
 import com.xbk.knowledge.types.trace.TraceIdUtils;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.springframework.web.reactive.function.client.ClientResponse;
-import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.util.UriComponentsBuilder;
-import reactor.core.publisher.Mono;
 
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.Duration;
@@ -88,16 +77,6 @@ public class GatewayToolServiceImpl implements GatewayToolService {
     private static final String RESPONSE_MAPPING_TYPE = "response";
 
     /**
-     * 默认请求超时时间（毫秒）。
-     */
-    private static final int DEFAULT_TIMEOUT_MS = 30000;
-
-    /**
-     * 默认重试次数。
-     */
-    private static final int DEFAULT_RETRY_TIMES = 0;
-
-    /**
      * 网关仓储。
      */
     private final McpGatewayRepository gatewayRepository;
@@ -128,19 +107,19 @@ public class GatewayToolServiceImpl implements GatewayToolService {
     private final ObjectMapper objectMapper;
 
     /**
-     * WebClient 构建器。
+     * HTTP 请求载荷构建器。
      */
-    private final WebClient.Builder webClientBuilder;
+    private final GatewayHttpPayloadBuilder gatewayHttpPayloadBuilder;
 
     /**
-     * WebClient 实例。
+     * HTTP 调用执行器。
      */
-    private WebClient webClient;
+    private final GatewayHttpInvoker gatewayHttpInvoker;
 
-    @PostConstruct
-    public void initWebClient() {
-        this.webClient = webClientBuilder.build();
-    }
+    /**
+     * HTTP 响应提取器。
+     */
+    private final GatewayHttpResponseExtractor gatewayHttpResponseExtractor;
 
     /**
      * 查询网关下所有已启用工具的定义列表
@@ -233,12 +212,12 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         );
 
         try {
-            // 阶段 5：将模型工具入参转换为 HTTP 载荷（url/query/header/body/path）。
-            HttpInvokePayload payload = buildInvokePayload(tool, requestMappings, safeArguments);
-            // 阶段 6：执行 HTTP 调用（含重试和超时控制）。
-            String responseText = executeWithRetry(payload, tool.getRetryTimes(), tool.getTimeout());
-            // 阶段 7：按响应映射提取需要字段，得到最终返回给模型的结果文本。
-            String finalResult = extractResponse(responseText, responseMappings);
+            // 阶段 5：调用专用组件构建 HTTP 载荷（url/query/header/body/path）。
+            GatewayHttpInvokePayload payload = gatewayHttpPayloadBuilder.buildInvokePayload(tool, requestMappings, safeArguments);
+            // 阶段 6：调用专用执行器发起 HTTP 请求（含重试和超时控制）。
+            String responseText = gatewayHttpInvoker.executeWithRetry(payload, tool.getRetryTimes(), tool.getTimeout());
+            // 阶段 7：调用专用提取器按映射规则提取响应字段。
+            String finalResult = gatewayHttpResponseExtractor.extractResponse(responseText, responseMappings);
             // 成功路径统一走 buildSuccessResult，内部会补齐指标与结束日志。
             return buildSuccessResult(callId, gatewayId, toolName, finalResult, tool.getTimeout(), startAt, safeArguments);
         } catch (Exception e) {
@@ -567,397 +546,6 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         return items;
     }
 
-    /**
-     * 构建 HTTP 调用载荷
-     * 根据参数映射规则将 MCP arguments 分发到 header/query/path/body 各位置
-     *
-     * @param tool            工具注册配置。
-     * @param requestMappings 请求参数映射列表。
-     * @param arguments       工具调用参数。
-     * @return HTTP 调用载荷。
-     */
-    private HttpInvokePayload buildInvokePayload(McpToolRegistry tool,
-                                                 List<McpToolMapping> requestMappings,
-                                                 Map<String, Object> arguments) {
-        // 第一步：先构建基础载荷（URL/方法/Headers）和可变参数容器（query/body）。
-        HttpInvokePayload payload = new HttpInvokePayload();
-        payload.url = tool.getHttpUrl();
-        payload.method = resolveHttpMethod(tool.getHttpMethod());
-        payload.headers = parseHeaders(tool.getHttpHeaders());
-        payload.query = new LinkedHashMap<>();
-        payload.body = new LinkedHashMap<>();
-
-        // 第二步：无映射配置时走“直通模式”：
-        // - 支持 body 的方法（POST/PUT/PATCH 等）把 arguments 整体放入 body
-        // - 其他方法（如 GET）把 arguments 整体放入 query
-        if (requestMappings == null || requestMappings.isEmpty()) {
-            if (supportsBody(payload.method)) {
-                payload.body.putAll(arguments);
-            } else {
-                payload.query.putAll(arguments);
-            }
-            return payload;
-        }
-
-        // 第三步：建立映射节点索引（id -> mapping），用于后续解析层级 sourcePath。
-        Map<Long, McpToolMapping> nodeMap = new HashMap<>();
-        for (McpToolMapping mapping : requestMappings) {
-            if (mapping != null && mapping.getId() != null) {
-                nodeMap.put(mapping.getId(), mapping);
-            }
-        }
-
-        // 第四步：逐条映射把 arguments 转成目标 HTTP 载荷。
-        for (McpToolMapping mapping : requestMappings) {
-            // 仅处理具备目标落点信息的映射：httpLocation + httpPath 缺一不可。
-            if (mapping == null || !StringUtils.hasText(mapping.getHttpPath()) || !StringUtils.hasText(mapping.getHttpLocation())) {
-                continue;
-            }
-
-            // 先按映射树推导来源路径（支持父子节点拼接），再从 arguments 中取值。
-            String sourcePath = resolveSourcePath(mapping, nodeMap);
-            Object value = readValueByPath(arguments, sourcePath);
-            // 兜底兼容：若路径未命中，则尝试按 fieldName 一层取值。
-            if (value == null && StringUtils.hasText(mapping.getFieldName())) {
-                value = arguments.get(mapping.getFieldName());
-            }
-            // 来源值为空时不写入载荷，避免把空值覆盖到目标请求结构。
-            if (value == null) {
-                continue;
-            }
-            // 按 location 把值落到 header/query/path/body（具体分发在 applyValueToPayload）。
-            applyValueToPayload(payload, mapping.getHttpLocation(), mapping.getHttpPath(), value);
-        }
-
-        // 第五步：返回已完成映射的最终 HTTP 请求载荷。
-        return payload;
-    }
-
-    /**
-     * 将参数值写入 HTTP 载荷的指定位置（header/query/path/body）
-     *
-     * @param payload      HTTP 调用载荷。
-     * @param httpLocation String 参数。
-     * @param httpPath     路径。
-     * @param value        参数值。
-     */
-    private void applyValueToPayload(HttpInvokePayload payload,
-                                     String httpLocation,
-                                     String httpPath,
-                                     Object value) {
-        // 统一将位置标识转小写，屏蔽配置大小写差异（如 Header/HEADER/header）。
-        String location = httpLocation.toLowerCase(Locale.ROOT);
-        // location=header：写入 HTTP 头；头值统一转字符串，符合 Header 语义。
-        if ("header".equals(location)) {
-            payload.headers.put(httpPath, String.valueOf(value));
-            return;
-        }
-
-        // location=query：写入 URL 查询参数，后续由 buildFinalUrl 统一拼接到 URL。
-        if ("query".equals(location)) {
-            payload.query.put(httpPath, value);
-            return;
-        }
-
-        // location=path：把路径变量替换到 URL 模板中（如 /users/{id}）。
-        if ("path".equals(location)) {
-            payload.url = replacePathVariable(payload.url, httpPath, value);
-            return;
-        }
-
-        // 其他情况默认落到 body（兼容 body/空值/未知位置），支持点路径嵌套写入。
-        setPathValue(payload.body, httpPath, value);
-    }
-
-    /**
-     * 带重试的 HTTP 调用执行
-     *
-     * @param payload    HTTP 调用载荷。
-     * @param retryTimes 重试次数。
-     * @param timeout    超时时间。
-     * @return HTTP 响应文本。
-     */
-    private String executeWithRetry(HttpInvokePayload payload, Integer retryTimes, Integer timeout) {
-        // 总尝试次数 = 重试次数 + 首次调用（例如 retryTimes=2 -> 最多尝试 3 次）。
-        int attempts = normalizeRetryTimes(retryTimes) + 1;
-        // 统一归一化超时配置，避免 null/非法值直接传入底层 HTTP 客户端。
-        int timeoutMs = normalizeTimeout(timeout);
-        // 保存最后一次异常，用于重试全部失败后抛出并保留根因。
-        Exception lastException = null;
-
-        for (int i = 1; i <= attempts; i++) {
-            try {
-                // 任一轮成功即立即返回，不再继续后续重试。
-                return executeOnce(payload, timeoutMs);
-            } catch (Exception e) {
-                // 记录本轮失败异常，供最终失败时作为 cause 透出。
-                lastException = e;
-                // 仅在“还有下一轮”时打印重试日志，最后一轮失败由统一异常抛出处理。
-                if (i < attempts) {
-                    log.warn("HTTP 工具调用失败，准备重试 {}/{}，url: {}，原因: {}", i, attempts, payload.url, e.getMessage());
-                }
-            }
-        }
-        // 所有尝试均失败：抛出统一业务异常，并携带最后一次失败原因。
-        throw new IllegalStateException("HTTP 工具调用失败", lastException);
-    }
-
-    /**
-     * 执行单次 HTTP 请求（WebClient 同步阻塞）
-     *
-     * @param payload   HTTP 调用载荷。
-     * @param timeoutMs 超时时间（毫秒）。
-     * @return HTTP 响应文本。
-     */
-    private String executeOnce(HttpInvokePayload payload, int timeoutMs) {
-        /**
-         * 主流程保持最小化：
-         * 1、拼接最终 URL；
-         * 2、构建请求（按 HTTP 方法决定是否附带 body）；
-         * 3、执行请求并返回文本响应。
-         */
-        String finalUrl = buildFinalUrl(payload.url, payload.query);
-        WebClient.RequestHeadersSpec<?> requestHeadersSpec = buildRequestSpec(payload, finalUrl);
-        return executeRequestAndReadBody(requestHeadersSpec, timeoutMs);
-    }
-
-    /**
-     * 构建可执行的 WebClient 请求规格
-     *
-     * @param payload  HTTP 调用载荷。
-     * @param finalUrl 最终 URL。
-     * @return RequestHeadersSpec 实例。
-     */
-    private WebClient.RequestHeadersSpec<?> buildRequestSpec(HttpInvokePayload payload, String finalUrl) {
-        WebClient.RequestBodySpec request = webClient
-                // 指定本次请求的 HTTP 方法（GET/POST/PUT/PATCH/DELETE 等）。
-                .method(payload.method)
-                // 设置已完成 path/query 拼装后的最终 URL。
-                .uri(finalUrl)
-                // 注入链路追踪头，便于跨服务定位同一次调用。
-                .header("X-Trace-Id", TraceIdUtils.getOrCreateTraceId())
-                // 合并工具配置中的自定义请求头。
-                .headers(headers -> applyHeaders(headers, payload.headers));
-        // GET/DELETE 等不携带 body 的方法直接返回基础请求。
-        if (!supportsBody(payload.method)) {
-            return request;
-        }
-        // 对支持 body 的方法追加 JSON 类型与请求体内容。
-        return request
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(payload.body);
-    }
-
-    /**
-     * 执行请求并读取响应文本
-     *
-     * @param requestHeadersSpec 请求规格。
-     * @param timeoutMs          超时毫秒。
-     * @return 响应文本，空响应返回空串。
-     */
-    private String executeRequestAndReadBody(WebClient.RequestHeadersSpec<?> requestHeadersSpec, int timeoutMs) {
-        return requestHeadersSpec
-                // 发起 HTTP 请求，进入响应处理阶段。
-                .retrieve()
-                // 非 2xx 状态统一走异常转换逻辑（包含 status 与 body）。
-                .onStatus(HttpStatusCode::isError, this::buildHttpError)
-                // 将响应体按字符串读取。
-                .bodyToMono(String.class)
-                // 响应体为空时降级为空串，避免返回 null。
-                .defaultIfEmpty("")
-                // 应用调用超时控制，超时会抛出异常。
-                .timeout(Duration.ofMillis(timeoutMs))
-                // 同步阻塞等待结果，契合当前同步调用链路。
-                .block();
-    }
-
-    /**
-     * 将非 2xx 响应转换为统一异常
-     *
-     * @param response WebClient 响应对象。
-     * @return 异常 Mono。
-     */
-    private Mono<? extends Throwable> buildHttpError(ClientResponse response) {
-        return response.bodyToMono(String.class)
-                .defaultIfEmpty("")
-                .flatMap(body -> Mono.error(new IllegalStateException(
-                        "HTTP 调用失败，status=" + response.statusCode().value() + ", body=" + body
-                )));
-    }
-
-    /**
-     * 根据响应映射规则从原始响应中提取指定字段
-     *
-     * @param rawResponse      原始响应。
-     * @param responseMappings 响应字段映射列表。
-     * @return 处理后的响应文本。
-     */
-    private String extractResponse(String rawResponse,
-                                   List<McpToolMapping> responseMappings) {
-        if (responseMappings == null || responseMappings.isEmpty()) {
-            return rawResponse;
-        }
-
-        JsonNode root;
-        try {
-            root = objectMapper.readTree(rawResponse);
-        } catch (Exception e) {
-            log.warn("响应非 JSON，降级原样返回。原因: {}", e.getMessage());
-            return rawResponse;
-        }
-
-        Map<String, Object> extracted = new LinkedHashMap<>();
-        boolean hasSuccess = false;
-
-        for (McpToolMapping mapping : responseMappings) {
-            if (mapping == null || !StringUtils.hasText(mapping.getHttpPath())) {
-                continue;
-            }
-            try {
-                Object value = extractByPathExpression(root, mapping.getHttpPath());
-                if (value == null) {
-                    continue;
-                }
-                String fieldName = StringUtils.hasText(mapping.getFieldName())
-                        ? mapping.getFieldName()
-                        : mapping.getHttpPath();
-                extracted.put(fieldName, value);
-                hasSuccess = true;
-            } catch (Exception e) {
-                log.warn("响应提取失败 path: {}，error: {}", mapping.getHttpPath(), e.getMessage());
-            }
-        }
-
-        if (!hasSuccess) {
-            return rawResponse;
-        }
-        return toJson(extracted);
-    }
-
-    /**
-     * 按路径表达式从 JSON 树中提取值（支持嵌套路径和数组下标 [n]/[*]）
-     *
-     * @param root       JSON 根节点。
-     * @param expression 表达式。
-     * @return 表达式解析结果。
-     */
-    private Object extractByPathExpression(JsonNode root, String expression) {
-        if (root == null || !StringUtils.hasText(expression)) {
-            return null;
-        }
-        List<String> tokens = splitPathTokens(expression);
-        List<JsonNode> current = new ArrayList<>();
-        current.add(root);
-
-        for (String token : tokens) {
-            List<JsonNode> next = new ArrayList<>();
-            String fieldName = token;
-            String indexExpr = null;
-            int idxStart = token.indexOf('[');
-            if (idxStart >= 0 && token.endsWith("]")) {
-                fieldName = token.substring(0, idxStart);
-                indexExpr = token.substring(idxStart + 1, token.length() - 1);
-            }
-
-            for (JsonNode node : current) {
-                JsonNode target = node;
-                if (StringUtils.hasText(fieldName)) {
-                    target = target.get(fieldName);
-                }
-                if (target == null || target.isMissingNode() || target.isNull()) {
-                    continue;
-                }
-
-                if (indexExpr == null) {
-                    next.add(target);
-                    continue;
-                }
-
-                if ("*".equals(indexExpr)) {
-                    if (target.isArray()) {
-                        target.forEach(next::add);
-                    }
-                    continue;
-                }
-
-                int index = Integer.parseInt(indexExpr);
-                if (target.isArray() && index >= 0 && index < target.size()) {
-                    next.add(target.get(index));
-                }
-            }
-
-            current = next;
-            if (current.isEmpty()) {
-                return null;
-            }
-        }
-
-        if (current.size() == 1) {
-            return convertJsonNode(current.get(0));
-        }
-        List<Object> values = new ArrayList<>();
-        for (JsonNode node : current) {
-            values.add(convertJsonNode(node));
-        }
-        return values;
-    }
-
-    /**
-     * 将路径表达式按 '.' 分割为 token 列表（方括号内的 '.' 不分割）
-     *
-     * @param expression 表达式。
-     * @return 路径片段列表。
-     */
-    private List<String> splitPathTokens(String expression) {
-        List<String> tokens = new ArrayList<>();
-        StringBuilder current = new StringBuilder();
-        int bracketDepth = 0;
-        for (int i = 0; i < expression.length(); i++) {
-            char ch = expression.charAt(i);
-            if (ch == '[') {
-                bracketDepth++;
-            } else if (ch == ']') {
-                bracketDepth--;
-            }
-            if (ch == '.' && bracketDepth == 0) {
-                if (current.length() > 0) {
-                    tokens.add(current.toString());
-                    current = new StringBuilder();
-                }
-                continue;
-            }
-            current.append(ch);
-        }
-        if (current.length() > 0) {
-            tokens.add(current.toString());
-        }
-        return tokens;
-    }
-
-    /**
-     * 将 JSON 节点转换为可序列化对象。
-     *
-     * @param node 节点定义。
-     * @return 转换后的 Java 值。
-     */
-    private Object convertJsonNode(JsonNode node) {
-        if (node == null || node.isNull() || node.isMissingNode()) {
-            return null;
-        }
-        if (node.isTextual()) {
-            return node.asText();
-        }
-        if (node.isBoolean()) {
-            return node.asBoolean();
-        }
-        if (node.isInt() || node.isLong()) {
-            return node.asLong();
-        }
-        if (node.isFloat() || node.isDouble() || node.isBigDecimal()) {
-            return node.asDouble();
-        }
-        return objectMapper.convertValue(node, Object.class);
-    }
 
     /**
      * 计算参数映射列表的 SHA-256 哈希值（用于 Schema 缓存失效判断）
@@ -1003,255 +591,6 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         } catch (Exception e) {
             return content;
         }
-    }
-
-    /**
-     * 从映射节点向上遍历父节点，拼接完整的源路径（用于从 arguments 中读取值）
-     *
-     * @param mapping 字段映射配置。
-     * @param nodeMap 字段节点映射。
-     * @return 映射后的字段值。
-     */
-    private String resolveSourcePath(McpToolMapping mapping, Map<Long, McpToolMapping> nodeMap) {
-        List<String> names = new ArrayList<>();
-        McpToolMapping current = mapping;
-        int guard = 0;
-        while (current != null && guard < 16) {
-            if (StringUtils.hasText(current.getFieldName())) {
-                names.add(current.getFieldName());
-            }
-            Long parentId = current.getParentId();
-            if (parentId == null || !nodeMap.containsKey(parentId)) {
-                break;
-            }
-            current = nodeMap.get(parentId);
-            guard++;
-        }
-        Collections.reverse(names);
-        String path = String.join(".", names);
-        if (path.startsWith("arguments.")) {
-            return path.substring("arguments.".length());
-        }
-        if ("arguments".equals(path)) {
-            return "";
-        }
-        return path;
-    }
-
-    /**
-     * 按路径从 Map 中读取嵌套值（支持 '.' 分隔和数组下标）
-     *
-     * @param source 源参数映射。
-     * @param path   路径。
-     * @return 路径命中的值。
-     */
-    private Object readValueByPath(Map<String, Object> source, String path) {
-        if (source == null) {
-            return null;
-        }
-        if (!StringUtils.hasText(path)) {
-            return source;
-        }
-
-        List<String> tokens = splitPathTokens(path);
-        Object current = source;
-        for (String token : tokens) {
-            if (current == null) {
-                return null;
-            }
-            String fieldName = token;
-            String indexExpr = null;
-            int idxStart = token.indexOf('[');
-            if (idxStart >= 0 && token.endsWith("]")) {
-                fieldName = token.substring(0, idxStart);
-                indexExpr = token.substring(idxStart + 1, token.length() - 1);
-            }
-
-            if (StringUtils.hasText(fieldName)) {
-                if (!(current instanceof Map<?, ?> currentMap)) {
-                    return null;
-                }
-                current = currentMap.get(fieldName);
-            }
-
-            if (indexExpr == null) {
-                continue;
-            }
-
-            if (!(current instanceof List<?> currentList)) {
-                return null;
-            }
-            if ("*".equals(indexExpr)) {
-                return currentList;
-            }
-            int index = Integer.parseInt(indexExpr);
-            if (index < 0 || index >= currentList.size()) {
-                return null;
-            }
-            current = currentList.get(index);
-        }
-        return current;
-    }
-
-    /**
-     * 按路径向 Map 中写入嵌套值（自动创建中间层 Map）
-     *
-     * @param target 目标参数映射。
-     * @param path   路径。
-     * @param value  写入值。
-     */
-    @SuppressWarnings("unchecked")
-    private void setPathValue(Map<String, Object> target, String path, Object value) {
-        if (!StringUtils.hasText(path)) {
-            return;
-        }
-        String[] segments = path.split("\\.");
-        Map<String, Object> current = target;
-        for (int i = 0; i < segments.length; i++) {
-            String rawKey = segments[i];
-            String key = rawKey.replaceAll("\\[.*?]", "");
-            if (!StringUtils.hasText(key)) {
-                continue;
-            }
-            boolean isLast = i == segments.length - 1;
-            if (isLast) {
-                current.put(key, value);
-                return;
-            }
-            Object nested = current.get(key);
-            if (!(nested instanceof Map<?, ?>)) {
-                nested = new LinkedHashMap<String, Object>();
-                current.put(key, nested);
-            }
-            current = (Map<String, Object>) nested;
-        }
-    }
-
-    /**
-     * 替换 URL 中的路径变量（支持 {key} 和 :key 两种风格）
-     *
-     * @param url   URL 地址。
-     * @param key   键名。
-     * @param value 查询参数值。
-     * @return 追加查询参数后的 URL。
-     */
-    private String replacePathVariable(String url, String key, Object value) {
-        if (!StringUtils.hasText(url) || !StringUtils.hasText(key) || value == null) {
-            return url;
-        }
-        String encoded = URLEncoder.encode(String.valueOf(value), StandardCharsets.UTF_8);
-        String replaced = url.replace("{" + key + "}", encoded);
-        return replaced.replace(":" + key, encoded);
-    }
-
-    /**
-     * 将 query 参数拼接到 URL 上
-     *
-     * @param url   URL 地址。
-     * @param query 查询参数集合。
-     * @return 追加查询参数后的 URL。
-     */
-    private String buildFinalUrl(String url, Map<String, Object> query) {
-        if (query == null || query.isEmpty()) {
-            return url;
-        }
-        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(url);
-        for (Map.Entry<String, Object> entry : query.entrySet()) {
-            if (!StringUtils.hasText(entry.getKey()) || entry.getValue() == null) {
-                continue;
-            }
-            Object value = entry.getValue();
-            if (value instanceof List<?> list) {
-                for (Object item : list) {
-                    builder.queryParam(entry.getKey(), item);
-                }
-                continue;
-            }
-            builder.queryParam(entry.getKey(), value);
-        }
-        return builder.build(true).toUriString();
-    }
-
-    /**
-     * 合并并应用 HTTP 请求头。
-     *
-     * @param headers       请求头集合。
-     * @param sourceHeaders 原始请求头映射。
-     */
-    private void applyHeaders(HttpHeaders headers, Map<String, String> sourceHeaders) {
-        if (headers == null || sourceHeaders == null || sourceHeaders.isEmpty()) {
-            return;
-        }
-        for (Map.Entry<String, String> entry : sourceHeaders.entrySet()) {
-            if (StringUtils.hasText(entry.getKey()) && entry.getValue() != null) {
-                headers.add(entry.getKey(), entry.getValue());
-            }
-        }
-    }
-
-    /**
-     * 解析工具配置中的 JSON 格式请求头
-     *
-     * @param headersJson 工具参数 JSON。
-     */
-    private Map<String, String> parseHeaders(String headersJson) {
-        if (!StringUtils.hasText(headersJson)) {
-            return new LinkedHashMap<>();
-        }
-        try {
-            Map<String, Object> raw = objectMapper.readValue(headersJson, new TypeReference<>() {
-            });
-            Map<String, String> headers = new LinkedHashMap<>();
-            for (Map.Entry<String, Object> entry : raw.entrySet()) {
-                if (!StringUtils.hasText(entry.getKey()) || entry.getValue() == null) {
-                    continue;
-                }
-                headers.put(entry.getKey(), String.valueOf(entry.getValue()));
-            }
-            return headers;
-        } catch (Exception e) {
-            log.warn("解析工具请求头失败: {}", headersJson, e);
-            return new LinkedHashMap<>();
-        }
-    }
-
-    private HttpMethod resolveHttpMethod(String method) {
-        String normalized = StringUtils.hasText(method) ? method.trim().toUpperCase(Locale.ROOT) : "POST";
-        try {
-            return HttpMethod.valueOf(normalized);
-        } catch (Exception e) {
-            throw new BusinessException("不支持的 HTTP 方法: " + normalized);
-        }
-    }
-
-    private boolean supportsBody(HttpMethod method) {
-        return HttpMethod.POST.equals(method) || HttpMethod.PUT.equals(method) || HttpMethod.PATCH.equals(method);
-    }
-
-    /**
-     * 归一化重试次数。
-     *
-     * @param retryTimes 重试次数
-     * @return 归一化后的重试次数
-     */
-    private int normalizeRetryTimes(Integer retryTimes) {
-        if (retryTimes == null || retryTimes < 0) {
-            return DEFAULT_RETRY_TIMES;
-        }
-        return retryTimes;
-    }
-
-    /**
-     * 归一化超时。
-     *
-     * @param timeout 超时时间
-     * @return 归一化后的超时时间（毫秒）
-     */
-    private int normalizeTimeout(Integer timeout) {
-        if (timeout == null || timeout <= 0) {
-            return DEFAULT_TIMEOUT_MS;
-        }
-        return timeout;
     }
 
     /**
@@ -1465,34 +804,4 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         return UUID.randomUUID().toString().replace("-", "");
     }
 
-    /**
-     * HTTP 调用载荷，封装 URL、方法、请求头、查询参数和请求体
-     */
-    private static class HttpInvokePayload {
-
-        /**
-         * 请求 URL。
-         */
-        private String url;
-
-        /**
-         * HTTP 方法。
-         */
-        private HttpMethod method;
-
-        /**
-         * 请求头参数。
-         */
-        private Map<String, String> headers;
-
-        /**
-         * Query 参数。
-         */
-        private Map<String, Object> query;
-
-        /**
-         * 请求体参数。
-         */
-        private Map<String, Object> body;
-    }
 }
