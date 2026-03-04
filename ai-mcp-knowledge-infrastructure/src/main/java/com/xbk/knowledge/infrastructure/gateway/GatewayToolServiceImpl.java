@@ -29,6 +29,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
@@ -192,31 +193,38 @@ public class GatewayToolServiceImpl implements GatewayToolService {
      */
     @Override
     public ToolCallResult callTool(String gatewayId, String toolName, Map<String, Object> arguments) {
+        // 阶段 1：初始化调用链路上下文（计时起点 + 调用ID + 参数兜底）。
         long startAt = System.nanoTime();
         String callId = resolveCallId();
         Map<String, Object> safeArguments = arguments == null ? Collections.emptyMap() : arguments;
+        // 先记录 start 日志，便于与 end/exception 日志做一一对应排查。
         log.info("gateway_tool_call source=SERVICE stage=start callId={} gatewayId={} toolName={} argsKeys={}",
                 callId,
                 gatewayId,
                 toolName,
                 safeArguments.keySet());
 
+        // 阶段 2：基础参数校验，不满足直接按统一失败结构返回。
         if (!StringUtils.hasText(gatewayId) || !StringUtils.hasText(toolName)) {
             return buildFailureResult(callId, gatewayId, toolName, "工具调用参数不完整", "INVALID_PARAMS", null, startAt, safeArguments);
         }
 
+        // 阶段 3：按 gatewayId + toolName 定位工具注册记录。
         Optional<McpToolRegistry> toolOptional = toolRegistryRepository.findByGatewayIdAndToolName(
                 new ToolNameQuery(gatewayId, toolName)
         );
+        // 工具不存在时返回 TOOL_NOT_FOUND，避免继续走后续映射与HTTP调用。
         if (toolOptional.isEmpty()) {
             return buildFailureResult(callId, gatewayId, toolName, "工具不存在: " + toolName, "TOOL_NOT_FOUND", null, startAt, safeArguments);
         }
 
         McpToolRegistry tool = toolOptional.get();
+        // 仅启用态工具允许调用；禁用态统一返回 TOOL_DISABLED。
         if (tool.getStatus() == null || tool.getStatus() != 1) {
             return buildFailureResult(callId, gatewayId, toolName, "工具未启用: " + toolName, "TOOL_DISABLED", tool.getTimeout(), startAt, safeArguments);
         }
 
+        // 阶段 4：加载 request/response 映射，分别用于入参与响应提取。
         List<McpToolMapping> requestMappings = toolMappingRepository.findByToolIdAndMappingType(
                 new ToolMappingQuery(tool.getId(), REQUEST_MAPPING_TYPE)
         );
@@ -225,11 +233,16 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         );
 
         try {
+            // 阶段 5：将模型工具入参转换为 HTTP 载荷（url/query/header/body/path）。
             HttpInvokePayload payload = buildInvokePayload(tool, requestMappings, safeArguments);
+            // 阶段 6：执行 HTTP 调用（含重试和超时控制）。
             String responseText = executeWithRetry(payload, tool.getRetryTimes(), tool.getTimeout());
+            // 阶段 7：按响应映射提取需要字段，得到最终返回给模型的结果文本。
             String finalResult = extractResponse(responseText, responseMappings);
+            // 成功路径统一走 buildSuccessResult，内部会补齐指标与结束日志。
             return buildSuccessResult(callId, gatewayId, toolName, finalResult, tool.getTimeout(), startAt, safeArguments);
         } catch (Exception e) {
+            // 异常路径统一分类错误码后返回，保证上层收到稳定的失败结构。
             log.error("Gateway 工具调用失败 callId: {}, gatewayId: {}, toolName: {}", callId, gatewayId, toolName, e);
             String errorCode = classifyErrorCode(e);
             return buildFailureResult(callId, gatewayId, toolName, e.getMessage(), errorCode, tool.getTimeout(), startAt, safeArguments);
@@ -566,6 +579,7 @@ public class GatewayToolServiceImpl implements GatewayToolService {
     private HttpInvokePayload buildInvokePayload(McpToolRegistry tool,
                                                  List<McpToolMapping> requestMappings,
                                                  Map<String, Object> arguments) {
+        // 第一步：先构建基础载荷（URL/方法/Headers）和可变参数容器（query/body）。
         HttpInvokePayload payload = new HttpInvokePayload();
         payload.url = tool.getHttpUrl();
         payload.method = resolveHttpMethod(tool.getHttpMethod());
@@ -573,6 +587,9 @@ public class GatewayToolServiceImpl implements GatewayToolService {
         payload.query = new LinkedHashMap<>();
         payload.body = new LinkedHashMap<>();
 
+        // 第二步：无映射配置时走“直通模式”：
+        // - 支持 body 的方法（POST/PUT/PATCH 等）把 arguments 整体放入 body
+        // - 其他方法（如 GET）把 arguments 整体放入 query
         if (requestMappings == null || requestMappings.isEmpty()) {
             if (supportsBody(payload.method)) {
                 payload.body.putAll(arguments);
@@ -582,6 +599,7 @@ public class GatewayToolServiceImpl implements GatewayToolService {
             return payload;
         }
 
+        // 第三步：建立映射节点索引（id -> mapping），用于后续解析层级 sourcePath。
         Map<Long, McpToolMapping> nodeMap = new HashMap<>();
         for (McpToolMapping mapping : requestMappings) {
             if (mapping != null && mapping.getId() != null) {
@@ -589,22 +607,29 @@ public class GatewayToolServiceImpl implements GatewayToolService {
             }
         }
 
+        // 第四步：逐条映射把 arguments 转成目标 HTTP 载荷。
         for (McpToolMapping mapping : requestMappings) {
+            // 仅处理具备目标落点信息的映射：httpLocation + httpPath 缺一不可。
             if (mapping == null || !StringUtils.hasText(mapping.getHttpPath()) || !StringUtils.hasText(mapping.getHttpLocation())) {
                 continue;
             }
 
+            // 先按映射树推导来源路径（支持父子节点拼接），再从 arguments 中取值。
             String sourcePath = resolveSourcePath(mapping, nodeMap);
             Object value = readValueByPath(arguments, sourcePath);
+            // 兜底兼容：若路径未命中，则尝试按 fieldName 一层取值。
             if (value == null && StringUtils.hasText(mapping.getFieldName())) {
                 value = arguments.get(mapping.getFieldName());
             }
+            // 来源值为空时不写入载荷，避免把空值覆盖到目标请求结构。
             if (value == null) {
                 continue;
             }
+            // 按 location 把值落到 header/query/path/body（具体分发在 applyValueToPayload）。
             applyValueToPayload(payload, mapping.getHttpLocation(), mapping.getHttpPath(), value);
         }
 
+        // 第五步：返回已完成映射的最终 HTTP 请求载荷。
         return payload;
     }
 
@@ -620,22 +645,27 @@ public class GatewayToolServiceImpl implements GatewayToolService {
                                      String httpLocation,
                                      String httpPath,
                                      Object value) {
+        // 统一将位置标识转小写，屏蔽配置大小写差异（如 Header/HEADER/header）。
         String location = httpLocation.toLowerCase(Locale.ROOT);
+        // location=header：写入 HTTP 头；头值统一转字符串，符合 Header 语义。
         if ("header".equals(location)) {
             payload.headers.put(httpPath, String.valueOf(value));
             return;
         }
 
+        // location=query：写入 URL 查询参数，后续由 buildFinalUrl 统一拼接到 URL。
         if ("query".equals(location)) {
             payload.query.put(httpPath, value);
             return;
         }
 
+        // location=path：把路径变量替换到 URL 模板中（如 /users/{id}）。
         if ("path".equals(location)) {
             payload.url = replacePathVariable(payload.url, httpPath, value);
             return;
         }
 
+        // 其他情况默认落到 body（兼容 body/空值/未知位置），支持点路径嵌套写入。
         setPathValue(payload.body, httpPath, value);
     }
 
@@ -648,20 +678,27 @@ public class GatewayToolServiceImpl implements GatewayToolService {
      * @return HTTP 响应文本。
      */
     private String executeWithRetry(HttpInvokePayload payload, Integer retryTimes, Integer timeout) {
+        // 总尝试次数 = 重试次数 + 首次调用（例如 retryTimes=2 -> 最多尝试 3 次）。
         int attempts = normalizeRetryTimes(retryTimes) + 1;
+        // 统一归一化超时配置，避免 null/非法值直接传入底层 HTTP 客户端。
         int timeoutMs = normalizeTimeout(timeout);
+        // 保存最后一次异常，用于重试全部失败后抛出并保留根因。
         Exception lastException = null;
 
         for (int i = 1; i <= attempts; i++) {
             try {
+                // 任一轮成功即立即返回，不再继续后续重试。
                 return executeOnce(payload, timeoutMs);
             } catch (Exception e) {
+                // 记录本轮失败异常，供最终失败时作为 cause 透出。
                 lastException = e;
+                // 仅在“还有下一轮”时打印重试日志，最后一轮失败由统一异常抛出处理。
                 if (i < attempts) {
                     log.warn("HTTP 工具调用失败，准备重试 {}/{}，url: {}，原因: {}", i, attempts, payload.url, e.getMessage());
                 }
             }
         }
+        // 所有尝试均失败：抛出统一业务异常，并携带最后一次失败原因。
         throw new IllegalStateException("HTTP 工具调用失败", lastException);
     }
 
@@ -673,35 +710,79 @@ public class GatewayToolServiceImpl implements GatewayToolService {
      * @return HTTP 响应文本。
      */
     private String executeOnce(HttpInvokePayload payload, int timeoutMs) {
+        /**
+         * 主流程保持最小化：
+         * 1、拼接最终 URL；
+         * 2、构建请求（按 HTTP 方法决定是否附带 body）；
+         * 3、执行请求并返回文本响应。
+         */
         String finalUrl = buildFinalUrl(payload.url, payload.query);
+        WebClient.RequestHeadersSpec<?> requestHeadersSpec = buildRequestSpec(payload, finalUrl);
+        return executeRequestAndReadBody(requestHeadersSpec, timeoutMs);
+    }
+
+    /**
+     * 构建可执行的 WebClient 请求规格
+     *
+     * @param payload  HTTP 调用载荷。
+     * @param finalUrl 最终 URL。
+     * @return RequestHeadersSpec 实例。
+     */
+    private WebClient.RequestHeadersSpec<?> buildRequestSpec(HttpInvokePayload payload, String finalUrl) {
         WebClient.RequestBodySpec request = webClient
+                // 指定本次请求的 HTTP 方法（GET/POST/PUT/PATCH/DELETE 等）。
                 .method(payload.method)
+                // 设置已完成 path/query 拼装后的最终 URL。
                 .uri(finalUrl)
+                // 注入链路追踪头，便于跨服务定位同一次调用。
                 .header("X-Trace-Id", TraceIdUtils.getOrCreateTraceId())
+                // 合并工具配置中的自定义请求头。
                 .headers(headers -> applyHeaders(headers, payload.headers));
-
-        WebClient.RequestHeadersSpec<?> requestHeadersSpec;
-        if (supportsBody(payload.method)) {
-            requestHeadersSpec = request
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(payload.body);
-        } else {
-            requestHeadersSpec = request;
+        // GET/DELETE 等不携带 body 的方法直接返回基础请求。
+        if (!supportsBody(payload.method)) {
+            return request;
         }
+        // 对支持 body 的方法追加 JSON 类型与请求体内容。
+        return request
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(payload.body);
+    }
 
+    /**
+     * 执行请求并读取响应文本
+     *
+     * @param requestHeadersSpec 请求规格。
+     * @param timeoutMs          超时毫秒。
+     * @return 响应文本，空响应返回空串。
+     */
+    private String executeRequestAndReadBody(WebClient.RequestHeadersSpec<?> requestHeadersSpec, int timeoutMs) {
         return requestHeadersSpec
+                // 发起 HTTP 请求，进入响应处理阶段。
                 .retrieve()
-                .onStatus(HttpStatusCode::isError,
-                        response -> response.bodyToMono(String.class)
-                                .defaultIfEmpty("")
-                                .flatMap(body -> Mono.error(new IllegalStateException(
-                                        "HTTP 调用失败，status=" + response.statusCode().value() + ", body=" + body
-                                )))
-                )
+                // 非 2xx 状态统一走异常转换逻辑（包含 status 与 body）。
+                .onStatus(HttpStatusCode::isError, this::buildHttpError)
+                // 将响应体按字符串读取。
                 .bodyToMono(String.class)
+                // 响应体为空时降级为空串，避免返回 null。
                 .defaultIfEmpty("")
+                // 应用调用超时控制，超时会抛出异常。
                 .timeout(Duration.ofMillis(timeoutMs))
+                // 同步阻塞等待结果，契合当前同步调用链路。
                 .block();
+    }
+
+    /**
+     * 将非 2xx 响应转换为统一异常
+     *
+     * @param response WebClient 响应对象。
+     * @return 异常 Mono。
+     */
+    private Mono<? extends Throwable> buildHttpError(ClientResponse response) {
+        return response.bodyToMono(String.class)
+                .defaultIfEmpty("")
+                .flatMap(body -> Mono.error(new IllegalStateException(
+                        "HTTP 调用失败，status=" + response.statusCode().value() + ", body=" + body
+                )));
     }
 
     /**

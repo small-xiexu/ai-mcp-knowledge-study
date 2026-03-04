@@ -165,20 +165,34 @@ public class AiChatAppServiceImpl implements AiChatAppService {
      */
     @Override
     public Flux<ChatResponse> streamChat(AICallCommand command) {
+        // 记录整次请求起始时间；后续在成功/失败分支都用同一时间基准计算耗时。
         long startTime = System.currentTimeMillis();
-        // 1、按统一顺序准备调用上下文，避免流式行为漂移
+        // 1、先把“模型解析、工具开关、Prompt 拼装、日志骨架、会话ID”一次性准备好。
+        // 这样可避免流式过程中临时查配置导致行为漂移。
         ChatCallContext context = prepareChatContext(command);
+        // 本次调用使用的模型配置（包含模型类型、名称、工具开关等运行参数）。
         ModelConfig modelConfig = context.modelConfig;
+        // 当前请求是否启用工具调用能力；由模型配置与业务规则共同决策。
         boolean toolEnabled = context.toolEnabled;
+        // 已组装完成的提示词对象（系统提示 + 历史消息 + 用户输入 + 可选RAG内容）。
         Prompt prompt = context.prompt;
+        // 调用日志骨架（请求阶段基础字段），后续在成功/失败分支补齐结果字段并落库。
         CallLog callLog = context.callLog;
+        // usageStats 用于累计 token 消耗；流式模式下 usage 往往分片返回，无法一次拿全。
         UsageStats usageStats = new UsageStats();
         String conversationId = context.conversationId;
+        // assistantBuffer 持续拼接最终回答文本，供完成时写入聊天记忆。
         StringBuilder assistantBuffer = new StringBuilder();
+        // 在请求线程提前计算 operatorId + tool:invoke 快照，避免回调线程登录上下文丢失误判。
         ToolInvokeAuthSnapshot authSnapshot = resolveToolInvokeAuthSnapshot();
+
+        // 使用 Flux.defer 的目的：
+        // 1、每次订阅都独立执行一次内部逻辑（runId、上下文、client 调用都隔离）；
+        // 2、避免在组装阶段就提前执行，导致多订阅共享状态。
         return Flux.defer(() -> {
-            // 2、每次订阅都创建独立 runId，确保并发流请求隔离
+            // 2、每次订阅创建独立 runId，确保并发流请求链路可追踪且不串线。
             String runId = TraceIdUtils.getOrCreateTraceId();
+            // 3、写入 ThreadLocal 绑定上下文，供本线程内的工具过滤/审计直接读取。
             GatewayToolBindingContextHolder.set(
                     modelConfig.getId(),
                     command.getSessionId(),
@@ -188,19 +202,22 @@ public class AiChatAppServiceImpl implements AiChatAppService {
                     authSnapshot.operatorId,
                     authSnapshot.toolInvokePermitted
             );
+            // 4、同步构建 toolContext（Map）进行跨线程透传；
+            // 当工具回调在线程池执行时，可据此恢复 runId/operator/权限快照。
             Map<String, Object> toolContext = buildToolContext(runId, authSnapshot);
+            // 5、按当前模型与工具开关获取 ChatClient，随后发起流式调用。
             ChatClient chatClient = resolveChatClient(modelConfig, toolEnabled);
             return chatClient.prompt(prompt)
                     .toolContext(toolContext)
                     .stream()
                     .chatResponse()
                     .doOnNext(response -> {
-                        // 分片回调阶段持续累积 usage 与输出文本
+                        // onNext：每个分片都更新 usage 快照，并累积回答正文。
                         captureUsage(response, usageStats);
                         appendStreamContent(response, assistantBuffer);
                     })
                     .doOnError(error -> {
-                        // 异常立即落失败日志，保证流式中断可排查
+                        // onError：出现异常立即落失败日志，保证中断场景可审计可定位。
                         long responseTime = System.currentTimeMillis() - startTime;
                         CallLogAggregate aggregate = CallLogAggregate.builder()
                                 .callLog(fillFailureLog(callLog, error.getMessage(), responseTime))
@@ -208,15 +225,16 @@ public class AiChatAppServiceImpl implements AiChatAppService {
                         callLogRepository.save(aggregate);
                     })
                     .doOnComplete(() -> {
+                        // onComplete：流正常结束后统一写记忆与成功日志，保证内容完整落库。
                         long responseTime = System.currentTimeMillis() - startTime;
                         Integer tokensUsed = usageStats.getTotalTokens();
-                        // 完成时再统一落库与写记忆，确保内容完整
                         appendChatMemory(conversationId, command.getContent(), assistantBuffer.toString());
                         CallLogAggregate aggregate = CallLogAggregate.builder()
                                 .callLog(fillSuccessLog(callLog, null, tokensUsed, responseTime))
                                 .build();
                         callLogRepository.save(aggregate);
                     })
+                    // doFinally：无论成功/失败/取消都清理 ThreadLocal，避免线程复用污染后续请求。
                     .doFinally(signalType -> GatewayToolBindingContextHolder.clear());
         });
     }

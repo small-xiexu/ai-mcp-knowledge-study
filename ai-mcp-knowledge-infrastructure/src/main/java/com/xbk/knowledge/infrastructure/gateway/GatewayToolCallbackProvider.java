@@ -342,16 +342,21 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
      */
     private List<ToolCandidate> applyAllowlistIfPresent(List<ToolCandidate> candidates,
                                                         BindingContext context) {
+        // 无上下文时不做 allowlist 过滤，保持原始候选集。
         if (context == null) {
             return candidates;
         }
         Set<String> allowedToolKeys = context.getAllowedToolKeys();
+        // allowedToolKeys=null 表示“未启用 allowlist”，按全量候选继续。
         if (allowedToolKeys == null) {
             return candidates;
         }
+        // allowedToolKeys=空集合 表示“显式禁止所有工具”。
         if (allowedToolKeys.isEmpty()) {
             return Collections.emptyList();
         }
+
+        // 仅保留 toolKey 命中 allowlist 的候选；无效候选（null/空 key）直接跳过。
         List<ToolCandidate> filtered = new ArrayList<>();
         for (ToolCandidate candidate : candidates) {
             if (candidate == null || !StringUtils.hasText(candidate.toolKey)) {
@@ -421,37 +426,64 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
 
     /**
      * 将候选对象构建为 FunctionToolCallback，内部封装工具调用逻辑和链路追踪
+     * <p>
+     * 核心流程：
+     * 1. 参数预处理：空参数兜底、空 Schema 兜底
+     * 2. 调用前检查：权限校验、高风险审批门禁
+     * 3. 工具执行：调用 GatewayToolService 发起 HTTP 工具调用
+     * 4. 结果处理：成功返回内容，失败带错误码返回
+     * 5. 异常处理：记录异常日志与审计，抛出异常中断
+     * 6. 上下文清理：恢复 MDC 链路追踪 ID
      *
      * @param candidate 工具候选数据。
      * @return 工具回调。
      */
     private ToolCallback buildToolCallback(ToolCandidate candidate) {
         String inputSchema = candidate.inputSchema;
+        // 模型侧注册工具时必须携带合法 schema，缺省时兜底为“空对象入参”。
         if (!StringUtils.hasText(inputSchema)) {
             inputSchema = "{\"type\":\"object\",\"properties\":{}}";
         }
 
+        /**
+         * 统一使用 returnDirect(false)：工具返回结果不会直接透传给调用方，而是先回到模型侧。
+         * 当前链路约束为：模型决定调用工具 -> 工具执行并返回内容 -> 模型基于结果继续组织最终回复。
+         * 这样可以保持现有对话体验与响应结构稳定；
+         * 若改为 true，会变成“工具结果直接返回”，可能跳过模型后续的解释/润色/多工具编排，导致行为与现有链路不一致。
+         */
         ToolMetadata metadata = ToolMetadata.builder()
                 .returnDirect(false)
                 .build();
 
+        // 委托回调承载真正执行逻辑；外层 GovernedToolCallback 仅补充治理元数据。
         ToolCallback delegate = FunctionToolCallback
                 .<Map<String, Object>, String>builder(candidate.functionName, arguments -> {
+                    // 阶段 1：统一初始化调用上下文（参数兜底、链路标识、计时器、MDC）。
                     Map<String, Object> safeArgs = arguments == null ? Collections.emptyMap() : arguments;
+                    // callId 是“单次工具调用级”追踪 ID，用于串联 start/end/exception 三段日志。
                     String callId = UUID.randomUUID().toString().replace("-", "");
+                    // 使用纳秒计时，后续统一转换为毫秒作为可观测指标口径。
                     long startAt = System.nanoTime();
+                    // 保存进入前 MDC，确保 finally 可以无损恢复调用方上下文。
                     String previousCallId = MDC.get(CALL_ID_MDC_KEY);
                     MDC.put(CALL_ID_MDC_KEY, callId);
+                    // runId 用于跨组件关联同一条执行链路（审批、审计、指标）。
                     String runId = resolveRunId();
+                    // operatorId 用于审计记录中的操作者标识；为空时视为系统调用。
                     Long operatorId = resolveOperatorId();
                     boolean bypassEnabled = ToolInvokeBypassContextHolder.isEnabled();
                     boolean toolInvokePermitted = isToolInvokePermitted();
+                    // 阶段 2：权限门禁，未授权直接短路返回，避免产生外部副作用。
                     if (!bypassEnabled && !toolInvokePermitted) {
                         recordToolDeniedAndAudit(runId, candidate, "PERMISSION_DENIED", operatorId);
                         return "[PERMISSION_DENIED] 无权限调用工具（缺少权限: " + PERMISSION_TOOL_INVOKE + "），toolKey=" + candidate.toolKey;
                     }
+
+                    // 阶段 3：审批门禁，仅高风险工具触发；未审批通过会抛出 ApprovalRequiredException。
                     String requesterType = operatorId == null ? "system" : "user";
                     maybeRequireApproval(runId, candidate, safeArgs, operatorId, requesterType, operatorId);
+
+                    // 阶段 4：记录调用开始日志，便于排查“进入回调但未返回”类问题。
                     log.info("gateway_tool_call source=AI stage=start runId={} callId={} gatewayId={} toolName={} functionName={} toolKey={} argsKeys={}",
                             runId,
                             callId,
@@ -462,11 +494,13 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
                             safeArgs.keySet());
 
                     try {
+                        // 阶段 5：执行业务调用，真正向 GatewayToolService 发起工具请求。
                         GatewayToolService.ToolCallResult callResult = gatewayToolService.callTool(
                                 candidate.gatewayId,
                                 candidate.toolName,
                                 safeArgs
                         );
+                        // 正常返回路径统一计算耗时，保证 end 日志与指标一致。
                         long latencyMs = (System.nanoTime() - startAt) / 1_000_000;
                         log.info("gateway_tool_call source=AI stage=end runId={} callId={} gatewayId={} toolName={} functionName={} toolKey={} argsKeys={} success={} errorCode={} latencyMs={}",
                                 runId,
@@ -480,14 +514,20 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
                                 callResult.errorCode(),
                                 latencyMs);
 
+                        // 不论成功或失败均记录指标与审计，保证观测口径一致。
                         recordToolMetricsAndAudit(runId, candidate, safeArgs, callResult.success(), callResult.errorCode(), latencyMs, null, operatorId);
 
+                        // 成功场景：直接返回工具内容，由上游模型继续消费。
                         if (callResult.success()) {
                             return callResult.content();
                         }
+
+                        // 失败但可控场景：保留业务错误码并格式化输出，避免上游仅看到模糊异常文本。
+                        // 业务失败按统一格式回传错误码，方便模型和前端识别。
                         String errorCode = callResult.errorCode() == null ? "TOOL_ERROR" : callResult.errorCode();
                         return "[" + errorCode.toUpperCase(Locale.ROOT) + "] " + callResult.content();
                     } catch (Exception e) {
+                        // 异常场景统一归类为 TOOL_EXEC_FAILED，并输出异常栈供问题定位。
                         long latencyMs = (System.nanoTime() - startAt) / 1_000_000;
                         log.error("gateway_tool_call source=AI stage=exception runId={} callId={} gatewayId={} toolName={} functionName={} toolKey={} argsKeys={} success=false errorCode={} latencyMs={} error={}",
                                 runId,
@@ -501,9 +541,12 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
                                 latencyMs,
                                 e.getMessage(),
                                 e);
+                        // 异常路径同样落指标/审计，避免统计口径漏算。
                         recordToolMetricsAndAudit(runId, candidate, safeArgs, false, "TOOL_EXEC_FAILED", latencyMs, e.getMessage(), operatorId);
+                        // 保持原异常语义向上抛出，交由上层统一异常处理。
                         throw e;
                     } finally {
+                        // 恢复进入前的 MDC，避免线程复用导致链路 ID 串写。
                         if (StringUtils.hasText(previousCallId)) {
                             MDC.put(CALL_ID_MDC_KEY, previousCallId);
                         } else {
@@ -517,44 +560,83 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
                 .inputSchema(inputSchema)
                 .toolMetadata(metadata)
                 .build();
+        // 统一包裹治理回调，向后续流程透出 toolKey 与来源类型（GATEWAY）。
         return new GovernedToolCallback(delegate, candidate.toolKey, "GATEWAY");
     }
 
+    /**
+     * 解析当前工具调用所属的运行 ID。
+     * <p>
+     * 优先使用 ThreadLocal 透传的 runId；未命中时回退到 TraceId，
+     * 保证审计、日志与指标始终有可关联的链路标识。
+     *
+     * @return 运行 ID。
+     */
     private String resolveRunId() {
         BindingContext context = GatewayToolBindingContextHolder.get();
+        // 请求链路已透传 runId 时直接复用，确保与上游执行上下文一致。
         if (context != null && StringUtils.hasText(context.getRunId())) {
             return context.getRunId();
         }
+        // 无上下文时兜底创建/获取 traceId，避免出现空 requestId。
         return TraceIdUtils.getOrCreateTraceId();
     }
 
+    /**
+     * 解析当前工具调用的操作者 ID。
+     * <p>
+     * 判定顺序：
+     * 1. 优先读取 ThreadLocal 快照（跨线程回调场景优先）。
+     * 2. 未透传时回退 Sa-Token 登录态。
+     * 3. 无登录态或解析失败返回 null，表示系统调用。
+     *
+     * @return 操作者 ID；无法识别时返回 null。
+     */
     private Long resolveOperatorId() {
         BindingContext context = GatewayToolBindingContextHolder.get();
+        // 优先使用上游透传的 operatorId，避免异步线程登录上下文缺失。
         if (context != null && context.getOperatorId() != null) {
             return context.getOperatorId();
         }
         try {
+            // 未登录视为系统调用，不强制映射用户 ID。
             if (!StpUtil.isLogin()) {
                 return null;
             }
             String loginId = StpUtil.getLoginIdAsString();
+            // 登录态异常或空 ID 时按系统调用处理。
             if (!StringUtils.hasText(loginId)) {
                 return null;
             }
+            // Sa-Token 登录标识统一解析为 Long，供审计落库使用。
             return Long.parseLong(loginId);
         } catch (Exception ignore) {
+            // 鉴权组件异常或 ID 非法时降级为 null，避免阻断主流程。
             return null;
         }
     }
 
+    /**
+     * 判断当前调用链路是否具备工具调用权限。
+     * <p>
+     * 判定顺序：
+     * 1. 优先读取 BindingContext 中透传的权限快照（适配异步线程场景）。
+     * 2. 未透传时回退 Sa-Token：未登录视为系统调用放行，已登录需具备 tool:invoke。
+     * 3. 鉴权组件异常时返回 false，按 fail-close 策略拒绝调用。
+     *
+     * @return true 表示允许调用工具，false 表示拒绝调用。
+     */
     private boolean isToolInvokePermitted() {
         BindingContext context = GatewayToolBindingContextHolder.get();
+        // 优先使用请求线程透传的权限快照，避免异步线程中登录态缺失导致误判。
         if (context != null && context.getToolInvokePermitted() != null) {
             return context.getToolInvokePermitted();
         }
         try {
+            // 兼容系统任务（未登录）场景：默认放行；登录用户则严格校验 tool:invoke 权限。
             return !StpUtil.isLogin() || StpUtil.hasPermission(PERMISSION_TOOL_INVOKE);
         } catch (Exception ignore) {
+            // 鉴权组件异常时按“拒绝”处理，采用 fail-close 策略降低越权风险。
             return false;
         }
     }
@@ -580,23 +662,29 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
                                       Long requesterId,
                                       String requesterType,
                                       Long operatorId) {
+        // 阶段 1：门禁前置条件校验。缺少 runId/toolKey 时无法建立审批关联，直接跳过审批逻辑。
         if (!StringUtils.hasText(runId) || candidate == null || !StringUtils.hasText(candidate.toolKey)) {
             return;
         }
+        // 仅 HIGH 风险工具触发审批；LOW/MEDIUM 默认直通。
+        // 同时要求审批仓储可用，避免基础设施未就绪时误阻断工具调用。
         String riskLevel = StringUtils.hasText(candidate.riskLevel) ? candidate.riskLevel : "MEDIUM";
         if (!"HIGH".equalsIgnoreCase(riskLevel) || approvalRequestRepository == null) {
             return;
         }
 
+        // 阶段 2：检查是否已有“已通过且未过期”的审批单，命中则直接放行。
         LocalDateTime now = LocalDateTime.now();
         try {
             if (approvalRequestRepository.findLatestApproved(runId, candidate.toolKey, now).isPresent()) {
                 return;
             }
         } catch (Exception e) {
+            // 查询失败不直接拒绝：降级继续后续流程，尽量保证可用性。
             log.warn("查询 APPROVED 审批单失败，runId: {}, toolKey: {}", runId, candidate.toolKey, e);
         }
 
+        // 阶段 3：检查是否已有待审批单，若存在则复用并直接抛出等待审批异常。
         try {
             ApprovalRequest pending = approvalRequestRepository
                     .findLatestPending(runId, candidate.toolKey, now)
@@ -610,19 +698,25 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
                 );
             }
         } catch (ApprovalRequiredException e) {
+            // 业务中断信号向上透传，不做吞并。
             throw e;
         } catch (Exception e) {
+            // 查询 pending 异常时继续尝试新建审批单，避免因临时故障导致工具被无审批放行。
             log.warn("查询 PENDING 审批单失败，runId: {}, toolKey: {}", runId, candidate.toolKey, e);
         }
 
+        // 阶段 4：准备审批快照数据。
+        // argsJson 用于审批页展示/复核；序列化失败降级为 {}，不影响主流程。
         String argsJson;
         try {
             argsJson = objectMapper.writeValueAsString(safeArgs == null ? Collections.emptyMap() : safeArgs);
         } catch (Exception e) {
             argsJson = "{}";
         }
+        // digest 作为入参摘要，用于去重和后续续跑上下文比对。
         String digest = buildArgsDigest(safeArgs);
 
+        // 阶段 5：解析运行归属（workflow 或 agent），确保审批通过后可从正确位置续跑。
         Long agentId = null;
         Long agentVersionId = null;
         Long workflowId = null;
@@ -635,7 +729,7 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
         workflowVersionId = ctx == null ? null : ctx.getWorkflowVersionId();
         workflowNodeKey = ctx == null ? null : ctx.getWorkflowNodeKey();
         if (workflowId == null || workflowVersionId == null || !StringUtils.hasText(workflowNodeKey)) {
-            // fallback按 agent_run 归属
+            // fallback 到 agent_run 归属：用于非 workflow 场景审批续跑。
             AgentRun run = agentRunRepository
                     .findByRunId(runId)
                     .orElse(null);
@@ -643,10 +737,12 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
                 agentId = run.getAgentId();
                 agentVersionId = run.getAgentVersionId();
             } else {
+                // 归属无法定位时不允许继续，避免生成“无法续跑”的脏审批单。
                 throw new BusinessException("工具审批门禁触发，但无法定位运行归属（agent/workflow），runId=" + runId);
             }
         }
 
+        // 阶段 6：创建待审批单（PENDING）。
         ApprovalRequest req = ApprovalRequest.builder()
                 .approvalType("TOOL_INVOKE")
                 .status("PENDING")
@@ -669,10 +765,13 @@ public class GatewayToolCallbackProvider implements ToolCallbackProvider {
                 .expireAt(now.plusMinutes(30))
                 .build();
         approvalRequestRepository.insert(req);
+        // Agent 场景额外回写 pending 快照，便于审批通过后自动续跑。
         if (agentId != null && agentVersionId != null) {
             upsertPendingToolSnapshot(runId, candidate.toolKey, riskLevel, digest, req.getId(), now);
         }
+        // 写审批创建审计，保留治理可追溯性。
         recordApprovalCreatedAudit(runId, req, operatorId);
+        // 抛出审批中断异常：上层捕获后向前端返回“待审批”状态而非直接执行工具。
         throw new ApprovalRequiredException(req.getId(), candidate.toolKey, riskLevel, "工具调用需要审批（已生成审批单）");
     }
 

@@ -14,16 +14,31 @@ public final class GatewayToolBindingContextHolder {
 
     /**
      * ToolContext 中透传运行 ID 的键。
+     *
+     * 1、写入方：AI 对话入口在 `ChatClient.prompt(...).toolContext(...)` 前写入。
+     * 2、读取方：Gateway/MCP 工具回调入口在跨线程执行时读取并恢复到 ThreadLocal。
+     * 3、作用：确保工具调用审计、日志、指标仍能关联到同一条 runId 链路。
+     * 4、值语义：`String` 类型，建议与 traceId 对齐。
      */
     public static final String TOOL_CONTEXT_RUN_ID = "gateway.runId";
 
     /**
      * ToolContext 中透传操作人 ID 的键。
+     *
+     * 1、写入方：请求线程在登录态下解析当前 userId 后写入。
+     * 2、读取方：工具回调线程优先使用该值作为 operatorId。
+     * 3、作用：避免线程切换后 `StpUtil` 无法取到登录态，导致审计被记为 system。
+     * 4、值语义：`Long` 类型，`null` 表示系统调用或未登录上下文。
      */
     public static final String TOOL_CONTEXT_OPERATOR_ID = "gateway.operatorId";
 
     /**
      * ToolContext 中透传 `tool:invoke` 权限快照的键。
+     *
+     * 1、写入方：请求线程提前完成一次权限判断后写入布尔快照。
+     * 2、读取方：工具回调线程优先使用该快照做鉴权，再回退到 `StpUtil`。
+     * 3、作用：规避流式/异步线程下登录上下文丢失造成的误判 `PERMISSION_DENIED`。
+     * 4、值语义：`Boolean` 类型，`true` 允许调用，`false` 拒绝调用，`null` 表示未透传。
      */
     public static final String TOOL_CONTEXT_TOOL_INVOKE_PERMITTED = "gateway.toolInvokePermitted";
 
